@@ -22,7 +22,7 @@ PROTOC_OPTS += --doc_out=../ --doc_opt=html,api.html
 .PHONY: proto
 proto: protoc-gen-go protoc-gen-doc protovalidate
 	protoc $(PROTO_PATH) $(PROTOC_OPTS) $(shell find ./ -type f -name "*.proto" -not -path "./protovalidate/*")
-	# @git update-index --assume-unchanged $(shell find ../apis/ -type f)
+	@git update-index --assume-unchanged $(shell find ../apis/ -type f)
 
 .PHONY: proto-clean
 proto-clean: 
@@ -30,7 +30,6 @@ proto-clean:
 
 .PHONY: proto-lint
 proto-lint: protolint
-	#  We should change here to use "-fix" options.
 	protolint -config_path .protolint.yaml kernel/
 	protolint -config_path .protolint.yaml core/
 
@@ -41,7 +40,7 @@ proto-lint: protolint
 .PHONY: protoc-gen-go
 protoc-gen-go:
 ifeq (, $(shell which protoc-gen-go 2>/dev/null))
-	go install "google.golang.org/protobuf/cmd/protoc-gen-go@v1.35.2"
+	go install "google.golang.org/protobuf/cmd/protoc-gen-go@latest"
 endif
 
 .PHONY: protoc-gen-doc
@@ -58,6 +57,5 @@ endif
 
 .PHONY: protovalidate
 protovalidate:
-ifeq (,$(wildcard protovalidate))
-	git clone --branch v0.7.1 https://github.com/bufbuild/protovalidate.git
-endif
+	rm -rf protovalidate/
+	git clone --branch v0.9.0 https://github.com/bufbuild/protovalidate.git
