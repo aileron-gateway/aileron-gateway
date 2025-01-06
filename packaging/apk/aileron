@@ -1,0 +1,34 @@
+#!/sbin/openrc-run
+
+command="/usr/bin/aileron"
+command_args="-f /etc/aileron/config.yaml -e /etc/default/aileron.env"
+description="aileron gateway service"
+pidfile="/run/aileron.pid"
+
+checkconfig() {
+  return 0
+}
+
+start_pre() {
+  if [ "${RC_CMD}" != "restart" ] ; then
+    checkconfig || return $?
+  fi
+}
+
+stop_pre() {
+  if [ "${RC_CMD}" = "restart" ] ; then
+    checkconfig || return $?
+  fi
+}
+
+start() {
+    ebegin "Starting aileron gateway"
+    start-stop-daemon --start --pidfile "${pidfile}" --background --make-pidfile --exec "${command}" -- ${command_args}
+    eend $?
+}
+
+stop() {
+    ebegin "Stopping aileron gateway"
+    start-stop-daemon --stop --pidfile "${pidfile}"
+    eend $?
+}

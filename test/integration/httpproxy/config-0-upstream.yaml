@@ -1,0 +1,8 @@
+apiVersion: core/v1
+kind: ReverseProxyHandler
+spec:
+  loadBalancers:
+    - pathMatcher:
+        match: "/test"
+        matchType: Prefix
+      upstreams: []

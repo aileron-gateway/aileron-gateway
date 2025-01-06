@@ -1,0 +1,101 @@
+syntax = "proto3";
+package core.v1;
+
+import "buf/validate/validate.proto";
+import "core/v1/template.proto";
+import "kernel/resource.proto";
+
+option go_package = "github.com/aileron-gateway/aileron-gateway/apis/core/v1";
+
+// ErrorHandler is the definition of the ErrorHandler object.
+// ErrorHandler implements interface of error handler.
+message ErrorHandler {
+    // [REQUIRED]
+    // APIVersion is the defined version of the error handler.
+    // This value must be "core/v1".
+    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "core/v1"];
+
+    // [REQUIRED]
+    // Kind is the kind of this object.
+    // This value must be "ErrorHandler".
+    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "ErrorHandler"];
+
+    // [OPTIONAL]
+    // Metadata is the metadata of the error handler object.
+    // If not set, both name and namespace in the metadata
+    // are treated as "default".
+    kernel.Metadata Metadata = 3 [json_name = "metadata"];
+
+    // [OPTIONAL]
+    // Spec is the specification of the error handler .
+    // Default values are used when nothing is set.
+    ErrorHandlerSpec Spec = 4 [json_name = "spec"];
+}
+
+// ErrorHandlerSpec is the specifications for the ErrorHandler object.
+message ErrorHandlerSpec {
+    // [OPTIONAL]
+    // StackAlways is the flag to output stacktrace to the logger.
+    // If set to true, this error handler output stacktrace
+    // even when handling client side error, or 400-499 status error.
+    // Default is [false].
+    bool StackAlways = 1 [json_name = "stackAlways"];
+
+    // [OPTIONAL]
+    // ErrorMessages is the list of custom error messages to overwrite.
+    // Default is not set.
+    repeated ErrorMessageSpec ErrorMessages = 2 [json_name = "errorMessages"];
+}
+
+// ErrorMessageSpec is the specification of HTTP error response.
+message ErrorMessageSpec {
+    // [OPTIONAL]
+    // Codes are the list of error code patterns to match this message.
+    // String is evaluated by the path match.
+    // For example, "E123*" or "E12*".
+    // See https://pkg.go.dev/path#Match for for available expressions.
+    // If an error matched to one of the Codes, Kinds or Message patterns
+    // then the response is overwritten by the MIMEContents.
+    // Default is not set.
+    repeated string Codes = 2 [json_name = "codes", (buf.validate.field).repeated.unique = true, (buf.validate.field).repeated.items.string.min_len = 1];
+
+    // [OPTIONAL]
+    // Kinds are the list of error kind patterns to match this message.
+    // String is evaluated by the path match.
+    // See https://pkg.go.dev/path#Match for for available expressions.
+    // If an error matched to one of the Codes, Kinds or Message patterns
+    // then the response is overwritten by the MIMEContents.
+    // Default is not set.
+    repeated string Kinds = 3 [json_name = "kinds", (buf.validate.field).repeated.unique = true, (buf.validate.field).repeated.items.string.min_len = 1];
+
+    // [OPTIONAL]
+    // Messages are the list of error message pattarns to match this message.
+    // String is evaluated by the regular expression.
+    // See https://pkg.go.dev/regexp and https://github.com/google/re2/wiki/Syntax
+    // for available expressions.
+    // If an error matched to one of the Codes, Kinds or Message patterns
+    // then the response is overwritten by the MIMEContents.
+    // Default is not set.
+    repeated string Messages = 4 [json_name = "messages", (buf.validate.field).repeated.unique = true, (buf.validate.field).repeated.items.string.min_len = 1];
+
+    // [OPTIONAL]
+    // HeaderTemplate is the key-value pairs of HTTP headers
+    // to add to the error response.
+    // Unlike headers that can set in MIMEContents field,
+    // values can be written in template.
+    // HTTP status code `{{status}}` and status text `{{statusText}}`,
+    // error code and kind `{{code}}`, `{{kind}}` can be used in the value.
+    // Header names cannot be in template format.
+    // This field is mainly intended to set error redirecting headers.
+    // Default is not set.
+    map<string, string> HeaderTemplate = 5 [json_name = "headerTemplate"];
+
+    // [OPTIONAL]
+    // MIMEContents is the list of mime content to be used for overwriting the error response.
+    // If an error matched to one of the Codes, Kinds or Message patterns
+    // then the response is overwritten by one of the MIMEContents.
+    // Responses are not overwritten if this field has no content.
+    // The first one is used when the Accept header did not matched to any content.
+    // Default is not set.
+    repeated MIMEContentSpec MIMEContents = 6 [json_name = "mimeContents"];
+}

@@ -1,0 +1,9 @@
+apiVersion: core/v1
+kind: HTTPClient
+spec:
+  tripperwares:
+    - apiVersion: container/v1
+      kind: TestTripperware
+      name: test
+  http2TransportConfig:
+    allowHTTP: true # Set true to use h2c.

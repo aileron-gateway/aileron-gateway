@@ -1,0 +1,27 @@
+apiVersion: core/v1
+kind: HTTPServer
+spec:
+  addr: "127.0.0.1:12345"
+  http3Config:
+    tlsConfig:
+      certKeyPairs:
+        - certFile: ${TEST_DATA_DIR}cert.pem
+          keyFile: ${TEST_DATA_DIR}key.pem
+  middleware:
+    - apiVersion: container/v1
+      kind: TestMiddleware
+      name: test1
+    - apiVersion: container/v1
+      kind: TestMiddleware
+      name: test2
+  virtualHosts:
+    - hosts:
+        - 127.0.0.1
+      pattern: /prefix
+      methods:
+        - GET
+      handlers:
+        - handler:
+            apiVersion: container/v1
+            kind: TestHandler
+            name: test

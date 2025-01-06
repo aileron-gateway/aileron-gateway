@@ -1,0 +1,9 @@
+apiVersion: core/v1
+kind: SLogger
+spec:
+  logOutput:
+    outputTarget: File
+    logDir: ./logDir
+    backupDir: ./backupDir
+    rotateSize: 1
+    maxTotalSize: 2

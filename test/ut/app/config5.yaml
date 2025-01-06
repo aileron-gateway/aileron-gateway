@@ -1,0 +1,6 @@
+apiVersion: test1
+apiVersion: test1 # Duplicate field is not allowed for yaml.
+kind: test2
+metadata:
+  namespace: test3
+  name: test4

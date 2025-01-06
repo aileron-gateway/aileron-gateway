@@ -1,0 +1,13 @@
+ignore:
+  - "test/"
+  - "apis/"
+  - "kernel/testutil/"
+coverage:
+  range: 80..95
+  round: down
+  precision: 2
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%

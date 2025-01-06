@@ -1,0 +1,19 @@
+apiVersion: core/v1
+kind: ReverseProxyHandler
+spec:
+  loadBalancers:
+    - pathMatcher:
+        match: "/test"
+        matchType: Prefix
+      lbAlgorithm: DirectHash
+      hashers:
+        - hasherType: Query
+          hashAlg: FNV1a_32
+          key: proxy
+      upstreams:
+        - url: http://127.0.0.1:10001
+          weight: 1
+        - url: http://127.0.0.1:10002
+          weight: 2
+        - url: http://127.0.0.1:10003
+          weight: 3

@@ -1,0 +1,12 @@
+apiVersion: core/v1
+kind: ReverseProxyHandler
+spec:
+  loadBalancers:
+    - pathMatcher:
+        match: "/"
+        matchType: Prefix
+      methods:
+        - GET
+        - PUT
+      upstreams:
+        - url: http://127.0.0.1:10001

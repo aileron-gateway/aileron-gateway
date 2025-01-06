@@ -1,0 +1,10 @@
+apiVersion: core/v1
+kind: TemplateHandler
+spec:
+  mimeContents:
+    - mimeType: text/html
+      statusCode: 302
+      header:
+        alice: bob
+      templateType: GoHTML
+      template: '<a href="/test">{{.path}}</a>'

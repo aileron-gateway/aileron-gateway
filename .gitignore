@@ -2,6 +2,7 @@
 *
 !*.*
 !**/
+!packaging/**
 
 # Include files without extension.
 !Makefile

@@ -1,0 +1,101 @@
+name: Binary Release
+# References
+# https://github.com/slsa-framework/slsa-github-generator
+# https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/go/README.md
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+-alpha.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+-beta.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+-rc.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+permissions:
+  id-token: write
+  contents: write
+  actions: read
+
+jobs:
+  args:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - run: git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+      - id: version
+        run: echo "version=$(git describe --tags --always --dirty | sed 's/-dirty//')" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: args
+    uses: slsa-framework/slsa-github-generator/.github/workflows/builder_go_slsa3.yml@v2.0.0
+    strategy:
+      matrix:
+        target:
+          - darwin-amd64
+          - darwin-arm64
+          - freebsd-386
+          - freebsd-amd64
+          - freebsd-arm
+          - freebsd-arm64
+          - linux-386
+          - linux-amd64
+          - linux-arm
+          - linux-arm64
+          - linux-ppc64
+          - linux-ppc64le
+          - linux-riscv64
+          - linux-s390x
+          - netbsd-386
+          - netbsd-amd64
+          - netbsd-arm
+          - netbsd-arm64
+          - openbsd-386
+          - openbsd-amd64
+          - openbsd-arm
+          - openbsd-arm64
+          - windows-386
+          - windows-amd64
+          - windows-arm
+          - windows-arm64
+    with:
+      # Check available go version at the link below.
+      # https://github.com/actions/go-versions/blob/main/versions-manifest.json
+      go-version: stable
+      config-file: .github/targets/${{matrix.target}}.yaml
+      evaluated-envs: "VERSION:${{needs.args.outputs.version}}"
+      draft-release: true
+      upload-assets: true
+      upload-tag-name: "${{needs.args.outputs.version}}"
+      private-repository: true
+
+  nfpm:
+    needs: [build, args]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+      - run: ls -la
+      - run: |
+          echo 'deb [trusted=yes] https://repo.fury.io/goreleaser/ /' | sudo tee /etc/apt/sources.list.d/goreleaser.list
+          sudo apt-get update
+          sudo apt-get install -y nfpm
+          export VERSION="${{needs.args.outputs.version}}"
+          make rpm
+          make deb
+          make apk
+          make archlinux
+          ls -la ./packaging/pkgs/
+      - run: |
+          cd ./packaging/pkgs/
+          ls -la
+          sha256sum aileron* >> ./SHA256SUMS
+          sha1sum aileron* >> ./SHA1SUMS
+          md5sum aileron* >> ./MD5SUMS
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: ./packaging/pkgs/*
+          draft: true

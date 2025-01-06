@@ -1,0 +1,7 @@
+apiVersion: core/v1
+kind: StaticFileHandler
+spec:
+  rootDir: ${TEST_DATA_DIR}
+  enableListing: true
+  header:
+    foo: bar

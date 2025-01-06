@@ -1,0 +1,45 @@
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  runners:
+    - apiVersion: core/v1
+      kind: HTTPServer
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+spec:
+  addr: ":8080"
+  virtualHosts:
+    - hosts: []
+      middleware:
+        - apiVersion: core/v1
+          kind: GoPlugin
+      handlers:
+        - handler:
+            apiVersion: core/v1
+            kind: ReverseProxyHandler
+        - handler:
+            apiVersion: core/v1
+            kind: GoPlugin
+
+---
+apiVersion: core/v1
+kind: ReverseProxyHandler
+spec:
+  tripperwares:
+    - apiVersion: core/v1
+      kind: GoPlugin
+  loadBalancers:
+    - pathMatcher:
+        match: "/"
+        matchType: Prefix
+      upstreams:
+        - url: http://httpbin.org
+
+---
+apiVersion: core/v1
+kind: GoPlugin
+spec:
+  pluginPath: ./_example/goplugin/goplugin.so
+  symbolName: Plugin

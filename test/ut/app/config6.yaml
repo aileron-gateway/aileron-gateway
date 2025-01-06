@@ -1,0 +1,5 @@
+# apiVersion: test1 # This field is required.
+# kind: test2       # This field is required.
+metadata:
+  namespace: test3
+  name: test4

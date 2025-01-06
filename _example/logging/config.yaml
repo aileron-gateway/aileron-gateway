@@ -1,0 +1,84 @@
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  defaultLogger:
+    apiVersion: core/v1
+    kind: SLogger
+  # loggers:
+  #   # Loggers are available by metadata.logger
+  #   # by the name <apiVersion>/<kind>/<namespace>/<name>
+  #   # "core/v1/SLogger/default/default".
+  #   - apiVersion: core/v1
+  #     kind: SLogger
+  runners:
+    - apiVersion: core/v1
+      kind: HTTPServer
+
+---
+apiVersion: core/v1
+kind: SLogger
+spec:
+  level: Debug
+  unstructured: false
+  outputTimeFormat: "2006-01-02 15:04:05"
+  dateFormat: "2006-01-02"
+  timeFormat: "15:04:05.000"
+  noLocation: false
+  noDatetime: false
+  logOutput:
+    # outputTarget: Stdout
+    outputTarget: File
+    rotateSize: 10
+    maxBackup: 3
+    compressLevel: 0
+    logDir: ./_example/logging/logs
+    backupDir: ./_example/logging/logs
+    timeLayout: "2006-01-02_15-04-05"
+    timeZone: "UTC"
+    cron: "*/10 * * * * *"
+  # fieldReplacers:
+  #   - field: location.func
+  #     replacer:
+  #       fixed:
+  #         value: "***"
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+# metadata:
+#   logger: "core/v1/SLogger/default/default"
+spec:
+  addr: ":8080"
+  virtualHosts:
+    - hosts: []
+      middleware:
+        - apiVersion: core/v1
+          kind: HTTPLogger
+      handlers:
+        - handler:
+            apiVersion: core/v1
+            kind: TemplateHandler
+
+---
+apiVersion: core/v1
+kind: TemplateHandler
+spec:
+  patterns:
+    - "/contents/"
+  mimeContents:
+    - mimeType: text/plain
+      statusCode: 500
+      templateType: Text
+      template: |
+        AILERON Gateway
+
+---
+apiVersion: core/v1
+kind: HTTPLogger
+spec:
+  request:
+    headers:
+      - name: "*"
+  response:
+    headers:
+      - name: "*"

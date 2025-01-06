@@ -1,0 +1,20 @@
+version: 1
+
+goos: windows
+goarch: arm
+
+main: ./cmd/aileron/
+binary: aileron-{{ .Os }}-{{ .Arch }}.exe
+
+env:
+  - CGO_ENABLED=0
+  - GOARM=7
+
+flags:
+  - -trimpath
+
+ldflags:
+  - "-w"
+  - "-s"
+  - '-extldflags "-static"'
+  - "-X main.version={{ .Env.VERSION }}"

@@ -1,0 +1,33 @@
+name: Container Release
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+-alpha.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+-beta.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+-rc.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE_REGISTRY: ghcr.io
+  IMAGE_NAME: aileron
+
+jobs:
+  publish:
+    name: Publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - run: git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - uses: ko-build/setup-ko@v0.7
+      - run: |
+          export VERSION=$(git describe --tags --always --dirty | sed 's/-dirty//')
+          ko build -v -B --sbom=none --tags=latest --tags=${VERSION} ./cmd/aileron/

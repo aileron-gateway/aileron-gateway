@@ -1,0 +1,373 @@
+syntax = "proto3";
+package core.v1;
+
+import "buf/validate/validate.proto";
+import "core/v1/http.proto";
+import "core/v1/httphandler.proto";
+import "kernel/network.proto";
+import "kernel/resource.proto";
+
+option go_package = "github.com/aileron-gateway/aileron-gateway/apis/core/v1";
+
+// HTTPServer is the definition of the HTTPServer object.
+message HTTPServer {
+    // [REQUIRED]
+    // APIVersion is the defined version of the server.
+    // This value must be "core/v1".
+    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "core/v1"];
+
+    // [REQUIRED]
+    // Kind is the kind of this object.
+    // This value must be "HTTPServer".
+    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "HTTPServer"];
+
+    // [OPTIONAL]
+    // Metadata is the metadata of the server object.
+    // If not set, both name and namespace in the metadata
+    // are treated as "default".
+    kernel.Metadata Metadata = 3 [json_name = "metadata"];
+
+    // [OPTIONAL]
+    // Spec is the specification of the server.
+    // Default values are used when nothing is set.
+    HTTPServerSpec Spec = 4 [json_name = "spec"];
+}
+
+// HTTPServerSpec is the specifications for the HTTPServer object.
+message HTTPServerSpec {
+    // [OPTIONAL]
+    // ErrorHandler is the reference to a ErrorHandler object.
+    // Referred object must implement ErrorHandler interface.
+    // This error handler will be used for default NotFound handler.
+    // This field will be ignored if NotFoundHandler is specified
+    // or a handler for root path "/" is registered.
+    // Default error handler is used when not set.
+    kernel.Reference ErrorHandler = 1 [json_name = "errorHandler"];
+
+    // [OPTIONAL]
+    // Addr is the address which the server listen to.
+    // If not set, default port is used.
+    // The format must be "host:port", ":port" or "host%zone:port".
+    // For example, "0.0.0.0:443", "[::1]:443", ":443", "localhost:443", ":https".
+    // See more address example at https://pkg.go.dev/net#Dial.
+    // To use unix domain socket such like, "/var/run/gateway.sock" or "@gateway",
+    // set Network and Address in the ListenConfig of HTTP2Config field.
+    // Default is [":8080"].
+    string Addr = 2 [json_name = "addr"];
+
+    // [OPTIONAL]
+    // ShutdownTimeout is the timeout dutation of graceful shutdown of the server in seconds.
+    // Default is [30].
+    int32 ShutdownTimeout = 3 [json_name = "shutdownTimeout"];
+
+    // [OPTIONAL]
+    // HTTPConfig is the configuration for HTTP/1.1 and HTTP/2 server.
+    // HTTP server is enabled if both HTTP2Config and HTTP3Config
+    // are not configured.
+    // Default is not set.
+    HTTPConfig HTTPConfig = 4 [json_name = "httpConfig"];
+
+    // [OPTIONAL]
+    // HTTP2Config is the additional config for HTTP/2 server.
+    // Default is not set.
+    HTTP2Config HTTP2Config = 5 [json_name = "http2Config"];
+
+    // [OPTIONAL]
+    // HTTP3Config is the configuration for HTTP3, or Quic server.
+    // HTTP2 server is enabled if both HTTP2Config and HTTP3Config
+    // was not configured.
+    // This configuration only enables quick(udp) server.
+    // So, it is usually required to enable both HTTP2 (tcp) and HTTP3 (udp) servers
+    // to access this server directory from browsers.
+    // Default is not set.
+    HTTP3Config HTTP3Config = 6 [json_name = "http3Config"];
+
+    // [OPTIONAL]
+    // Middleware is the list of middleware applied for the entire server.
+    // Default is not set.
+    repeated kernel.Reference Middleware = 7 [json_name = "middleware"];
+
+    // [OPTIONAL]
+    // VirtualHosts is the list of virtual host specification.
+    // Use this for configuring the route for this server.
+    // Default is not set.
+    repeated VirtualHostSpec VirtualHosts = 8 [json_name = "virtualHosts"];
+
+    // [OPTIONAL]
+    // Profile enables profile endpoint for the server.
+    // See https://pkg.go.dev/net/http/pprof.
+    // This feature is disabled by default.
+    // Default is not set.
+    ProfileSpec Profile = 9 [json_name = "profile"];
+
+    // [OPTIONAL]
+    // Expvar enables expvar endpoint for the server.
+    // See https://pkg.go.dev/expvar.
+    // This feature is disabled by default.
+    // Default is not set.
+    ExpvarSpec Expvar = 10 [json_name = "expvar"];
+}
+
+// HTTPConfig is the configuration for a HTTP 1/2 server.
+message HTTPConfig {
+    // EnableGeneralOptionsHandler, if false, passes "OPTIONS *" requests to the Handler,
+    // otherwise responds with 200 OK and Content-Length: 0.
+    // This fileid is used only for http server, not for http3 sever.
+    // Default is [false].
+    bool EnableGeneralOptionsHandler = 1 [json_name = "enableGeneralOptionsHandler"];
+
+    // [OPTIONAL]
+    // ReadTimeout is the maximum duration for reading the entire request, including the body.
+    // A zero or negative value means there will be no timeout.
+    // Because each request body's acceptable deadline or upload rate are not decided per-request
+    // by this ReadTimeout, most users will prefer to use ReadHeaderTimeout.
+    // It is valid to use them both.
+    // This fileid is used only for http server, not for http3 sever.
+    // Default is [30] seconds.
+    int64 ReadTimeout = 2 [json_name = "readTimeout"];
+
+    // [OPTIONAL]
+    // ReadHeaderTimeout is the amount of time allowed to read request headers.
+    // The connection's read deadline is reset after reading the headers.
+    // If ReadHeaderTimeout is zero, the value of ReadTimeout is used.
+    // If both are zero, there is no timeout.
+    // This fileid is used only for http server, not for http3 sever.
+    // Default is [30] seconds.
+    int64 ReadHeaderTimeout = 3 [json_name = "readHeaderTimeout"];
+
+    // [OPTIONAL]
+    // WriteTimeout is the maximum duration before timing out writes of the response.
+    // It is reset whenever a new request's header is read.
+    // Like ReadTimeout, this is not applied per-request basis.
+    // A zero or negative value means there will be no timeout.
+    // This fileid is used only for http server, not for http3 sever.
+    // Default is [30] seconds.
+    int64 WriteTimeout = 4 [json_name = "writeTimeout"];
+
+    // [OPTIONAL]
+    // WriteTimeout is the maximum duration before timing out writes of the response.
+    // It is reset whenever a new request's header is read.
+    // Like ReadTimeout, this is not applied per-request basis.
+    // A zero or negative value means there will be no timeout.
+    // This fileid is used only for http server, not for http3 sever.
+    // Default is [10] seconds.
+    int64 IdleTimeout = 5 [json_name = "idleTimeout"];
+
+    // [OPTIONAL]
+    // MaxHeaderBytes controls the maximum number of bytes the server will read
+    // parsing the request header's keys and values, including the request line.
+    // It does not limit the size of the request body.
+    // Default is [8192].
+    int32 MaxHeaderBytes = 6 [json_name = "maxHeaderBytes"];
+
+    // [OPTIONAL]
+    // DisableKeepAlive disables HTTP keep-alives.
+    // Only very resource-constrained environments or servers in the process of shutting down should disable them.
+    // This fileid is used only for http server, not for http3 sever.
+    // Default is [false].
+    bool DisableKeepAlive = 7 [json_name = "disableKeepAlive"];
+
+    // [OPTIONAL]
+    // ListenConfig is the config for TCP listener.
+    // Default values are used when this field is not used.
+    // TLSConfig in this field will be ignored.
+    // Network must be "tcp"
+    kernel.ListenConfig ListenConfig = 8 [json_name = "listenConfig"];
+
+    // [OPTIONAL]
+    // AltSvc is the Alt-Svc header value.
+    // Alt-Svc header won't be added to response headers if the value is empty
+    // Default is not set, or empty string [""].
+    string AltSvc = 9 [json_name = "altSvc"];
+
+    // [OPTIONAL]
+    // AllowHTTP2 allows HTTP/2 connection with default configuration
+    // using the given TLS configurations if any.
+    // Default is [false].
+    bool AllowHTTP2 = 10 [json_name = "allowHTTP2"];
+}
+
+// HTTP2Config is the configuration for HTTP2 servers.
+// Configuable fields are related to the HTTP2 server
+// found at https://pkg.go.dev/golang.org/x/net/http2#Server
+message HTTP2Config {
+    // [OPTIONAL]
+    // MaxConcurrentStreams optionally specifies the number of
+    // concurrent streams that each client may have open at a
+    // time. This is unrelated to the number of http.Handler goroutines
+    // which may be active globally, which is MaxHandlers.
+    // If zero, MaxConcurrentStreams defaults to at least 100, per
+    // the HTTP/2 spec's recommendations.
+    // Default is zero, [0].
+    uint32 MaxConcurrentStreams = 1 [json_name = "maxConcurrentStreams"];
+
+    // [OPTIONAL]
+    // MaxDecoderHeaderTableSize optionally specifies the http2
+    // SETTINGS_HEADER_TABLE_SIZE to send in the initial settings frame. It
+    // informs the remote endpoint of the maximum size of the header compression
+    // table used to decode header blocks, in octets. If zero, the default value
+    // of 4096 is used.
+    // Default is zero, [0].
+    uint32 MaxDecoderHeaderTableSize = 2 [json_name = "maxDecoderHeaderTableSize"];
+
+    // [OPTIONAL]
+    // MaxEncoderHeaderTableSize optionally specifies an upper limit for the
+    // header compression table used for encoding request headers. Received
+    // SETTINGS_HEADER_TABLE_SIZE settings are capped at this limit. If zero,
+    // the default value of 4096 is used.
+    // Default is zero, [0].
+    uint32 MaxEncoderHeaderTableSize = 3 [json_name = "maxEncoderHeaderTableSize"];
+
+    // [OPTIONAL]
+    // MaxReadFrameSize optionally specifies the largest frame
+    // this server is willing to read. A valid value is between
+    // 16k and 16M, inclusive. If zero or otherwise invalid, a
+    // default value is used.
+    // Default is zero, [0].
+    uint32 MaxReadFrameSize = 4 [json_name = "maxReadFrameSize"];
+
+    // [OPTIONAL]
+    // PermitProhibitedCipherSuites, if true, permits the use of
+    // cipher suites prohibited by the HTTP/2 spec.
+    // Default is [false].
+    bool PermitProhibitedCipherSuites = 5 [json_name = "permitProhibitedCipherSuites"];
+
+    // [OPTIONAL]
+    // IdleTimeout specifies how long until idle clients should be
+    // closed with a GOAWAY frame. PING frames are not considered
+    // activity for the purposes of IdleTimeout.
+    // If zero or negative, there is no timeout.
+    // Default is zero, [0].
+    uint32 IdleTimeout = 6 [json_name = "idleTimeout"];
+
+    // [OPTIONAL]
+    // MaxUploadBufferPerConnection is the size of the initial flow
+    // control window for each connections. The HTTP/2 spec does not
+    // allow this to be smaller than 65535 or larger than 2^32-1.
+    // If the value is outside this range, a default value will be
+    // used instead.
+    // Default is zero, [0].
+    int32 MaxUploadBufferPerConnection = 7 [json_name = "maxUploadBufferPerConnection"];
+
+    // [OPTIONAL]
+    // MaxUploadBufferPerStream is the size of the initial flow control
+    // window for each stream. The HTTP/2 spec does not allow this to
+    // be larger than 2^32-1. If the value is zero or larger than the
+    // maximum, a default value will be used instead.
+    // Default is zero, [0].
+    int32 MaxUploadBufferPerStream = 8 [json_name = "maxUploadBufferPerStream"];
+
+    // [OPTIONAL]
+    // EnableH2C is the flag to set h2c header.
+    // Default is [false].
+    bool EnableH2C = 9 [json_name = "enableH2C"];
+
+    // [OPTIONAL]
+    // AltSvc is the Alt-Svc header value.
+    // Alt-Svc header won't be added to
+    // response headers if the value is empty
+    // Default is not set, or empty string [""].
+    string AltSvc = 10 [json_name = "altSvc"];
+}
+
+// HTTP3Config is the configuration for HTTP3 servers.
+// Configuable fields are related to the HTTP3 server
+// found at https://pkg.go.dev/github.com/quic-go/quic-go/http3#Server
+message HTTP3Config {
+    // [OPTIONAL]
+    // QuicConfig is the configuration for quic protocol of http3 transport layer.
+    // Default values are used when this field is not specified.
+    // HTTP3 server is enabled when this field is set.
+    kernel.QuicConfig QuicConfig = 1 [json_name = "quicConfig"];
+
+    // [OPTIONAL]
+    // TLSConfig is the configuration for TLS connections.
+    // Default values are used when this field is not specified.
+    kernel.TLSConfig TLSConfig = 2 [json_name = "tlsConfig"];
+
+    // [OPTIONAL]
+    // MaxHeaderBytes controls the maximum number of bytes the server will read
+    // parsing the request header's keys and values, including the request line.
+    // It does not limit the size of the request body.
+    // Default is [8192].
+    int32 MaxHeaderBytes = 3 [json_name = "maxHeaderBytes"];
+
+    // [OPTIONAL]
+    // AltSvc is the Alt-Svc header value.
+    // Alt-Svc header won't be added to
+    // response headers if the value is empty
+    // Default is not set, or empty string [""].
+    string AltSvc = 4 [json_name = "altSvc"];
+}
+
+// VirtualHostSpec is the specification of each virtual hosts.
+message VirtualHostSpec {
+    // [OPTIONAL]
+    // Hosts is the list of hostname to accept. Vertual hostnames in other words.
+    // Because the Host headers of requests are used for routing, list all FQDN here including sub domains.
+    // All FQDN must be unique for among the server.
+    // When no hosts are set, handler are registered to the default mux.
+    // Default is not set.
+    repeated string Hosts = 1 [json_name = "hosts", (buf.validate.field).repeated.items.string.pattern = "^[0-9a-zA-Z.-]+$", (buf.validate.field).repeated.unique = true];
+
+    // [OPTIONAL]
+    // Pattern is the path pattern for this hosts.
+    // The specified pattern will be added as a prefix
+    // to the path patterns of all handlers.
+    // This pattern is joined with the registered handler.
+    // Default is not set, or empty string[""].
+    string Pattern = 2 [json_name = "pattern"];
+
+    // [OPTIONAL]
+    // Methods is the list of allowed HTTP methods to ba handled.
+    // This list will be whitelist of HTTP methods if set at least one.
+    // If not set, methods set at each handlers are used.
+    // Default is not set, or allow all.
+    repeated HTTPMethod Methods = 3 [json_name = "methods", (buf.validate.field).repeated.unique = true];
+
+    // [OPTIONAL]
+    // Middleware is the list of middleware applied for all handlers.
+    // Default is not set.
+    repeated kernel.Reference Middleware = 4 [json_name = "middleware"];
+
+    // [OPTIONAL]
+    // Handlers is the list of handler for this host.
+    // This is optional but specify at least 1 handler to serve some apis.
+    // Default is not set.
+    repeated core.v1.HTTPHandlerSpec Handlers = 5 [json_name = "handlers"];
+}
+
+// ProfileSpec is the specification for profile endpoints.
+message ProfileSpec {
+    // [OPTIONAL]
+    // Enable enables profile endpoints.
+    // This is intended for debugging.
+    // Default is [false].
+    bool Enable = 1 [json_name = "enable"];
+
+    // [OPTIONAL]
+    // PathPrefix is the path prefix of the profile endpoints.
+    // This prefix can contain hostname.
+    // For example, "localhost/debug/pprof".
+    // Available HTTP methods are restricted to GET only.
+    // Default is ["/debug/pprof"]
+    string PathPrefix = 2 [json_name = "pathPrefix"];
+}
+
+// ExpvarSpec is the specification for  endpoints.
+// See https://pkg.go.dev/expvar.
+message ExpvarSpec {
+    // [OPTIONAL]
+    // Enable enables expvar endpoints.
+    // This is intended for debugging.
+    // Default is [false].
+    bool Enable = 1 [json_name = "enable"];
+
+    // [OPTIONAL]
+    // Path is the path of the expvar endpoints.
+    // This prefix can contains method or hostname.
+    // For example, "localhost/debug/vars".
+    // Available HTTP methods are restricted to GET only.
+    // Default is ["/debug/var"]
+    string Path = 2 [json_name = "path"];
+}

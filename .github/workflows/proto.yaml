@@ -1,0 +1,32 @@
+name: Proto
+
+on:
+  workflow_call: {}
+
+jobs:
+  proto:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - run: git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          version: "29.0"
+      - run: make proto-clean
+      - run: make proto
+      - name: git commit
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add -f apis/
+          git commit -s -m "make proto in workflow" || true
+          git push || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apis
+          path: apis

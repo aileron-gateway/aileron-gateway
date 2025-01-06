@@ -1,0 +1,95 @@
+syntax = "proto3";
+package core.v1;
+
+option go_package = "github.com/aileron-gateway/aileron-gateway/apis/core/v1";
+
+// HTTPMethod is the types of HTTP methods.
+// See https://pkg.go.dev/net/http#pkg-constants
+enum HTTPMethod {
+    HTTPMethodUnknown = 0;  // Unknown HTTP method.
+    GET               = 1;  // HTTP GET method.
+    HEAD              = 2;  // HTTP HEAD method.
+    POST              = 3;  // HTTP POST method.
+    PUT               = 4;  // HTTP PUT method.
+    PATCH             = 5;  // HTTP PATCH method.
+    DELETE            = 6;  // HTTP DELETE method.
+    CONNECT           = 7;  // HTTP CONNECT method.
+    OPTIONS           = 8;  // HTTP OPTIONS method.
+    TRACE             = 9;  // HTTP TRACE method.
+}
+
+// CookieSpec is the specification of cookie object.
+// Cookie objests will be created with the given specs.
+// See https://pkg.go.dev/net/http#Cookie
+message CookieSpec {
+    // [OPTIONAL]
+    // Name is the cookie name.
+    // Default value depends on the resources that use this cookie objects.
+    // Consider using "__Secure-" prefix or "__Host-" prefix to improve security.
+    // See https://pkg.go.dev/net/http#Cookie.Name
+    string Name = 1 [json_name = "name"];
+
+    // [OPTIONAL]
+    // Value is the value of cookie.
+    // This field should basically be empty
+    // because the value is set by the resources that
+    // use this cookie resource.
+    // See Value field of https://pkg.go.dev/net/http#Cookie.Value
+    // Default is not set or empty string [""].
+    string Value = 2 [json_name = "value"];
+
+    // [OPTIONAL]
+    // Path is the path attribute of cookie.
+    // See Path field of https://pkg.go.dev/net/http#Cookie.Path
+    // Default value depends on the resources that use this spec.
+    string Path = 3 [json_name = "path"];
+
+    // [OPTIONAL]
+    // Domain is the domain attribute of cookie.
+    // See Domain field of https://pkg.go.dev/net/http#Cookie.Domain
+    // Default value depends on the resources that use this spec.
+    string Domain = 4 [json_name = "domain"];
+
+    // [OPTIONAL]
+    // ExpiresIn is the expires attribute of cookie.
+    // See Expires field of https://pkg.go.dev/net/http#Cookie.Expires
+    // Default value depends on the resources that use this spec.
+    int32 ExpiresIn = 5 [json_name = "expiresIn"];
+
+    // [OPTIONAL]
+    // MaxAge is the MaxAge attribute of cookie.
+    // See MaxAge field of https://pkg.go.dev/net/http#Cookie.MaxAge
+    // MaxAge=0 means no 'Max-Age' attribute specified.
+    // MaxAge<0 means delete cookie now, equivalently 'Max-Age: 0'
+    // MaxAge>0 means Max-Age attribute present and given in seconds.
+    // Default value depends on the resources that use this spec.
+    int32 MaxAge = 6 [json_name = "maxAge"];
+
+    // [OPTIONAL]
+    // Secure is the Secure attribute of cookie.
+    // See Secure field of https://pkg.go.dev/net/http#Cookie.Secure
+    // Default value depends on the resources that use this spec.
+    bool Secure = 7 [json_name = "secure"];
+
+    // [OPTIONAL]
+    // HttpOnly is the HttpOnly attribute of cookie.
+    // See HttpOnly field of https://pkg.go.dev/net/http#Cookie.HttpOnly
+    // Default value depends on the resources that use this spec.
+    bool HTTPOnly = 8 [json_name = "httpOnly"];
+
+    // [OPTIONAL]
+    // SameSite is the SameSite attribute of cookie.
+    // See SameSite field of https://pkg.go.dev/net/http#Cookie.SameSite
+    // Default value depends on the resources that use this spec.
+    SameSite SameSite = 9 [json_name = "sameSite"];
+}
+
+// SameSite is the values of cookie's SameSite attribute.
+// See https://pkg.go.dev/net/http#SameSite.
+enum SameSite {
+    SameSiteUnknown = 0;  // Unknown.
+    Default         = 1;  // User-agent's default SameSite.
+    Lax             = 2;  // Cookie's SameSite attribute "Lax".
+    Strict          = 3;  // Cookie's SameSite attribute "Strict".
+    None            = 4;  // Cookie's SameSite attribute "None".
+}

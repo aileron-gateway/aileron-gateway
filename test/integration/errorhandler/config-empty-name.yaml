@@ -1,0 +1,5 @@
+apiVersion: core/v1
+kind: ErrorHandler
+metadata:
+  name: ""
+  namespace: testNamespace

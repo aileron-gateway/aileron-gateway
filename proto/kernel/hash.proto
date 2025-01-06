@@ -1,0 +1,36 @@
+syntax = "proto3";
+package kernel;
+
+option go_package = "github.com/aileron-gateway/aileron-gateway/apis/kernel";
+
+// HashAlg is the hash algorithms.
+enum HashAlg {
+    HashAlgUnknown = 0;   // Unknown hash algorithm.
+    SHA1           = 1;   // SHA-1 hash algorithm. https://pkg.go.dev/crypto/sha1
+    SHA224         = 2;   // SHA224 hash algorithm. https://pkg.go.dev/crypto/sha256
+    SHA256         = 3;   // SHA-2/SHA256 hash algorithm. https://pkg.go.dev/crypto/sha256
+    SHA384         = 4;   // SHA-2/SHA384 hash algorithm. https://pkg.go.dev/crypto/sha512
+    SHA512         = 5;   // SHA-2/SHA512 hash algorithm. https://pkg.go.dev/crypto/sha512
+    SHA512_224     = 6;   // SHA-2/SHA512_224 hash algorithm. https://pkg.go.dev/crypto/sha512
+    SHA512_256     = 7;   // SHA-2/SHA512_256 hash algorithm. https://pkg.go.dev/crypto/sha512
+    SHA3_224       = 8;   // SHA-3/224 hash algorithm. https://pkg.go.dev/golang.org/x/crypto/sha3
+    SHA3_256       = 9;   // SHA-3/256 hash algorithm. https://pkg.go.dev/golang.org/x/crypto/sha3
+    SHA3_384       = 10;  // SHA-3/384 hash algorithm. https://pkg.go.dev/golang.org/x/crypto/sha3
+    SHA3_512       = 11;  // SHA-3/512 hash algorithm. https://pkg.go.dev/golang.org/x/crypto/sha3
+    SHAKE128       = 12;  // SHAKE128 hash algorithm. https://pkg.go.dev/golang.org/x/crypto/sha3
+    SHAKE256       = 13;  // SHAKE256 hash algorithm. https://pkg.go.dev/golang.org/x/crypto/sha3
+    MD5            = 14;  // MD5 hash algorithm. https://pkg.go.dev/crypto/md5
+    FNV1_32        = 15;  // FNV1/32 hash algorithm. https://pkg.go.dev/hash/fnv
+    FNV1a_32       = 16;  // FNV1a/32 hash algorithm. https://pkg.go.dev/hash/fnv
+    FNV1_64        = 17;  // FNV1/64 hash algorithm. https://pkg.go.dev/hash/fnv
+    FNV1a_64       = 18;  // FNV1a/64 hash algorithm. https://pkg.go.dev/hash/fnv
+    FNV1_128       = 19;  // FNV1/128 hash algorithm. https://pkg.go.dev/hash/fnv
+    FNV1a_128      = 20;  // FNV1a/128 hash algorithm. https://pkg.go.dev/hash/fnv
+    CRC32          = 21;  // CRC32 hash algorithm. https://pkg.go.dev/hash/crc32
+    CRC64ISO       = 22;  // CRC64 hash algorithm using ISO table. https://pkg.go.dev/hash/crc64
+    CRC64ECMA      = 23;  // CRC64 hash algorithm using ECMA table. https://pkg.go.dev/hash/crc64
+    BLAKE2s_256    = 24;  // BLAKE2s/256 hash algorithm. https://pkg.go.dev/golang.org/x/crypto/blake2s
+    BLAKE2b_256    = 25;  // BLAKE2b/256 hash algorithm. https://pkg.go.dev/golang.org/x/crypto/blake2b
+    BLAKE2b_384    = 26;  // BLAKE2b/384 hash algorithm. https://pkg.go.dev/golang.org/x/crypto/blake2b
+    BLAKE2b_512    = 27;  // BLAKE2b/512 hash algorithm. https://pkg.go.dev/golang.org/x/crypto/blake2b
+}

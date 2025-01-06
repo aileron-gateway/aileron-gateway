@@ -1,0 +1,14 @@
+apiVersion: core/v1
+kind: ReverseProxyHandler
+spec:
+  loadBalancers:
+    - pathMatcher:
+        match: "/test1"
+        matchType: Prefix
+      upstreams:
+        - url: http://127.0.0.1:10001
+    - pathMatcher:
+        match: "/test2"
+        matchType: Prefix
+      upstreams:
+        - url: http://127.0.0.1:10002

@@ -1,0 +1,5 @@
+apiVersion: core/v1
+kind: StaticFileHandler
+metadata:
+  name: ""
+  namespace: ""

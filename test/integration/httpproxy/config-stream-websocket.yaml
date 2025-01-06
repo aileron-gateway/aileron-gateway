@@ -1,0 +1,21 @@
+apiVersion: core/v1
+kind: HTTPServer
+spec:
+  addr: ":11000"
+  virtualHosts:
+    - handlers:
+        - handler:
+            apiVersion: core/v1
+            kind: ReverseProxyHandler
+            name: default
+
+---
+apiVersion: core/v1
+kind: ReverseProxyHandler
+spec:
+  loadBalancers:
+    - pathMatcher:
+        match: "/test"
+        matchType: Prefix
+      upstreams:
+        - url: http://127.0.0.1:10001

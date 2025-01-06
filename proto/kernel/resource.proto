@@ -1,0 +1,90 @@
+syntax = "proto3";
+package kernel;
+
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/aileron-gateway/aileron-gateway/apis/kernel";
+
+// Metadata is the metadata of resources.
+message Metadata {
+    // [OPTIONAL]
+    // Name is the unique name for the resource.
+    // The name must be unique in a namespace.
+    // If not set, the name "default" is used.
+    // Default is not set.
+    string Name = 1 [json_name = "name", (buf.validate.field).string.pattern = "^[0-9A-Za-z-.]*$"];
+
+    // [OPTIONAL]
+    // Namespace is the name of a logical group of resources.
+    // If not set, the name "default" is used.
+    // Default is not set.
+    string Namespace = 2 [json_name = "namespace", (buf.validate.field).string.pattern = "^[0-9A-Za-z-.]*$"];
+
+    // [OPTIONAL]
+    // Logger is the logger name to use.
+    // The format should be "<group>/<version>/<kind>/<namespace>/<name>"
+    // for example "core/v1/SLogger/myNamespace/myLogger".
+    // The named logger must be registered to the entrypoint resource.
+    // "__default__" is the special name to refer to the default logger.
+    // The default logger, which is globally unique, is used
+    // if logger was not found by the specified name.
+    // If not set, the globally unique default logger is used.
+    // Logger for access logs, authentication or authorization logs, etc
+    // should be configured under spec.
+    // Default is not set.
+    string Logger = 3 [json_name = "logger"];
+}
+
+// Reference is the reference to a resource instance.
+message Reference {
+    // [REQUIRED]
+    // APIVersion is the api version of the resource instance to fetch.
+    // This field must not be empty.
+    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.pattern = "^[0-9A-Za-z]+/[0-9A-Za-z]+$"];
+
+    // [REQUIRED]
+    // Kind is the api kind of the instance.
+    // This field must not be empty.
+    string Kind = 2 [json_name = "kind", (buf.validate.field).string.pattern = "^[0-9A-Za-z]+$"];
+
+    // [OPTIONAL]
+    // Name is the name of the object to fetch.
+    // If not set, "default" is used.
+    string Name = 3 [json_name = "name", (buf.validate.field).string.pattern = "^[0-9A-Za-z-.]*$"];
+
+    // [OPTIONAL]
+    // Namespace is the namespace name where to fetch the instance from.
+    // If not set, "default" is used.
+    string Namespace = 4 [json_name = "namespace", (buf.validate.field).string.pattern = "^[0-9A-Za-z-.]*$"];
+}
+
+// Status is the status of resources.
+// This message is defined for future
+// use and have no effests currently.
+message Status {
+}
+
+// Template is the template manifest of resources.
+// This messages is used internally in the gateway.
+message Template {
+    // [REQUIRED]
+    // APIVersion is the version string of the API.
+    string APIVersion = 1 [json_name = "apiVersion"];
+
+    // [REQUIRED]
+    // Kind is the API kind.
+    string Kind = 2 [json_name = "kind"];
+
+    // [OPTIONAL]
+    // Metadata is the metadata of the resource.
+    Metadata Metadata = 3 [json_name = "metadata"];
+
+    // [OPTIONAL]
+    // Spec is the specificationa of the resource.
+    TemplateSpec Spec = 4 [json_name = "spec"];
+}
+
+// TemplateSpec is the specifications for the Template.
+// This messages is used internally in the gateway.
+message TemplateSpec {
+}

@@ -1,0 +1,112 @@
+syntax = "proto3";
+package core.v1;
+
+import "buf/validate/validate.proto";
+import "core/v1/http.proto";
+import "kernel/resource.proto";
+import "kernel/txtutil.proto";
+
+option go_package = "github.com/aileron-gateway/aileron-gateway/apis/core/v1";
+
+// TemplateHandler is the definition of the TemplateHandler object.
+// TemplateHandler implements interface of the http handler.
+message TemplateHandler {
+    // [REQUIRED]
+    // APIVersion is the defined version of the handler.
+    // This value must be "core/v1".
+    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "core/v1"];
+
+    // [REQUIRED]
+    // Kind is the kind of this object.
+    // This value must be "TemplateHandler".
+    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "TemplateHandler"];
+
+    // [OPTIONAL]
+    // Metadata is the metadata of the handler object.
+    // If not set, both name and namespace in the metadata
+    // are treated as "default".
+    kernel.Metadata Metadata = 3 [json_name = "metadata"];
+
+    // [OPTIONAL]
+    // Spec is the specification of the handler.
+    // Default values are used when nothing is set.
+    TemplateHandlerSpec Spec = 4 [json_name = "spec"];
+}
+
+// TemplateHandlerSpec is the specifications for the TemplateHandler object.
+message TemplateHandlerSpec {
+    // [OPTIONAL]
+    // ErrorHandler is the reference to a ErrorHandler object.
+    // Referred object must implement ErrorHandler interface.
+    // Default error handler is used when not set.
+    kernel.Reference ErrorHandler = 1 [json_name = "errorHandler"];
+
+    // [OPTIONAL]
+    // Patterns is path patterns that this handler
+    // is registered to a server.
+    // Default is not set.
+    repeated string Patterns = 2 [json_name = "patterns", (buf.validate.field).repeated.unique = true];
+
+    // [OPTIONA]
+    // Methods is the list of HTTP method this handler can handle.
+    // Note that it depends on the multiplexer, or HTTP router
+    // if this field can be used.
+    // If not set, all methods are accepted.
+    // Default is not set.
+    repeated HTTPMethod Methods = 3 [json_name = "methods", (buf.validate.field).repeated.unique = true];
+
+    // [REQUIRED]
+    // MIMEContents is the list of content that will be returned by this handler.
+    // When no appropriate content were found,
+    // not acceptable error will be returned to clients.
+    // Default is not set.
+    repeated MIMEContentSpec MIMEContents = 4 [json_name = "mimeContents"];
+}
+
+// MIMEContentSpec is the specification for the MIMEContent.
+message MIMEContentSpec {
+    // [REQUIRED]
+    // MIMEType is the mediatype of this content.
+    // See the following documents for available type.
+    // https://www.iana.org/assignments/media-types/media-types.xhtml
+    // Default is not set.
+    string MIMEType = 1 [json_name = "mimeType", (buf.validate.field).string.pattern = "^[a-z]+/[0-9a-zA-Z.+-]+$"];
+
+    // [OPTIONAL]
+    // StatusCode is the http status code used to respond this content.
+    // Default is [200].
+    int32 StatusCode = 2 [json_name = "statusCode", (buf.validate.field).int32 = {gte : 0, lte : 999}];
+
+    // [OPTIONAL]
+    // Header is the key-value pairs of HTTP headers
+    // to add to the response.
+    // Keys must be a valid http header name.
+    // Default is not set.
+    map<string, string> Header = 3 [json_name = "header"];
+
+    // [OPTIONAL]
+    // TemplateType is the template engine type of this content.
+    // Default is [Text].
+    kernel.TemplateType TemplateType = 4 [json_name = "templateType"];
+
+    // [OPTIONAL]
+    // Template is the template text to generate response body.
+    // TemplateFile is prior to Template if both parameters are set.
+    // Default is not set.
+    string Template = 5 [json_name = "template"];
+
+    // [OPTIONAL]
+    // TemplateFile is the fail path to read template from.
+    // TemplateFile is prior to Template if both parameters are set.
+    // It does not matter wheather the path is relative or absolute.
+    // Default is not set.
+    string TemplateFile = 6 [json_name = "templateFile"];
+
+    // [OPTIONAL]
+    // FallbackText is the response body that will be used for fallback.
+    // This text will be used when generating response body
+    // with GoText, GoHTML failed.
+    // The value is not used when the TemplateType is Text.
+    // Default is not set.
+    string FallbackText = 7 [json_name = "fallbackText"];
+}

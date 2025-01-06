@@ -1,0 +1,18 @@
+syntax = "proto3";
+package kernel;
+
+option go_package = "github.com/aileron-gateway/aileron-gateway/apis/kernel";
+
+// EncodingType is the types of byte encoding.
+enum EncodingType {
+    EncodingTypeUnknown = 0;  // Unknown encoding type.
+    Base16              = 1;  // Base16 (Hex) encoding. Every 4 bits are encoded to 1 byte character.
+    Base32              = 2;  // Base32 encoding. Every 5 bits are encoded to 1 byte character.
+    Base32Hex           = 3;  // Base32 Hex encoding. Every 5 bits are encoded to 1 byte character.
+    Base32Escaped       = 4;  // Base32 escaped encoding. Every 5 bits are encoded to 1 byte character.
+    Base32HexEscaped    = 5;  // Base32 Hex escaped encoding. Every 5 bits are encoded to 1 byte character.
+    Base64              = 6;  // Base64 encoding. Every 6 bits are encoded to 1 byte character.
+    Base64Raw           = 7;  // Base64 Raw encoding. Every 6 bits are encoded to 1 byte character.
+    Base64URL           = 8;  // Base64 URL encoding. Every 6 bits are encoded to 1 byte character.
+    Base64RawURL        = 9;  // Base64 URL Raw encoding. Every 6 bits are encoded to 1 byte character.
+}

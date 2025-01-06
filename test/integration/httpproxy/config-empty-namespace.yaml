@@ -1,0 +1,5 @@
+apiVersion: core/v1
+kind: ReverseProxyHandler
+metadata:
+  name: testName
+  namespace: ""

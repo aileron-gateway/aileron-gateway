@@ -1,0 +1,46 @@
+lint:
+  rules:
+    no_default: true
+    add:
+      # - FILE_HAS_COMMENT                     # Verifies that a file starts with a doc comment.
+      - SYNTAX_CONSISTENT                    # Verifies that syntax is a specified version(default is proto3).
+      - FILE_NAMES_LOWER_SNAKE_CASE          # Verifies that all file names are lower_snake_case.proto.
+      - QUOTE_CONSISTENT                     # Verifies that the use of quote for strings is consistent.
+      - ORDER                                # Verifies that all files should be ordered in the specific manner.
+      - INDENT                               # Enforces a consistent indentation style.
+      - MAX_LINE_LENGTH                      # Enforces a maximum line length.
+      - PACKAGE_NAME_LOWER_CASE              # Verifies that the package name doesn't contain any uppercase letters.
+      - IMPORTS_SORTED                       # Enforces sorted imports.
+      #- ENUM_FIELD_NAMES_PREFIX              # Verifies that enum field names are prefixed with its ENUM_NAME_UPPER_SNAKE_CASE.
+      #- ENUM_FIELD_NAMES_UPPER_SNAKE_CASE    # Verifies that all enum field names are CAPITALS_WITH_UNDERSCORES.
+      #- ENUM_FIELD_NAMES_ZERO_VALUE_END_WITH # Verifies that the zero value enum should have the suffix (e.g. "UNSPECIFIED", "INVALID").
+      #- ENUM_FIELDS_HAVE_COMMENT             # Verifies that all enum fields have a comment.
+      - ENUM_NAMES_UPPER_CAMEL_CASE          # Verifies that all enum names are CamelCase (with an initial capital).
+      - ENUMS_HAVE_COMMENT                   # Verifies that all enums have a comment.
+      #- FIELD_NAMES_LOWER_SNAKE_CASE         # Verifies that all field names are underscore_separated_names.
+      - FIELD_NAMES_EXCLUDE_PREPOSITIONS     # Verifies that all field names don't include prepositions (e.g. "for", "during", "at").
+      - FIELDS_HAVE_COMMENT                  # Verifies that all fields have a comment.
+      - PROTO3_FIELDS_AVOID_REQUIRED         # Verifies that all fields should avoid required for proto3.
+      - PROTO3_GROUPS_AVOID                  # Verifies that all groups should be avoided for proto3.
+      - REPEATED_FIELD_NAMES_PLURALIZED      # Verifies that repeated field names are pluralized names.
+      - MESSAGE_NAMES_UPPER_CAMEL_CASE       # Verifies that all message names are CamelCase (with an initial capital).
+      - MESSAGE_NAMES_EXCLUDE_PREPOSITIONS   # Verifies that all message names don't include prepositions (e.g. "With", "For").
+      - MESSAGES_HAVE_COMMENT                # Verifies that all messages have a comment.
+      #- RPC_NAMES_UPPER_CAMEL_CASE           # Verifies that all rpc names are CamelCase (with an initial capital).
+      #- RPC_NAMES_CASE                       # Verifies that all rpc names conform to the specified convention.
+      #- RPCS_HAVE_COMMENT                    # Verifies that all rpcs have a comment.
+      #- SERVICE_NAMES_UPPER_CAMEL_CASE       # Verifies that all service names are CamelCase (with an initial capital).
+      #- SERVICE_NAMES_END_WITH               # Verifies that all service names end with the specified value.
+      #- SERVICES_HAVE_COMMENT                # Verifies that all services have a comment.
+
+  rules_option:
+    max_line_length:
+      max_chars: 150
+      tab_chars: 2
+
+    indent:
+      style: 4
+      not_insert_newline: true
+
+    enum_fields_have_comment:
+      should_follow_golang_style: true

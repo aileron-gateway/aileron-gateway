@@ -1,0 +1,21 @@
+apiVersion: core/v1
+kind: HTTPLogger
+spec:
+  logger:
+    apiVersion: core/v1
+    kind: SLogger
+    name: default
+  request:
+    queries:
+      - value:
+          fromTo:
+            "bar": "##MASKED##"
+            "bob": "%%MASKED%%"
+
+---
+apiVersion: core/v1
+kind: SLogger
+metadata:
+  name: default
+spec:
+  level: Debug

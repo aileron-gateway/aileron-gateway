@@ -1,0 +1,37 @@
+# -------------------------------------------------------------- #
+# ko config file
+# Official documents available at https://ko.build/reference/ko_build/
+#
+# EXAMPLE to locally build images.
+#   ko build -L -v -B --tag-only --tags 0.0.0 ./cmd/aileron/
+#
+# Base image is https://github.com/GoogleContainerTools/distroless.
+#   - gcr.io/distroless/static:latest
+#   - gcr.io/distroless/static:nonroot
+#   - gcr.io/distroless/static:debug
+#   - gcr.io/distroless/static:debug-nonroot
+# -------------------------------------------------------------- #
+
+defaultBaseImage: gcr.io/distroless/static:nonroot
+
+defaultPlatforms:
+  - linux/amd64
+  - linux/arm/v7
+  - linux/arm64
+  - linux/ppc64le
+  - linux/s390x
+
+builds:
+  - id: ko
+    dir: .
+    main: ./cmd/aileron
+    env:
+      - CGO_ENABLED=0
+      - GOARM=7
+    flags:
+      - -trimpath
+    ldflags:
+      - -w
+      - -s
+      - -extldflags "-static"
+      - -X main.version={{ .Env.VERSION }}

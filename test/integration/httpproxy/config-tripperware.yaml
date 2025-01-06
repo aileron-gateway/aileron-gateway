@@ -1,0 +1,20 @@
+apiVersion: core/v1
+kind: ReverseProxyHandler
+spec:
+  tripperwares:
+    - apiVersion: container/v1
+      kind: TestTripperware
+      name: test1
+    - apiVersion: container/v1
+      kind: TestTripperware
+      name: test2
+  roundTripper:
+    apiVersion: container/v1
+    kind: TestRoundTripper
+    name: test
+  loadBalancers:
+    - pathMatcher:
+        match: "/test"
+        matchType: Prefix
+      upstreams:
+        - url: http://127.0.0.1:10001

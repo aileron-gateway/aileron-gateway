@@ -1,0 +1,103 @@
+syntax = "proto3";
+package core.v1;
+
+import "buf/validate/validate.proto";
+import "core/v1/resilience.proto";
+import "kernel/network.proto";
+import "kernel/resource.proto";
+
+option go_package = "github.com/aileron-gateway/aileron-gateway/apis/core/v1";
+
+// HTTPClient is the definition of the HTTPClient object.
+// HTTPClient implements interface of the roundtripper.
+message HTTPClient {
+    // [REQUIRED]
+    // APIVersion is the defined version of the roundtripper.
+    // This value must be "core/v1".
+    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "core/v1"];
+
+    // [REQUIRED]
+    // Kind is the kind of this object.
+    // This value must be "HTTPClient".
+    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "HTTPClient"];
+
+    // [OPTIONAL]
+    // Metadata is the metadata of the HTTP client object.
+    // If not set, both name and namespace in the metadata
+    // are treated as "default".
+    kernel.Metadata Metadata = 3 [json_name = "metadata"];
+
+    // [OPTIONAL]
+    // Spec is the specification of the roundtripper.
+    // Default values are used when nothing is set.
+    HTTPClientSpec Spec = 4 [json_name = "spec"];
+}
+
+// HTTPClientSpec is the specifications for the HTTPClient object.
+message HTTPClientSpec {
+    // [OPTIONAL]
+    // Tripperwares is the list of references to Tripperwares object.
+    // Referred object must implement Tripperware interface.
+    // Default is not set.
+    repeated kernel.Reference Tripperwares = 1 [json_name = "tripperwares"];
+
+    // [OPTIONAL]
+    // RetryConfig is the configuration for retrying.
+    // Retry tripperware will be appended to the last of
+    // all other tripperware specified in Tripperwares field.
+    RetryConfig RetryConfig = 2 [json_name = "retryConfig"];
+
+    oneof Transports {
+        // [OPTIONAL]
+        // HTTPTransportConfig is the configuration for a http round tripper.
+        // HTTP/1.1 or HTTP/2 can be used with this config.
+        // The configuration configures the Transport provided by http package.
+        // See https://pkg.go.dev/net/http#Transport.
+        // Default is not set.
+        kernel.HTTPTransportConfig HTTPTransportConfig = 3 [json_name = "httpTransportConfig"];
+
+        // [OPTIONAL]
+        // HTTP2TransportConfig is the configuration for a http2 roundTripper.
+        // The configuration configures the Transport provided by http2 package.
+        // See https://pkg.go.dev/golang.org/x/net/http2
+        // Default is not set.
+        kernel.HTTP2TransportConfig HTTP2TransportConfig = 4 [json_name = "http2TransportConfig"];
+
+        // [OPTIONAL]
+        // HTTP3TransportConfig is the configuration for a http3 roundTripper.
+        // The configuration configures the Transport provided by http3 package.
+        // See https://pkg.go.dev/github.com/quic-go/quic-go/http3#RoundTripper.
+        // Default is not set.
+        kernel.HTTP3TransportConfig HTTP3TransportConfig = 5 [json_name = "http3TransportConfig"];
+    }
+}
+
+// RetryConfig is the configuration for retry.
+message RetryConfig {
+    // [OPTIONAL]
+    // MaxRetry is the maximum count of retry to send a request.
+    // The initial request is not included in this count.
+    // It means the requests can be sent MaxRetry+1 times at the maximum.
+    // If not set, default value 1 will be used.
+    // Default is [1].
+    uint32 MaxRetry = 1 [json_name = "maxRetry", (buf.validate.field).uint32 = {lte : 100}];
+
+    // [OPTIONAL]
+    // Waiter is the specification of waiter object to determine the wait time until next request.
+    // ExponentialBackoffFullJitterWaiter is used by default.
+    core.v1.WaiterSpec Waiter = 2 [json_name = "waiter"];
+
+    // [OPTIONAL]
+    // MaxContentLength is the maximum content length in bytes that can be retried.
+    // Retry is not applied to the requests that exceed this content length.
+    // Because request bodies are temporarily kept on memory, do not set this too large.
+    // It may cause unexpected high memory consumption.
+    // Default is [1,048,576] bytes or 1MiB.
+    int32 MaxContentLength = 3 [json_name = "maxContentLength", (buf.validate.field).int32 = {gte : 0, lte : 16777216}];
+
+    // [OPTIONAL]
+    // RetryStatuses is the list of HTTP status codes that should be retried.
+    // Only networking layer errors are retried when this field is not set.
+    // Default is not set.
+    repeated int32 RetryStatusCodes = 4 [json_name = "retryStatusCodes", (buf.validate.field).repeated.unique = true];
+}
