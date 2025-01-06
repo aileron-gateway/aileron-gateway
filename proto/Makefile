@@ -22,7 +22,7 @@ PROTOC_OPTS += --doc_out=../ --doc_opt=html,api.html
 .PHONY: proto
 proto: protoc-gen-go protoc-gen-doc protovalidate
 	protoc $(PROTO_PATH) $(PROTOC_OPTS) $(shell find ./ -type f -name "*.proto" -not -path "./protovalidate/*")
-	@git update-index --assume-unchanged $(shell find ../apis/ -type f)
+	# @git update-index --assume-unchanged $(shell find ../apis/ -type f)
 
 .PHONY: proto-clean
 proto-clean: 
