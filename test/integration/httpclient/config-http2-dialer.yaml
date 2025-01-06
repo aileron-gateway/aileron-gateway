@@ -1,0 +1,7 @@
+apiVersion: core/v1
+kind: HTTPClient
+spec:
+  http2TransportConfig:
+    allowHTTP: true # Set true to use h2c.
+    dialConfig:
+      timeout: 100

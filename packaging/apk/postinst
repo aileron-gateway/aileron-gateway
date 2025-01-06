@@ -1,0 +1,25 @@
+#!/bin/sh
+
+set -e
+
+# Load environmental variables if exists.
+[ -f /etc/default/aileron ] && . /etc/default/aileron
+
+#----------------------------------------------------
+
+echo "Running postinst script:" $@
+
+case "$1" in
+    configure)
+
+        chmod 755 /usr/bin/aileron
+
+        if [ ! -d /var/lib/aileron/ ]; then
+            mkdir /var/lib/aileron/
+            chmod 644 /var/lib/aileron/
+        fi
+
+esac
+
+#----------------------------------------------------
+exit 0

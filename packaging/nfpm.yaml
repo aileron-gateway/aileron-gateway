@@ -1,0 +1,117 @@
+# nfpm configurations.
+# See https://nfpm.goreleaser.com/
+name: aileron
+arch: "${PKG_ARCH}"
+platform: linux
+version: "${VERSION}"
+version_schema: semver
+release: 1
+prerelease: ""
+section: default
+priority: extra
+maintainer: "AILERON Gateway Community"
+description: |
+  AILERON Gateway.
+  A secure and high-performance API gateway for the cloud-native era.
+vendor: "AILERON Gateway Community"
+homepage: "http://github.com"
+license: "Apache 2.0"
+
+provides: []
+depends: []
+recommends: []
+suggests: []
+conflicts: []
+
+umask: 0o770
+
+contents:
+  - src: ../aileron-linux-${BIN_ARCH}/aileron-linux-${BIN_ARCH}
+    dst: /usr/bin/aileron
+    expand: true
+  - src: ./config.yaml
+    dst: /etc/aileron/config.yaml
+    type: config
+
+  - src: ./aileron.env
+    dst: /etc/sysconfig/aileron.env
+    type: config
+    packager: rpm
+  - src: ./rpm/aileron.service
+    dst: /usr/lib/systemd/system/aileron.service
+    type: config
+    packager: rpm
+
+  - src: ./aileron.env
+    dst: /etc/default/aileron.env
+    type: config
+    packager: deb
+  - src: ./deb/aileron.service
+    dst: /usr/lib/systemd/system/aileron.service
+    type: config
+    packager: deb
+
+  - src: ./aileron.env
+    dst: /etc/default/aileron.env
+    type: config
+    packager: apk
+  - src: ./apk/aileron
+    dst: /etc/init.d/aileron
+    type: config
+    packager: apk
+
+  - src: ./aileron.env
+    dst: /etc/default/aileron.env
+    type: config
+    packager: archlinux
+  - src: ./archlinux/aileron.service
+    dst: /usr/lib/systemd/system/aileron.service
+    type: config
+    packager: archlinux
+
+overrides:
+  rpm:
+    scripts:
+      preinstall: ./rpm/preinst
+      postinstall: ./rpm/postinst
+      preremove: ./rpm/prerm
+      postremove: ./rpm/postrm
+  deb:
+    scripts:
+      preinstall: ./deb/preinst
+      postinstall: ./deb/postinst
+      preremove: ./deb/prerm
+      postremove: ./deb/postrm
+  apk:
+    scripts:
+      preinstall: ./apk/preinst
+      postinstall: ./apk/postinst
+      preremove: ./apk/prerm
+      postremove: ./apk/postrm
+  archlinux:
+    scripts:
+      preinstall: ./archlinux/preinst
+      postinstall: ./archlinux/postinst
+      preremove: ./archlinux/prerm
+      postremove: ./archlinux/postrm
+
+# TODO: Add signature.
+rpm:
+  summary: AILERON Gateway.
+  packager: AILERON Gateway Community.
+  # signature:
+  #   key_file: ./0x52ADAB4B-sec.gpg
+  #   key_id: 1C88AAC752ADAB4B
+deb:
+  # signature:
+  #   method: debsign
+  #   key_file: ./0x52ADAB4B-sec.gpg
+  #   type: origin
+  #   key_id: 1C88AAC752ADAB4B
+apk:
+  # signature:
+  #   key_file: ./rsa-private.pem
+  #   key_name: origin
+  #   key_id: ignored
+archlinux:
+  packager: AILERON Gateway Community

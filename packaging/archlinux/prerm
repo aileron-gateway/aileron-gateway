@@ -1,0 +1,13 @@
+#!/bin/sh
+
+set -e
+
+# Load environmental variables if exists.
+[ -f /etc/default/aileron ] && . /etc/default/aileron
+
+#----------------------------------------------------
+
+echo "Running prerm script:" $@
+
+#----------------------------------------------------
+exit 0

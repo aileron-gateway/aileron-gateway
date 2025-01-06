@@ -1,0 +1,19 @@
+version: 1
+
+goos: darwin
+goarch: amd64
+
+main: ./cmd/aileron/
+binary: aileron-{{ .Os }}-{{ .Arch }}
+
+env:
+  - CGO_ENABLED=0
+
+flags:
+  - -trimpath
+
+ldflags:
+  - "-w"
+  - "-s"
+  - '-extldflags "-static"'
+  - "-X main.version={{ .Env.VERSION }}"

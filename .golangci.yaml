@@ -1,0 +1,61 @@
+# References:
+#   - https://golangci-lint.run/usage/configuration/
+#   - https://golangci-lint.run/usage/linters/
+linters:
+  disable-all: true
+  enable:
+    - bodyclose # Checks whether HTTP response body is closed successfully.
+    - containedctx # Containedctx is a linter that detects struct contained context.Context field.
+    - contextcheck # Check whether the function uses a non-inherited context.
+    - copyloopvar # Copyloopvar is a linter detects places where loop variables are copied.
+    - dupword # Checks for duplicate words in the source code.
+    - durationcheck # Check for two durations multiplied together.
+    - errcheck # Errcheck is a program for checking for unchecked errors in Go code. These unchecked errors can be critical bugs in some cases.
+    - gocyclo # Computes and checks the cyclomatic complexity of functions.
+    - gofmt # Gofmt checks whether code was gofmt-ed. By default this tool runs with -s option to check for code simplification.
+    - goimports # Check import statements are formatted according to the 'goimport' command. Reformat imports in autofix mode.
+    - gosec # Inspects source code for security problems.
+    - gosimple # Linter for Go source code that specializes in simplifying code.
+    - govet # Vet examines Go source code and reports suspicious constructs. It is roughly the same as 'go vet' and uses its passes.
+    - importas # Enforces consistent import aliases.
+    - ineffassign # Detects when assignments to existing variables are not used.
+    - misspell # Finds commonly misspelled English words.
+    - nestif # Reports deeply nested if statements.
+    - noctx # Finds sending http request without context.Context.
+    - nolintlint # Reports ill-formed or insufficient nolint directives.
+    - perfsprint # Checks that fmt.Sprintf can be replaced with a faster alternative.
+    - prealloc # Finds slice declarations that could potentially be pre-allocated.
+    - staticcheck # It's a set of rules from staticcheck. It's not the same thing as the staticcheck binary.
+    - unconvert # Remove unnecessary type conversions.
+    - unparam # Reports unused function parameters.
+    - unused # Checks Go code for unused constants, variables, functions and types.
+    - wastedassign # Finds wasted assignment statements.
+    - whitespace # Whitespace is a linter that checks for unnecessary newlines at the start and end of functions, if, for, etc.
+run:
+  timeout: 10m
+  tests: false
+issues:
+  exclude:
+    - apis/
+    - test/
+  max-issues-per-linter: 0
+  max-same-issues: 0
+linters-settings:
+  gocyclo:
+    min-complexity: 20 # Usually 15. Refactoring should be taken.
+  misspell:
+    locale: US
+  govet:
+    enable-all: true
+    disable:
+      - fieldalignment
+      - shadow
+  gosec:
+    excludes:
+      - G401
+      - G404
+      - G405
+      - G501
+      - G502
+      - G503
+      - G505

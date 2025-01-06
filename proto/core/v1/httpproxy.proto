@@ -1,0 +1,415 @@
+syntax = "proto3";
+package core.v1;
+
+import "buf/validate/validate.proto";
+import "core/v1/http.proto";
+import "core/v1/resilience.proto";
+import "kernel/network.proto";
+import "kernel/resource.proto";
+import "kernel/txtutil.proto";
+
+option go_package = "github.com/aileron-gateway/aileron-gateway/apis/core/v1";
+
+// ReverseProxyHandler is the definition of the ReverseProxyHandler object.
+// ReverseProxyHandler implements interface of the http handler.
+message ReverseProxyHandler {
+    // [REQUIRED]
+    // APIVersion is the defined version of the handler.
+    // This value must be "core/v1".
+    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "core/v1"];
+
+    // [REQUIRED]
+    // Kind is the kind of this object.
+    // This value must be "ReverseProxyHandler".
+    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "ReverseProxyHandler"];
+
+    // [OPTIONAL]
+    // Metadata is the metadata of the proxy object.
+    // If not set, both name and namespace in the metadata
+    // are treated as "default".
+    kernel.Metadata Metadata = 3 [json_name = "metadata"];
+
+    // [OPTIONAL]
+    // Spec is the specification of the handler.
+    // Default values are used when nothing is set.
+    ReverseProxyHandlerSpec Spec = 4 [json_name = "spec"];
+}
+
+// ReverseProxyHandlerSpec is the specifications for the ReverseProxyHandler object.
+message ReverseProxyHandlerSpec {
+    // [OPTIONAL]
+    // ErrorHandler is the reference to a ErrorHandler object.
+    // Referred object must implement ErrorHandler interface.
+    // Default error handler is used when not set.
+    kernel.Reference ErrorHandler = 1 [json_name = "errorHandler"];
+
+    // [OPTIONAL]
+    // Patterns is path patterns that this handler is registered to a server.
+    // Default is not set.
+    repeated string Patterns = 2 [json_name = "patterns", (buf.validate.field).repeated.unique = true];
+
+    // [OPTIONA]
+    // Methods is the list of HTTP method this handler can handle.
+    // Note that it depends on the multiplexer, or HTTP router
+    // if this field can be used.
+    // If not set, all methods are accepted.
+    // Default is not set.
+    repeated HTTPMethod Methods = 3 [json_name = "methods", (buf.validate.field).repeated.unique = true];
+
+    // [OPTIONAL]
+    // Tripperwares is the list of references to Tripperwares  object.
+    // Referred object must implement Tripperware interface.
+    // Default is not set.
+    repeated kernel.Reference Tripperwares = 4 [json_name = "tripperwares"];
+
+    // [OPTIONAL]
+    // RoundTripper is the references to a roundTripper  object.
+    // Referred object must implement RoundTripper interface.
+    // Default roundTripper is used when not set.
+    kernel.Reference RoundTripper = 5 [json_name = "roundTripper"];
+
+    // [OPTIONAL]
+    // LoadBalancers is the list of load balancers.
+    // Proxy upstreams are specified in this field.
+    // Requests will be proxied to the first matched upstream
+    // by matching with the load balancers defined order.
+    // Default is not set.
+    repeated LoadBalancerSpec LoadBalancers = 6 [json_name = "loadBalancers"];
+}
+
+// LoadBalancerSpec is the specification of LoadBalancer objects.
+message LoadBalancerSpec {
+    // [OPTIONAL]
+    // LBAlgorithm specifies the load balancing algorithm.
+    // Default RoundRobin will be used if not set.
+    // Default is not set.
+    LBAlgorithm LBAlgorithm = 1 [json_name = "lbAlgorithm"];
+
+    // [REQUIRED]
+    // Upstreams is the list of upstream server of proxy target.
+    // An internal server error will be returned when no upstreams are defined.
+    // Default is not set.
+    repeated UpstreamSpec Upstreams = 2 [json_name = "upstreams"];
+
+    // [OPTIONAL]
+    // PathMatcher is the path matching algorithm to be used.
+    // If need multiple path matchers, use PathMatchers field instead.
+    // If both PathMatcher and PathMatchers are set, the PathMatcher
+    // is appended as the first matcher of PathMatchers.
+    // If both PathMatcher and PathMatchers are not set,
+    // HTTP error responses are returned to all requests.
+    // Default is not set.
+    PathMatcherSpec PathMatcher = 3 [json_name = "pathMatcher"];
+
+    // [OPTIONAL]
+    // PathMatchers is the list of path matching algorithm to be used.
+    // A prefix matcher with "/" prefix will be used which matches all
+    // requests if not set.
+    // If need only 1 path matcher, PathMatcher field can be used instead.
+    // If both PathMatcher and PathMatchers are set, the PathMatcher
+    // is appended as the first matcher of PathMatchers.
+    // HTTP error responses are returned to all requests.
+    // Matchers are OR condition and the first matched one is used.
+    // Default is not set.
+    repeated PathMatcherSpec PathMatchers = 4 [json_name = "pathMatchers"];
+
+    // [OPTIONAL]
+    // Methods is the list of HTTP method this loadbalancer can accept.
+    // If not set, all methods are accepted.
+    // Default is not set.
+    repeated HTTPMethod Methods = 5 [json_name = "methods", (buf.validate.field).repeated.unique = true];
+
+    // [OPTIONAL]
+    // Hosts is the list of hosts to allow.
+    // If not set, all hosts are allowed.
+    // List all host names because the value are matched by exact matching algorithm.
+    // Wildcard characters such as "*" are not available.
+    // Default is not set.
+    repeated string Hosts = 6 [json_name = "hosts", (buf.validate.field).repeated.unique = true];
+
+    // [OPTIONAL]
+    // PathParamMatcher is the path parameter value matcher to check
+    // if this loadbalancer can accept the target request.
+    // Path parameter is only available when the handler was registered
+    // to a server with patterns containing path parameters
+    // described at https://pkg.go.dev/net/http#hdr-Patterns.
+    // Listed matchers are evaluated by AND condition.
+    // If OR matching condition is necessary, set the condition within a single matcher.
+    // Default is not set.
+    repeated ParamMatcherSpec PathParamMatchers = 7 [json_name = "pathParamMatchers"];
+
+    // [OPTIONAL]
+    // HeaderMatcher is the header value matcher to check
+    // if this loadbalancer can accept the target request.
+    // If multiple header values were found, they are joined
+    // with a comma "," and agggregated to a singled string.
+    // For example ["foo", "bar"] will be "foo,bar" and the matcher
+    // is applied to the joined value "foo,bar".
+    // Listed matchers are evaluated by AND condition.
+    // If OR matching condition is necessary, set the condition within a single matcher.
+    // Default is not set.
+    repeated ParamMatcherSpec HeaderMatchers = 8 [json_name = "headerMatchers"];
+
+    // [OPTIONAL]
+    // QueryMatcher is the URL query value matcher to check
+    // this loadbalancer can accept the target request.
+    // If multiple query values were found, they are joined
+    // with a comma "," and agggregated to a singled string.
+    // For example ["foo", "bar"] will be "foo,bar" and the matcher
+    // is applied to the joined value "foo,bar".
+    // Listed matchers are evaluated by AND condition.
+    // If OR matching condition is necessary, set the condition within a single matcher.
+    // Default is not set.
+    repeated ParamMatcherSpec QueryMatchers = 9 [json_name = "queryMatchers"];
+
+    // [OPTIONAL]
+    // HashTableSize is the size of hash tables for hash-based load balancers.
+    // This field is used by Maglev and RingHash load balancers.
+    // If not set, default value is used.
+    // Default value depends on the load balancer.
+    int32 HashTableSize = 10 [json_name = "hashTableSize"];
+
+    // [OPTIONAL]
+    // Hashers is the hashing methods for hash-based load balancers.
+    // This field is optional but should be set at least 1
+    // for hash-based load balancers.
+    // Default is not set.
+    repeated HTTPHasherSpec Hashers = 11 [json_name = "hashers"];
+}
+
+// PathMatcherSpec is the specification of PathMatcher object
+// used for path matching of incoming HTTP requests.
+message PathMatcherSpec {
+    // [OPTIONAL]
+    // Match is the url path pattern to be matched to this matcher.
+    // The grammar of the pattern depends on the MatchType.
+    // This pattern should not contain prefix set by TrimPrefix or AppendPrefix.
+    // Currently, only 1 prefix string can be set here.
+    // Use Regex or RegexPOSIX match type and ser Rewrite field
+    // if you need trim multiple prefix.
+    // It can also trim or rewrite specific patterns.
+    // Default is not set.
+    string Match = 1 [json_name = "match"];
+
+    // [OPTIONAL]
+    // MatchType is the type of pattern matching algorithm.
+    // The path pattern specified at the Match field should follow the
+    // grammar of this match type.
+    // Default is [Prefix].
+    kernel.MatchType MatchType = 2 [json_name = "matchType"];
+
+    // [OPTIONAL]
+    // Rewrite is the path rewrite expression.
+    // This field is used when the MatchType is Regex or RegexPOSIX.
+    // Checkout https://pkg.go.dev/regexp#Regexp.ExpandString
+    // Default is not set.
+    string Rewrite = 3 [json_name = "rewrite"];
+
+    // [OPTIONAL]
+    // TrimPrefix is the prefix string to be removed from the URL path.
+    // For example, "/trim/me", "/prefix", "/api".
+    // This prefix is removed before checking the match.
+    // So the Match filed should not contain this value.
+    // Default is not set.
+    string TrimPrefix = 4 [json_name = "trimPrefix"];
+
+    // [OPTIONAL]
+    // AppendPrefix is the prefix string to be added to the URL path.
+    // For example, "/append/me", "/prefix", "/api".
+    // This prefix is added after checking the match.
+    // So the Match filed should not contain this value.
+    // Default is not set.
+    string AppendPrefix = 5 [json_name = "appendPrefix"];
+}
+
+// ParamMatcherSpec is the specification of ParamMatcherParamMatcherSpec object
+// used for header or query value matching.
+message ParamMatcherSpec {
+    // [REQUIRED]
+    // Key is the key name to check.
+    // If the specified key were not found in header, query or path params,
+    // this matcher fails without calling the match function specified at MatchType.
+    // Default is not set.
+    string Key = 1 [json_name = "key", (buf.validate.field).string.min_len = 1];
+
+    // [OPTIONAL]
+    // Patterns is the value pattern list.
+    // The grammar of the pattern depends on the MatchType.
+    // Patterns are evaluated by OR condition.
+    // It will be considered that at least 1 pattern matched to a target,
+    // this macher object returns true.
+    // Default is not set, which means an empty string.
+    repeated string Patterns = 2 [json_name = "patterns"];
+
+    // [OPTIONAL]
+    // MatchType is the type of pattern matching algorithm.
+    // The pattern specified at the Pattern field should follow the
+    // grammar of this match type.
+    // Default is [Exact].
+    kernel.MatchType MatchType = 3 [json_name = "matchType"];
+}
+
+// UpstreamSpec is the specification of Upstream object.
+message UpstreamSpec {
+    // [REQUIRED]
+    // URL is the base url for for proxy.
+    // This field can contain URL path.
+    // For example "http://localhost:8080/api/"
+    // Default is not set.
+    string URL = 1 [json_name = "url", (buf.validate.field).string.pattern = "(http://|https://).*"];
+
+    // [OPTIONAL]
+    // Weight is the weight, or priority of this target.
+    // Set -1 to disable this upstream.
+    // 0 is the same as default value 1.
+    // Default is [1].
+    int32 Weight = 2 [json_name = "weight", (buf.validate.field).int32 = {gte : -1, lte : 1000}];
+
+    // [OPTIONAL]
+    // EnablePassive enables passive health check.
+    // Default is [false].
+    bool EnablePassive = 3 [json_name = "enablePassive"];
+
+    // [OPTIONAL]
+    // EnableActive enables active health check.
+    // Default is [false].
+    bool EnableActive = 4 [json_name = "enableActive"];
+
+    // [OPTIONAL]
+    // InitialDelay is the wait time in seconds until to start active health checking after starts.
+    // Note that this field is used only when the active health checking is configured.
+    // Default is [0].
+    int32 InitialDelay = 7 [json_name = "initialDelay"];
+
+    // [OPTIONAL]
+    // CheckInterval is the interval of active health check in seconds.
+    // Note that this field is used only when the active health checking is configured.
+    // Default is [1].
+    int32 CheckInterval = 8 [json_name = "checkInterval"];
+
+    // [OPTIONAL]
+    // NetworkType is network type used for active health cheking.
+    // Note that this field is used only when the active health checking is configured.
+    // Default is [HTTP].
+    kernel.NetworkType NetworkType = 9 [json_name = "networkType"];
+
+    // [OPTIONAL]
+    // Protocol is the protocol number or a protocol name used for health checking.
+    // This field is used when "IP", "IP4" or "IP6" is selected as the network type.
+    // See https://pkg.go.dev/net#Dial for more detail.
+    // Default is ["icmp"].
+    string Protocol = 10 [json_name = "protocol"];
+
+    // [OPTIONAL]
+    // Address is the target IP address or URL for active health checking.
+    // For example, specify a url "http://example.com/healthy" for HTTP network type,
+    // "127.0.0.1:8080" for TCP and UDP type, "127.0.0.1" for IP type.
+    // See https://pkg.go.dev/net#Dial for more detail.
+    // Default is not set.
+    string Address = 11 [json_name = "address"];
+
+    // [OPTIONAL]
+    // [This feature is disabled now]
+    // CircuitBreaker is circuit breaker specification for health checking.
+    // Default values are used when not specified.
+    CircuitBreaker CircuitBreaker = 12 [json_name = "circuitBreaker"];
+}
+
+// CircuitBreaker is the specification of CircuitBreaker object.
+message CircuitBreaker {
+    // [OPTIONAL]
+    // FailureThreshold is the threshold to consider upstream unhealthy.
+    // The unit of the value differs depending on  the count algorithm.
+    // The unit is count for ConsecutiveCounter and percentage 0-100 for others.
+    // Default is [5].
+    int32 FailureThreshold = 1 [json_name = "failureThreshold", (buf.validate.field).int32 = {gte : 0}];
+
+    // [OPTIONAL]
+    // SuccessThreshold is the threshold to consider upstream healthy.
+    // The unit of the value differs depending on  the count algorithm.
+    // The unit is count for ConsecutiveCounter and percentage 0-100 for others.
+    // Default is [80].
+    int32 SuccessThreshold = 2 [json_name = "successThreshold", (buf.validate.field).int32 = {gte : 0}];
+
+    // [OPTIONAL]
+    // EffectiveFailureSamples is the number of health check samples that is
+    // considered to be meaningful for calculating failure rate.
+    // The default value of 20 means that the initial 20 requests are
+    // accepted after the status of circuit breaker changed to closed
+    // inspite of the failure rate.
+    // Ths value will be ignored for ConsecutiveCounter.
+    // Default is [20].
+    int32 EffectiveFailureSamples = 3 [json_name = "effectiveFailureSamples", (buf.validate.field).int32 = {gte : 0}];
+
+    // [OPTIONAL]
+    // EffectiveSuccessSamples is the number of health check samples that is
+    // considered to be meaningful for calculating success rate
+    // when the status of circuit breaker is .
+    // The default value of 20 means that the initial 20 requests are
+    // accepted after the status of circuit breaker changed to closed
+    // inspite of the failure rate.
+    // Ths value will be ignored for ConsecutiveCounter.
+    // Default is [20].
+    int32 EffectiveSuccessSamples = 4 [json_name = "effectiveSuccessSamples", (buf.validate.field).int32 = {gte : 0}];
+
+    // [OPTIONAL]
+    // WaitDuration is wait time to reset success and failure count
+    // of circuit breaker in seconds.
+    // Default is [180], or 3 minutes.
+    int32 WaitDuration = 5 [json_name = "waitDuration", (buf.validate.field).int32 = {gte : 1}];
+
+    // [OPTIONAL]
+    // CircuitBreakerCounter is the success and failure counter of health cheking for circuit breaker.
+    // ConsecutiveCounter is set by default.
+    // Currently, these configs do not work.
+    oneof CircuitBreakerCounter {
+        ConsecutiveCounterSpec             ConsecutiveCounter             = 6 [json_name = "consecutiveCounter"];
+        CountBasedFixedWindowCounterSpec   CountBasedFixedWindowCounter   = 7 [json_name = "countBasedFixedWindowCounter"];
+        TimeBasedFixedWindowCounterSpec    TimeBasedFixedWindowCounter    = 8 [json_name = "timeBasedFixedWindowCounter"];
+        CountBasedSlidingWindowCounterSpec CountBasedSlidingWindowCounter = 9 [json_name = "countBasedSlidingWindowCounter"];
+        TimeBasedSlidingWindowCounterSpec  TimeBasedSlidingWindowCounter  = 10 [json_name = "timeBasedSlidingWindowCounter"];
+    }
+}
+
+// ConsecutiveCounterSpec is the specification of the circuit breaker counter
+// with consecutive counting algorithm.
+message ConsecutiveCounterSpec {
+}
+
+// CountBasedFixedWindowCounterSpec is the specification of the circuit breaker counter
+// with count-based fixed window algorithm.
+message CountBasedFixedWindowCounterSpec {
+    // [REQUIRED]
+    // This value must be grater than or equal to effectiveFailureSamples and effectiveSuccessSamples.
+    int32 Samples = 1 [json_name = "samples", (buf.validate.field).int32.gte = 1];
+}
+
+// TimeBasedFixedWindowCounterSpec is the specification of the circuit breaker counter
+// with time-based fixed window algorithm.
+message TimeBasedFixedWindowCounterSpec {
+    // [OPTIONAL]
+    // Window width in seconds.
+    // Default is [5].
+    int32 WindowWidth = 1 [json_name = "windowWidth", (buf.validate.field).int32.gte = 1];
+}
+
+// CountBasedSlidingWindowCounterSpec is the specification of the circuit breaker counter
+// with count-based sliding window algorithm.
+message CountBasedSlidingWindowCounterSpec {
+    // [REQUIRED]
+    // This value must be grater than or equal to effectiveFailureSamples and effectiveSuccessSamples.
+    int32 Samples = 1 [json_name = "samples", (buf.validate.field).int32.gte = 1];
+    // [REQUIRED]
+    int32 HistoryLimit = 2 [json_name = "historyLimit", (buf.validate.field).int32.gte = 1];
+}
+
+// TimeBasedSlidingWindowCounterSpec is the specification of the circuit breaker counter
+// with time-based sliding window algorithm.
+message TimeBasedSlidingWindowCounterSpec {
+    // [OPTIONAL]
+    // Window width in seconds.
+    // Default is [5].
+    int32 WindowWidth = 1 [json_name = "windowWidth", (buf.validate.field).int32.gte = 1];
+    // [REQUIRED]
+    int32 HistoryLimit = 2 [json_name = "historyLimit", (buf.validate.field).int32.gte = 1];
+}

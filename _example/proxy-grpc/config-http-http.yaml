@@ -1,0 +1,45 @@
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  runners:
+    - apiVersion: core/v1
+      kind: HTTPServer
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+spec:
+  addr: ":50000"
+  http2Config:
+    enableH2C: true # Allow h2c.
+  virtualHosts:
+    - handlers:
+        - handler:
+            apiVersion: core/v1
+            kind: ReverseProxyHandler
+
+---
+apiVersion: core/v1
+kind: ReverseProxyHandler
+spec:
+  roundTripper:
+    apiVersion: core/v1
+    kind: HTTPClient
+  loadBalancers:
+    - pathMatcher:
+        match: ""
+        matchType: Regex
+      upstreams:
+        - url: http://127.0.0.1:50051 # gRPC server is http.
+
+---
+apiVersion: core/v1
+kind: HTTPClient
+spec:
+  http2TransportConfig:
+    allowHTTP: true # Allow h2c.
+    # multiIPConnPool: true
+    # minLookupInterval: 2000
+    # idleConnTimeout: 5000
+    # dialConfig:
+    #   timeout: 1000

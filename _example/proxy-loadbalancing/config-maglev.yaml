@@ -1,0 +1,40 @@
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  runners:
+    - apiVersion: core/v1
+      kind: HTTPServer
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+spec:
+  addr: ":8080"
+  virtualHosts:
+    - handlers:
+        - handler:
+            apiVersion: core/v1
+            kind: ReverseProxyHandler
+
+---
+apiVersion: core/v1
+kind: ReverseProxyHandler
+spec:
+  loadBalancers:
+    - pathMatcher:
+        match: "/"
+        matchType: Prefix
+      lbAlgorithm: Maglev # Use Maglev load balancer.
+      hashTableSize: 199 # Optional. At least 10*upstreams. Will be corrected to a prime number.
+      hashers: # Maglev requires at least 1 hasher.
+        - hasherType: Header
+          hashAlg: FNV1_32
+          key: Hash-Key
+        - hasherType: ClientAddr
+          hashAlg: FNV1a_32
+      upstreams:
+        - url: http://localhost:8001
+        - url: http://localhost:8002
+        - url: http://localhost:8003
+        - url: http://localhost:8004
+        - url: http://localhost:8005

@@ -1,0 +1,19 @@
+[Unit]
+Description=aileron gateway service
+Documentation=https://github.com/aileron-gateway/
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Restart=always
+Environment=DEPLOY_MODE=deb
+EnvironmentFile=/etc/default/aileron.env
+WorkingDirectory=/var/lib/aileron
+PIDFile=/run/aileron.pid
+ExecStartPre=/usr/bin/rm -f /run/aileron.pid
+ExecStart=/usr/bin/aileron -f /etc/aileron/config.yaml -e /etc/default/aileron.env $EXTRA_ARGS
+ExecReload=/usr/bin/env kill -HUP $MAINPID
+TimeoutStopSec=60s
+
+[Install]
+WantedBy=multi-user.target

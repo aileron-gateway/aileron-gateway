@@ -1,0 +1,4 @@
+apiVersion: core/v1
+kind: HTTPServer
+spec:
+  addr: ":12345"

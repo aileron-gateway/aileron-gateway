@@ -2,6 +2,7 @@
 *
 !*.*
 !**/
+!packaging/**
 
 # Include files without extension.
 !Makefile
@@ -17,6 +18,7 @@
 /*.txt
 
 # Ignore directories.
+proto/protovalidate/
 work/
 study/
 temp/

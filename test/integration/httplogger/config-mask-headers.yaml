@@ -1,0 +1,36 @@
+apiVersion: core/v1
+kind: HTTPLogger
+spec:
+  logger:
+    apiVersion: core/v1
+    kind: SLogger
+    name: default
+  request:
+    headers:
+      - name: "*"
+      - name: Authorization
+        replacers:
+          - regexp:
+              pattern: ".*"
+              replace: "##MASKED##"
+  response:
+    headers:
+      - name: "*"
+      - name: Foo
+        replacers:
+          - regexp:
+              pattern: ".*"
+              replace: "$$MASKED$$"
+      - name: Bar
+        replacers:
+          - regexp:
+              pattern: ".*"
+              replace: "%%MASKED%%"
+
+---
+apiVersion: core/v1
+kind: SLogger
+metadata:
+  name: default
+spec:
+  level: Debug

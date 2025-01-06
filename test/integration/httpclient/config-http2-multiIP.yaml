@@ -1,0 +1,14 @@
+apiVersion: core/v1
+kind: HTTPClient
+spec:
+  tripperwares:
+    - apiVersion: container/v1
+      kind: TestTripperware
+      name: test
+  http2TransportConfig:
+    allowHTTP: true # Set true to use h2c.
+    multiIPConnPool: true
+    minLookupInterval: 2000
+    idleConnTimeout: 5000
+    dialConfig:
+      timeout: 1000

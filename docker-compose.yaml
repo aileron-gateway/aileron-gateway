@@ -1,0 +1,14 @@
+# ----------------------------------------
+# This is an example docker-compose file.
+# This docker-compose is development use only.
+# ----------------------------------------
+
+version: "3"
+services:
+  aileron:
+    image: ghcr.io/aileron-gateway/aileron-gateway/aileron
+    command: ["aileron", "-f", "_example/reverse-proxy/"]
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./_example:/app/_example:ro

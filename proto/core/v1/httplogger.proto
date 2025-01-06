@@ -1,0 +1,196 @@
+syntax = "proto3";
+package core.v1;
+
+import "buf/validate/validate.proto";
+import "kernel/resource.proto";
+import "kernel/txtutil.proto";
+
+option go_package = "github.com/aileron-gateway/aileron-gateway/apis/core/v1";
+
+// HTTPLogger is the definition of the HTTPLogger object.
+// HTTPLogger implements interface of the middleware.
+message HTTPLogger {
+    // [REQUIRED]
+    // APIVersion is the defined version of the midleware.
+    // This value must be "app/v1".
+    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "core/v1"];
+
+    // [REQUIRED]
+    // Kind is the kind of this object.
+    // This value must be "HTTPLogger".
+    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "HTTPLogger"];
+
+    // [OPTIONAL]
+    // Metadata is the metadata of the http logger object.
+    // If not set, both name and namespace in the metadata
+    // are treated as "default".
+    kernel.Metadata Metadata = 3 [json_name = "metadata"];
+
+    // [OPTIONAL]
+    // Spec is the specification of the middleware.
+    // Default values are used when nothing is set.
+    HTTPLoggerSpec Spec = 4 [json_name = "spec"];
+}
+
+// HTTPLoggerSpec is the specifications of the HTTPLogger object.
+message HTTPLoggerSpec {
+    // [OPTIONAL]
+    // Logger is the reference to a Logger object.
+    // Referred object must implement Logger interface.
+    // Default Logger is used if not set.
+    kernel.Reference Logger = 1 [json_name = "logger"];
+
+    // [OPTIONAL]
+    // ErrorHandler is the reference to a ErrorHandler object.
+    // Referred object must implement ErrorHandler interface.
+    // Default error handler is used when not set.
+    kernel.Reference ErrorHandler = 2 [json_name = "errorHandler"];
+
+    // [OPTIONAL]
+    // Journal is the flag to log request and response bodies.
+    // Note that not all bodies are logged by default.
+    // Configure the target requests and responses to log
+    // in the Request and Response field.
+    // Default is [false].
+    bool Journal = 3 [json_name = "journal"];
+
+    // [OPTIONAL]
+    // TimeZone is the timezone of the access time timestamp.
+    // For example, "UTC", "Local", "Asia/Tokyo".
+    // See https://pkg.go.dev/time#LoadLocation for more details.
+    // Default is ["Local"].
+    string Timezone = 4 [json_name = "timezone"];
+
+    // [OPTIONAL]
+    // TimeFormat is the format of the access time timestamp.
+    // Check the following url for examples.
+    // https://pkg.go.dev/time#pkg-constants
+    // Default is ["2006-01-02 15:04:05.000"].
+    string TimeFormat = 5 [json_name = "timeFormat"];
+
+    // [OPTIONAL]
+    // Request is the logging configuration for requests.
+    // Default values are used if not set.
+    LoggingSpec Request = 6 [json_name = "request"];
+
+    // [OPTIONAL]
+    // Response is the logging configuration for responses.
+    // Default values are used if not set.
+    LoggingSpec Response = 7 [json_name = "response"];
+}
+
+message LoggingSpec {
+    // [OPTIONAL]
+    // Headers is the list of headers replacers.
+    // Also, masking the header values can be configured in ths field.
+    // "*" is the special name that represents all headers.
+    // Set "*" to output all header values to log.
+    // Note that the masking configuration for "*" is ignored.
+    // Nothing is set by default.
+    repeated LogHeaderSpec Headers = 1 [json_name = "headers"];
+
+    // [OPTIONAL]
+    // Bodies is the list of body replacer.
+    // Replacers can be used for masking, adding or removing content.
+    // This field does not work when logging bodies to files.
+    // Default is not set.
+    repeated LogBodySpec Bodies = 2 [json_name = "bodies"];
+
+    // [Optional]
+    // Queries is the list of query value replacers.
+    // Replacers can be used for masking or removing query values.
+    // All replacers are applied to the entire query string
+    // with specified order.
+    // If not set, query string is output as-is.
+    // This field works only for request logs and not for response logs.
+    // Default is not set.
+    repeated kernel.ReplacerSpec Queries = 3 [json_name = "queries"];
+
+    // [OPTIONAL]
+    // LogFormat is the customized log output format.
+    // if not set, default formats determined by the logger is used.
+    // Default is not set.
+    string LogFormat = 4 [json_name = "logFormat"];
+
+    // [OPTIONAL]
+    // BodyOutputPath is the body output directory path.
+    // If set, bodies that exceeds MaxContentLength and bodies with unknown size
+    // are logged to files in the specidied path.
+    // This feature of logging bodies to files is debugging use only
+    // because of the not enough implementation of error handling.
+    // To output all bodies to files, set MaxContentLength a negative value.
+    // Note that body replacers do not work for bodies output to files.
+    // This field is ignored when Journal mode is not enabled.
+    // Default is not set.
+    string BodyOutputPath = 5 [json_name = "bodyOutputPath"];
+
+    // [OPTIONAL]
+    // Base64 if enabled, encode body with base64 standard encoding.
+    // This field is ignored when output mode is not enabled or BodyOutputPath is set.
+    // Default is [false].
+    bool Base64 = 6 [json_name = "base64"];
+
+    // [OPTIONAL]
+    // MaxContentLength is the maximum content length in bytes to
+    // allow logging request and response bodies.
+    // Request and response bodies which exceeds this length are not logged.
+    // Requests and response bodies with unknown sizes are ignored and not logged.
+    // Streaming or HTTP2 requests and responses can have unknown sized body.
+    // Note that when bodies are logged, the entire body is temporarily load on memory.
+    // So do not set this value so large that can result in too much memory consumption.
+    // Use BodyOutputPath for logging large or streaming bodies.
+    // This field is ignored when Journal mode is not enabled.
+    // Default is [4096] or 4kiB.
+    int64 MaxContentLength = 7 [json_name = "maxContentLength"];
+
+    // [OPTIONAL]
+    // MIMEs is the list of mime types to log request and response bodies.
+    // When Journal mode is enabled, only requests and response bodies with
+    // listed mime types are logged.
+    // Mime types are evaluated with exact matching.
+    // So, list all mime types to log bodies.
+    // See MIME types at https://www.iana.org/assignments/media-types/media-types.xhtml.
+    // This field is ignored when Journal mode is not enabled.
+    // When not set, default value are used.
+    // Default values are
+    // ["application/json", "application/x-www-form-urlencoded", "application/xml",
+    // "application/soap+xml", "application/graphql+json",
+    // "text/plain", "text/html", "text/xml"].
+    repeated string MIMEs = 8 [json_name = "mimes"];
+}
+
+// LogValueSpec is the status of the LoggingMiddleware object.
+// Values are managed by the application and therefore should not be set by users.
+message LogHeaderSpec {
+    // [REQUIRED]
+    // Name is the HTTP header name.
+    // "*" is the special character to represent all header names.
+    string Name = 1 [json_name = "name"];
+
+    // [Optional]
+    // Replacers is the list of replace configurations.
+    // If not set, header values are output as is.
+    // Default is not set.
+    repeated kernel.ReplacerSpec Replacers = 2 [json_name = "replacers"];
+}
+
+// LogBodySpec is the HTTP body logging configuration.
+message LogBodySpec {
+    // [REQUIRED]
+    // Mime is the mime type string such as "application/json"
+    // that this configuration targets to.
+    // Default is not set.
+    string Mime = 1 [json_name = "mime"];
+
+    // [Optional]
+    // Replacers is the list of replace configurations.
+    // If not set, body is output as is.
+    // Default is not set.
+    repeated kernel.ReplacerSpec Replacers = 2 [json_name = "replacers"];
+
+    // [OPTIONAL]
+    // JSONFields is the list of json key names to be replaced.
+    // If set, replacers are applied to the obtained content.
+    // Default is not set.
+    repeated string JSONFields = 3 [json_name = "jsonFields"];
+}

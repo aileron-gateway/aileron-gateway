@@ -1,0 +1,47 @@
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  runners:
+    - apiVersion: core/v1
+      kind: HTTPServer
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+spec:
+  addr: ":8443"
+  http3Config:
+    tlsConfig:
+      certKeyPairs:
+        - certFile: ./_example/proxy-http3/pki/cert.pem # Set server cert.
+          keyFile: ./_example/proxy-http3/pki/key.pem # Set server key.
+  virtualHosts:
+    - handlers:
+        - handler:
+            apiVersion: core/v1
+            kind: ReverseProxyHandler
+
+---
+apiVersion: core/v1
+kind: ReverseProxyHandler
+spec:
+  roundTripper:
+    apiVersion: core/v1
+    kind: HTTPClient
+  loadBalancers:
+    - pathMatcher:
+        match: ""
+        matchType: Regex
+      upstreams:
+        # - url: https://127.0.0.1:10001 # HTTP 1 server.
+        # - url: https://127.0.0.1:10002 # HTTP 2 server.
+        - url: https://127.0.0.1:10003 # HTTP 3 server.
+
+---
+apiVersion: core/v1
+kind: HTTPClient
+spec:
+  http3TransportConfig:
+    tlsConfig:
+      rootCAs:
+        - ./_example/proxy-http3/pki/cert.pem # Set server cert.

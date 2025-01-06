@@ -1,0 +1,10 @@
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  runners:
+    - apiVersion: container/v1
+      kind: TestRunner
+      name: test1
+    - apiVersion: container/v1
+      kind: TestRunner
+      name: test2

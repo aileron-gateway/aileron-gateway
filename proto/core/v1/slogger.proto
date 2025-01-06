@@ -1,0 +1,229 @@
+syntax = "proto3";
+package core.v1;
+
+import "buf/validate/validate.proto";
+import "kernel/logging.proto";
+import "kernel/resource.proto";
+import "kernel/txtutil.proto";
+
+option go_package = "github.com/aileron-gateway/aileron-gateway/apis/core/v1";
+
+// SLogger is the definition of the SLogger object.
+// SLogger implements interface of the logger.
+message SLogger {
+    // [REQUIRED]
+    // APIVersion is the defined version of the logger.
+    // This value must be "core/v1".
+    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "core/v1"];
+
+    // [REQUIRED]
+    // Kind is the kind of this object.
+    // This value must be "SLogger".
+    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "SLogger"];
+
+    // [OPTIONAL]
+    // Metadata is the metadata of the middleware object.
+    // If not set, both name and namespace in the metadata
+    // are treated as "default".
+    kernel.Metadata Metadata = 3 [json_name = "metadata"];
+
+    // [OPTIONAL]
+    // Spec is the specification of the logger.
+    // Default values are used when nothing is set.
+    SLoggerSpec Spec = 4 [json_name = "spec"];
+}
+
+// SLoggerSpec is the specifications for the SLogger object.
+message SLoggerSpec {
+    // [OPTIONAL]
+    // LogLevel is the log output level.
+    // Default is [STDOUT].
+    kernel.LogLevel Level = 1 [json_name = "level"];
+
+    // [OPTIONAL]
+    // LogOutput is the specifications of log output.
+    // Default values are used if not set.
+    LogOutputSpec LogOutput = 2 [json_name = "logOutput"];
+
+    // [OPTIONAL]
+    // Unstructured is the flag to use text log, or non-json log.
+    // Default is [false].
+    bool Unstructured = 3 [json_name = "unstructured"];
+
+    // [OPTIONAL]
+    // OutputTimeFormat is the timestamp format of the
+    // "time" field which located on the top level in logs.
+    // This time indicates the log 'output' time which is
+    // different from log 'creation' time.
+    // Use DateFormat and TimeFormat field to specify the
+    // timestamp format of log 'creation' time.
+    // Timezone is inherited from the LogOutput.TimeZone.
+    // Check the following url for the available syntax.
+    // https://pkg.go.dev/time#pkg-constants
+    // Default is ["2006-01-02 15:04:05"].
+    string OutputTimeFormat = 4 [json_name = "outputTimeFormat"];
+
+    // [OPTIONAL]
+    // DateFormat is the timestamp format of the date
+    // "datetime.date" field in logs.
+    // Timestamp of the "datetime" indicates the log 'creation' time
+    // which is different from log 'output' time.
+    // Timezone is inherited from the LogOutput.TimeZone.
+    // Check the following url for the available syntax.
+    // https://pkg.go.dev/time#pkg-constants
+    // Default is ["2006-01-02"].
+    string DateFormat = 5 [json_name = "dateFormat"];
+
+    // [OPTIONAL]
+    // TimeFormat is the timestamp format of the time
+    // "datetime.time" field in logs.
+    // Timestamp of the "datetime" indicates the log 'creation' time
+    // which is different from log 'output' time.
+    // Timezone is inherited from the LogOutput.TimeZone.
+    // Check the following url for the available syntax.
+    // https://pkg.go.dev/time#pkg-constants
+    // Default is ["15:04:05.000"].
+    string TimeFormat = 6 [json_name = "timeFormat"];
+
+    // [OPTIONAL]
+    // NoLocation is the flag to suppress "location" log field.
+    // It contains file name, line number and function name.
+    // Default is [false].
+    bool NoLocation = 7 [json_name = "noLocation"];
+
+    // [OPTIONAL]
+    // NoDatetime is the flag to suppress "datetime" log field.
+    // It contains date, time and time zone.
+    // Default is [false].
+    bool NoDatetime = 8 [json_name = "noDatetime"];
+
+    // [OPTIONAL]
+    // FieldReplaces is the list of field replace configuration.
+    // This can be used for log masking.
+    // Default is not set.
+    repeated FieldReplacerSpec FieldReplacers = 9 [json_name = "fieldReplacers"];
+}
+
+message FieldReplacerSpec {
+    // [REQUIRED]
+    // Field is the field name to replace value.
+    // Inner fields, if having map structure,
+    // can be accessed by paath expression
+    // line "foo.bar.baz".
+    // Default is not set.
+    string Field = 1 [json_name = "field"];
+
+    // [Optional]
+    // Replacers is the value replace configurations.
+    // If not set, target field is removed from log outpur.
+    // Default is not set, which means remove field.
+    kernel.ReplacerSpec Replacer = 2 [json_name = "replacer"];
+}
+
+// LogOutputSpec is the specification for log output.
+message LogOutputSpec {
+    // [OPTIONAL]
+    // OutputTarget is the destination of log outsput.
+    // Default is [Stdout].
+    OutputTarget OutputTarget = 1 [json_name = "outputTarget"];
+
+    // [OPTIONAL]
+    // LogDir is the log output directory path.
+    // This field is used only for "File" output.
+    // Default is the working directory.
+    string LogDir = 2 [json_name = "logDir"];
+
+    // [OPTIONAL]
+    // LogDir is the log output directory path.
+    // This field is used only for "File" output.
+    // Default is the same as LogDir.
+    string BackupDir = 3 [json_name = "backupDir"];
+
+    // [OPTIONAL]
+    // LogFileName is the base filename of logs.
+    // This field is used only for "File" output.
+    // Default is ["application.log"].
+    string LogFileName = 4 [json_name = "logFileName"];
+
+    // [OPTIONAL]
+    // Cron is the cron expression for time based log rotation.
+    // If not set, time based rotation will be disabled.
+    // Format should be "second minute hour day month week"
+    // or "minute hour day month week".
+    // TZ must be a valid timezone name.
+    // Value ranges are `0-59` for second, `0-59` for minute,
+    // `0-23` for hour, `1-31` for day of month,
+    // `1-12 or JAN-DEC` for month, `0-6 or SUN-SAT` for day of week.
+    // Special caharacters `* / , -` are allowed for all fields.
+    // Timezone can be specified like "TZ=UTC * * * * *".
+    // For example, "0 * * * *" means hourly rotation,
+    // "0 0 * * *" means daily rotation.
+    // Multiple jobs won't be run at the same time.
+    // Default is not set.
+    string Cron = 5 [json_name = "cron"];
+
+    // [OPTIONAL]
+    // RotateSize is the log file size in MiB to be rotated.
+    // This field is used only for "File" output.
+    // Default is [1024], or 1GiB.
+    uint32 RotateSize = 6 [json_name = "rotateSize"];
+
+    // [OPTIONAL]
+    // TimeLayout is the timestamp layout in the backup-ed log files.
+    // This field is used only for "File" output.
+    // Go's time format can be used.
+    // See https://pkg.go.dev/time#pkg-constants for more details.
+    // Default is ["2006-01-02_15-04-05"].
+    string TimeLayout = 7 [json_name = "timeLayout"];
+
+    // [OPTIONAL]
+    // TimeZone is the timezone of the timestamp in the archived log files.
+    // For example, "UTC", "Local", "Asia/Tokyo".
+    // See https://pkg.go.dev/time#LoadLocation for more details.
+    // Default is ["Local"].
+    string TimeZone = 8 [json_name = "timeZone"];
+
+    // [OPTIONAL]
+    // CompressLevel is the gzip compression level.
+    // If 0, no compression applied.
+    // This field is ignored when the output target is not file.
+    // 0 for no compression, 1 for best speed, 9 for best compression,
+    // -2 for huffman only.
+    // See https://pkg.go.dev/compress/gzip#pkg-constants for more detail.
+    // This field is used only for "File" output.
+    // Default is [0], or no compression.
+    int32 CompressLevel = 9 [json_name = "compressLevel", (buf.validate.field).int32 = {gte : -2, lte : 9}];
+
+    // [OPTIONAL]
+    // MaxAge is maximum age of backup logs in seconds.
+    // Backups older than this age will be removed.
+    // This field is used only for "File" output.
+    // This field will be ignored when not set or set to negative.
+    // Default is not set.
+    int32 MaxAge = 10 [json_name = "maxAge"];
+
+    // [OPTIONAL]
+    // MaxBackup is the maximum number of log backups.
+    // Backups will be removed from older one if the number of backups exceeded this value.
+    // This field is used only for "File" output.
+    // This field will be ignored when not set or set to negative.
+    // Default is not set.
+    int32 MaxBackup = 11 [json_name = "maxBackup"];
+
+    // [OPTIONAL]
+    // MaxTotalSize is the maximum total size of backups in MiB.
+    // Backups will be removed from older one if the total file size
+    // exceeded this value.
+    // This field is used only for "File" output.
+    // This field will be ignored when not set.
+    // Default is not set.
+    uint32 MaxTotalSize = 12 [json_name = "maxTotalSize"];
+}
+
+// OutputTarget is the output destination.
+enum OutputTarget {
+    Stdout  = 0;  // Output to standard output.
+    Stderr  = 1;  // Output to standard error output.
+    Discard = 2;  // Discard outputs.
+    File    = 3;  // Output to files.
+}

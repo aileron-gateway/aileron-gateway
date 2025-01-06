@@ -1,0 +1,6 @@
+apiVersion: core/v1
+kind: HTTPClient
+spec:
+  retryConfig:
+    maxRetry: 3
+    maxContentLength: 10

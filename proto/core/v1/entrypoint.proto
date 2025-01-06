@@ -1,0 +1,90 @@
+syntax = "proto3";
+package core.v1;
+
+import "buf/validate/validate.proto";
+import "kernel/resource.proto";
+
+option go_package = "github.com/aileron-gateway/aileron-gateway/apis/core/v1";
+
+// Entrypoint is the definition of the Entrypoint object.
+// Entrypoint implements interface of the service.
+message Entrypoint {
+    // [REQUIRED]
+    // APIVersion is the defined version of the service.
+    // This value must be "core/v1".
+    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "core/v1"];
+
+    // [REQUIRED]
+    // Kind is the kind of this object.
+    // This value must be "Entrypoint".
+    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "Entrypoint"];
+
+    // [OPTIONAL]
+    // Metadata is the metadata of the entrypoint object.
+    // If not set, both name and namespace in the metadata
+    // are treated as "default".
+    kernel.Metadata Metadata = 3 [json_name = "metadata"];
+
+    // [OPTIONAL]
+    // Spec is the specification of the service.
+    // Default values are used when nothing is set.
+    EntrypointSpec Spec = 4 [json_name = "spec"];
+}
+
+// EntrypointSpec is the specifications for the Entrypoint object.
+message EntrypointSpec {
+    // [OPTIONAL]
+    // DefaultLogger is the reference to a Logger object
+    // that will be used from other resources by default.
+    // Object must implement Logger interface.
+    // Default Logger is used when not set.
+    kernel.Reference DefaultLogger = 1 [json_name = "defaultLogger"];
+
+    // [OPTIONAL]
+    // Loggers is the list of references to Logger objects.
+    // The specified loggers can be referred from other resources
+    // by the name "<group>/<version>/<kind>/<namespace>/<name>"
+    // from their metadata field
+    // for example "core/v1/SLogger/myNamespace/myLogger".
+    // Objects must implement Logger interface.
+    // Default is not set.
+    repeated kernel.Reference Loggers = 2 [json_name = "loggers"];
+
+    // [OPTIONAL]
+    // DefaultErrorHandler is the reference to a ErrorHandler object
+    // that will be used from other resources by default.
+    // Referred object must implement ErrorHandler interface.
+    // Default ErrorHandler is used when not set.
+    kernel.Reference DefaultErrorHandler = 3 [json_name = "defaultErrorHandler"];
+
+    // [OPTIONAL]
+    // Runners is the list of reference to runner resources.
+    // Referred objects must implement the Runner interface.
+    // HTTPServer is a typical example of the resource that can be set to this field.
+    // The gateway will exit without doing anything
+    // when no runner was specified.
+    // The gateway will exit with failure when one of or all of the
+    // runners exit with an error.
+    repeated kernel.Reference Runners = 4 [json_name = "runners"];
+
+    // [OPTIONAL]
+    // WaitAll is the flag to wait all runners to exit.
+    // If false, the gateway will exit when at least 1 runner exited.
+    // If true, the gateway will exit when all of the runners exited.
+    // Default is [false].
+    bool WaitAll = 5 [json_name = "waitAll"];
+
+    // [OPTIONAL]
+    // Initializers is the reference to the resources
+    // that should be initialized before creating runners.
+    // Referred objects must implement the Initializer interface.
+    // Default is not set.
+    repeated kernel.Reference Initializers = 6 [json_name = "initializers"];
+
+    // [OPTIONAL]
+    // Finalizers is the reference to the resources
+    // that should be finalized on exit of the gateway.
+    // Referred objects must implement the Finalizer interface.
+    // Default is not set.
+    repeated kernel.Reference Finalizers = 7 [json_name = "finalizers"];
+}

@@ -1,0 +1,18 @@
+apiVersion: core/v1
+kind: ErrorHandler
+spec:
+  errorMessages:
+    - codes: []
+      kinds: ["Foo*"]
+      messages: []
+      mimeContents:
+        - mimeType: application/json
+          statusCode: 200
+          header:
+            alice: bob
+          template: '{"foo":"bar"}'
+        - mimeType: text/plain
+          statusCode: 200
+          header:
+            alice: bob
+          template: "foo=bar"

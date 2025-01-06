@@ -1,0 +1,50 @@
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  runners:
+    - apiVersion: core/v1
+      kind: HTTPServer
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+spec:
+  addr: ":8080"
+  virtualHosts:
+    - handlers:
+        - handler:
+            apiVersion: core/v1
+            kind: ReverseProxyHandler
+
+---
+apiVersion: core/v1
+kind: ReverseProxyHandler
+spec:
+  roundTripper:
+    apiVersion: core/v1
+    kind: HTTPClient
+  loadBalancers:
+    - pathMatcher:
+        match: ".*"
+        matchType: Regex
+      upstreams:
+        - url: http://httpbin.org
+
+---
+apiVersion: core/v1
+kind: HTTPClient
+spec:
+  retryConfig:
+    maxRetry: 3
+    retryStatusCodes:
+      - 500
+      - 502
+      - 503
+  httpTransportConfig:
+    disableKeepAlives: true
+    disableCompression: true
+    maxIdleConns: 100
+    maxIdleConnsPerHost: 20
+    maxConnsPerHost: 20
+    idleConnTimeout: 10000
+    responseHeaderTimeout: 5000

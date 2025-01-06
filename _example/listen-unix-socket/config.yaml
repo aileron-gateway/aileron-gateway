@@ -1,0 +1,79 @@
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  runners:
+    - apiVersion: core/v1
+      kind: HTTPServer
+      name: hello-server
+    - apiVersion: core/v1
+      kind: HTTPServer
+      name: proxy-server
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+metadata:
+  name: hello-server
+spec:
+  httpConfig:
+    listenConfig:
+      network: "unix"
+      addr: "@hello"
+      # addr: "/var/run/hello.sock"
+  virtualHosts:
+    - handlers:
+        - handler:
+            apiVersion: core/v1
+            kind: TemplateHandler
+
+---
+apiVersion: core/v1
+kind: TemplateHandler
+spec:
+  mimeContents:
+    - mimeType: text/plain
+      statusCode: 200
+      templateType: Text
+      template: "Hello!!"
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+metadata:
+  name: proxy-server
+spec:
+  httpConfig:
+    listenConfig:
+      network: "unix"
+      addr: "@gateway"
+      # addr: "/var/run/gateway.sock"
+  virtualHosts:
+    - handlers:
+        - handler:
+            apiVersion: core/v1
+            kind: ReverseProxyHandler
+
+---
+apiVersion: core/v1
+kind: ReverseProxyHandler
+spec:
+  roundTripper:
+    apiVersion: core/v1
+    kind: HTTPClient
+  loadBalancers:
+    - pathMatcher:
+        match: ".*"
+        matchType: Regex
+      upstreams:
+        - url: http://abstract.socket.com
+        # - url: http://pathname.socket.com
+
+---
+apiVersion: core/v1
+kind: HTTPClient
+spec:
+  httpTransportConfig:
+    dialConfig:
+      replaceTargets:
+        - "(tcp|abstract.socket.com:80) > (unix|@hello)"
+        # - "(tcp|pathname.socket.com:80) > (unix|/var/run/hello.sock)"

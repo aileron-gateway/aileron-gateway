@@ -1,0 +1,13 @@
+apiVersion: core/v1
+kind: HTTPServer
+spec:
+  addr: ":12345"
+  httpConfig:
+    listenConfig:
+      networks:
+        - "192.168.0.1/32"
+      tlsConfig:
+        certKeyPairs:
+          - certFile: ${TEST_DATA_DIR}cert.pem
+            keyFile: ${TEST_DATA_DIR}key.pem
+  http2Config: {}

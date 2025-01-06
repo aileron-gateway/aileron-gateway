@@ -1,0 +1,14 @@
+#!/bin/sh
+
+set -e
+
+#----------------------------------------------------
+
+echo "Running postrm script:" $@
+
+if [ -z "$(ls -A /var/lib/aileron/)" ]; then
+    rm -rf /var/lib/aileron/
+fi
+
+#----------------------------------------------------
+exit 0

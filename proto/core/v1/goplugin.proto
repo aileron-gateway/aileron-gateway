@@ -1,0 +1,51 @@
+syntax = "proto3";
+package core.v1;
+
+import "buf/validate/validate.proto";
+import "kernel/resource.proto";
+
+option go_package = "github.com/aileron-gateway/aileron-gateway/apis/core/v1";
+
+// GoPlugin is the definition of the GoPlugin object.
+message GoPlugin {
+    // [REQUIRED]
+    // APIVersion is the defined version of the logger.
+    // This value must be "core/v1".
+    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "core/v1"];
+
+    // [REQUIRED]
+    // Kind is the kind of this object.
+    // This value must be "GoPlugin".
+    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "GoPlugin"];
+
+    // [OPTIONAL]
+    // Metadata is the metadata of the middleware logger.
+    // If not set, both name and namespace in the metadata
+    // are treated as "default".
+    kernel.Metadata Metadata = 3 [json_name = "metadata"];
+
+    // [OPTIONAL]
+    // Spec is the specification of the GoPlugin.
+    // Default values are used when nothing is set.
+    GoPluginSpec Spec = 4 [json_name = "spec"];
+}
+
+// GoPluginSpec is the specifications of the GoPlugin object.
+message GoPluginSpec {
+    // [OPTIONAL]
+    // ErrorHandler is the reference to a ErrorHandler object.
+    // Referred object must implement ErrorHandler interface.
+    // Default error handler is used when not set.
+    kernel.Reference ErrorHandler = 1 [json_name = "errorHandler"];
+
+    // [REQUIRED]
+    // PluginPath is path to the shared object of the GoPlugin.
+    // The path can be absolute or relative.
+    // Default is not set.
+    string PluginPath = 2 [json_name = "pluginPath"];
+
+    // [OPTIONAL]
+    // SymbolName is synbol name to lookup.
+    // Default is ["Plugin"].
+    string SymbolName = 3 [json_name = "symbolName"];
+}

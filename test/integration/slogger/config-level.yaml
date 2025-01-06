@@ -1,0 +1,4 @@
+apiVersion: core/v1
+kind: SLogger
+spec:
+  level: Warn

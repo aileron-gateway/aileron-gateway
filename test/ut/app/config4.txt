@@ -1,0 +1,1 @@
+.txt is not supported as config file

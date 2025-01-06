@@ -1,0 +1,9 @@
+apiVersion: core/v1
+kind: HTTPClient
+spec:
+  httpTransportConfig:
+    responseHeaderTimeout: 50
+    maxResponseHeaderBytes: 200
+    tlsConfig:
+      rootCAs:
+        - ${TEST_DATA_DIR}cert.pem

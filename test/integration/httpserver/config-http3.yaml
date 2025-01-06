@@ -1,0 +1,9 @@
+apiVersion: core/v1
+kind: HTTPServer
+spec:
+  addr: "127.0.0.1:12345"
+  http3Config:
+    tlsConfig:
+      certKeyPairs:
+        - certFile: ${TEST_DATA_DIR}cert.pem
+          keyFile: ${TEST_DATA_DIR}key.pem

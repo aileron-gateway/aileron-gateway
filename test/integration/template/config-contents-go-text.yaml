@@ -1,0 +1,16 @@
+apiVersion: core/v1
+kind: TemplateHandler
+spec:
+  mimeContents:
+    - mimeType: application/json
+      statusCode: 302
+      header:
+        alice: bob
+      templateType: GoText
+      template: '{"method":"{{.method}}"}'
+    - mimeType: text/plain
+      statusCode: 403
+      header:
+        alice: bob
+      templateType: GoText
+      template: "method={{.method}}"

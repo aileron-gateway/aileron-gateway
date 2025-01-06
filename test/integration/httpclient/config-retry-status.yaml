@@ -1,0 +1,9 @@
+apiVersion: core/v1
+kind: HTTPClient
+spec:
+  retryConfig:
+    maxRetry: 2
+    maxContentLength: 10
+    retryStatusCodes:
+      - 500
+      - 503

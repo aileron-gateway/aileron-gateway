@@ -1,0 +1,4 @@
+apiVersion: core/v1
+kind: ReverseProxyHandler
+spec:
+  invalid: parameter

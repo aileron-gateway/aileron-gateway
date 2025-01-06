@@ -1,0 +1,111 @@
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  runners:
+    - apiVersion: core/v1
+      kind: HTTPServer
+      name: hello-server
+    - apiVersion: core/v1
+      kind: HTTPServer
+      name: proxy-server
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+metadata:
+  name: hello-server
+spec:
+  addr: ":8001"
+  virtualHosts:
+    - handlers:
+        - handler:
+            apiVersion: core/v1
+            kind: TemplateHandler
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+metadata:
+  name: proxy-server
+spec:
+  addr: ":8080"
+  httpConfig:
+    listenConfig:
+      # connectionLimit: 10
+      # readBuffer: 65536
+      # writeBuffer: 1048576
+      # network: "unix"
+      # addr: "/var/run/gateway.sock"
+      # networks:
+      #   - "127.0.0.1/32:0-60900"
+      sockOption:
+        soOption:
+          # bindToDevice: ""
+          # debug: false
+          # keepAlive: true
+          # linger: 123456
+          # mark: 0
+          # receiveBuffer: 3000
+          # receiveBufferForce: 0
+          # sendBuffer: 4000
+          # sendBufferForce: 0
+          # receiveTimeout: 1.23
+          # sendTimeout: 2.23
+          # reuseAddr: true
+          reusePort: true
+        ipOption:
+          # bindAddressNoPort: true
+          # freeBind: true
+          # localPortRangeUpper: 40000
+          # localPortRangeLower: 10000
+          # transparent: true
+          # ttl: 50
+        tcpOption:
+          # cork: true
+          # deferAccept: 10
+          # keepCount: 100
+          # keepIdle: 10
+          # keepInterval: 10
+          # linger2: 1
+          # maxSegment: 4096
+          # noDelay: true
+          # quickAck: true
+          # synCount: 100
+          # userTimeout: 1000
+          # windowClamp: 100
+          # fastOpen: true
+          # fastOpenConnect: true
+        udpOption:
+          # cork: true
+          # segment: 1000
+          # gro: true
+  virtualHosts:
+    - handlers:
+        - handler:
+            apiVersion: core/v1
+            kind: ReverseProxyHandler
+
+---
+apiVersion: core/v1
+kind: TemplateHandler
+spec:
+  mimeContents:
+    - mimeType: text/plain
+      statusCode: 200
+      templateType: Text
+      template: "■"
+
+---
+apiVersion: core/v1
+kind: ReverseProxyHandler
+spec:
+  loadBalancers:
+    - pathMatcher:
+        match: ".*"
+        matchType: Regex
+      upstreams:
+        - url: http://localhost:8001
+        # - url: http://httpbin.org
+        # - url: http://worldtimeapi.org
+        # - url: http://ipconfig.io
+        # - url: http://ifconfig.io

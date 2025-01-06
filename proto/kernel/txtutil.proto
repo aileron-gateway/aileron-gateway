@@ -1,0 +1,332 @@
+syntax = "proto3";
+package kernel;
+
+import "buf/validate/validate.proto";
+import "kernel/encoding.proto";
+import "kernel/hash.proto";
+import "kernel/crypt.proto";
+
+option go_package = "github.com/aileron-gateway/aileron-gateway/apis/kernel";
+
+// MatchType is the matching methods of string or bytes data.
+// See https://pkg.go.dev/strings for string matching, https://pkg.go.dev/bytes for bytes matching.
+// https://pkg.go.dev/regexp and https://pkg.go.dev/regexp/syntax for regular expression matching.
+enum MatchType {
+    // Exact is the exact matching method type.
+    Exact = 0;
+    // Prefix is the prefix matching method type.
+    // See https://pkg.go.dev/strings#HasPrefix for string matching.
+    // See https://pkg.go.dev/bytes#HasPrefix for bytes matching.
+    Prefix = 1;
+    // Suffix is the suffix matching method type.
+    // See https://pkg.go.dev/strings#HasSuffix for string matching.
+    // See https://pkg.go.dev/bytes#HasSuffix for bytes matching.
+    Suffix = 2;
+    // Contains is the containing matching method type.
+    // See https://pkg.go.dev/strings#Contains for string matching.
+    // See https://pkg.go.dev/bytes#Contains for bytes matching.
+    Contains = 3;
+    // Path is the path matching method type.
+    // See https://pkg.go.dev/path#Match for string and bytes matching.
+    Path = 4;
+    // FilePath is the file path matching method type.
+    // See https://pkg.go.dev/path/filepath#Match for string and bytes matching.
+    FilePath = 5;
+    // Regex is the regular expression matching method type.
+    // See  https://pkg.go.dev/regexp#Match and https://pkg.go.dev/regexp/syntax
+    // for string and bytes matching.
+    Regex = 6;
+    // RegexPOSIX is the POSIX regular expression matching method type.
+    // See  https://pkg.go.dev/regexp#Match and https://pkg.go.dev/regexp/syntax
+    // for string and bytes matching.
+    RegexPOSIX = 7;
+}
+
+// MatcherSpec is the string or bytes matching specification.
+message MatcherSpec {
+    // [OPTIONAL]
+    // Patterns is the list of matching patterns.
+    // Values must have appropriate expressions for the specified match type.
+    // Default is not set.
+    repeated string Patterns = 1 [json_name = "patterns", (buf.validate.field).repeated.unique = true];
+
+    // [OPTIONAL]
+    // MatchType is the matching method type.
+    // Default is [Exact].
+    MatchType MatchType = 2 [json_name = "matchType"];
+}
+
+// ReplaceType is the replacing methods of string or bytes data.
+enum ReplaceType {
+    Fixed      = 0;
+    Value      = 1;
+    Left       = 2;
+    Right      = 3;
+    Trim       = 4;
+    TrimLeft   = 5;
+    TrimRight  = 6;
+    TrimPrefix = 7;
+    TrimSuffix = 8;
+    Encode     = 9;
+    Hash       = 10;
+    Regexp     = 11;
+    Expand     = 12;
+    Encrypt    = 13;
+    HMAC       = 14;
+}
+
+message ReplacerSpec {
+    oneof Replacers {
+        // Fixed is the fixed value replacer.
+        // This replacer replaces input to a fixed value configured.
+        FixedReplacer Fixed = 1 [json_name = "fixed"];
+        // Value is the configured values replacer.
+        // This replacer replaces a configured value to another.
+        ValueReplacer Value = 2 [json_name = "value"];
+        // Left is the left side replacer.
+        // This replacer replaces left side of a string
+        // with the configured characters.
+        LeftReplacer Left = 3 [json_name = "left"];
+        // Right is the right side replacer.
+        // This replacer replaces right side of a string
+        // with the configured characters.
+        RightReplacer Right = 4 [json_name = "right"];
+        // Trim is the replacer that trims characters from
+        // both side of a string.
+        // This leverages https://pkg.go.dev/strings#Trim
+        TrimReplacer Trim = 5 [json_name = "trim"];
+        // TrimLeft is the replacer that trims characters from
+        // left side of a string.
+        // This leverages https://pkg.go.dev/strings#TrimLeft
+        TrimLeftReplacer TrimLeft = 6 [json_name = "trimLeft"];
+        // TrimRight is the replacer that trims characters from
+        // right side of a string.
+        // This leverages https://pkg.go.dev/strings#TrimRight
+        TrimRightReplacer TrimRight = 7 [json_name = "trimRight"];
+        // TrimPrefix is the replacer that replace a prefix if matched.
+        // This leverages https://pkg.go.dev/strings#TrimPrefix
+        TrimPrefixReplacer TrimPrefix = 8 [json_name = "trimPrefix"];
+        // TrimSuffix is the replacer that replace a suffix if matched.
+        // This leverages https://pkg.go.dev/strings#TrimSuffix
+        TrimSuffixReplacer TrimSuffix = 9 [json_name = "trimSuffix"];
+        // Encode is the replacer that replace string
+        // to encoded values.
+        EncodeReplacer Encode = 10 [json_name = "encode"];
+        // Hash is the replacer that replace string
+        // to hashed values.
+        HashReplacer Hash = 11 [json_name = "hash"];
+        // Regexp is the replacer that replace string
+        // using regular expression.
+        // See https://pkg.go.dev/regexp#Regexp.ReplaceAllString
+        RegexpReplacer Regexp = 12 [json_name = "regexp"];
+        // Expand is the replacer that replace string
+        // using regular expression.
+        // See https://pkg.go.dev/regexp#Regexp.ExpandString
+        ExpandReplacer Expand = 13 [json_name = "expand"];
+        // Encrypt is the replacer that replace string
+        // to encrypted values.
+        EncryptReplacer Encrypt = 14 [json_name = "encrypt"];
+        // HMAC is the replacer that replace string
+        // to hmac hash values.
+        HMACReplacer HMAC = 15 [json_name = "hmac"];
+    }
+}
+
+message FixedReplacer {
+    // [OPTIONAL]
+    string Value = 1 [json_name = "value"];
+}
+
+message ValueReplacer {
+    // [OPTIONAL]
+    // FromTo is the pairs of 2 valus.
+    // Key is the string which is replaced by the value.
+    // Value is the string which replaces the key.
+    // Default is not set.
+    map<string, string> FromTo = 1 [json_name = "fromTo"];
+}
+
+message LeftReplacer {
+    // [OPTIONAL]
+    // Char is the character to replaces.
+    string Char = 1 [json_name = "char"];
+    // [OPTIONAL]
+    // Length is the character length that is
+    // replaced from the left side of a string.
+    // Default is not set, or 0.
+    uint32 Length = 2 [json_name = "length"];
+}
+
+message RightReplacer {
+    // [OPTIONAL]
+    // Char is the character to replaces.
+    string Char = 1 [json_name = "char"];
+    // [OPTIONAL]
+    // Length is the character length that is
+    // replaced from the right side of a string.
+    // Default is not set, or 0.
+    uint32 Length = 2 [json_name = "length"];
+}
+
+message TrimReplacer {
+    // [OPTIONAL]
+    // CutSets is the sets of character to be trimmed
+    // from both side of strings.
+    // This uses https://pkg.go.dev/strings#Trim
+    repeated string CutSets = 1 [json_name = "cutSets"];
+}
+
+message TrimLeftReplacer {
+    // [OPTIONAL]
+    // CutSets is the sets of character to be trimmed
+    // from left side of strings.
+    // This uses https://pkg.go.dev/strings#TrimLeft
+    repeated string CutSets = 1 [json_name = "cutSets"];
+}
+
+message TrimRightReplacer {
+    // [OPTIONAL]
+    // CutSets is the sets of character to be trimmed
+    // from right side of strings.
+    // This uses https://pkg.go.dev/strings#TrimRight
+    repeated string CutSets = 1 [json_name = "cutSets"];
+}
+
+message TrimPrefixReplacer {
+    // [OPTIONAL]
+    // Prefixes is the strings that are removed
+    // from the target strings.
+    // This uses https://pkg.go.dev/strings#TrimPrefix
+    repeated string Prefixes = 1 [json_name = "prefixes"];
+}
+
+message TrimSuffixReplacer {
+    // [OPTIONAL]
+    // Suffixes is the strings that are removed
+    // from the target strings.
+    // This uses https://pkg.go.dev/strings#TrimSuffix
+    repeated string Suffixes = 1 [json_name = "suffixes"];
+}
+
+message EncodeReplacer {
+    // [OPTIONAL]
+    // Pattern is the strings pattern that should be replaced.
+    // If not set or empty, the entire value is considered to be matched.
+    // Default is not set.
+    string Pattern = 1 [json_name = "pattern"];
+    // [OPTIONAL]
+    // POSIX is the flag to use POSIX regular expression.
+    // See https://pkg.go.dev/regexp#CompilePOSIX
+    // Default is false.
+    bool POSIX = 2 [json_name = "posix"];
+    // [REQUIRED]
+    // Encoding is the types of encoding to encode the matched values.
+    EncodingType Encoding = 3 [json_name = "encoding", (buf.validate.field).required = true];
+}
+
+message HashReplacer {
+    // [OPTIONAL]
+    // Pattern is the strings pattern that should be replaced.
+    // If not set or empty, the entire value is considered to be matched.
+    // Default is not set.
+    string Pattern = 1 [json_name = "pattern"];
+    // [OPTIONAL]
+    // POSIX is the flag to use POSIX regular expression.
+    // See https://pkg.go.dev/regexp#CompilePOSIX
+    // Default is false.
+    bool POSIX = 2 [json_name = "posix"];
+    // [REQUIRED]
+    // Alg is the hash algorithm to hash the matched values.
+    HashAlg Alg = 3 [json_name = "alg", (buf.validate.field).required = true];
+    // [REQUIRED]
+    // Encoding is the types of encoding to encode the hash values.
+    EncodingType Encoding = 4 [json_name = "encoding", (buf.validate.field).required = true];
+}
+
+message RegexpReplacer {
+    // [REQUIRED]
+    // Pattern is the strings pattern that should be replaced.
+    string Pattern = 1 [json_name = "pattern", (buf.validate.field).string.min_len = 1];
+    // [OPTIONAL]
+    // Replace is the replace pattern.
+    // Default is not set.
+    string Replace = 2 [json_name = "replace"];
+    // [OPTIONAL]
+    // POSIX is the flag to use POSIX regular expression.
+    // See https://pkg.go.dev/regexp#CompilePOSIX
+    bool POSIX = 3 [json_name = "posix"];
+    // [OPTIONAL]
+    // Literal is the flag to use the replace value as literal value.
+    // See https://pkg.go.dev/regexp#Regexp.ReplaceAllLiteral
+    bool Literal = 4 [json_name = "literal"];
+}
+
+message ExpandReplacer {
+    // [REQUIRED]
+    // Pattern is the strings pattern that should be replaced.
+    string Pattern = 1 [json_name = "pattern", (buf.validate.field).string.min_len = 1];
+    // [OPTIONAL]
+    // Replace is the replace pattern.
+    // Default is not set.
+    string Template = 2 [json_name = "template"];
+    // [OPTIONAL]
+    // POSIX is the flag to use POSIX regular expression.
+    // See https://pkg.go.dev/regexp#CompilePOSIX
+    bool POSIX = 3 [json_name = "posix"];
+}
+
+message EncryptReplacer {
+    // [OPTIONAL]
+    // Pattern is the strings pattern that should be replaced.
+    // If not set or empty, the entire value is considered to be matched.
+    // Default is not set.
+    string Pattern = 1 [json_name = "pattern"];
+    // [OPTIONAL]
+    // POSIX is the flag to use POSIX regular expression.
+    // See https://pkg.go.dev/regexp#CompilePOSIX
+    // Default is false.
+    bool POSIX = 2 [json_name = "posix"];
+    // [REQUIRED]
+    // Alg is the common key encryption algorithm.
+    CommonKeyCryptType Alg = 3 [json_name = "alg", (buf.validate.field).required = true];
+    // [REQUIRED]
+    // Encoding is the types of encoding to encode the hash values.
+    EncodingType Encoding = 4 [json_name = "encoding", (buf.validate.field).required = true];
+    // [REQUIRED]
+    // Password is the hex encoded password string
+    // for the common key encryption.
+    // Password length must be the valid length corresponding to the algorithm.
+    // 16,24,32 bytes for AES, 8 bytes for DES, 24 bytes for 3DES, 1-256 bytes for RC4.
+    // Default is not set.
+    string Password = 5 [json_name = "password", (buf.validate.field).required = true];
+}
+
+message HMACReplacer {
+    // [OPTIONAL]
+    // Pattern is the strings pattern that should be replaced.
+    // If not set or empty, the entire value is considered to be matched.
+    // Default is not set.
+    string Pattern = 1 [json_name = "pattern"];
+    // [OPTIONAL]
+    // POSIX is the flag to use POSIX regular expression.
+    // See https://pkg.go.dev/regexp#CompilePOSIX
+    // Default is false.
+    bool POSIX = 2 [json_name = "posix"];
+    // [REQUIRED]
+    // Alg is the hash algorithm to hash the matched values.
+    HashAlg Alg = 3 [json_name = "alg", (buf.validate.field).required = true];
+    // [REQUIRED]
+    // Encoding is the types of encoding to encode the hash values.
+    EncodingType Encoding = 4 [json_name = "encoding", (buf.validate.field).required = true];
+    // [REQUIRED]
+    // Key is the hex encoded key string for HMAC.
+    // Default is not set.
+    string Key = 5 [json_name = "key", (buf.validate.field).required = true];
+}
+
+// TemplateType is the type of template document.
+enum TemplateType {
+    Text   = 0;  // Text is a standard text type. Content will be used as it is.
+    GoText = 1;  // GoText is Go's text template type. See https://pkg.go.dev/text/template.
+    GoHTML = 2;  // GoHTML is Go's HTML template type. See https://pkg.go.dev/html/template.
+}

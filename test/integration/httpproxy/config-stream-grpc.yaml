@@ -1,0 +1,22 @@
+apiVersion: core/v1
+kind: ReverseProxyHandler
+spec:
+  roundTripper:
+    apiVersion: core/v1
+    kind: HTTPClient
+    name: default
+  loadBalancers:
+    - pathMatcher:
+        match: ".*"
+        matchType: Regex
+      upstreams:
+        - url: http://127.0.0.1:15555
+
+---
+apiVersion: core/v1
+kind: HTTPClient
+metadata:
+  name: default
+spec:
+  http2TransportConfig: # Use HTTP2 as client.
+    allowHTTP: true # Set true to use h2c.

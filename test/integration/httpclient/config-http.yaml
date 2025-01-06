@@ -1,0 +1,10 @@
+apiVersion: core/v1
+kind: HTTPClient
+spec:
+  tripperwares:
+    - apiVersion: container/v1
+      kind: TestTripperware
+      name: test
+  httpTransportConfig:
+    responseHeaderTimeout: 50
+    maxResponseHeaderBytes: 200

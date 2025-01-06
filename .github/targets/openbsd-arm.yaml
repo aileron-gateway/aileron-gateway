@@ -1,0 +1,21 @@
+version: 1
+
+goos: openbsd
+goarch: arm
+
+main: ./cmd/aileron/
+binary: aileron-{{ .Os }}-{{ .Arch }}
+
+env:
+  - CGO_ENABLED=0
+  - GOARM=7
+
+flags:
+  - -trimpath
+  - GOARM=7
+
+ldflags:
+  - "-w"
+  - "-s"
+  - '-extldflags "-static"'
+  - "-X main.version={{ .Env.VERSION }}"

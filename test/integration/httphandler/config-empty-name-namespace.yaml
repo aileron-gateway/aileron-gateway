@@ -1,0 +1,10 @@
+apiVersion: core/v1
+kind: HTTPHandler
+metadata:
+  name: ""
+  namespace: ""
+spec:
+  handler:
+    apiVersion: container/v1
+    kind: TestHandler
+    name: test

@@ -1,0 +1,23 @@
+#!/bin/sh
+
+set -e
+
+# Load environmental variables if exists.
+[ -f /etc/sysconfig/aileron ] && . /etc/sysconfig/aileron
+
+#----------------------------------------------------
+
+echo "Running prerm script:" $@
+
+if [ "$1" -eq 0 ] ; then
+    if [ -x /bin/systemctl ] ; then
+        /bin/systemctl stop aileron.service > /dev/null 2>&1 || :
+    elif [ -x /etc/init.d/aileron ] ; then
+        /etc/init.d/aileron stop
+    elif [ -x /etc/rc.d/init.d/aileron ] ; then
+        /etc/rc.d/init.d/aileron stop
+    fi
+fi
+
+#----------------------------------------------------
+exit 0

@@ -1,0 +1,3 @@
+apiVersion: core/v1
+kind: HTTPServer
+spec: {}

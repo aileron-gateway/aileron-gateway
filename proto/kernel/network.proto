@@ -1,0 +1,1146 @@
+syntax = "proto3";
+package kernel;
+
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/aileron-gateway/aileron-gateway/apis/kernel";
+
+// NetworkType is the type of network.
+// Types are basically based on the Go net.Dialer.
+// See https://pkg.go.dev/net#Dial.
+enum NetworkType {
+    HTTP       = 0;   // "http".
+    TCP        = 1;   // "tcp", both IPv4 and IPv6 available.
+    TCP4       = 2;   // "tcp4", "tcp" for IPv4.
+    TCP6       = 3;   // "tcp6", "tcp" for IPv6.
+    UDP        = 4;   // "udp", both IPv4 and IPv6 available.
+    UDP4       = 5;   // "udp4", "udp" for IPv4.
+    UDP6       = 6;   // "udp6", "udp" for IPv6.
+    IP         = 7;   // "ip", both IPv4 and IPv6 available.
+    IP4        = 8;   // "ip4", "ip" for IPv4.
+    IP6        = 9;   // "ip6", "ip" for IPv6.
+    Unix       = 10;  // "unix".
+    UnixGram   = 11;  // "unixgram".
+    UnixPacket = 12;  // "unixpacket".
+}
+
+// HTTPTransportConfig is the configuration for HTTP TransportConfig object.
+// This is the configuration for the trasportation layer of HTTP networking.
+// Proxy configurations are read from the environmental variable
+// HTTP_PROXY, HTTPS_PROXY and NO_PROXY (or the lowercase versions thereof).
+// This message is bounded to the configuration of http.Transport.
+// https://pkg.go.dev/net/http#Transport.
+message HTTPTransportConfig {
+    // [OPTIONAL]
+    // TLSConfig is the TLS configuration used in the HTTP transport layer.
+    // If not set, the default configuration is used.
+    // If both this field and DialerConfig.TLSConfig were set,
+    // DialerConfig.TLSConfig will be prior to this field.
+    // Default is not set.
+    TLSConfig TLSConfig = 1 [json_name = "tlsConfig"];
+
+    // [OPTIONAL]
+    // TLSHandshakeTimeout specifies the maximum amount of time
+    // in milliseconds to wait for a TLS handshake.
+    // Zero means no timeout.
+    // Default is [0] milliseconds.
+    int64 TLSHandshakeTimeout = 2 [json_name = "tlsHandshakeTimeout"];
+
+    // [OPTIONAL]
+    // DisableKeepAlives, if true, disables HTTP keep-alives and will only use the connection
+    // to the server for a single HTTP request.
+    // This is unrelated to the similarly named TCP keep-alives.
+    // Default is [false].
+    bool DisableKeepAlives = 3 [json_name = "disableKeepAlives"];
+
+    // [OPTIONAL]
+    // DisableCompression, if true, prevents the Transport from requesting compression
+    // with an "Accept-Encoding: gzip" request header when the Request contains
+    // no existing Accept-Encoding value.
+    // If the Transport requests gzip on its own and gets a gzipped response,
+    // it's transparently decoded in the Response.Body.
+    // However, if the user explicitly requested gzip it is not automatically uncompressed.
+    // Default is [false].
+    bool DisableCompression = 4 [json_name = "disableCompression"];
+
+    // [OPTIONAL]
+    // MaxIdleConns controls the maximum number of idle (keep-alive) connections
+    // across all hosts.
+    // Zero means no limit.
+    // Default is [0].
+    int32 MaxIdleConns = 5 [json_name = "maxIdleConns"];
+
+    // [OPTIONAL]
+    // MaxIdleConnsPerHost, if non-zero, controls the maximum idle (keep-alive)
+    // connections to keep per-host.
+    // If zero, the default value "1024" is used.
+    // See https://pkg.go.dev/net/http#DefaultMaxIdleConnsPerHost.
+    // Zero means no limit.
+    // Default is [1024].
+    int32 MaxIdleConnsPerHost = 6 [json_name = "maxIdleConnsPerHost"];
+
+    // [OPTIONAL]
+    // MaxConnsPerHost optionally limits the total number of connections per host,
+    // including connections in the dialing, active, and idle states.
+    // On limit violation, dials will block.
+    // If zero, http.DefaultMaxIdleConnsPerHost(=2) is used.
+    // See https://pkg.go.dev/net/http#DefaultMaxIdleConnsPerHost.
+    // Default is [0].
+    int32 MaxConnsPerHost = 7 [json_name = "maxConnsPerHost"];
+
+    // [OPTIONAL]
+    // Timeout duration for idle HTTP connections.
+    // Zero means no timeout.
+    // The unit is milliseconds.
+    // Default is [0] milliseconds.
+    int64 IdleConnTimeout = 8 [json_name = "idleConnTimeout"];
+
+    // [OPTIONAL]
+    // ResponseHeaderTimeout, if non-zero, specifies the amount of time to wait
+    // for a server's response headers after fully writing the request (including its body, if any).
+    // This time does not include the time to read the response body.
+    // The unit is milliseconds.
+    // Default is [0] milliseconds.
+    int64 ResponseHeaderTimeout = 9 [json_name = "responseHeaderTimeout"];
+
+    // [OPTIONAL]
+    // ExpectContinueTimeout, if non-zero, specifies the amount of time to wait
+    // for a server's first response headers after fully writing the request headers
+    // if the request has an "Expect: 100-continue" header.
+    // Zero means no timeout and causes the body to be sent immediately,
+    // without waiting for the server to approve.
+    // This time does not include the time to send the request header.
+    // The unit is milliseconds.
+    // Default is [0] milliseconds.
+    int64 ExpectContinueTimeout = 10 [json_name = "expectContinueTimeout"];
+
+    // [OPTIONAL]
+    // ProxyConnectHeader optionally specifies headers to send to proxies during
+    // CONNECT requests.
+    // Default is not set.
+    map<string, string> ProxyConnectHeaders = 11 [json_name = "proxyConnectHeaders"];
+
+    // [OPTIONAL]
+    // MaxResponseHeaderBytes specifies a limit on how many response bytes
+    // are allowed in the server's response header.
+    // Zero means to use a default limit of 1MB.
+    // See https://pkg.go.dev/net/http#DefaultMaxHeaderBytes.
+    // Default is [0] bytes.
+    int64 MaxResponseHeaderBytes = 12 [json_name = "maxResponseHeaderBytes"];
+
+    // WriteBufferSize specifies the size of the write buffer used when writing
+    // to the transport. If zero, a default (currently 4KB) is used.
+    // Default is [0] bytes.
+    int32 WriteBufferSize = 13 [json_name = "writeBufferSize"];
+
+    // [OPTIONAL]
+    // ReadBufferSize specifies the size of the read buffer used when reading
+    // from the transport. If zero, a default (currently 4KB) is used.
+    // Default is [0].
+    int32 ReadBufferSize = 14 [json_name = "readBufferSize"];
+
+    // [OPTIONAL]
+    // AllowHTTP2 allows HTTP/2 with default configuration
+    // using the given TLS configurations.
+    // Default is [false].
+    bool AllowHTTP2 = 15 [json_name = "allowHTTP2"];
+
+    // [OPTIONAL]
+    // DialConfig is the configuration for dialing.
+    // Default is not set.
+    DialConfig DialConfig = 16 [json_name = "dialConfig"];
+}
+
+// HTTPTransportConfig is the specifications for the HTTP TransportConfig object.
+// This is the configuration for the trasportation layer in networking.
+// Proxy configurations are read from the environmental variable
+// HTTP_PROXY, HTTPS_PROXY and NO_PROXY (or the lowercase versions thereof).
+message HTTP2TransportConfig {
+    // [OPTIONAL]
+    // TLSClientConfig is the TLS configuration used in the transport.
+    // If nil, the default configuration is used.
+    // If both this field and DialerConfig.TLSConfig were set,
+    // DialerConfig.TLSConfig will be prior to this field.
+    // Default is not set.
+    TLSConfig TLSConfig = 1 [json_name = "tlsConfig"];
+
+    // [OPTIONAL]
+    // DisableCompression, if true, prevents the Transport from requesting compression
+    // with an "Accept-Encoding: gzip" request header when the Request contains
+    // no existing Accept-Encoding value.
+    // If the Transport requests gzip on its own and gets a gzipped response,
+    // it's transparently decoded in the Response.Body.
+    // However, if the user explicitly requested gzip it is not automatically uncompressed.
+    // Default is [false].
+    bool DisableCompression = 2 [json_name = "disableCompression"];
+
+    // [OPTIONAL]
+    // AllowHTTP, if true, permits HTTP/2 requests using the insecure,
+    // plain-text "http" scheme.
+    // Note that this does not enable h2c support.
+    // Default is [false].
+    bool AllowHTTP = 3 [json_name = "allowHTTP"];
+
+    // [OPTIONAL]
+    // MaxHeaderListSize is the http2 SETTINGS_MAX_HEADER_LIST_SIZE
+    // to send in the initial settings frame.
+    // It is how many bytes of response headers are allowed.
+    // Unlike the http2 spec, zero here means to use a default limit (currently 10MB).
+    // Default is [0].
+    uint32 MaxHeaderListSize = 4 [json_name = "maxHeaderListSize"];
+
+    // [OPTIONAL]
+    // MaxReadFrameSize is the http2 SETTINGS_MAX_FRAME_SIZE to send in the initial settings frame.
+    // It is the size in bytes of the largest frame payload that the sender is willing to receive.
+    // If 0, no setting is sent, and the value is provided by the peer,
+    // which should be 16384 according to the
+    // spec: https://datatracker.ietf.org/doc/html/rfc7540#section-6.5.2.
+    // Values are bounded in the range 16k to 16M.
+    // Default is [0].
+    uint32 MaxReadFrameSize = 5 [json_name = "maxReadFrameSize"];
+
+    // [OPTIONAL]
+    // MaxDecoderHeaderTableSize optionally specifies the http2 SETTINGS_HEADER_TABLE_SIZE
+    // to send in the initial settings frame.
+    // It informs the remote endpoint of the maximum size of the header compression
+    // table used to decode header blocks, in octets.
+    // If zero, the default value of 4096 is used.
+    // Default is [0].
+    uint32 MaxDecoderHeaderTableSize = 6 [json_name = "maxDecoderHeaderTableSize"];
+
+    // [OPTIONAL]
+    // MaxEncoderHeaderTableSize optionally specifies an upper limit for the header
+    // compression table used for encoding request headers.
+    // Received SETTINGS_HEADER_TABLE_SIZE settings are capped at this limit.
+    // If zero, the default value of 4096 is used.
+    // Default is [0].
+    uint32 MaxEncoderHeaderTableSize = 7 [json_name = "maxEncoderHeaderTableSize"];
+
+    // [OPTIONAL]
+    // StrictMaxConcurrentStreams controls whether the server's
+    // SETTINGS_MAX_CONCURRENT_STREAMS should be respected globally.
+    // If false, new TCP connections are created to the server as needed to keep each under the per-connection.
+    // Default is [0].
+    bool StrictMaxConcurrentStreams = 8 [json_name = "strictMaxConcurrentStreams"];
+
+    // [OPTIONAL]
+    // IdleConnTimeout is the maximum amount of time in millisecond
+    // an idle (keep-alive) connection will remain idle before closing itself.
+    // Zero means no limit.
+    // Default is [0] milliseconds.
+    uint32 IdleConnTimeout = 9 [json_name = "idleConnTimeout"];
+
+    // [OPTIONAL]
+    // ReadIdleTimeout is the timeout milliseconds after which a health check
+    // using ping frame will be carried out if no frame is received on the connection.
+    // Note that a ping response will is considered a received frame,
+    // so if there is no other traffic on the connection, the health check will be
+    // performed every ReadIdleTimeout interval.
+    // If not set or set to 0, no health check is performed.
+    // Default is [0] milliseconds.
+    uint32 ReadIdleTimeout = 10 [json_name = "readIdleTimeout"];
+
+    // [OPTIONAL]
+    // PingTimeout is the timeout milliseconds after which the connection
+    // will be closed if a response to Ping is not received.
+    // If not set or set to 0, default 15,000 ms will be used.
+    // Default is [0] milliseconds.
+    uint32 PingTimeout = 11 [json_name = "pingTimeout"];
+
+    // [OPTIONAL]
+    // WriteByteTimeout is the timeout milliseconds after which the connection
+    // will be closed no data can be written to it.
+    // The timeout begins when data is available to write, and is
+    // extended whenever any bytes are written.
+    // Default is [0] milliseconds.
+    uint32 WriteByteTimeout = 12 [json_name = "writeByteTimeout"];
+
+    // [OPTIONAL]
+    // DialConfig is the configuration for dialing.
+    // If not set, there will be no timeout for dialing.
+    // Default is not set.
+    DialConfig DialConfig = 13 [json_name = "dialConfig"];
+
+    // [OPTIONAL]
+    // MultiIPConnPool replaces the default http2 connection pool
+    // with multiple ip resolvable connection pool.
+    // This connection pool is intended to be used for
+    // gRPC load balancing on Kubernetes using headless services.
+    // Default is false.
+    bool MultiIPConnPool = 14 [json_name = "multiIPConnPool"];
+
+    // [OPTIONAL]
+    // MinLookupInterval is the timeout milliseconds
+    // of minimum lookup interval for MultiIPConnPool.
+    // IP addresses lookup will be done when this interval
+    // have passes from the last lookup time.
+    // If 0, lookup is not done if there is at least 1 connection.
+    // This value is ignored when MultiIPConnPool is not used.
+    // If there is no requests, lookup won't be done
+    // even after this interval have passed.
+    // Default is [2000] milliseconds.
+    uint32 MinLookupInterval = 15 [json_name = "minLookupInterval"];
+}
+
+// DialConfig is the specifications for the DilConfig object.
+// DialControl controls dialing to the server to send requests to.
+// This message is bounded to the net.Dialer.
+// https://pkg.go.dev/net#Dialer.
+message DialConfig {
+    // [OPTIONAL]
+    // TLSConfig is the TLS configuration for this dialer.
+    // TLS will be enabled when this field is specified.
+    // Default is not set.
+    TLSConfig TLSConfig = 1 [json_name = "tlsConfig"];
+
+    // [OPTIONAL]
+    // LocalNetwork is network type used for local network.
+    // Available values are "ip", "ip4", "ip6",
+    // "tcp", "tcp4" (IPv4-only), "tcp6" (IPv6-only),
+    // "udp", "udp4" (IPv4-only), "udp6" (IPv6-only),
+    // "unix", "unixpacket" and "unixgram".
+    // Check out the valid values at https://pkg.go.dev/net#Dial.
+    // Example addresses for unix type are "/var/run/gateway.sock" for
+    // pathname socket and "@gateway" for abstract socket.
+    // Unix socket can be used from curl as follows.
+    // (curl --unix-socket "/var/run/gateway.sock" http://foo.com/bar)
+    // (curl --abstract-unix-socket "gateway" http://foo.com/bar)
+    // Default is not set.
+    string LocalNetwork = 3 [json_name = "localNetwork"];
+
+    // [OPTIONAL]
+    // LocalAddress is the local address to listen to.
+    // Check out the valid values at https://pkg.go.dev/net#Dial.
+    // The value must be valid for the LocalNetwork type.
+    // If not set, local address is automatically selected from available ones.
+    // If the port in the address parameter is empty or "0",
+    // as in "127.0.0.1:" or "[::1]:0", a port number is automatically chosen.
+    // Default is not set.
+    string LocalAddress = 4 [json_name = "localAddress"];
+
+    // [OPTIONAL]
+    // ReplaceTargets is the dial target address to be replaced.
+    // The originally requested network and address are replaced to
+    // the value defined in this field.
+    // Format must be `(<FromNetwork>|<FromAddress>) (<ToNetwork>|<ToAddress>)`.
+    // For example, when doing HTTP communication through unix sockets,
+    // the replace definition will be like
+    // `(tcp|example.com:80) (unix|/var/run/example.sock)` or
+    // `(tcp|example.com:80) (unix|@example)`.
+    // Supported values of networks and addresses
+    // follow the specification of net.Dialer.
+    // See https://pkg.go.dev/net#Dialer.
+    // As described in the link, TCP and UDP must have a port number.
+    // That menas "example.com" not works. Set with a port number like "example.com:80".
+    // If nothing set, requested network and address are used as-is.
+    // Default is not set.
+    repeated string ReplaceTargets = 5 [json_name                                          = "replaceTargets",
+                                        (buf.validate.field).repeated.items.string.pattern = "^\\([\\w:\\-]+\\|.+\\)[ >]*\\([\\w:\\-]+\\|.+\\)$"];
+
+    // [OPTIONAL]
+    // Timeout is the timeout duration as an client in milliseconds.
+    // This field will be used only for cliet.
+    // There will be no timeout when not set or 0.
+    // This field will be used as https://pkg.go.dev/net#Dialer.Timeout.
+    // Default is [0] milliseconds.
+    int32 Timeout = 6 [json_name = "timeout"];
+
+    // [OPTIONAL]
+    // FallbackDelay is the fallback delay duration in milliseconds.
+    // This field will be used as https://pkg.go.dev/net#Dialer.FallbackDelay.
+    // Default is [0] milliseconds.
+    int32 FallbackDelay = 7 [json_name = "fallbackDelay"];
+
+    // [OPTIONAL]
+    // SockOption is the socket options.
+    // Default is not set.
+    SockOption SockOption = 8 [json_name = "sockOption"];
+}
+
+// HTTP3TransportConfig is the specifications for the HTTP3 TransportConfig object.
+// This is the configuration for the trasportation layer of HTTP3.
+// http3.RoundTri
+// See https://pkg.go.dev/github.com/lucas-clemente/quic-go/http3#RoundTripper
+message HTTP3TransportConfig {
+    // [OPTIONAL]
+    // TLSConfig is the TLS configuration used in the transport.
+    // If nil, the default configuration is used.
+    // Default is not set.
+    kernel.TLSConfig TLSConfig = 1 [json_name = "tlsConfig"];
+
+    // [OPTIONAL]
+    // QuicConfig is the configuration of QUIC protocols
+    // used in the transport.
+    // If not set, default config will be used.
+    // Default is not set.
+    QuicConfig QuicConfig = 2 [json_name = "quicConfig"];
+
+    // [OPTIONAL]
+    // DisableCompression, if true, prevents the Transport from
+    // requesting compression with an "Accept-Encoding: gzip"
+    // request header when the Request contains no existing
+    // Accept-Encoding value. If the Transport requests gzip on
+    // its own and gets a gzipped response, it's transparently
+    // decoded in the Response.Body. However, if the user
+    // explicitly requested gzip it is not automatically
+    // uncompressed.
+    // Default is [false]
+    bool DisableCompression = 3 [json_name = "disableCompression"];
+
+    // [OPTIONAL]
+    // Enable support for HTTP/3 datagrams.
+    // If set to true, QuicConfig.EnableDatagram will be set.
+    // See https://www.ietf.org/archive/id/draft-schinazi-masque-h3-datagram-02.html.
+    // Default is [false].
+    bool EnableDatagrams = 4 [json_name = "enableDatagrams"];
+
+    // [OPTIONAL]
+    // MaxResponseHeaderBytes specifies a limit on how many response bytes are
+    // allowed in the server's response header.
+    // Zero means to use a default limit.
+    // Default is [0].
+    int64 MaxResponseHeaderBytes = 5 [json_name = "maxResponseHeaderBytes"];
+}
+
+// QuickVersion is the version of QUIC protocol.
+// See https://pkg.go.dev/github.com/quic-go/quic-go#pkg-constants
+enum QuickVersion {
+    Version1 = 0;  // Version1 is RFC 9000
+    Version2 = 1;  // Version2 is RFC 9369
+}
+
+// ListenConfig is the configurations for stream listner.
+message ListenConfig {
+    // [OPTIONAL]
+    // TLSConfig is the TLS configuration for this listener.
+    // TLS will be enabled when this field is specified.
+    // Default is not set.
+    TLSConfig TLSConfig = 1 [json_name = "tlsConfig"];
+
+    // [REQUIRED]
+    // Network is network type used for dialing.
+    // Available values are "tcp", "tcp4" (IPv4-only), "tcp6" (IPv6-only), and "unix".
+    // Check out the valid values at https://pkg.go.dev/net#Dial.
+    // Example addresses for unix type are "/var/run/gateway.sock" for
+    // pathname socket and "@gateway" for abstract socket.
+    // Unix socket can be used from curl as follows.
+    // (curl --unix-socket "/var/run/gateway.sock" http://foo.com/bar)
+    // (curl --abstract-unix-socket "gateway" http://foo.com/bar)
+    // Default is not set.
+    string Network = 3 [json_name = "network"];
+
+    // [OPTIONAL]
+    // Addr is the local address to listen to.
+    // Check out the valid values at https://pkg.go.dev/net#Dial.
+    // The value must be valid for the specified network type.
+    // For TCP networks, if the host in the address parameter is empty or
+    // a literal unsfpecified IP address, all available unicast and anycast IP addresses
+    // of the local system are used.
+    // If the port in the address parameter is empty or "0",
+    // as in "127.0.0.1:" or "[::1]:0", a port number is automatically chosen.
+    // Default is not set, or empty string [""].
+    string Addr = 4 [json_name = "addr"];
+
+    // [OPTIONAL]
+    // ConnectionLimit is the maximum number of TCP connections that the server can establish.
+    // Connections are dropped after ConnectionWaitTimeout when this limit was exceeded.
+    // Set -1 to disable limiting the number of TCP connections.
+    // Default is [1024].
+    int32 ConnectionLimit = 5 [json_name = "connectionLimit"];
+
+    // [OPTIONAL]
+    // Networks is the nework address list which can be used as whitelist or blacklist
+    // that the server can accept.
+    // This list is considered to be a whitelist by default.
+    // Set "blacklist" to true to use this list as a blacklist.
+    // For example, to restrict connection only to the private networks,
+    // set "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "127.0.0.1/32".
+    // IPv6 can also be set like "::1/128".
+    // In addition to the neworwork addresses, port number can be set.
+    // TCP/UDP connections line in "127.0.0.1/32:8080" or "127.0.0.1/32:8080-80809"
+    // Default is not set.
+    repeated string Networks = 6 [json_name = "networks", (buf.validate.field).repeated.unique = true];
+
+    // [OPTIONAL]
+    // Blacklist is the flag to use the Networks as a blacklist.
+    // Networks field will be used as whitelist if
+    // this field is not set or false.
+    // Default is [false].
+    bool Blacklist = 7 [json_name = "blacklist"];
+
+    // [OPTIONAL]
+    // Timeout is the timeout duration as an client in millisecond.
+    // This field will be used only for cliet.
+    // There will be no timeout when not set or 0.
+    // This field will be passed to https://pkg.go.dev/net#Conn.SetReadDeadline.
+    // Default is [0] millisecond.
+    int32 ReadDeadline = 8 [json_name = "readDeadline"];
+
+    // [OPTIONAL]
+    // Timeout is the timeout duration as an client in millisecond.
+    // This field will be used only for cliet.
+    // There will be no timeout when not set or 0.
+    // This field will be passed to https://pkg.go.dev/net#Conn.SetWriteDeadline.
+    // Default is [0] millisecond.
+    int32 WriteDeadline = 9 [json_name = "writeDeadline"];
+
+    // [OPTIONAL]
+    // SockOption is the socket options.
+    // Default is not set.
+    SockOption SockOption = 12 [json_name = "sockOption"];
+}
+
+// SockOption is the options for networking sockets.
+message SockOption {
+    // [OPTIONAL]
+    // SOOption is the socket options.
+    // See https://man7.org/linux/man-pages/man7/socket.7.html
+    SockSOOption SOOption = 1 [json_name = "soOption"];
+
+    // [OPTIONAL]
+    // IPOption is the ip socket options.
+    // See https://man7.org/linux/man-pages/man7/ip.7.html
+    SockIPOption IPOption = 2 [json_name = "ipOption"];
+
+    // [OPTIONAL]
+    // IPV6Option is the ipv6 socket options.
+    // See https://man7.org/linux/man-pages/man7/ipv6.7.html
+    SockIPV6Option IPV6Option = 3 [json_name = "ipv6Option"];
+
+    // [OPTIONAL]
+    // TCPOption is the TCP socket options.
+    // See https://man7.org/linux/man-pages/man7/tcp.7.html
+    SockTCPOption TCPOption = 4 [json_name = "tcpOption"];
+
+    // [OPTIONAL]
+    // UDPOption is the UDP socket options.
+    // See https://man7.org/linux/man-pages/man7/udp.7.html
+    SockUDPOption UDPOption = 5 [json_name = "udpOption"];
+}
+
+// SockSOOption is socket options for SOL_SOCKET level.
+// See https://man7.org/linux/man-pages/man7/socket.7.html
+message SockSOOption {
+    // [OPTIONAL]
+    // BindToDevice is the value of SO_BINDTODEVICE.
+    // See socket(7) of linux manual page for the details.
+    // This option works only for unix.
+    // This field will be ignored if the value is not set or set to empty string.
+    // Default is not set.
+    string BindToDevice = 1 [json_name = "bindToDevice"];
+
+    // [OPTIONAL]
+    // Debug is the value of SO_DEBUG.
+    // See socket(7) of linux manual page for the details.
+    // This socket option is defined in POSIX.
+    // This field will be ignored if the value is not set or set to false.
+    // Default is not set.
+    bool Debug = 2 [json_name = "debug"];
+
+    // [OPTIONAL]
+    // IncomingCPU is the value of SO_INCOMING_CPU.
+    // See socket(7) of linux manual page for the details.
+    // This option works only for unix.
+    // This field will be ignored if the value is not set or set to false.
+    // Default is not set.
+    bool IncomingCPU = 3 [json_name = "incomingCPU"];
+
+    // [OPTIONAL]
+    // KeepAlive is the value of SO_KEEPALIVE.
+    // See socket(7) of linux manual page for the details.
+    // This field will be ignored if the value is not set or set to false.
+    // Default is not set.
+    bool KeepAlive = 4 [json_name = "keepAlive"];
+
+    // [OPTIONAL]
+    // Linger is the value of SO_LINGER.
+    // See socket(7) of linux manual page for the details.
+    // This field will be ignored if the value is zero or negative.
+    // Default is not set.
+    int32 Linger = 5 [json_name = "linger"];
+
+    // [OPTIONAL]
+    // Mark is the value of SO_MARK.
+    // See socket(7) of linux manual page for the details.
+    // This option works only for unix.
+    // This field will be ignored if the value is zero or negative.
+    // Default is not set.
+    int32 Mark = 6 [json_name = "mark"];
+
+    // [OPTIONAL]
+    // ReceiveBuffer is the value of SO_RCVBUF.
+    // See socket(7) of linux manual page for the details.
+    // This field will be ignored if the value is zero or negative.
+    // Default is not set.
+    int32 ReceiveBuffer = 7 [json_name = "receiveBuffer"];
+
+    // [OPTIONAL]
+    // ReceiveBufferForce is the value of SO_RCVBUFFORCE.
+    // See socket(7) of linux manual page for the details.
+    // This option works only for unix.
+    // This field will be ignored if the value is zero or negative.
+    // Default is not set.
+    int32 ReceiveBufferForce = 8 [json_name = "receiveBufferForce"];
+
+    // [OPTIONAL]
+    // ReceiveTimeout is the value of SO_RCVTIMEO.
+    // See socket(7) of linux manual page for the details.
+    // This option works only for unix.
+    // Operatin system's default will be used if the value is zero.
+    // Default is not set.
+    double ReceiveTimeout = 9 [json_name = "receiveTimeout"];
+
+    // [OPTIONAL]
+    // SendTimeout is the value of SO_SNDTIMEO.
+    // See socket(7) of linux manual page for the details.
+    // This option works only for unix.
+    // This field will be ignored if the value is zero or negative.
+    // Default is not set.
+    double SendTimeout = 10 [json_name = "sendTimeout"];
+
+    // [OPTIONAL]
+    // ReuseAddr is the value of SO_REUSEADDR.
+    // See socket(7) of linux manual page for the details.
+    // This field will be ignored if the value is not set or set to false.
+    // Default is not set.
+    bool ReuseAddr = 11 [json_name = "reuseAddr"];
+
+    // [OPTIONAL]
+    // ReusePort is the value of SO_REUSEPORT.
+    // See socket(7) of linux manual page for the details.
+    // This option works only for unix.
+    // This field will be ignored if the value is not set or set to false.
+    // Default is not set.
+    bool ReusePort = 12 [json_name = "reusePort"];
+
+    // [OPTIONAL]
+    // SendBuffer is the value of SO_SNDBUF.
+    // See socket(7) of linux manual page for the details.
+    // This field will be ignored if the value is zero or negative.
+    // Default is not set.
+    int32 SendBuffer = 13 [json_name = "sendBuffer"];
+
+    // [OPTIONAL]
+    // SendBufferForce is the value of SO_SNDBUFFORCE.
+    // See socket(7) of linux manual page for the details.
+    // This option works only for unix.
+    // This field will be ignored if the value is zero or negative.
+    // Default is not set.
+    int32 SendBufferForce = 14 [json_name = "sendBufferForce"];
+}
+
+// SockIPOption is socket options for IPPROTO_IP level.
+// See https://man7.org/linux/man-pages/man7/ip.7.html
+message SockIPOption {
+    // [OPTIONAL]
+    // BindAddressNoPort is the value of IP_BIND_ADDRESS_NO_PORT.
+    // See ip(7) of linux manual page for the details.
+    // This option works only for unix.
+    // This field will be ignored if the value is not set or set to false.
+    // Default is not set.
+    bool BindAddressNoPort = 1 [json_name = "bindAddressNoPort"];
+
+    // [OPTIONAL]
+    // FreeBind is the value of IP_FREEBIND.
+    // See ip(7) of linux manual page for the details.
+    // This option works only for unix.
+    // This field will be ignored if the value is not set or set to false.
+    // Default is not set.
+    bool FreeBind = 2 [json_name = "freeBind"];
+
+    // [OPTIONAL]
+    // LocalPortRangeUpper is the upper port of IP_LOCAL_PORT_RANGE.
+    // See ip(7) of linux manual page for the details.
+    // This option works only for unix.
+    // Operatin system's default will be used if the value is zero or negative.
+    // Default is not set.
+    int32 LocalPortRangeUpper = 3 [json_name = "localPortRangeUpper", (buf.validate.field).int32 = {lte : 65535}];
+
+    // [OPTIONAL]
+    // LocalPortRangeLower is the lower port of IP_LOCAL_PORT_RANGE.
+    // See ip(7) of linux manual page for the details.
+    // This option works only for unix.
+    // This field will be ignored if the value is zero or negative.
+    // Default is not set.
+    int32 LocalPortRangeLower = 4 [json_name = "localPortRangeLower", (buf.validate.field).int32 = {lte : 65535}];
+
+    // [OPTIONAL]
+    // Transparent is the value of IP_TRANSPARENT.
+    // See ip(7) of linux manual page for the details.
+    // This option works only for unix.
+    // This field will be ignored if the value is not set or set to false.
+    // Default is not set.
+    bool Transparent = 5 [json_name = "transparent"];
+
+    // [OPTIONAL]
+    // TTL is the value of IP_TTL.
+    // See ip(7) of linux manual page for the details.
+    // This field will be ignored if the value is zero or negative.
+    // Default is not set.
+    int32 TTL = 6 [json_name = "ttl"];
+}
+
+// SockIPV6Option is socket options for IPPROTO_IPV6 level.
+// See https://man7.org/linux/man-pages/man7/ipv6.7.html
+message SockIPV6Option {
+}
+
+// SockTCPOption is socket options for IPPROTO_TCP level.
+// See https://man7.org/linux/man-pages/man7/tcp.7.html
+message SockTCPOption {
+    // [OPTIONAL]
+    // CORK is the value of TCP_CORK.
+    // See tcp(7) of linux manual page for the details.
+    // This option works only for unix.
+    // This field will be ignored if the value is not set or set to false.
+    // Default is not set.
+    bool CORK = 1 [json_name = "cork"];
+
+    // [OPTIONAL]
+    // DeferAccept is the value of TCP_DEFER_ACCEPT.
+    // See tcp(7) of linux manual page for the details.
+    // This field will be ignored if the value is zero or negative.
+    // Default is not set.
+    int32 DeferAccept = 2 [json_name = "deferAccept"];
+
+    // [OPTIONAL]
+    // KeepCount is the value of TCP_KEEPCNT.
+    // See tcp(7) of linux manual page for the details.
+    // This option works only for unix.
+    // This field will be ignored if the value is zero or negative.
+    // Default is not set.
+    int32 KeepCount = 3 [json_name = "keepCount"];
+
+    // [OPTIONAL]
+    // KeepIdle is the value of TCP_KEEPIDLE.
+    // See tcp(7) of linux manual page for the details.
+    // This field will be ignored if the value is zero or negative.
+    // Default is not set.
+    int32 KeepIdle = 4 [json_name = "keepIdle"];
+
+    // [OPTIONAL]
+    // KeepInterval is the value of TCP_KEEPINTVL.
+    // See tcp(7) of linux manual page for the details.
+    // This option works only for unix.
+    // This field will be ignored if the value is zero or negative.
+    // Default is not set.
+    int32 KeepInterval = 5 [json_name = "keepInterval"];
+
+    // [OPTIONAL]
+    // Linger2 is the value of TCP_LINGER2.
+    // See tcp(7) of linux manual page for the details.
+    // This field will be ignored if the value is zero or negative.
+    // Default is not set.
+    int32 Linger2 = 6 [json_name = "linger2"];
+
+    // [OPTIONAL]
+    // MaxSegment is the value of TCP_MAXSEG.
+    // See tcp(7) of linux manual page for the details.
+    // This option works only for unix.
+    // This field will be ignored if the value is zero or negative.
+    // Default is not set.
+    int32 MaxSegment = 7 [json_name = "maxSegment"];
+
+    // [OPTIONAL]
+    // NoDelay is the value of TCP_NODELAY.
+    // See tcp(7) of linux manual page for the details.
+    // This field will be ignored if the value is not set or set to false.
+    // Default is not set.
+    bool NoDelay = 8 [json_name = "noDelay"];
+
+    // [OPTIONAL]
+    // QuickAck is the value of TCP_QUICKACK.
+    // See tcp(7) of linux manual page for the details.
+    // This field will be ignored if the value is not set or set to false.
+    // Default is not set.
+    bool QuickAck = 9 [json_name = "quickAck"];
+
+    // [OPTIONAL]
+    // SynCount is the value of TCP_SYNCNT.
+    // See tcp(7) of linux manual page for the details.
+    // This field will be ignored if the value is zero or negative.
+    // Default is not set.
+    int32 SynCount = 10 [json_name = "synCount"];
+
+    // [OPTIONAL]
+    // UserTimeout is the value of TCP_USER_TIMEOUT.
+    // See tcp(7) of linux manual page for the details.
+    // This option works only for unix.
+    // This field will be ignored if the value is zero or negative.
+    // Default is not set.
+    int32 UserTimeout = 11 [json_name = "userTimeout"];
+
+    // [OPTIONAL]
+    // WindowClamp is the value of TCP_FASTOPEN.
+    // See tcp(7) of linux manual page for the details.
+    // This option works only for unix.
+    // This field will be ignored if the value is zero or negative.
+    // Default is not set.
+    int32 WindowClamp = 12 [json_name = "windowClamp"];
+
+    // [OPTIONAL]
+    // FastOpen is the value of TCP_QUICKACK.
+    // See tcp(7) of linux manual page for the details.
+    // This option works only for unix.
+    // This field will be ignored if the value is not set or set to false.
+    // Default is not set.
+    bool FastOpen = 13 [json_name = "fastOpen"];
+
+    // [OPTIONAL]
+    // FastOpenConnect is the value of TCP_FASTOPEN_CONNECT.
+    // See tcp(7) of linux manual page for the details.
+    // This field will be ignored if the value is not set or set to false.
+    // Default is not set.
+    bool FastOpenConnect = 14 [json_name = "fastOpenConnect"];
+}
+
+// SockUDPOption is socket options for IPPROTO_UDP level.
+// See https://man7.org/linux/man-pages/man7/udp.7.html
+message SockUDPOption {
+    // [OPTIONAL]
+    // CORK is the value of UDP_CORK.
+    // See udp(7) of linux manual page for the details.
+    // This option works only for unix.
+    // This field will be ignored if the value is not set or set to false.
+    // Default is not set.
+    bool CORK = 1 [json_name = "cork"];
+
+    // [OPTIONAL]
+    // Sement is the upper port of UDP_SEGMENT.
+    // See udp(7) of linux manual page for the details.
+    // This option works only for unix.
+    // This field will be ignored if the value is zero or negative.
+    // Default is not set.
+    int32 Segment = 2 [json_name = "segment"];
+
+    // [OPTIONAL]
+    // GRO is the value of UDP_GRO.
+    // See udp(7) of linux manual page for the details.
+    // This option works only for unix.
+    // This field will be ignored if the value is not set or set to false.
+    // Default is not set.
+    bool GRO = 3 [json_name = "gro"];
+}
+
+// TLSConfig is the configuration for TLS.
+message TLSConfig {
+    // [OPTIONAL]
+    // CertKeyPairs is the list of key and certification paires.
+    // This field is not need to be specified when using system's certifications.
+    //
+    // Certificates contains one or more certificate chains to present to the
+    // other side of the connection. The first certificate compatible with the
+    // peer's requirements is selected automatically.
+    //
+    // Server configurations must set one of Certificates, GetCertificate or
+    // GetConfigForClient. Clients doing client-authentication may set either
+    // Certificates or GetClientCertificate.
+    //
+    // Note: if there are multiple Certificates, and they don't have the
+    // optional field Leaf set, certificate selection will incur a significant
+    // per-handshake performance cost.
+    // Read certs will be used as https://pkg.go.dev/crypto/tls#Config.Certificates.
+    // Default is not set.
+    repeated CertKeyPair CertKeyPairs = 1 [json_name = "certKeyPairs"];
+
+    // [OPTIONAL]
+    // RootCAs is the file paths that will be used as root CAs.
+    // The read certs will be used as https://pkg.go.dev/crypto/tls#Config.RootCAs.
+    // Default is not set.
+    repeated string RootCAs = 2 [json_name = "rootCAs", (buf.validate.field).repeated.unique = true];
+
+    // [OPTIONAL]
+    // NextProtos is a list of supported application level protocols, in order of preference.
+    // If both peers support ALPN, the selected protocol will be one from this list,
+    // and the connection will fail if there is no mutually supported protocol.
+    // If NextProtos is empty or the peer doesn't support ALPN, the connection will succeed.
+    // Default is not set.
+    repeated string NextProtos = 3 [json_name = "nextProtos"];
+
+    // [OPTIONAL]
+    // ServerName is used to verify the hostname on the returned
+    // certificates unless InsecureSkipVerify is given. It is also included
+    // in the client's handshake to support virtual hosting unless it is
+    // an IP address.
+    // Default is not set.
+    string ServerName = 4 [json_name = "serverName"];
+
+    // [OPTIONAL]
+    // ClientAuth determines the server's policy for
+    // TLS Client Authentication.
+    // If not set, default value of NoClientCert will be used.
+    // Default is not set.
+    ClientAuthType ClientAuth = 5 [json_name = "clientAuth"];
+
+    // [OPTIONAL]
+    // ClientCAs defines the set of root certificate authorities
+    // that servers use if required to verify a client certificate
+    // by the policy in ClientAuth.
+    // Certifications in the system's default path will be read by default.
+    // Use ClientCAsIgnoreSystemCerts to ignore system's cert path.
+    // Default is not set.
+    repeated string ClientCAs = 6 [json_name = "clientCAs", (buf.validate.field).repeated.unique = true];
+
+    // [OPTIONAL]
+    // InsecureSkipVerify controls whether a client verifies the server's
+    // certificate chain and host name. If InsecureSkipVerify is true, crypto/tls
+    // accepts any certificate presented by the server and any host name in that
+    // certificate. In this mode, TLS is susceptible to machine-in-the-middle
+    // attacks unless custom verification is used. This should be used only for testing.
+    // Default is [false].
+    bool InsecureSkipVerify = 7 [json_name = "insecureSkipVerify"];
+
+    // [OPTIONAL]
+    // TLSCiphers is a list of enabled TLS 1.0–1.2 cipher suites. The order of
+    // the list is ignored. Note that TLS 1.3 ciphersuites are not configurable.
+    // If not set, a safe default list is used. The default cipher
+    // suites might change over time. In Go 1.22 RSA key exchange based cipher
+    // suites were removed from the default list, but can be re-added with the
+    // GODEBUG setting tlsrsakex=1.
+    // Default is not set.
+    repeated TLSCipher TLSCiphers = 8 [json_name = "tlsCipher"];
+
+    // [OPTIONAL]
+    // SessionTicketsDisabled may be set to true to disable session ticket and
+    // PSK (resumption) support.
+    // Default is [false].
+    bool SessionTicketsDisabled = 9 [json_name = "sessionTicketsDisabled"];
+
+    // [OPTIONAL]
+    // MinVersion contains the minimum TLS version that is acceptable.
+    // If not set, TLS 1.2 will be used currently.
+    // The available numbers are SSL3.0=768, TLS1.0=769,
+    // TLS1.1=770, TLS1.2=771, TLS1.3=772.
+    // Default is not set.
+    uint32 MinVersion = 10 [json_name = "minVersion", (buf.validate.field).uint32 = {lte : 65535}];
+
+    // [OPTIONAL]
+    // MaxVersion contains the maximum TLS version that is acceptable.
+    // If not set, TLS 1.3 will be used currently.
+    // The available numbers are SSL3.0=768, TLS1.0=769,
+    // TLS1.1=770, TLS1.2=771, TLS1.3=772.
+    // Default is not set.
+    uint32 MaxVersion = 11 [json_name = "maxVersion", (buf.validate.field).uint32 = {lte : 65535}];
+
+    // [OPTIONAL]
+    // CurvePreferences contains the elliptic curves that will be used in
+    // an ECDHE handshake, in preference order. If empty, the default will
+    // be used. The client will use the first preference as the type for
+    // its key share in TLS 1.3. This may change in the future.
+    // This field will be used as https://pkg.go.dev/crypto/tls#Config.CurvePreferences.
+    // Default is not set.
+    repeated CurveID CurvePreferences = 12 [json_name = "curvePreferences", (buf.validate.field).repeated.unique = true];
+
+    // [OPTIONAL]
+    // DynamicRecordSizingDisabled disables adaptive sizing of TLS records.
+    // When true, the largest possible TLS record size is always used. When
+    // false, the size of TLS records may be adjusted in an attempt to
+    // improve latency.
+    // This fieled will be used as https://pkg.go.dev/crypto/tls#Config.DynamicRecordSizingDisabled.
+    // Default is [false].
+    bool DynamicRecordSizingDisabled = 13 [json_name = "dynamicRecordSizingDisabled"];
+
+    // [OPTIONAL]
+    // Renegotiation controls what types of renegotiation are supported.
+    // The default, none, is correct for the vast majority of applications.
+    // This fieled will be used as https://pkg.go.dev/crypto/tls#Config.Renegotiation.
+    // Default is not set.
+    RenegotiationSupport Renegotiation = 14 [json_name = "renegotiation"];
+
+    // [OPTIONAL]
+    // RootCAsIgnoreSystemCerts is the flag to ignore system
+    // certification in the default path as root CAs.
+    // TLS will be configured with system's certifications
+    // if this field is not set or false.
+    // System certification path will be found at
+    // https://cs.opensource.google/go/go/+/master:src/crypto/x509/root_linux.go.
+    // The CAs are related to the https://pkg.go.dev/crypto/tls#Config.RootCAs.
+    // Default is [false].
+    bool RootCAsIgnoreSystemCerts = 15 [json_name = "rootCAsIgnoreSystemCerts"];
+
+    // [OPTIONAL]
+    // ClientCAsIgnoreSystemCerts is the flag to ignore system
+    // certification in the default path as client CAs.
+    // TLS will be configured with system's certifications
+    // if this field is not set or false.
+    // System certification path will be found at
+    // https://cs.opensource.google/go/go/+/master:src/crypto/x509/root_linux.go
+    // The CAs are related to the https://pkg.go.dev/crypto/tls#Config.ClientCAs.
+    // Default is [false].
+    bool ClientCAsIgnoreSystemCerts = 16 [json_name = "clientCAsIgnoreSystemCerts"];
+}
+
+// CertKeyPair is the pair of TLS cert file path
+// and kery file path.
+message CertKeyPair {
+    // [OPTIONAL]
+    // CertFile is the TLS certification file path.
+    // Default is not set.
+    string CertFile = 1 [json_name = "certFile"];
+
+    // [OPTIONAL]
+    // KeyFile is the TLS key file path.
+    // Default is not set.
+    string KeyFile = 2 [json_name = "keyFile"];
+}
+
+// ClientAuthType declares the policy the server will follow for TLS Client Authentication.
+// See https://pkg.go.dev/crypto/tls#ClientAuthType
+enum ClientAuthType {
+    NoClientCert               = 0;
+    RequestClientCert          = 1;
+    RequireAnyClientCert       = 2;
+    VerifyClientCertIfGiven    = 3;
+    RequireAndVerifyClientCert = 4;
+}
+
+// RenegotiationSupport is the different levels of support for TLS renegotiation.
+// See https://pkg.go.dev/crypto/tls#RenegotiationSupport
+enum RenegotiationSupport {
+    RenegotiateNever          = 0;
+    RenegotiateOnceAsClient   = 1;
+    RenegotiateFreelyAsClient = 2;
+}
+
+// CurveID is the type of a TLS identifier for an elliptic curve.
+// See https://pkg.go.dev/crypto/tls#CurveID
+// and https://www.iana.org/assignments/tls-parameters/tls-parameters.xml#tls-parameters-8.
+enum CurveID {
+    CurveP256 = 0;
+    CurveP384 = 1;
+    CurveP521 = 2;
+    X25519    = 3;
+}
+
+// TLSCipher is the TLS cipher suite.
+// Refer TLS package at https://pkg.go.dev/crypto/tls#pkg-constants
+enum TLSCipher {
+    // TLS 1.0 - 1.2 cipher suites.
+    TLS_RSA_WITH_RC4_128_SHA                      = 0;
+    TLS_RSA_WITH_3DES_EDE_CBC_SHA                 = 1;
+    TLS_RSA_WITH_AES_128_CBC_SHA                  = 2;
+    TLS_RSA_WITH_AES_256_CBC_SHA                  = 3;
+    TLS_RSA_WITH_AES_128_CBC_SHA256               = 4;
+    TLS_RSA_WITH_AES_128_GCM_SHA256               = 5;
+    TLS_RSA_WITH_AES_256_GCM_SHA384               = 6;
+    TLS_ECDHE_ECDSA_WITH_RC4_128_SHA              = 7;
+    TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA          = 8;
+    TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA          = 9;
+    TLS_ECDHE_RSA_WITH_RC4_128_SHA                = 10;
+    TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA           = 11;
+    TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA            = 12;
+    TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA            = 13;
+    TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256       = 14;
+    TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256         = 15;
+    TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256         = 16;
+    TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256       = 17;
+    TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384         = 18;
+    TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384       = 19;
+    TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256   = 20;
+    TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256 = 21;
+
+    // TLS 1.3 cipher suites.
+    TLS_AES_128_GCM_SHA256       = 22;
+    TLS_AES_256_GCM_SHA384       = 23;
+    TLS_CHACHA20_POLY1305_SHA256 = 24;
+
+    // TLS_FALLBACK_SCSV isn't a standard cipher suite but an indicator
+    // that the client is doing version fallback. See RFC 7507.
+    TLS_FALLBACK_SCSV = 25;
+
+    // Legacy names for the corresponding cipher suites with the correct _SHA256
+    // suffix, retained for backward compatibility.
+    TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305   = 26;
+    TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305 = 27;
+}
+
+// QuicConfig is the specifications for the QuicConfig object.
+// This is the configuration for the trasportation layer in networking of quic protocol.
+// QuicConfig is related to "https://pkg.go.dev/github.com/quic-go/quic-go" package
+// beside QUICConfig is related to "https://pkg.go.dev/golang.org/x/net/quic".
+message QuicConfig {
+    // [OPTIONAL]
+    // The QUIC versions that can be negotiated.
+    // If not set, it uses all versions available.
+    repeated QuickVersion Versions = 1 [json_name = "versions", (buf.validate.field).repeated.unique = true];
+
+    // [OPTIONAL]
+    // The QUIC versions that can be negotiated.
+    // If not set, it uses all versions available.
+    // HandshakeIdleTimeout is the idle timeout before completion of the handshake.
+    // If we don't receive any packet from the peer within this time, the connection attempt is aborted.
+    // Additionally, if the handshake doesn't complete in twice this time, the connection attempt is also aborted.
+    // If this value is zero, the timeout is set to 5 seconds.
+    int64 HandshakeIdleTimeout = 2 [json_name = "handshakeIdleTimeout"];
+
+    // [OPTIONAL]
+    // MaxIdleTimeout is the maximum duration that may pass without any incoming network activity.
+    // The actual value for the idle timeout is the minimum of this value and the peer's.
+    // This value only applies after the handshake has completed.
+    // If the timeout is exceeded, the connection is closed.
+    // If this value is zero, the timeout is set to 30 seconds.
+    int64 MaxIdleTimeout = 3 [json_name = "maxIdleTimeout"];
+
+    // [OPTIONAL]
+    // InitialStreamReceiveWindow is the initial size of the stream-level flow control window for receiving data.
+    // If the application is consuming data quickly enough, the flow control auto-tuning algorithm
+    // will increase the window up to MaxStreamReceiveWindow.
+    // If this value is zero, it will default to 512 KB.
+    // Values larger than the maximum varint (quicvarint.Max) will be clipped to that value.
+    uint64 InitialStreamReceiveWindow = 4 [json_name = "initialStreamReceiveWindow"];
+
+    // [OPTIONAL]
+    // MaxStreamReceiveWindow is the maximum stream-level flow control window for receiving data.
+    // If this value is zero, it will default to 6 MB.
+    // Values larger than the maximum varint (quicvarint.Max) will be clipped to that value.
+    uint64 MaxStreamReceiveWindow = 5 [json_name = "maxStreamReceiveWindow"];
+
+    // [OPTIONAL]
+    // InitialConnectionReceiveWindow is the initial size of the stream-level flow control window for receiving data.
+    // If the application is consuming data quickly enough, the flow control auto-tuning algorithm
+    // will increase the window up to MaxConnectionReceiveWindow.
+    // If this value is zero, it will default to 512 KB.
+    // Values larger than the maximum varint (quicvarint.Max) will be clipped to that value.
+    uint64 InitialConnectionReceiveWindow = 6 [json_name = "initialConnectionReceiveWindow"];
+
+    // [OPTIONAL]
+    // MaxConnectionReceiveWindow is the connection-level flow control window for receiving data.
+    // If this value is zero, it will default to 15 MB.
+    // Values larger than the maximum varint (quicvarint.Max) will be clipped to that value.
+    uint64 MaxConnectionReceiveWindow = 7 [json_name = "maxConnectionReceiveWindow"];
+
+    // MaxIncomingStreams is the maximum number of concurrent bidirectional streams that a peer is allowed to open.
+    // If not set, it will default to 100.
+    // If set to a negative value, it doesn't allow any bidirectional streams.
+    // Values larger than 2^60 will be clipped to that value.
+    int64 MaxIncomingStreams = 8 [json_name = "maxIncomingStreams"];
+
+    // [OPTIONAL]
+    // MaxIncomingUniStreams is the maximum number of concurrent unidirectional streams that a peer is allowed to open.
+    // If not set, it will default to 100.
+    // If set to a negative value, it doesn't allow any unidirectional streams.
+    // Values larger than 2^60 will be clipped to that value.
+    int64 MaxIncomingUniStreams = 9 [json_name = "maxIncomingUniStreams"];
+
+    // [OPTIONAL]
+    // KeepAlivePeriod defines whether this peer will periodically send a packet to keep the connection alive.
+    // If set to 0, then no keep alive is sent. Otherwise, the keep alive is sent on that period (or at most
+    // every half of MaxIdleTimeout, whichever is smaller).
+    int64 KeepAlivePeriod = 10 [json_name = "keepAlivePeriod"];
+
+    // [OPTIONAL]
+    // DisablePathMTUDiscovery disables Path MTU Discovery (RFC 8899).
+    // This allows the sending of QUIC packets that fully utilize the available MTU of the path.
+    // Path MTU discovery is only available on systems that allow setting of the Don't Fragment (DF) bit.
+    // If unavailable or disabled, packets will be at most 1252 (IPv4) / 1232 (IPv6) bytes in size.
+    bool DisablePathMTUDiscovery = 11 [json_name = "disablePathMTUDiscovery"];
+
+    // [OPTIONAL]
+    // Allow0RTT allows the application to decide if a 0-RTT connection attempt should be accepted.
+    // Only valid for the server.
+    bool Allow0RTT = 12 [json_name = "allow0RTT"];
+
+    // [OPTIONAL]
+    // EnableDatagrams is the flag to enable QUIC datagram support (RFC 9221).
+    bool EnableDatagrams = 13 [json_name = "enableDatagrams"];
+}

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>WebSocket</title>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            let loc = window.location;
+            let uri = 'ws://' + loc.host + "/ws";
+            console.log(uri)
+
+            const ws = new WebSocket(uri)
+            ws.onopen = function () {
+                console.log('Connected')
+            }
+
+            ws.onmessage = function (evt) {
+                let out = document.getElementById('output');
+                out.innerHTML += evt.data + '<br>';
+            }
+
+            const btn = document.querySelector('.btn')
+            btn.addEventListener('click', () => {
+                ws.send(document.getElementById('input').value)
+            })
+
+        });
+    </script>
+</head>
+
+<body>
+    <label for="name">Message: </label>
+    <input type="text" id="input"></p>
+    <p><input type="submit" class="btn" value="Submit"></p>
+    <p id="output"></p>
+</body>
+
+</html>

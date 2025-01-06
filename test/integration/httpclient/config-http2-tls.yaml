@@ -1,0 +1,7 @@
+apiVersion: core/v1
+kind: HTTPClient
+spec:
+  http2TransportConfig:
+    tlsConfig:
+      rootCAs:
+        - ${TEST_DATA_DIR}cert.pem

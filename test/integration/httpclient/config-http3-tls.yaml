@@ -1,0 +1,12 @@
+apiVersion: core/v1
+kind: HTTPClient
+spec:
+  tripperwares:
+    - apiVersion: container/v1
+      kind: TestTripperware
+      name: test
+  http3TransportConfig:
+    maxResponseHeaderBytes: 100
+    tlsConfig:
+      rootCAs:
+        - ${TEST_DATA_DIR}cert.pem

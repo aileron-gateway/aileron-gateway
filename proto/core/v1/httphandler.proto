@@ -1,0 +1,53 @@
+syntax = "proto3";
+package core.v1;
+
+import "buf/validate/validate.proto";
+import "kernel/resource.proto";
+
+option go_package = "github.com/aileron-gateway/aileron-gateway/apis/core/v1";
+
+// HTTPHandler is the definition of the HTTPHandler object.
+// HTTPHandler implements interface of the http handler.
+message HTTPHandler {
+    // [REQUIRED]
+    // APIVersion is the defined version of the handler.
+    // This value must be "core/v1".
+    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "core/v1"];
+
+    // [REQUIRED]
+    // Kind is the kind of this object.
+    // This value must be "Handler".
+    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "HTTPHandler"];
+
+    // [OPTIONAL]
+    // Metadata is the metadata of the HTTP handler object.
+    // If not set, both name and namespace in the metadata
+    // are treated as "default".
+    kernel.Metadata Metadata = 3 [json_name = "metadata"];
+
+    // [OPTIONAL]
+    // Spec is the specification of the handler.
+    // Default values are used when nothing is set.
+    HTTPHandlerSpec Spec = 4 [json_name = "spec"];
+}
+
+// HTTPHandlerSpec is the specifications for the Handler object.
+message HTTPHandlerSpec {
+    // [OPTIONAL]
+    // Pattern is path pattern that this handler
+    // is registered to servers.
+    // The pattern will be joined with the internal handler
+    // that is specified with Handler.
+    // Default is not set.
+    string Pattern = 1 [json_name = "pattern"];
+
+    // [OPTIONAL]
+    // Middleware is the list of middleware applied for all handlers.
+    // Default is not set.
+    repeated kernel.Reference Middleware = 2 [json_name = "middleware"];
+
+    // [REQUIRED]
+    // Handler is the reference to a handler to use.
+    // Default is not set.
+    kernel.Reference Handler = 3 [json_name = "handler"];
+}

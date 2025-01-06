@@ -1,0 +1,19 @@
+#!/bin/sh
+
+set -e
+
+# Load environmental variables if exists.
+[ -f /etc/default/aileron ] && . /etc/default/aileron
+
+#----------------------------------------------------
+
+echo "Running prerm script:" $@
+
+if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
+    if command -v systemctl 2>/dev/null; then
+        systemctl stop aileron.service > /dev/null 2>&1 || :
+    fi
+fi
+
+#----------------------------------------------------
+exit 0

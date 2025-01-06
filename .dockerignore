@@ -1,0 +1,11 @@
+*
+!apis/
+!app/
+!cmd/
+!core/
+!kernel/
+!util/
+!_example/
+!go.mod
+!go.sum
+!Makefile

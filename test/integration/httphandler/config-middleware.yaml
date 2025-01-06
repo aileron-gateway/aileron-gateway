@@ -1,0 +1,14 @@
+apiVersion: core/v1
+kind: HTTPHandler
+spec:
+  middleware:
+    - apiVersion: container/v1
+      kind: TestMiddleware
+      name: test1
+    - apiVersion: container/v1
+      kind: TestMiddleware
+      name: test2
+  handler:
+    apiVersion: container/v1
+    kind: TestHandler
+    name: test
