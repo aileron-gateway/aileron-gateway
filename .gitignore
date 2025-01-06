@@ -1,0 +1,27 @@
+# Ignore files without extension.
+*
+!*.*
+!**/
+
+# Include files without extension.
+!Makefile
+!LICENSE
+!Dockerfile
+
+# Ignore files with extension.
+*.exe
+*.so
+*.test
+/*.env
+/*.html
+/*.txt
+
+# Ignore directories.
+work/
+study/
+temp/
+tmp/
+
+# Ignore IDE directory.
+.vscode
+.idea
