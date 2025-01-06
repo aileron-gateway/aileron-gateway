@@ -96,8 +96,6 @@ func (p *reverseProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	setXForwardedHeaders(r, outReq.Header)
 	copyHeader(outReq.Header, utilhttp.ProxyHeaderFromContext(r.Context()))
 
-	// Ignore body close error because it seemed to be a mis detection.
-	//nolint:bodyclose // response body must be closed
 	outRes, err := p.rt.RoundTrip(outReq)
 	if err != nil {
 		// Notify the error to upstream object so the
@@ -161,8 +159,8 @@ func (p *reverseProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if len(outRes.Trailer) > 0 {
 		// Force chunking if we saw a response trailer.
 		// This prevents net/http from calculating the length for short bodies and adding a Content-Length.
-		p.logIfError(r.Context(), http.NewResponseController(w).Flush()) //nolint:bodyclose // response body must be closed
-		copyTrailer(w.Header(), outRes.Trailer)                          // Copy trailer with http.TrailerPrefix.
+		p.logIfError(r.Context(), http.NewResponseController(w).Flush())
+		copyTrailer(w.Header(), outRes.Trailer) // Copy trailer with http.TrailerPrefix.
 	}
 }
 
@@ -227,7 +225,7 @@ func handleUpgradeResponse(rw http.ResponseWriter, req *http.Request, res *http.
 		backConn.Close()
 	}()
 
-	conn, brw, err := http.NewResponseController(rw).Hijack() //nolint:bodyclose // response body must be closed
+	conn, brw, err := http.NewResponseController(rw).Hijack()
 	if err != nil {
 		reason := "Hijack failed from type " + fmt.Sprintf("%T", rw)
 		err = core.ErrCoreProxyProtocolSwitch.WithStack(err, map[string]any{"reason": reason})
