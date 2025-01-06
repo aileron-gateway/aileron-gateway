@@ -15,7 +15,7 @@ endif
 PROTO_PATH += --proto_path ./
 PROTO_PATH += --proto_path ./protovalidate/proto/protovalidate/
 PROTOC_OPTS += --plugin=protoc-gen-go=$(shell which protoc-gen-go)
-PROTOC_OPTS += --go_out=../ --go_opt=module="github.com/aileron-gateway/ailron-gateway"
+PROTOC_OPTS += --go_out=../ --go_opt=module="github.com/aileron-gateway/aileron-gateway"
 PROTOC_OPTS += --plugin=protoc-gen-doc=$(shell which protoc-gen-doc)
 PROTOC_OPTS += --doc_out=../ --doc_opt=html,api.html
 
