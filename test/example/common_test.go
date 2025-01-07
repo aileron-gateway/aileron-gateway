@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
-	"github.com/aileron-gateway/aileron-gateway/app"
+	"github.com/aileron-gateway/aileron-gateway/cmd/aileron/app"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	core "github.com/aileron-gateway/aileron-gateway/util/register"
 )

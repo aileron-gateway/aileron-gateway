@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
 	"regexp"
@@ -378,7 +379,9 @@ func TestHostConns_getClientConn(t *testing.T) {
 
 	c2, _ := (&net.Dialer{}).Dial("tcp", "127.0.0.1:12321")
 	conn2, _ := (&http2.Transport{}).NewClientConn(c2)
-	conn2.Shutdown(context.Background()) // conn2 is not available
+	conn2.SetDoNotReuse()
+	conn2.ReserveNewRequest() // conn2 is no longer available
+	defer conn2.Shutdown(context.Background())
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
@@ -527,6 +530,8 @@ func TestHostConns_getClientConn(t *testing.T) {
 
 			hc := tt.C().hc
 			conn, err := hc.getClientConn(context.Background())
+			fmt.Println(tt.Name())
+			fmt.Println("***************\n", conn, err)
 			if tt.A().errPattern != nil {
 				t.Log(err.Error())
 				testutil.Diff(t, true, tt.A().errPattern.MatchString(err.Error()))

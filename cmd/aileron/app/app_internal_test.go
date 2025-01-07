@@ -17,7 +17,7 @@ import (
 
 // testDir is the path to the test data.
 // This path can be changed by the environmental variable.
-var testDir = stdcmp.Or(os.Getenv("TEST_DIR"), "../test/")
+var testDir = stdcmp.Or(os.Getenv("TEST_DIR"), "../../../test/")
 
 func TestNewApp(t *testing.T) {
 	type condition struct {
@@ -196,8 +196,8 @@ func TestApp_Run(t *testing.T) {
 			[]string{actCheckError},
 			&condition{
 				app: &App{
-					args: []string{"-e", testDir + "ut/app/not-exist.txt"},
-					opts: ParseArgs([]string{"-e", testDir + "ut/app/not-exist.txt"}),
+					args: []string{"-e", testDir + "ut/cmd/aileron/app/not-exist.txt"},
+					opts: ParseArgs([]string{"-e", testDir + "ut/cmd/aileron/app/not-exist.txt"}),
 				},
 				server: &runTestServer{
 					res: &api.Response{Content: &testEntrypoint{}},
@@ -214,8 +214,8 @@ func TestApp_Run(t *testing.T) {
 			[]string{actCheckError},
 			&condition{
 				app: &App{
-					args: []string{"-f", testDir + "ut/app/not-exist.txt"},
-					opts: ParseArgs([]string{"-f", testDir + "ut/app/not-exist.txt"}),
+					args: []string{"-f", testDir + "ut/cmd/aileron/app/not-exist.txt"},
+					opts: ParseArgs([]string{"-f", testDir + "ut/cmd/aileron/app/not-exist.txt"}),
 				},
 				server: &runTestServer{
 					res: &api.Response{Content: &testEntrypoint{}},

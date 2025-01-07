@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/aileron-gateway/aileron-gateway/app"
+	"github.com/aileron-gateway/aileron-gateway/cmd/aileron/app"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/util/register"
 )

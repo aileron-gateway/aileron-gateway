@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
-	"github.com/aileron-gateway/aileron-gateway/app"
+	"github.com/aileron-gateway/aileron-gateway/cmd/aileron/app"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 )
@@ -59,7 +59,7 @@ func TestMainFunc(t *testing.T) {
 			[]string{cndNoError},
 			[]string{actCheckExist0},
 			&condition{
-				args:   []string{"aileron", "-f", testDir + "ut/cmd/main-test.yaml"},
+				args:   []string{"aileron", "-f", testDir + "ut/cmd/aileron/main-test.yaml"},
 				runner: &testRunner{},
 			},
 			&action{
@@ -73,7 +73,7 @@ func TestMainFunc(t *testing.T) {
 			[]string{cndError},
 			[]string{actCheckExist1},
 			&condition{
-				args: []string{"aileron", "-f", testDir + "ut/cmd/main-test.yaml"},
+				args: []string{"aileron", "-f", testDir + "ut/cmd/aileron/main-test.yaml"},
 				runner: &testRunner{
 					err: errors.New("test"),
 				},
