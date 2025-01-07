@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
-	"github.com/aileron-gateway/aileron-gateway/app"
+	"github.com/aileron-gateway/aileron-gateway/cmd/aileron/app"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
@@ -20,7 +20,7 @@ import (
 
 // testDir is the path to the test data.
 // This path can be changed by the environmental variable.
-var testDir = stdcmp.Or(os.Getenv("TEST_DIR"), "../test/")
+var testDir = stdcmp.Or(os.Getenv("TEST_DIR"), "../../../test/")
 
 func TestLoadEnvFiles(t *testing.T) {
 	type condition struct {
@@ -67,7 +67,7 @@ func TestLoadEnvFiles(t *testing.T) {
 			[]string{actCheckValues, actCheckNoError},
 			&condition{
 				paths: []string{
-					testDir + "ut/app/env1.txt",
+					testDir + "ut/cmd/aileron/app/env1.txt",
 				},
 			},
 			&action{
@@ -80,7 +80,7 @@ func TestLoadEnvFiles(t *testing.T) {
 			[]string{actCheckError},
 			&condition{
 				paths: []string{
-					testDir + "ut/app/env2.txt",
+					testDir + "ut/cmd/aileron/app/env2.txt",
 				},
 			},
 			&action{
@@ -94,7 +94,7 @@ func TestLoadEnvFiles(t *testing.T) {
 			[]string{actCheckError},
 			&condition{
 				paths: []string{
-					testDir + "ut/app/not-exist.txt",
+					testDir + "ut/cmd/aileron/app/not-exist.txt",
 				},
 			},
 			&action{
@@ -187,7 +187,7 @@ func TestLoadConfigFiles(t *testing.T) {
 			&condition{
 				server: &testServer{},
 				paths: []string{
-					testDir + "ut/app/config1.yaml",
+					testDir + "ut/cmd/aileron/app/config1.yaml",
 				},
 			},
 			&action{
@@ -208,7 +208,7 @@ func TestLoadConfigFiles(t *testing.T) {
 			&condition{
 				server: &testServer{},
 				paths: []string{
-					testDir + "ut/app/config2.yml",
+					testDir + "ut/cmd/aileron/app/config2.yml",
 				},
 			},
 			&action{
@@ -229,7 +229,7 @@ func TestLoadConfigFiles(t *testing.T) {
 			&condition{
 				server: &testServer{},
 				paths: []string{
-					testDir + "ut/app/config3.json",
+					testDir + "ut/cmd/aileron/app/config3.json",
 				},
 			},
 			&action{
@@ -250,7 +250,7 @@ func TestLoadConfigFiles(t *testing.T) {
 			&condition{
 				server: &testServer{},
 				paths: []string{
-					testDir + "ut/app/not-exist.yaml",
+					testDir + "ut/cmd/aileron/app/not-exist.yaml",
 				},
 			},
 			&action{
@@ -266,7 +266,7 @@ func TestLoadConfigFiles(t *testing.T) {
 			&condition{
 				server: &testServer{},
 				paths: []string{
-					testDir + "ut/app/config4.txt",
+					testDir + "ut/cmd/aileron/app/config4.txt",
 				},
 			},
 			&action{
@@ -280,7 +280,7 @@ func TestLoadConfigFiles(t *testing.T) {
 			&condition{
 				server: &testServer{},
 				paths: []string{
-					testDir + "ut/app/config5.yaml",
+					testDir + "ut/cmd/aileron/app/config5.yaml",
 				},
 			},
 			&action{
@@ -296,7 +296,7 @@ func TestLoadConfigFiles(t *testing.T) {
 			&condition{
 				server: &testServer{},
 				paths: []string{
-					testDir + "ut/app/config6.yaml",
+					testDir + "ut/cmd/aileron/app/config6.yaml",
 				},
 			},
 			&action{
@@ -312,7 +312,7 @@ func TestLoadConfigFiles(t *testing.T) {
 					err: errors.New("test server error"),
 				},
 				paths: []string{
-					testDir + "ut/app/config1.yaml",
+					testDir + "ut/cmd/aileron/app/config1.yaml",
 				},
 			},
 			&action{

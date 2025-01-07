@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/aileron-gateway/aileron-gateway/app"
+	"github.com/aileron-gateway/aileron-gateway/cmd/aileron/app"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/spf13/pflag"
 )
