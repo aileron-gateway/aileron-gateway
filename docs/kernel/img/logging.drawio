@@ -1,0 +1,95 @@
+<mxfile host="65bd71144e">
+    <diagram id="L--ywHBMOxAPISLe69Qm" name="Page-1">
+        <mxGraphModel dx="910" dy="756" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="46" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#eeeeee;fillStyle=auto;strokeColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="20" y="180" width="810" height="460" as="geometry"/>
+                </mxCell>
+                <mxCell id="11" value="&lt;p style=&quot;margin: 4px 0px 0px; text-align: center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&lt;/i&gt;&lt;/p&gt;&lt;p style=&quot;margin: 4px 0px 0px; text-align: center;&quot;&gt;&lt;b&gt;Log&lt;/b&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="280" width="160" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="19" value="&lt;p style=&quot;margin: 4px 0px 0px; text-align: center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&lt;/i&gt;&lt;/p&gt;&lt;p style=&quot;margin: 4px 0px 0px; text-align: center;&quot;&gt;&lt;b&gt;Attributes&lt;/b&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="200" width="160" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="26" style="edgeStyle=orthogonalEdgeStyle;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;endArrow=block;endFill=1;" parent="1" source="11" target="19" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="250" y="-20" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="23" value="&lt;p style=&quot;margin: 4px 0px 0px; text-align: center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&lt;/i&gt;&lt;/p&gt;&lt;p style=&quot;margin: 4px 0px 0px; text-align: center;&quot;&gt;&lt;b&gt;Creator&lt;/b&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="280" width="160" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="41" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=open;endFill=0;dashed=1;dashPattern=8 8;" parent="1" source="54" target="55" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="42" value="&amp;lt;&amp;lt; create &amp;gt;&amp;gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="41" vertex="1" connectable="0">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="39" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;dashed=1;endArrow=block;endFill=1;" parent="1" source="54" target="23" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="475" y="90" as="sourcePoint"/>
+                        <mxPoint x="285" y="-10" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="54" value="&lt;p style=&quot;margin: 4px 0px 0px; text-align: center;&quot;&gt;&lt;b style=&quot;background-color: initial;&quot;&gt;LogCreator&lt;/b&gt;&lt;br&gt;&lt;/p&gt;&lt;hr&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 8px;&quot;&gt;LogCreator creates log entries.&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;whiteSpace=wrap;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="360" width="160" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="55" value="&lt;p style=&quot;margin: 4px 0px 0px; text-align: center;&quot;&gt;&lt;b style=&quot;background-color: initial;&quot;&gt;LogEntry&lt;/b&gt;&lt;br&gt;&lt;/p&gt;&lt;hr&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 8px;&quot;&gt;LogEntry has all attributes of a single log line.&amp;nbsp;&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 8px;&quot;&gt;LogEntry does not have LogLevel itself.&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;whiteSpace=wrap;" vertex="1" parent="1">
+                    <mxGeometry x="320" y="360" width="160" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="56" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;dashed=1;endArrow=block;endFill=1;" edge="1" parent="1" source="55" target="11">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="210" y="370" as="sourcePoint"/>
+                        <mxPoint x="210" y="330" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="57" value="&lt;p style=&quot;margin: 4px 0px 0px; text-align: center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&lt;/i&gt;&lt;/p&gt;&lt;p style=&quot;margin: 4px 0px 0px; text-align: center;&quot;&gt;&lt;b&gt;Logger&lt;/b&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="600" y="280" width="160" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="58" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;dashed=1;endArrow=block;endFill=1;" edge="1" source="59" target="57" parent="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="1035" y="90" as="sourcePoint"/>
+                        <mxPoint x="845" y="-10" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="59" value="&lt;p style=&quot;margin: 4px 0px 0px; text-align: center;&quot;&gt;&lt;b style=&quot;background-color: initial;&quot;&gt;LoggerObject&lt;/b&gt;&lt;br&gt;&lt;/p&gt;&lt;hr&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 8px;&quot;&gt;Logger has own LogLevel.&lt;/p&gt;&lt;p style=&quot;border-color: var(--border-color); margin: 0px 0px 0px 8px;&quot;&gt;All loggers are isolated from each other and have no hierarchy.&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;whiteSpace=wrap;" vertex="1" parent="1">
+                    <mxGeometry x="600" y="360" width="160" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="69" value="Output" style="shape=singleArrow;direction=south;whiteSpace=wrap;html=1;strokeColor=#d6b656;fontSize=10;fillColor=#fff2cc;arrowWidth=0.6548601422991084;arrowSize=0.4181066240583135;" vertex="1" parent="1">
+                    <mxGeometry x="640" y="460" width="80" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="71" value="Passed with LogLevel" style="shape=singleArrow;whiteSpace=wrap;html=1;strokeColor=#d6b656;fontSize=10;fillColor=#fff2cc;arrowWidth=0.541602870396207;arrowSize=0.22059605189732223;" vertex="1" parent="1">
+                    <mxGeometry x="490" y="380" width="110" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="72" value="" style="group" vertex="1" connectable="0" parent="1">
+                    <mxGeometry x="570" y="500" width="220" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="50" value="" style="rounded=1;whiteSpace=wrap;html=1;arcSize=5;fillColor=#FCFCFC;" vertex="1" parent="72">
+                    <mxGeometry width="220" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="64" value="Log Entry" style="rounded=0;whiteSpace=wrap;html=1;align=left;fontSize=10;dashed=1;dashPattern=1 1;strokeColor=#E6E6E6;fontColor=#808080;" vertex="1" parent="72">
+                    <mxGeometry x="10" y="10" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="65" value="Log Entry" style="rounded=0;whiteSpace=wrap;html=1;align=left;fontSize=10;dashed=1;dashPattern=1 1;strokeColor=#E6E6E6;fontColor=#808080;" vertex="1" parent="72">
+                    <mxGeometry x="10" y="30" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="66" value="Log Entry" style="rounded=0;whiteSpace=wrap;html=1;align=left;fontSize=10;dashed=1;dashPattern=1 1;strokeColor=#E6E6E6;fontColor=#808080;" vertex="1" parent="72">
+                    <mxGeometry x="10" y="50" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="67" value="Log Entry" style="rounded=0;whiteSpace=wrap;html=1;align=left;fontSize=10;dashed=1;dashPattern=1 1;strokeColor=#E6E6E6;fontColor=#808080;" vertex="1" parent="72">
+                    <mxGeometry x="10" y="70" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="73" value="Error" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#b85450;fontSize=10;fillColor=#f8cecc;" vertex="1" parent="1">
+                    <mxGeometry x="520" y="420" width="40" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="74" value="Info" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#b85450;fontSize=10;fillColor=#f8cecc;" vertex="1" parent="1">
+                    <mxGeometry x="740" y="350" width="40" height="20" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

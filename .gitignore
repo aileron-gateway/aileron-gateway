@@ -15,7 +15,6 @@
 *.test
 /*.env
 /*.html
-/*.txt
 
 # Ignore directories.
 proto/protovalidate/

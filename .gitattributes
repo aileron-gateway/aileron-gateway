@@ -1,0 +1,5 @@
+# Always check-out / check-in files with LF line endings.
+* text=auto eol=lf
+
+**/*.pb.go linguist-generated=true
+go.sum linguist-generated=true

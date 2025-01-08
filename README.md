@@ -4,7 +4,7 @@
 
 ---
 
-# AILERON Gateway core library
+# AILERON Gateway
 
 [![GoDoc](https://godoc.org/github.com/aileron-gateway/aileron-gateway?status.svg)](http://godoc.org/github.com/aileron-gateway/aileron-gateway)
 [![License](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](./LICENSE)
@@ -22,3 +22,5 @@ This repository provides the core libraries for AILERON Gateway.
 This repository provides libraries but can be a executable binary itself.
 
 ![features.svg](docs/features.svg)
+
+## Documents
