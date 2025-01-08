@@ -1,0 +1,64 @@
+syntax = "proto3";
+package app.v1;
+
+import "buf/validate/validate.proto";
+import "kernel/resource.proto";
+
+option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
+
+// CompressionMiddleware is the definition of the CompressionMiddleware object.
+// CompressionMiddleware implements interface of the middleware.
+message CompressionMiddleware {
+    // [REQUIRED]
+    // APIVersion is the defined version of the midleware.
+    // This value must be "app/v1".
+    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "app/v1"];
+
+    // [REQUIRED]
+    // Kind is the kind of this object.
+    // This value must be "CompressionMiddleware".
+    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "CompressionMiddleware"];
+
+    // [OPTIONAL]
+    // Metadata is the metadata of the http logger object.
+    // If not set, both name and namespace in the metadata
+    // are treated as "default".
+    kernel.Metadata Metadata = 3 [json_name = "metadata"];
+
+    // [OPTIONAL]
+    // Spec is the specification of the middleware.
+    // Default values are used when nothing is set.
+    CompressionMiddlewareSpec Spec = 4 [json_name = "spec"];
+}
+
+// CompressionMiddlewareSpec is the specifications for the CompressionMiddleware object.
+message CompressionMiddlewareSpec {
+    // [OPTIONAL]
+    // GzipLevel is the gzip compression level.
+    // BestSpeed=1, BestCompression=9. Default level is 6.
+    int32 GzipLevel = 1 [json_name = "gzipLevel", (buf.validate.field).int32 = {gte : 1, lte : 9}];
+
+    // [OPTIONAL]
+    // BrotliLevel is the brotli compression level.
+    // BestSpeed=0, BestCompression=11. Default level is 4.
+    // Note that set this field to -1 to use BestSpeed=0 level instead of setting 0 because of the technical issue.
+    int32 BrotliLevel = 2 [json_name = "brotliLevel", (buf.validate.field).int32 = {gte : -1, lte : 11}];
+
+    // [OPTIONAL]
+    // TargetMIMEs is the list of mime types to compress.
+    // Response bodies are compressed if its MIME type is contained in this list.
+    // Default values are set when not set
+    // ["application/json", "application/manifest+json", "application/graphql+json",
+    // "text/html", "text/richtext", "text/plain", "text/css",
+    // "text/xml", "application/xml", "application/xhtml+xml", "image/svg+xml",
+    // "application/javascript", "text/javascript", "text/js"]
+    repeated string TargetMIMEs = 3 [json_name = "targetMIMEs"];
+
+    // [OPTIONAL]
+    // MinimumSize is the minimum response body size to be compressed in bytes.
+    // The value should typically be 100~1kB.
+    // Default value will be used when set to 0.
+    // Set negative value to compress all.
+    // Default is [1024].
+    int32 MinimumSize = 4 [json_name = "minimumSize"];
+}

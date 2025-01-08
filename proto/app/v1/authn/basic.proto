@@ -1,0 +1,155 @@
+syntax = "proto3";
+package app.v1;
+
+import "buf/validate/validate.proto";
+import "kernel/crypt.proto";
+import "kernel/resource.proto";
+import "kernel/encoding.proto";
+
+option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
+
+// BasicAuthnMiddleware is the definition of the BasicAuthnMiddleware object.
+// BasicAuthnMiddleware implements interface of the middleware.
+message BasicAuthnMiddleware {
+    // [REQUIRED]
+    // APIVersion is the defined version of the midleware.
+    // This value must be "app/v1".
+    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "app/v1"];
+
+    // [REQUIRED]
+    // Kind is the kind of this object.
+    // This value must be "BasicAuthnMiddleware".
+    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "BasicAuthnMiddleware"];
+
+    // [OPTIONAL]
+    // Metadata is the metadata of the http logger object.
+    // If not set, both name and namespace in the metadata
+    // are treated as "default".
+    kernel.Metadata Metadata = 3 [json_name = "metadata"];
+
+    // [OPTIONAL]
+    // Spec is the specification of the middleware.
+    // Default values are used when nothing is set.
+    BasicAuthnMiddlewareSpec Spec = 4 [json_name = "spec"];
+}
+
+// BasicAuthnMiddlewareSpec is the specifications for the BasicAuthnMiddleware object.
+message BasicAuthnMiddlewareSpec {
+    // [OPTIONAL]
+    // Logger is the reference to a Logger object.
+    // Referred object must implement Logger interface.
+    // Default Logger is used when not set.
+    kernel.Reference Logger = 1 [json_name = "logger"];
+
+    // [OPTIONAL]
+    // ErrorHandler is the reference to a ErrorHandler object.
+    // Referred object must implement ErrorHandler interface.
+    // Default error handler is used when not set.
+    kernel.Reference ErrorHandler = 2 [json_name = "errorHandler"];
+
+    // [OPTIONAL]
+    // ClaimsKey is the key to set user attibutes in the context.
+    // Claims can be used for authorization if necessary.
+    // If not set, default value is used.
+    // Default is ["AuthnClaims"].
+    string ClaimsKey = 3 [json_name = "claimsKey"];
+
+    // [OPTIONAL]
+    // KeepCredentials is the flag to keep credentials in the header.
+    // That means Authorization header is not removed in the middleware.
+    // If true, Authorizatoin header will be proxied upstream services.
+    // Default is [false].
+    bool KeepCredentials = 4 [json_name = "keepCredentials"];
+
+    // [OPTIONAL]
+    // PasswordCrypt is the password encryption, or password hashing config.
+    // If not set, the passwords are used as is.
+    // Default is not set.
+    kernel.PasswordCryptSpec PasswordCrypt = 5 [json_name = "passwordCrypt"];
+
+    // [OPTIONAL]
+    // CommonKeyCryptType is the common key encryption algorithm
+    // that is used for encrypting passwords of hashed passwords.
+    // Common key encryption will be enabled when CryptSecret is not empty.
+    // If CryptSecret is not empty, CommonKeyCryptType should also be set
+    // to specify the encryption algorithm.
+    // PasswordCrypt and CommonKeyCryptType can be conbined.
+    // If so, the password should be CommonKeyCrypt(PasswordCrypt(<Password>))
+    // with base64 or hex encoding.
+    // Default is not set.
+    kernel.CommonKeyCryptType CommonKeyCryptType = 6 [json_name = "commonKeyCryptType"];
+
+    // [OPTIONAL]
+    // CryptSecret is the Base64 encoded encryption key.
+    // Base64 standard encoded with padding is ecpected to be used.
+    // Common key encryption will be enabled when CryptSecret is not empty.
+    // If CryptSecret is not empty, CommonKeyCryptType should also be set
+    // to specify the encryption algorithm.
+    // PasswordCrypt and CommonKeyCryptType can be conbined.
+    // If so, the password should be CommonKeyCrypt(PasswordCrypt(<Password>))
+    // with base64 or hex encoding.
+    // Default is not set.
+    string CryptSecret = 7 [json_name = "cryptSecret"];
+
+    // [OPTIONAL]
+    // Realm is the realm name of authentication.
+    // If not set, an empty string will be used.
+    // Default is not set, or empty string [""].
+    string Realm = 8 [json_name = "realm"];
+
+    // [OPTIONAL]
+    // Providers is the credentials provider to use.
+    // If not set, EnvProvider with default values are used.
+    oneof Providers {
+        BasicAuthnEnvProvider  EnvProvider  = 10 [json_name = "envProvider"];
+        BasicAuthnFileProvider FileProvider = 11 [json_name = "fileProvider"];
+    }
+}
+
+message BasicAuthnEnvProvider {
+    // [OPTIONAL]
+    // UsernamePrefix is the prefix of environmental variable
+    // that provides username.
+    // If the prefix is "USERNAME_", then usernames should be
+    // set like "USERNAME_1=foo", "USERNAME_999=bar".
+    // Note that the numbers can be zero padded which means
+    // "USERNAME_1" and "USERNAME_001" are the same.
+    // Both username and password must be set for each single users.
+    // If empty string was set, default value is used.
+    // Defailt is [GATEWAY_BASIC_USERNAME_].
+    string UsernamePrefix = 1 [json_name = "usernamePrefix"];
+
+    // [OPTIONAL]
+    // PasswordPrefix is the prefix of environmental variable
+    // that provides passwords.
+    // If the prefix is "PASSWORDS_", then passwords should be
+    // set like "PASSWORDS_1=foo", "PASSWORDS_999=bar".
+    // Note that the numbers can be zero padded which means
+    // "PASSWORDS_1" and "PASSWORDS_001" are the same.
+    // Both username and password must be set for each single users.
+    // If empty string was set, default value is used.
+    // Defailt is [GATEWAY_BASIC_PASSWORD_]
+    string PasswordPrefix = 2 [json_name = "passwordPrefix"];
+
+    // [OPTIONAL]
+    // Encoding is the encoding algorithm used to decode passwords.
+    // If set, all password strings are decoded with configured encoding.
+    // Gateway will fail to start when failed to decoding.
+    // Default is [false].
+    kernel.EncodingType Encoding = 3 [json_name = "encoding"];
+}
+
+message BasicAuthnFileProvider {
+    // [OPTIONAL]
+    // Paths are file paths that contains use information.
+    // If nothing set, all authentication challenge will fail.
+    // Default is not set.
+    repeated string Paths = 1 [json_name = "paths"];
+
+    // [OPTIONAL]
+    // Encoding is the encoding algorithm used to decode passwords.
+    // If set, all password strings are decoded with configured encoding.
+    // Gateway will fail to start when failed to decoding.
+    // Default is [false].
+    kernel.EncodingType Encoding = 2 [json_name = "encoding"];
+}

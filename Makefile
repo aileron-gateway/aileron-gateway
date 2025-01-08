@@ -40,11 +40,12 @@ proto proto-clean proto-lint:
 ############################################################
 
 OUTPUT_PATH := ./_output/
+WHAT ?= ./...
 
 .PHONY: test
 test:
 	mkdir -p $(OUTPUT_PATH)
-	go test -v -cover -timeout 60s -covermode=atomic -coverprofile=$(OUTPUT_PATH)coverage.out ./...
+	go test -v -cover -timeout 60s -covermode=atomic -coverprofile=$(OUTPUT_PATH)coverage.out $(WHAT)
 	sed -i.bak -E '/(testutil|apis)/d' $(OUTPUT_PATH)coverage.out
 	go tool cover -html=$(OUTPUT_PATH)coverage.out -o $(OUTPUT_PATH)coverage.html
 	go tool cover -func=$(OUTPUT_PATH)coverage.out -o $(OUTPUT_PATH)coverage.txt

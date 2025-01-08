@@ -1,0 +1,1 @@
+p, "regexMatch(headerValue(r.sub.Header, 'Test'), '.*allowed.*')", /*, GET

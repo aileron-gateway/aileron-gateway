@@ -1,0 +1,8 @@
+<policies>
+  <policy>
+    <pType>p</pType>
+    <v0>mapValue(r.sub, &apos;age&apos;) &gt; 10</v0>
+    <v1>/*</v1>
+    <v2>GET</v2>
+  </policy>
+</policies>

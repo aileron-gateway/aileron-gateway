@@ -1,0 +1,128 @@
+syntax = "proto3";
+package app.v1;
+
+import "buf/validate/validate.proto";
+import "kernel/encoding.proto";
+import "kernel/hash.proto";
+import "kernel/resource.proto";
+
+option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
+
+// KeyAuthnMiddleware is the definition of the KeyAuthnMiddleware object.
+// KeyAuthnMiddleware implements interface of the middleware.
+message KeyAuthnMiddleware {
+    // [REQUIRED]
+    // APIVersion is the defined version of the midleware.
+    // This value must be "app/v1".
+    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "app/v1"];
+
+    // [REQUIRED]
+    // Kind is the kind of this object.
+    // This value must be "KeyAuthnMiddleware".
+    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "KeyAuthnMiddleware"];
+
+    // [OPTIONAL]
+    // Metadata is the metadata of the http logger object.
+    // If not set, both name and namespace in the metadata
+    // are treated as "default".
+    kernel.Metadata Metadata = 3 [json_name = "metadata"];
+
+    // [OPTIONAL]
+    // Spec is the specification of the middleware.
+    // Default values are used when nothing is set.
+    KeyAuthnMiddlewareSpec Spec = 4 [json_name = "spec"];
+}
+
+// KeyAuthnMiddlewareSpec is the specifications for the KeyAuthnMiddleware object.
+message KeyAuthnMiddlewareSpec {
+    // [OPTIONAL]
+    // Logger is the reference to a Logger object.
+    // Referred object must implement Logger interface.
+    // Default Logger is used when not set.
+    kernel.Reference Logger = 1 [json_name = "logger"];
+
+    // [OPTIONAL]
+    // ErrorHandler is the reference to a ErrorHandler object.
+    // Referred object must implement ErrorHandler interface.
+    // Default error handler is used when not set.
+    kernel.Reference ErrorHandler = 2 [json_name = "errorHandler"];
+
+    // [OPTIONAL]
+    // ClaimsKey is the key to set user attibutes in the context.
+    // Claims can be used for authorization if necessary.
+    // If not set, default value is used.
+    // Default is ["AuthnClaims"].
+    string ClaimsKey = 3 [json_name = "claimsKey"];
+
+    // [OPTIONAL]
+    // KeepCredentials is the flag to keep credentials in the header.
+    // That means the HTTP header specified in KeyHeaderName is not removed.
+    // If true, the API key header will be proxied upstream services.
+    // Default is [false].
+    bool KeepCredentials = 4 [json_name = "keepCredentials"];
+
+    // [OPTIONAL]
+    // KeyHeaderName is the HTTP header name to get API key from.
+    // Default is ["X-Api-Key"].
+    string KeyHeaderName = 5 [json_name = "keyHeaderName"];
+
+    // [OPTIONAL]
+    // HashAlg is the algorithm to calculate hash value.
+    // Set HMACSecret to use HMAC instead of plain hash.
+    // If not set, API keys are treated as plain text keys.
+    // Default is not set.
+    kernel.HashAlg HashAlg = 6 [json_name = "hashAlg"];
+
+    // [OPTIONAL]
+    // HMACSecret is the Base64 encoded secret for HMAC.
+    // The secret should be at least 64 bytes with enough entropy.
+    // Use for example https://generate.plus/en/base64.
+    // Default is not set.
+    string HMACSecret = 7 [json_name = "hmacSecret"];
+
+    // [OPTIONAL]
+    // Providers is the api key provider to use.
+    // If not set, EnvProvider with default values are used.
+    oneof Providers {
+        KeyAuthnEnvProvider  EnvProvider  = 15 [json_name = "envProvider"];
+        KeyAuthnFileProvider FileProvider = 16 [json_name = "fileProvider"];
+    }
+}
+
+message KeyAuthnEnvProvider {
+    // [OPTIONAL]
+    // KeyPrefix is the prefix of environmental variable
+    // that provides api keys.
+    // If the prefix is "APIKEY_", then keys should be
+    // set like "APIKEY_1=foo", "APIKEY_999=bar".
+    // Note that the numbers can be zero padded which means
+    // "APIKEY_1" and "APIKEY_001" are the same.
+    // If empty string was set, default value is used.
+    // Defailt is [GATEWAY_APIKEY_].
+    string KeyPrefix = 1 [json_name = "keyPrefix"];
+
+    // [OPTIONAL]
+    // Encoding is the encoding algorithm used to decode passwords.
+    // If set, all password strings are decoded with configured encoding.
+    // Gateway will fail to start when failed to decoding.
+    // Default is [false].
+    kernel.EncodingType Encoding = 2 [json_name = "encoding"];
+}
+
+message KeyAuthnFileProvider {
+    // [OPTIONAL]
+    // Paths are file paths that contains api keys.
+    // If nothing set, all authentication challenge will fail.
+    // If a line contains ":" character, is considered to be
+    // a line in the format of "<id>:<key>" and the
+    // <id> part is used for key lookup.
+    // Default is not set.
+    repeated string Paths = 1 [json_name = "paths"];
+
+    // [OPTIONAL]
+    // Encoding is the encoding algorithm used to decode passwords.
+    // If set, all password strings are decoded with configured encoding.
+    // Gateway will fail to start when failed to decoding.
+    // Default is [false].
+    kernel.EncodingType Encoding = 2 [json_name = "encoding"];
+}

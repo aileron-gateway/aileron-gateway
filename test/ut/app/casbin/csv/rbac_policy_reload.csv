@@ -1,0 +1,5 @@
+p, alice, /alice/*, GET
+p, bob, /bob/*, GET
+p, admin, /foo/*, POST
+p, admin, /bar/*, POST
+g, bob, admin

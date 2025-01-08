@@ -1,0 +1,6 @@
+apiVersion: app/v1
+kind: HealthCheckHandler
+metadata:
+  name: testName
+  namespace: testNamespace
+spec: {}

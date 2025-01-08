@@ -1,0 +1,7 @@
+apiVersion: app/v1
+kind: OpenTelemetryMeter
+spec:
+  httpExporter:
+    insecure: true
+  periodicReader:
+    interval: 1

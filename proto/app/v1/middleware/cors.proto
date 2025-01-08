@@ -1,0 +1,157 @@
+syntax = "proto3";
+package app.v1;
+
+import "buf/validate/validate.proto";
+import "core/v1/http.proto";
+import "kernel/resource.proto";
+
+option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
+
+// CORSMiddleware is the definition of the CORSMiddleware object.
+// CORSMiddleware implements interface of the middleware.
+message CORSMiddleware {
+    // [REQUIRED]
+    // APIVersion is the defined version of the midleware.
+    // This value must be "app/v1".
+    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "app/v1"];
+
+    // [REQUIRED]
+    // Kind is the kind of this object.
+    // This value must be "CORSMiddleware".
+    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "CORSMiddleware"];
+
+    // [OPTIONAL]
+    // Metadata is the metadata of the http logger object.
+    // If not set, both name and namespace in the metadata
+    // are treated as "default".
+    kernel.Metadata Metadata = 3 [json_name = "metadata"];
+
+    // [OPTIONAL]
+    // Spec is the specification of the middleware.
+    // Default values are used when nothing is set.
+    CORSMiddlewareSpec Spec = 4 [json_name = "spec"];
+}
+
+// CORSMiddlewareSpec is the specifications for the CORSMiddleware object.
+message CORSMiddlewareSpec {
+    // [OPTIONAL]
+    // ErrorHandler is the reference to a ErrorHandler object.
+    // Referred object must implement ErrorHandler interface.
+    // Default error handler is used when not set.
+    kernel.Reference ErrorHandler = 1 [json_name = "errorHandler"];
+
+    // [REQUIRED]
+    // CORSPolicy is the configuration of CORS policy object.
+    CORSPolicySpec CORSPolicy = 2 [json_name = "corsPolicy"];
+}
+
+// CORSPolicySpec is the specifications for the CORSPolicy object.
+message CORSPolicySpec {
+    // [OPTIONAL]
+    // AllowedOrigins is the list of origins to accept.
+    // Only one origin is retuned as the value of "Access-Control-Allow-Origin" header if matched.
+    // The wildcard origin "*" can be used here.
+    // If nothing set, the wildcard origin "*" is used.
+    // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin.
+    // Default is ["*"].
+    repeated string AllowedOrigins = 1 [json_name = "allowedOrigins"];
+
+    // [OPTIONAL]
+    // AllowedMethods is the list of HTTP methods to accept.
+    // All methods should be listed. "ALL" is not allowed here for security reason.
+    // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Methods.
+    // Default is [POST, GET, OPTIONS].
+    repeated core.v1.HTTPMethod AllowedMethods = 2 [json_name = "allowedMethods"];
+
+    // [OPTIONAL]
+    // AllowedHeaders is the list of HTTP header names to acccept.
+    // The listed headers are responded to the clients as "Access-Control-Allow-Headers" header.
+    // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Headers.
+    // Set an empty string "" to disable all headers.
+    // Default is ["Content-Type", "X-Requested-With"].
+    repeated string AllowedHeaders = 3 [json_name = "allowedHeaders"];
+
+    // [OPTIONAL]
+    // ExposedHeaders are the list of HTTP header names to expose.
+    // The listed headers are responded to the clients as "Access-Control-Expose-Headers" header.
+    // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Expose-Headers.
+    // Default is not set.
+    repeated string ExposedHeaders = 4 [json_name = "exposedHeaders"];
+
+    // [OPTIONAL]
+    // AllowCredentials is the flag to allow credentials.
+    // When this field is set to true, "Access-Control-Allow-Credentials: true" header is returned.
+    // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials.
+    // Default is [false].
+    bool AllowCredentials = 5 [json_name = "allowCredentials"];
+
+    // [OPTIONAL]
+    // MaxAge is the duration that the user-agents can cache the preflight requests.
+    // Mx age is returned to the client as "Access-Control-Max-Age" header when this fieled is set.
+    // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Max-Age.
+    // Default is [0] and the header is not returned.
+    int32 MaxAge = 6 [json_name = "maxAge"];
+
+    // [OPTIONAL]
+    // CORSEmbedderPolicy is the cross origin embedder policy to respond to the clients.
+    // This header is returned in both preflight and actual requests.
+    // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Embedder-Policy.
+    // Default is not set.
+    CORSEmbedderPolicy CORSEmbedderPolicy = 7 [json_name = "corsEmbedderPolicy"];
+
+    // [OPTIONAL]
+    // CORSOpenerPolicy is the cross origin opener policy to respond to the clients.
+    // This header is returned in both preflight and actual requests.
+    // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Opener-Policy.
+    // Default is not set.
+    CORSOpenerPolicy CORSOpenerPolicy = 8 [json_name = "corsOpenerPolicy"];
+
+    // [OPTIONAL]
+    // CORSResourcePolicy is the cross origin resource policy to respond to the clients.
+    // This header is returned in both preflight and actual requests.
+    // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Resource-Policy.
+    // Default is not set.
+    CORSResourcePolicy CORSResourcePolicy = 9 [json_name = "corsResourcePolicy"];
+
+    // [OPTIONAL]
+    // AllowPrivateNetwork is the flag to allow shareing resources with external networks..
+    // When this field is set to true, "Access-Control-Allow-Private-Network: true" header is returned.
+    // See https://wicg.github.io/private-network-access/.
+    // Default is [false].
+    bool AllowPrivateNetwork = 10 [json_name = "allowPrivateNetwork"];
+
+    // [OPTIONAL]
+    // DisableWildCardOrigin if true, set the requested origin to the
+    // "Access-Control-Allow-Origin" header rather than the wildcard origin "*".
+    // This is, in most cases, insecure than the wildcard origin "*".
+    // This options is used when the AllowedOrigins contains wildcard origin "*".
+    // Default is [false].
+    bool DisableWildCardOrigin = 11 [json_name = "disableWildCardOrigin"];
+}
+
+// CORSEmbedderPolicy is the collection of cross origin embedder policy types.
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Embedder-Policy
+enum CORSEmbedderPolicy {
+    EmbedderPolicy_Unknown = 0;  // ""
+    EmbedderUnsafeNone     = 1;  // "unsafe-none"
+    EmbedderRequireCorp    = 2;  // "require-corp"
+    EmbedderCredentialless = 3;  // "credentialless"
+}
+
+// CORSOpenerPolicy is the collection of cross origin opener policy types.
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Opener-Policy
+enum CORSOpenerPolicy {
+    OpenerPolicy_Unknown        = 0;  // ""
+    OpenerUnsafeNone            = 1;  // "unsafe-none"
+    OpenerSameOriginAllowPopups = 2;  // "same-origin-allow-popups"
+    OpenerSameOrigin            = 3;  // "same-origin"
+}
+
+// CORSResourcePolicy is the collection of cross origin resource policy types.
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Resource-Policy
+enum CORSResourcePolicy {
+    ResourcePolicy_Unknown = 0;  // ""
+    ResourceSameSite       = 1;  // "same-site"
+    ResourceSameOrigin     = 2;  // "same-origin"
+    ResourceCrossOrigin    = 3;  // "cross-origin"
+}

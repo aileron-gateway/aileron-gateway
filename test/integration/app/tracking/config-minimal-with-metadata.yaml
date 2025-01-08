@@ -1,0 +1,6 @@
+apiVersion: app/v1
+kind: TrackingMiddleware
+metadata:
+  name: testName
+  namespace: testNamespace
+spec: {}

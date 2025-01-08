@@ -1,0 +1,6 @@
+apiVersion: app/v1
+kind: CORSMiddleware
+metadata:
+  name: testName
+  namespace: ""
+spec: {}

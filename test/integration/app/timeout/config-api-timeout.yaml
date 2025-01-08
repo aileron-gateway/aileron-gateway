@@ -1,0 +1,13 @@
+apiVersion: app/v1
+kind: TimeoutMiddleware
+metadata:
+  name: test
+  namespace: testNamespace
+spec:
+  defaultTimeout: 50 # milliseconds
+  apiTimeouts:
+    - timeout: 100
+      methods: [GET]
+      matcher:
+        Patterns: ["/applied-api-timeout"]
+        matchType: Exact

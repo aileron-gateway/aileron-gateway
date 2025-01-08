@@ -1,0 +1,29 @@
+version: "3"
+
+services:
+
+  redis:
+    image: redis:7.0.2
+    ports:
+      - "6379:6379"
+    command:
+      - redis-server
+      - --loglevel
+      - notice # debug, verbose, notice, warning
+      - --port
+      - "6379"
+      # Default ("default") user password.
+      # - --requirepass
+      # - password
+      # Additional user and ACL.
+      - --user
+      - myuser
+      - "on"
+      - +@all
+      - -DEBUG
+      - ~*
+      - ">password"
+      - --maxclients
+      - "50000"
+      - --timeout
+      - "3600"

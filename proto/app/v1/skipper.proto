@@ -1,0 +1,70 @@
+syntax = "proto3";
+package app.v1;
+
+import "buf/validate/validate.proto";
+import "kernel/resource.proto";
+import "core/v1/http.proto";
+import "kernel/txtutil.proto";
+
+option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
+
+// Skipper is the definition of the Skipper object.
+// Skipper implements interface of the middleware.
+message Skipper {
+    // [REQUIRED]
+    // APIVersion is the defined version of the resource.
+    // This value must be "app/v1".
+    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "app/v1"];
+
+    // [REQUIRED]
+    // Kind is the kind of this object.
+    // This value must be "Skipper".
+    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "Skipper"];
+
+    // [OPTIONAL]
+    // Metadata is the metadata of the http logger object.
+    // If not set, both name and namespace in the metadata
+    // are treated as "default".
+    kernel.Metadata Metadata = 3 [json_name = "metadata"];
+
+    // [OPTIONAL]
+    // Spec is the specification of the middleware.
+    // Default values are used when nothing is set.
+    SkipperSpec Spec = 4 [json_name = "spec"];
+}
+
+// SkipperSpec is the specifications for the Skipper object.
+message SkipperSpec {
+    // [OPTIONAL]
+    // SkipConditions is the list of conditions
+    // to skip the configured middleware or tripperware.
+    // Default is not set.
+    repeated SkipConditionSpec SkipConditions = 1 [json_name = "skipConditions"];
+
+    // [OPTIONAL]
+    // Middleware is the list of references to middleware.
+    // Configured middleware is skipped when the requests
+    // matched to one of the skip conditions.
+    // Default is not set.
+    repeated kernel.Reference Middleware = 2 [json_name = "middleware"];
+
+    // [OPTIONAL]
+    // Tripperware is the list of references to tripperware.
+    // Configured tripperware is skipped when the requests
+    // matched to one of the skip conditions.
+    // Default is not set.
+    repeated kernel.Reference Tripperware = 3 [json_name = "tripperware"];
+}
+
+// SkipConditionSpec is the configuration spec for the matching conditions.
+message SkipConditionSpec {
+    // [OPTIONAL]
+    // Matcher is a matcher which matches to defined patterns.
+    // Default is not set.
+    kernel.MatcherSpec Matcher = 1 [json_name = "matcher"];
+
+    // [OPTIONAL]
+    // Methods is the list of HTTP methods to be matched.
+    // Default is not set.
+    repeated core.v1.HTTPMethod Methods = 2 [json_name = "methods", (buf.validate.field).repeated.unique = true];
+}

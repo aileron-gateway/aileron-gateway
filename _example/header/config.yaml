@@ -1,0 +1,49 @@
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  runners:
+    - apiVersion: core/v1
+      kind: HTTPServer
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+spec:
+  addr: ":8080"
+  virtualHosts:
+    - hosts: []
+      middleware:
+        - apiVersion: app/v1
+          kind: HeaderPolicyMiddleware
+      handlers:
+        - handler:
+            apiVersion: app/v1
+            kind: EchoHandler
+
+---
+apiVersion: app/v1
+kind: EchoHandler
+spec: {}
+
+---
+apiVersion: app/v1
+kind: HeaderPolicyMiddleware
+spec:
+  maxContentLength: 10
+  requestPolicy:
+    # allows:
+    #   - "Accept"
+    #   - "Accept-Encoding"
+    #   - "Cookie"
+    #   - "User-Agent"
+    removes:
+      - "Authorization"
+    rewrites:
+      - name: "User-Agent"
+        replacer:
+          fixed:
+            value: "*****"
+  responsePolicy:
+    removes:
+      - "Date"
+      - "X-Content-Type-Options"

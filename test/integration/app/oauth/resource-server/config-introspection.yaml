@@ -1,0 +1,14 @@
+apiVersion: app/v1
+kind: OAuthAuthenticationHandler
+spec:
+  resourceServerHandler: {}
+  contexts:
+    - name: default
+      provider:
+        issuer: "http://test.provider.com/"
+        endpoints:
+          introspection: "http://127.0.0.1:12525/introspection"
+      client:
+        id: "test-client"
+        audience: "test-audience"
+      enableIntrospection: true

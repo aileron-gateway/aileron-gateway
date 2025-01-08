@@ -1,0 +1,4 @@
+apiVersion: app/v1
+kind: ThrottleMiddleware
+spec:
+  invalid: parameter

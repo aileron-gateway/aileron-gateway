@@ -1,0 +1,6 @@
+apiVersion: app/v1
+kind: OpenTelemetryMeter
+spec:
+  stdoutExporter: {}
+  periodicReader:
+    interval: 1

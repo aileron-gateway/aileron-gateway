@@ -1,0 +1,16 @@
+apiVersion: app/v1
+kind: OAuthAuthenticationHandler
+spec:
+  resourceServerHandler: {}
+  contexts:
+    - name: default
+      provider:
+        issuer: "http://localhost:8080/aileron"
+      client:
+        id: "TEST_CLIENT_ID"
+      jwtHandler:
+        publicKeys:
+          - keyID: test-key
+            algorithm: RS256
+            keyType: PUBLIC
+            keyFilePath: ./resource-server/public.key

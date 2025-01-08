@@ -1,0 +1,186 @@
+syntax = "proto3";
+package app.v1;
+
+import "buf/validate/validate.proto";
+import "core/v1/http.proto";
+import "kernel/resource.proto";
+import "kernel/hash.proto";
+
+option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
+
+// CSRFMiddleware is the definition of the CSRFMiddleware object.
+// CSRFMiddleware implements interface of the middleware.
+message CSRFMiddleware {
+    // [REQUIRED]
+    // APIVersion is the defined version of the middleware.
+    // This value must be "app/v1".
+    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "app/v1"];
+
+    // [REQUIRED]
+    // Kind is the kind of this object.
+    // This value must be "CSRFMiddleware".
+    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "CSRFMiddleware"];
+
+    // [OPTIONAL]
+    // Metadata is the metadata of the http logger object.
+    // If not set, both name and namespace in the metadata
+    // are treated as "default".
+    kernel.Metadata Metadata = 3 [json_name = "metadata"];
+
+    // [OPTIONAL]
+    // Spec is the specification of the middleware.
+    // Default values are used when nothing is set.
+    CSRFMiddlewareSpec Spec = 4 [json_name = "spec"];
+}
+
+// CSRFMiddlewareSpec is the specifications for the CSRFMiddleware object.
+message CSRFMiddlewareSpec {
+    // [OPTIONAL]
+    // ErrorHandler is the reference to a ErrorHandler object.
+    // Referred object must implement ErrorHandler interface.
+    // Default error handler is used when not set.
+    kernel.Reference ErrorHandler = 1 [json_name = "errorHandler"];
+
+    // [OPTIONAL]
+    // Pattern is the URL path pattern that csrf token issue handler accepts.
+    // Token issue handler is the endpoint that issue csrf token to the client.
+    // This endpoint must be protected with CORS policy.
+    // Default is "/token".
+    repeated string Patterns = 2 [json_name = "patterns"];
+
+    // [OPTIONAL]
+    // Methods is the list of HTTP methods that CSRF token issue handler can receive.
+    // Token issue handler is the endpoint that issue csrf token to the client.
+    // This endpoint must be protected with CORS policy.
+    // All methods are allowed when not set.
+    repeated core.v1.HTTPMethod Methods = 3 [json_name = "methods"];
+
+    // [OPTIONAL]
+    // SkipMethods is the list of HTTP methods that skip token validation.
+    // By default GET, HEAD, TRACE, OPTIONS are skipped because
+    // they are the methods that should not modify the server side state.
+    // Default is [GET, HEAD, TRACE, OPTIONS].
+    repeated core.v1.HTTPMethod SkipMethods = 4 [json_name = "skipMethods"];
+
+    // [OPTIONAL]
+    // ProxyHeaderName is the header name to send a valid CSRF token to upstream.
+    // This should be set when using DoubleSubmitCookies pattern or SynchronizerToken pattern.
+    string ProxyHeaderName = 5 [json_name = "proxyHeaderName"];
+
+    // [OPTIONAL]
+    // IssueNew is the flag to always generate new csrf token
+    // in the csrf token issue handler this resource provides.
+    // If false, the handler try to find existing csrf token
+    // bounded to the request.
+    // Default is [false].
+    bool IssueNew = 6 [json_name = "issueNew"];
+
+    // [OPTIONAL]
+    // Secret is the base64 encoded secret used for generating
+    // csrf tokens by the csrf token issue handler which this resource provides.
+    // The secret should have at least 64 bytes.
+    // Online generator such as https://generate.plus/en/base64 can be used.
+    // DO NOT use the default value.
+    // Default value is Base64(sha512(hostname)).
+    string Secret = 7 [json_name = "secret", (buf.validate.field).string.pattern = "[0-9a-zA-Z+/=]+"];
+
+    // [OPTIONAL]
+    // SeedSize is the random bytes length of CSRF token.
+    // Larger number is safer but results in bigger size of token.
+    // 15 bytes (120 bits) at minimum is recommended by OWASP.
+    // Default is [20].
+    int32 SeedSize = 8 [json_name = "seedSize", (buf.validate.field).int32 = {gte : 5}];
+
+    // [OPTIONAL]
+    // HashAlg is the type of hash algorithm used for generating csrf token.
+    // The hash algorithm must be cryptographic one.
+    // Do not use this field otherwise you understand what you are doing.
+    // Default is [SHA256] which means to use HMAC-SHA256.
+    kernel.HashAlg HashAlg = 9 [json_name = "hashAlg"];
+
+    oneof CSRFPatterns {
+        option(buf.validate.oneof).required = true;
+
+        // CustomRequestHeader is the settings for CSRF using custom request header pattern.
+        // Read about that pattern at
+        // https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.htm
+        CustomRequestHeaderSpec CustomRequestHeader = 10 [json_name = "customRequestHeader"];
+
+        // CustomRequestHeaders is the settings for CSRF using double submit cookies pattern.
+        // Read about that pattern at
+        // https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.htm
+        DoubleSubmitCookiesSpec DoubleSubmitCookies = 11 [json_name = "doubleSubmitCookies"];
+
+        // SynchronizerToken is the settings for CSRF using synchronizer token pattern.
+        // Read about that pattern at
+        // https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.htm
+        SynchronizerTokenSpec SynchronizerToken = 12 [json_name = "synchronizerToken"];
+    }
+}
+
+// CustomRequestHeadersSpec is the specification of CSRF protection using custom header pattern.
+message CustomRequestHeaderSpec {
+    // [OPTIONAL]
+    // HeaderName is the name of header to check as custom header.
+    // Header name must not be listed in the CORS-safelisted request-header and must not
+    // be one which browsers automatically set.
+    // "X-Requested-With" is one of the commonly used custom header.
+    // See https://fetch.spec.whatwg.org/#cors-safelisted-request-header.
+    string HeaderName = 1 [json_name = "headerName", (buf.validate.field).string.pattern = "^[0-9a-zA-Z-_]+$"];
+
+    // [OPTIONAL]
+    // AllowedPattern is the regular expression of the header value to allow.
+    // See the https://pkg.go.dev/regexp/syntax for allowed syntax.
+    // Setting this field disables HMAC validation and check by the
+    // specified pattern.
+    // Default is not set.
+    string AllowedPattern = 2 [json_name = "allowedPattern"];
+}
+
+// DoubleSubmitCookiesSpec is the specification of CSRF protection using double submit cookie pattern.
+message DoubleSubmitCookiesSpec {
+    // [OPTIONAL]
+    // CookieName is the cookie name to save csrf tokens.
+    // Default is ["__csrfToken"]
+    string CookieName = 1 [json_name = "cookieName", (buf.validate.field).string.pattern = "^[0-9a-zA-Z-_]+$"];
+
+    // [OPTIONAL]
+    // SourceKey is the key name of a csrf token to extract from the token source.
+    // Default is ["__csrfToken"]
+    core.v1.CookieSpec Cookie = 2 [json_name = "cookie"];
+
+    // [OPTIONAL]
+    // TokenSource is the source type of csrf tokens.
+    // Default is [Header].
+    TokenSource TokenSource = 3 [json_name = "tokenSource"];
+
+    // [OPTIONAL]
+    // SourceKey is the key name of a csrf token to extract from the token source.
+    // Header name for Header source, form key name for Form source and JSON key name for json source.
+    // For JSON source, dot joined path expression like "foo.bar.token" can be used.
+    // Default is ["__csrfToken"]
+    string SourceKey = 4 [json_name = "sourceKey", (buf.validate.field).string.pattern = "^[0-9a-zA-Z-_]+$"];
+}
+
+// DoubleSubmitCookiesSpec is the specification of CSRF protection using synchronizer token pattern.
+message SynchronizerTokenSpec {
+    // [OPTIONAL]
+    // TokenSource is the source type of csrf tokens.
+    // Default is [Header].
+    TokenSource TokenSource = 1 [json_name = "tokenSource"];
+
+    // [OPTIONAL]
+    // SourceKey is the key name of a csrf token to extract from the token source.
+    // Header name for Header source, form key name for Form source and JSON key name for json source.
+    // For JSON source, dot joined path expression like "foo.bar.token" can be used.
+    // Default is ["__csrfToken"]
+    string SourceKey = 2 [json_name = "sourceKey", (buf.validate.field).string.pattern = "^[0-9a-zA-Z-_]+$"];
+}
+
+// TokenSource is the csrf token source type.
+// CSRF tokens are looked for from the specified source.
+enum TokenSource {
+    Header = 0;  // Get a csrf token from HTTP header.
+    Form   = 1;  // Get a csrf token from form request parameter.
+    JSON   = 2;  // Get a csrf token from json body.
+}

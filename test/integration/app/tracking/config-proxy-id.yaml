@@ -1,0 +1,5 @@
+apiVersion: app/v1
+kind: TrackingMiddleware
+spec:
+  requestIDProxyName: "X-Request-ID"
+  traceIDProxyName: "X-Trace-ID"

@@ -1,0 +1,8 @@
+apiVersion: app/v1
+kind: CasbinAuthzMiddleware
+spec:
+  claimsKey: AuthClaims
+  explain: true
+  enforcers:
+    - modelPath: "./enforcer-model.conf"
+      policyPath: "./enforcer-policy-auth.json"

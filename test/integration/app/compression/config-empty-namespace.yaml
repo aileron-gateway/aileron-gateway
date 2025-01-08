@@ -1,0 +1,7 @@
+apiVersion: app/v1
+kind: CompressionMiddleware
+metadata:
+  name: testName
+  namespace: ""
+spec:
+  minimumSize: 1
