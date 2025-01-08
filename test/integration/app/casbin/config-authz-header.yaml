@@ -1,0 +1,7 @@
+apiVersion: app/v1
+kind: CasbinAuthzMiddleware
+spec:
+  explain: true
+  enforcers:
+    - modelPath: "./enforcer-model.conf"
+      policyPath: "./enforcer-policy-header.csv"

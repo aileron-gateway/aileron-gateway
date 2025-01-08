@@ -1,0 +1,1 @@
+p, "containsInt(asIntSlice(authValue(r.sub.Auth, 'role1'),authValue(r.sub.Auth, 'role2')), 456)", /*, GET

@@ -1,0 +1,68 @@
+syntax = "proto3";
+package app.v1;
+
+import "buf/validate/validate.proto";
+import "core/v1/http.proto";
+import "kernel/resource.proto";
+
+option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
+
+// HealthCheckHandler is the definition of the HealthCheckHandler object.
+// HealthCheckHandler implements interface of the HTTP handler.
+message HealthCheckHandler {
+    // [REQUIRED]
+    // APIVersion is the defined version of the handler.
+    // This value must be set to "app/v1".
+    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "app/v1"];
+
+    // [REQUIRED]
+    // Kind is the kind of this object.
+    // This value must be set to "HealthCheckHandler".
+    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "HealthCheckHandler"];
+
+    // [OPTIONAL]
+    // Metadata is the metadata of the http logger object.
+    // If not set, both name and namespace in the metadata
+    // are treated as "default".
+    kernel.Metadata Metadata = 3 [json_name = "metadata"];
+
+    // [OPTIONAL]
+    // Spec is the specification of the handler.
+    // Default values are used when nothing is set.
+    HealthCheckHandlerSpec Spec = 4 [json_name = "spec"];
+}
+
+// HealthCheckHandlerSpec is the specifications for the HealthCheckHandler object.
+message HealthCheckHandlerSpec {
+    // [OPTIONAL]
+    // ErrorHandler is the reference to a ErrorHandler object.
+    // Referred object must implement ErrorHandler interface.
+    // Default error handler is used when not set.
+    kernel.Reference ErrorHandler = 1 [json_name = "errorHandler"];
+
+    // [OPTIONAL]
+    // Patterns is path patterns that this handler
+    // is registered to a server.
+    // Default is not set, or empty string ["/"].
+    repeated string Patterns = 2 [json_name = "patterns"];
+
+    // [OPTIONA]
+    // Methods is the list of HTTP method this handler can handle.
+    // Note that it depends on the multiplexer, or HTTP router,
+    // that the server uses if this field is used or not.
+    // Default multiplexer does not use this field.
+    // Default is not set.
+    repeated core.v1.HTTPMethod Methods = 3 [json_name = "methods"];
+
+    // [OPTIONAL]
+    // Timeout is timeout duration in seconds.
+    // Unhealthy status will be returned when health checking excceeded this duration.
+    // Default is [30].
+    int32 Timeout = 4 [json_name = "timeout", (buf.validate.field).int32 = {gte : 0}];
+
+    // [OPTIONAL]
+    // ExternalProbes is the list of references to HealthChecker objects.
+    // Referred object must implement HealthChecker interface.
+    // No values by default.
+    repeated kernel.Reference ExternalProbes = 5 [json_name = "externalProbes"];
+}

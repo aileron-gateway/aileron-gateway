@@ -1,0 +1,159 @@
+syntax = "proto3";
+package app.v1;
+
+import "buf/validate/validate.proto";
+import "kernel/resource.proto";
+
+option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
+
+// CasbinAuthzMiddlewareis the definition of the CasbinAuthzMiddlewareobject.
+// CasbinAuthzMiddlewareimplements interface of the authorization handler.
+// See the https://casbin.org/ for about casbin.
+message CasbinAuthzMiddleware {
+    // [REQUIRED]
+    // APIVersion is the defined version of the authorization handler.
+    // This value must be "app/v1".
+    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "app/v1"];
+
+    // [REQUIRED]
+    // Kind is the kind of this object.
+    // This value must be "CasbinAuthzMiddleware".
+    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "CasbinAuthzMiddleware"];
+
+    // [OPTIONAL]
+    // Metadata is the metadata of the http logger object.
+    // If not set, both name and namespace in the metadata
+    // are treated as "default".
+    kernel.Metadata Metadata = 3 [json_name = "metadata"];
+
+    // [OPTIONAL]
+    // Spec is the specification of the authorization handler.
+    // Default values are used when nothing is set.
+    CasbinAuthzMiddlewareSpec Spec = 4 [json_name = "spec"];
+}
+
+// CasbinAuthzMiddlewareSpec is the specifications of the CasbinAuthzMiddlewareobject.
+message CasbinAuthzMiddlewareSpec {
+    // [OPTIONAL]
+    // Logger is the reference to a Logger object.
+    // Referred object must implement Logger interface.
+    // Default Logger is used when not set.
+    kernel.Reference Logger = 1 [json_name = "logger"];
+
+    // [OPTIONAL]
+    // ErrorHandler is the reference to a ErrorHandler object.
+    // Referred object must implement ErrorHandler interface.
+    // Default error handler is used when not set.
+    kernel.Reference ErrorHandler = 2 [json_name = "errorHandler"];
+
+    // [OPTIONAL]
+    // ClaimsKey is the key to get claims to be used for authorization.
+    // This value should be matched to the one which is set in the authentication handler
+    // when using this authorization handler with any authentication handler.
+    // Found values are accessible from policy through "Auth".
+    // Default is ["AuthnClaims"].
+    string ClaimsKey = 3 [json_name = "claimsKey", (buf.validate.field).string.pattern = "^[0-9A-Za-z-_.]+$"];
+
+    // [OPTIONAL]
+    // ExtraKeys is the key list to extra information from the request context
+    // and pass it it to the casbin input.
+    // If not set, request_definition in the casbin model will like be `r = sub, obj, act`.
+    // If some keys set, request_definition in the casbin model will like be `r = sub, obj, act, ext1, ext2`.
+    // Default is not set.
+    repeated string ExtraKeys = 4 [json_name = "extraKeys"];
+
+    // [OPTIONAL]
+    // Explain explains the reason of the result of authorization.
+    // Explain logs are output as-is even the logger is json-based structural logger.
+    // That means the explain logs are output with any log level.
+    // Explain should be disabled in production environment for performance.
+    // Default [false].
+    bool Explain = 5 [json_name = "explain"];
+
+    // [OPTIONAL]
+    // Enforcers is the list of casbin enforcers.
+    // This is optional but should be set at least one enforcer to make authorization work.
+    // Default is not set.
+    repeated EnforcerSpec Enforcers = 6 [json_name = "enforcers"];
+}
+
+// EnforcerSpec is the specification of a casbin enforcer.
+// See the casbin's official documents for more details at https://casbin.org/docs/enforcers/
+message EnforcerSpec {
+    // [REQUIRED]
+    // ModelPath is the path to the casbin model.
+    // If the path starts with "http://" or "https://",
+    // models are requested to the specified endpoint with a GET request.
+    // Model should be returned in the response body with 200 OK status.
+    // If the path does not starts with "http://" or "https://",
+    // the path is considered to be a file path in local file system.
+    // RoundTripper and Header fields can be used for configureing HTTP client
+    // when getting model data from an HTTP endpoint.
+    // See https://casbin.org/docs/model-storage and https://casbin.org/docs/supported-models.
+    // Default is not set.
+    string ModelPath = 1 [json_name = "modelPath", (buf.validate.field).string.min_len = 1];
+
+    // [OPTIONAL]
+    // Cron is the schedule to reload all policies.
+    // If not set, policies are not reloaded.
+    // Note that only policies are reloaded and model is not.
+    // Format should be "second minute hour day month week"
+    // or "minute hour day month week".
+    // TZ must be a valid timezone name.
+    // Value ranges are `0-59` for second, `0-59` for minute,
+    // `0-23` for hour, `1-31` for day of month,
+    // `1-12 or JAN-DEC` for month, `0-6 or SUN-SAT` for day of week.
+    // Special caharacters `* / , -` are allowed for all fields.
+    // Timezone can be specified like "TZ=UTC * * * * *".
+    // For example, "0 * * * *" means hourly rotation,
+    // "0 0 * * *" means daily rotation.
+    // Multiple jobs won't be run at the same time.
+    // Default is not set.
+    string Cron = 2 [json_name = "cron"];
+
+    // [OPTIONAL]
+    // RoundTripper is the references to a roundTripper object.
+    // Referred object must implement RoundTripper interface.
+    // This round tripper is used by the policy adapters which
+    // fetch policies from external URLs.
+    // Use Header field to add custom HTTP headers to the requests.
+    // Default is not set.
+    kernel.Reference RoundTripper = 3 [json_name = "roundTripper"];
+
+    // [OPTIONAL]
+    // Header is the HTTP header name and value list.
+    // Specified headers are added to the HTTP requests
+    // when getting model and policies from HTTP endpoints.
+    // This is mainly intended for adding Authorization header.
+    // Default is not set.
+    map<string, string> Header = 4 [json_name = "header"];
+
+    oneof Policies {
+        // [OPTIONAL]
+        // PolicyPath is the file path to the casbin policy file.
+        // See https://casbin.org/docs/policy-storage and https://casbin.org/docs/supported-models.
+        // File extension must be one of ".csv", ".json", ".xml", ".yaml", ".yml".
+        // Note that the all policies are loaded on the memory.
+        // Default is not set.
+        string PolicyPath = 10 [json_name = "policyPath"];
+
+        // [OPTIONAL]
+        // PolicyURL is the http URL to get a policy.
+        // See https://casbin.org/docs/policy-storage and https://casbin.org/docs/supported-models.
+        // Response status code must be 200 OK.
+        // Response content-type must be "application/" or "text/"
+        // + one of "csv", "json", "xml", "yaml", "yml".
+        // Note that the all policies, or the response body, are loaded on the memory.
+        // Default is not set.
+        string PolicyURL = 11 [json_name = "policyURL"];
+
+        // [OPTIONAL]
+        // ExternalAdapter is the reference to a Casbin adapter object.
+        // The object must implements persist.Adapter interface.
+        // Because policies are not changed in the application,
+        // implementing LoadPolicy method is enought.
+        // https://pkg.go.dev/github.com/casbin/casbin/v3/persist#Adapter
+        // Default is not set.
+        kernel.Reference ExternalAdapter = 12 [json_name = "externalAdapter"];
+    }
+}

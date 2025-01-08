@@ -1,0 +1,88 @@
+syntax = "proto3";
+package app.v1;
+
+option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
+
+// SigningKeySpec is the definition of the JWT signing key object.
+message SigningKeySpec {
+    // [OPTIONAL]
+    // KeyID is the key identifier.
+    // This value is set in the "kid" attribute of JWT headers.
+    // This value is automatically set if not set.
+    string KeyID = 1 [json_name = "keyID"];
+
+    // [REQUIRED]
+    // Algorithm is the signing algorith when generating JWTs.
+    SigningKeyAlgorithm Algorithm = 2 [json_name = "algorithm"];
+
+    // [REQUIRED]
+    // KeyType is the type of key.
+    SigningKeyType KeyType = 3 [json_name = "keyType"];
+
+    // [OPTIONAL]
+    // KeyFilePath is the file path to a common key or a pem key.
+    // KeyFilePath is used when both keyFilePath and keyString are set.
+    string KeyFilePath = 4 [json_name = "keyFilePath"];
+
+    // [OPTIONAL]
+    // KeyString is the base64 encoded string of a common key or a pem key.
+    // KeyFilePath is used when both keyFilePath and keyString are set.
+    string KeyString = 5 [json_name = "keyString"];
+
+    // [OPTIONAL]
+    // JWTHeader is the user defined header values in the JWT's header.
+    map<string, string> JWTHeader = 6 [json_name = "jwtHeader"];
+}
+
+// JWTHandlerSpec is the specification of JWTHandler object.
+message JWTHandlerSpec {
+    // [OPTIONAL]
+    // PrivateKeys is list of private key objects for signing JWTs.
+    // Default is empty.
+    repeated SigningKeySpec PrivateKeys = 1 [json_name = "privateKeys"];
+
+    // [OPTIONAL]
+    // PublicKeys is list of public key objects for validating JWTs.
+    // Default is empty.
+    repeated SigningKeySpec PublicKeys = 2 [json_name = "publicKeys"];
+
+    // [OPTIONAL]
+    // JWKs is the pairs of issuer and JWKs URLs.
+    // The keys are issuer and the values are JWKs URLs corresponding to the issuer.
+    // JWKs URLs are used when a validating key was not found for JWTs.
+    map<string, string> JWKs = 3 [json_name = "JWKs"];
+
+    // [OPTIONAL]
+    // UseJKU is the flag to use JWKs endpoint set in "jku" header field.
+    // JWKs endpoint in "jku" header is used if there is no key cached
+    // in the handler for validating a token.
+    // Default is [false].
+    bool UseJKU = 4 [json_name = "useJKU"];
+}
+
+// SigningKeyAlgorithm is algorithm to sign JWTs.
+enum SigningKeyAlgorithm {
+    ALGORITHM_UNKNOWN = 0;   // Unknown signing algorithm
+    NONE              = 1;   // No digital signature or MAC
+    ES256             = 2;   // ECDSA using P-256 and SHA-256
+    ES384             = 3;   // ECDSA using P-384 and SHA-384
+    ES512             = 4;   // ECDSA using P-521 and SHA-512
+    EdDSA             = 5;   // EdDSA using Ed25519
+    HS256             = 6;   // HMAC using SHA-256
+    HS384             = 7;   // HMAC using SHA-384
+    HS512             = 8;   // HMAC using SHA-512
+    RS256             = 9;   // RSASSA-PKCS1-v1_5 using SHA-256
+    RS384             = 10;  // RSASSA-PKCS1-v1_5 using SHA-384
+    RS512             = 11;  // RSASSA-PKCS1-v1_5 using SHA-512
+    PS256             = 12;  // RSASSA-PSS using SHA-256 and MGF1 with SHA-256
+    PS384             = 13;  // RSASSA-PSS using SHA-384 and MGF1 with SHA-384
+    PS512             = 14;  // RSASSA-PSS using SHA-512 and MGF1 with SHA-512
+}
+
+// SigningKeyType is the type of key for encryption.
+enum SigningKeyType {
+    KEY_TYPE_UNKNOWN = 0;  // Unknown encryption key type.
+    COMMON           = 1;  // Common key for common key encryption.
+    PUBLIC           = 2;  // Public keys for public key encryption.
+    PRIVATE          = 3;  // Private keys for public key encryption.
+}

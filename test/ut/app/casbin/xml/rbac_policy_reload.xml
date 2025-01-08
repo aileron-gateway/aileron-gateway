@@ -1,0 +1,31 @@
+<policies>
+  <policy>
+    <pType>p</pType>
+    <v0>alice</v0>
+    <v1>/alice/*</v1>
+    <v2>GET</v2>
+  </policy>
+  <policy>
+    <pType>p</pType>
+    <v0>bob</v0>
+    <v1>/bob/*</v1>
+    <v2>GET</v2>
+  </policy>
+  <policy>
+    <pType>p</pType>
+    <v0>admin</v0>
+    <v1>/foo/*</v1>
+    <v2>POST</v2>
+  </policy>
+  <policy>
+    <pType>p</pType>
+    <v0>admin</v0>
+    <v1>/bar/*</v1>
+    <v2>POST</v2>
+  </policy>
+  <policy>
+    <pType>g</pType>
+    <v0>bob</v0>
+    <v1>admin</v1>
+  </policy>
+</policies>

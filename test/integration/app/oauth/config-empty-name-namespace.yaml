@@ -1,0 +1,7 @@
+apiVersion: app/v1
+kind: OAuthAuthenticationHandler
+metadata:
+  name: ""
+  namespace: ""
+spec:
+  resourceServerHandler: {}

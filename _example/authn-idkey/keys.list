@@ -1,0 +1,31 @@
+# --- plain text API key
+user0:bd16d0c8-7bc0-4bf4-a0b0-bccaa3e2f072
+
+# --- Hashed key (key is the same with plain text)
+# --- Hash with algorithm=SHA256
+# --- Value = Hex(Hash(<key>))
+# user1:d7c405e8697751f4b430f9325417b8fc1d16c83a081bb039c3b1d7bfe12a30d6
+
+# --- HMAC key (key is the same with plain text)
+# --- HMAC with algorithm=SHA256 key="example_password"
+# --- Value = Hex(HMAC(<key>))
+# user2:066d62d945e88a5b2096dbbd861ff5202efba067b92d194484b64d953de6996f
+
+# --- Encrypted key (key is the same with plain text)
+# --- Encrypt with AESCBC commonKey="example_password", keySize=128bit, iv="1234567890123456"
+# --- Value = Hex(<iv>) + Hex(AESCBC(PKCS7Padding(<key>)))
+# user3:313233343536373839303132333435368e1d0838f4a08ab69a5961a9ce54ae24281541e1d1fc228dae66e9b23dfcfa8cb9e9656ee728d35b29e88385a011911e
+
+# --- Hashed and Encrypted key (key is the same with plain text)
+# --- Hash with algorithm=SHA256
+# --- Encrypt with AESCBC commonKey="example_password", keySize=128bit, iv="1234567890123456"
+# --- Use for example, https://ieasynote.com/tools/aes
+# --- Value = Hex(<iv>) + Hex(AESCBC(PKCS7Padding( Hash(<key>) )))
+# user4:31323334353637383930313233343536eccf566b5b0eceb06e4ccf5c7c1339748c552cc91ed60cbeacaee1bc7501b4adac5b9562a46da20dee0e081fbdf58c40
+
+# --- HMAC and Encrypted key (key is the same with plain text)
+# --- HMAC with algorithm=SHA256 key="example_password"
+# --- Encrypt with AESCBC commonKey="example_password", keySize=128bit, iv="1234567890123456"
+# --- Use for example, https://ieasynote.com/tools/aes
+# --- Value = Hex(<iv>) + Hex(AESCBC(PKCS7Padding( HMAC(<key>) )))
+# user5:3132333435363738393031323334353631171a0d42718570af0171844bc0d447e53e7bf2283f96773c5f5fb71bd81d6d4dfac14e2c90d4f4540038e26689e3d6

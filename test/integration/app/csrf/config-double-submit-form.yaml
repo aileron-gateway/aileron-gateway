@@ -1,0 +1,10 @@
+apiVersion: app/v1
+kind: CSRFMiddleware
+spec:
+  doubleSubmitCookies:
+    cookieName: "__csrfToken" # Name of cookie to store CSRF token
+    tokenSource: Form # Where to get tokens
+    sourceKey: "X-CSRF-Token" # Key or header name containing the CSRF token
+  # Secret for CSRF token generation (Base64 encoded string)
+  # Secret is "my-secure-secret-key-string-for-csrf".
+  secret: "bXktc2VjdXJlLXNlY3JldC1rZXktc3RyaW5nLWZvci1jc3Jm"

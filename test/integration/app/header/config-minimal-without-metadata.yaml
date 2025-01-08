@@ -1,0 +1,3 @@
+apiVersion: app/v1
+kind: HeaderPolicyMiddleware
+spec: {}

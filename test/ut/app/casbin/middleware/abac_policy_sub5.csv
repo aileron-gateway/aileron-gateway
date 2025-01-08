@@ -1,0 +1,1 @@
+p, "regexMatch(mapValue(r.ext2, 'foo'), '[a-z]+')"

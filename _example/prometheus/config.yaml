@@ -1,0 +1,75 @@
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  runners:
+    - apiVersion: core/v1
+      kind: HTTPServer
+      namespace: example
+      name: MetricsServer
+
+---
+apiVersion: app/v1
+kind: PrometheusMeter
+metadata:
+  name: default
+  namespace: example
+spec: {}
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+metadata:
+  name: MetricsServer
+  namespace: example
+spec:
+  addr: ":8080"
+  virtualHosts:
+    - hosts: []
+      middleware:
+        - apiVersion: app/v1
+          kind: PrometheusMeter
+          namespace: example
+          name: default
+      handlers:
+        - handler:
+            apiVersion: app/v1
+            kind: PrometheusMeter
+            namespace: example
+            name: default
+        - handler:
+            apiVersion: core/v1
+            kind: ReverseProxyHandler
+            namespace: example
+            name: default
+
+---
+apiVersion: core/v1
+kind: ReverseProxyHandler
+metadata:
+  namespace: example
+  name: default
+spec:
+  roundTripper:
+    apiVersion: core/v1
+    kind: HTTPClient
+    namespace: example
+    name: default
+  loadBalancers:
+    - pathMatcher:
+        match: ".*"
+        matchType: Regex
+      upstreams:
+        - url: http://httpbin.org
+
+---
+apiVersion: core/v1
+kind: HTTPClient
+metadata:
+  namespace: example
+  name: default
+spec:
+  tripperwares:
+    - apiVersion: app/v1
+      kind: PrometheusMeter
+      namespace: example
+      name: default

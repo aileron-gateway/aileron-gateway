@@ -1,0 +1,123 @@
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  runners:
+    - apiVersion: core/v1
+      kind: HTTPServer
+      namespace: example
+      name: default
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+metadata:
+  name: default
+  namespace: example
+spec:
+  addr: ":8080"
+  virtualHosts:
+    - middleware:
+        - apiVersion: app/v1
+          kind: SessionMiddleware
+          name: default
+          namespace: example
+        - apiVersion: app/v1
+          kind: AuthenticationMiddleware
+          namespace: example
+          name: default
+      handlers:
+        - handler:
+            apiVersion: app/v1
+            kind: EchoHandler
+            namespace: example
+            name: default
+    # - middleware:
+    #     - apiVersion: app/v1
+    #       kind: SessionMiddleware
+    #       name: default
+    #       namespace: example
+    #   handlers:
+    #     - handler:
+    #         apiVersion: app/v1
+    #         kind: OAuthAuthenticationHandler
+    #         namespace: example
+    #         name: default
+
+---
+apiVersion: app/v1
+kind: EchoHandler
+metadata:
+  namespace: example
+  name: default
+spec: {}
+
+---
+apiVersion: app/v1
+kind: SessionMiddleware
+metadata:
+  namespace: example
+  name: default
+spec:
+  secureEncoder:
+    enableCompression: false
+    disableHMAC: true
+    disableEncryption: true
+
+---
+apiVersion: app/v1
+kind: AuthenticationMiddleware
+metadata:
+  namespace: example
+  name: default
+spec:
+  handlers:
+    - apiVersion: app/v1
+      kind: OAuthAuthenticationHandler
+      namespace: example
+      name: default
+
+---
+apiVersion: app/v1
+kind: OAuthAuthenticationHandler
+metadata:
+  namespace: example
+  name: default
+spec:
+  contextQueryKey: context
+  contextHeaderKey: X-Oauth-Context
+  authorizationCodeHandler:
+    disableState: false
+    disableNonce: false
+    disablePKCE: false
+    redirectPath: "/auth/success"
+    loginPath: "/auth/login"
+    callbackURL: "http://localhost:8080/auth/callback"
+    redirectToLogin: false
+    unauthorizeAny: false
+    restoreRequest: false
+    urlParams:
+      - "max_age=120"
+      - "login_hint=username"
+  contexts:
+    - name: default
+      atProxyHeader: "X-Access-Token"
+      idtProxyHeader: "X-ID-Token"
+      enableIntrospection: false
+      provider:
+        issuer: "http://localhost:18080/realms/aileron"
+        baseURL: "http://localhost:18080"
+        endpoints:
+          discovery: "/realms/aileron/.well-known/openid-configuration"
+      client:
+        id: "aileron_authorization_code"
+        secret: "NNJxpasHJgwGmgTYMoVFTKGUWZxp12bl"
+        scopes:
+          - openid
+          - profile
+          - read
+      jwtHandler:
+        publicKeys:
+          - keyID: LO9dmmUtUOiV1P7OkzYW-CDbTJV94nADvDFhojxvSqk
+            algorithm: RS256
+            keyType: PUBLIC
+            keyFilePath: ./_devtools/keycloak/keys/public.key

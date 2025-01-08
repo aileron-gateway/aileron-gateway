@@ -1,0 +1,44 @@
+syntax = "proto3";
+package app.v1;
+
+option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
+
+message K8sAttributesSpec {
+    string ClusterName           = 1 [json_name = "clusterName"];
+    string ContainerName         = 2 [json_name = "containerName"];
+    string ContainerRestartCount = 3 [json_name = "containerRestartCount"];
+    string CronJobName           = 4 [json_name = "cronJobName"];
+    string CronJobUID            = 5 [json_name = "cronJobUID"];
+    string DaemonSetName         = 6 [json_name = "daemonSetName"];
+    string DaemonSetUID          = 7 [json_name = "daemonSetUID"];
+    string DeploymentName        = 8 [json_name = "deploymentName"];
+    string DeploymentUID         = 9 [json_name = "deploymentUID"];
+    string JobName               = 10 [json_name = "jobName"];
+    string JobUID                = 11 [json_name = "jobUID"];
+    string NamespaceName         = 12 [json_name = "namespaceName"];
+    string NodeName              = 13 [json_name = "nodeName"];
+    string NodeUID               = 14 [json_name = "nodeUID"];
+    string PodName               = 15 [json_name = "podName"];
+    string PodUID                = 16 [json_name = "podUID"];
+    string ReplicaSetName        = 17 [json_name = "replicaSetName"];
+    string ReplicaSetUID         = 18 [json_name = "replicaSetUID"];
+    string StatefulSetName       = 19 [json_name = "statefulSetName"];
+    string StatefulSetUID        = 20 [json_name = "statefulSetUID"];
+}
+
+message ContainerAttributesSpec {
+    string ID        = 1 [json_name = "id"];
+    string ImageName = 2 [json_name = "imageName"];
+    string ImageTag  = 3 [json_name = "imageTag"];
+    string Name      = 4 [json_name = "name"];
+    string Runtime   = 5 [json_name = "runtime"];
+}
+
+message HostAttributesSpec {
+    string ID           = 1 [json_name = "id"];
+    string ImageID      = 2 [json_name = "imageID"];
+    string ImageName    = 3 [json_name = "imageName"];
+    string ImageVersion = 4 [json_name = "imageVersion"];
+    string Name         = 5 [json_name = "name"];
+    string Type         = 6 [json_name = "type"];
+}

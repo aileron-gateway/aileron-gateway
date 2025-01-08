@@ -1,0 +1,6 @@
+apiVersion: app/v1
+kind: HeaderPolicyMiddleware
+metadata:
+  name: testName
+  namespace: ""
+spec: {}

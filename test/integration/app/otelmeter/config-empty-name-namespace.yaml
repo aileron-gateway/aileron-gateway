@@ -1,0 +1,9 @@
+apiVersion: app/v1
+kind: OpenTelemetryMeter
+metadata:
+  name: ""
+  namespace: ""
+spec:
+  stdoutExporter: {}
+  periodicReader:
+    interval: 1
