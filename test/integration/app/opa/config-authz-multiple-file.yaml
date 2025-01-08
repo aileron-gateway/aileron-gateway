@@ -1,0 +1,10 @@
+apiVersion: app/v1
+kind: OPAAuthzMiddleware
+spec:
+  regos:
+    - queryParameter: "data.authz.allow"
+      policyFiles:
+        - "./policy-allow.rego"
+    - queryParameter: "data.authz.deny"
+      policyFiles:
+        - "./policy-deny.rego"

@@ -1,0 +1,5 @@
+apiVersion: app/v1
+kind: BodyLimitMiddleware
+metadata:
+  name: ""
+  namespace: testNamespace

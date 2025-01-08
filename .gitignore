@@ -13,6 +13,8 @@
 *.exe
 *.so
 *.test
+*.tmp
+*.temp
 /*.env
 /*.html
 /*.txt

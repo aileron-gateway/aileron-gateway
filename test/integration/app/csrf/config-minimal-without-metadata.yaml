@@ -1,0 +1,5 @@
+apiVersion: app/v1
+kind: CSRFMiddleware
+spec:
+  customRequestHeader:
+    allowedPattern: "^ValidToken$"

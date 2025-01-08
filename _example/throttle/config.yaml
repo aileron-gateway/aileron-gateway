@@ -1,0 +1,97 @@
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  runners:
+    - apiVersion: core/v1
+      kind: HTTPServer
+      namespace: sampleNamespace
+      name: EchoServer
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+metadata:
+  name: EchoServer
+  namespace: sampleNamespace
+spec:
+  addr: ":8080"
+  virtualHosts:
+    - hosts: []
+      middleware:
+        - apiVersion: core/v1
+          kind: HTTPLogger
+          namespace: example
+          name: default
+        - apiVersion: app/v1
+          kind: ThrottleMiddleware
+          namespace: sampleNamespace
+          name: default
+      handlers:
+        - handler:
+            apiVersion: app/v1
+            kind: EchoHandler
+            namespace: sampleNamespace
+            name: default
+
+---
+apiVersion: core/v1
+kind: HTTPLogger
+metadata:
+  namespace: example
+  name: default
+spec:
+  disableBase64: false
+  journal: true
+  requestHeaders:
+    - name: "*"
+  responseHeaders:
+    - name: "*"
+  requestBodies:
+    - mime: "application/json"
+    - mime: "application/x-www-form-urlencoded"
+  responseBodies:
+    - mime: "application/json"
+    - mime: "application/x-www-form-urlencoded"
+
+---
+apiVersion: app/v1
+kind: EchoHandler
+metadata:
+  name: default
+  namespace: sampleNamespace
+spec: {}
+
+---
+apiVersion: app/v1
+kind: ThrottleMiddleware
+metadata:
+  name: default
+  namespace: sampleNamespace
+spec:
+  apiThrottlers:
+    - methods:
+        - GET
+      matcher:
+        matchType: Regex
+        patterns:
+          - ".*"
+      maxRetry: 3
+      # waiter:
+      #   exponentialBackoffFullJitter:
+      #     base: 2
+      #     # max: 2147483647
+
+      # fixedWindow:
+      #   windowSize: 100
+      #   limit: 10
+
+      # maxConnections:
+      #   maxConns: 10
+
+      tokenBucket:
+        bucketSize: 10
+        fillRate: 5
+
+      # leakyBucket:
+      #   bucketSize: 10
+      #   leakRate: 5

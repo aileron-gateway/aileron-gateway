@@ -1,0 +1,6 @@
+apiVersion: app/v1
+kind: JaegerTracer
+spec:
+  serviceName: aileron
+  headerNames:
+    - "X-Custom-Header"

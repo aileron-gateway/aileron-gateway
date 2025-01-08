@@ -1,0 +1,2 @@
+apiVersion: app/v1
+kind: CasbinAuthzMiddleware

@@ -1,0 +1,250 @@
+syntax = "proto3";
+package app.v1;
+
+import "app/v1/tracer/tracer.proto";
+import "buf/validate/validate.proto";
+import "kernel/resource.proto";
+
+option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
+
+// JaegerTracer is the definition of the JaegerTracer object.
+// JaegerTracer implements interface of the tracer.
+message JaegerTracer {
+    // [REQUIRED]
+    // APIVersion is the defined version of the tracer.
+    // This value must be "app/v1".
+    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "app/v1"];
+
+    // [REQUIRED]
+    // Kind is the kind of this object.
+    // This value must be "JaegerTracer".
+    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "JaegerTracer"];
+
+    // [OPTIONAL]
+    // Metadata is the metadata of the http logger object.
+    // If not set, both name and namespace in the metadata
+    // are treated as "default".
+    kernel.Metadata Metadata = 3 [json_name = "metadata"];
+
+    // [OPTIONAL]
+    // Spec is the specification of the tracer.
+    // Default values are used when nothing is set.
+    JaegerTracerSpec Spec = 4 [json_name = "spec"];
+}
+
+// JaegerTracerSpec is the specifications for the JaegerTracer object.
+message JaegerTracerSpec {
+    repeated string               HeaderNames          = 1 [json_name = "headerNames"];
+    string                        ServiceName          = 2 [json_name = "serviceName"];
+    bool                          Disabled             = 3 [json_name = "disabled"];
+    bool                          RPCMetrics           = 4 [json_name = "rpcMetrics"];
+    bool                          Gen128Bit            = 5 [json_name = "gen128Bit"];
+    map<string, string>           Tags                 = 6 [json_name = "tags"];
+    JaegerSamplerSpec             Sampler              = 7 [json_name = "sampler"];
+    JaegerReporterSpec            Reporter             = 8 [json_name = "reporter"];
+    JaegerHeadersSpec             Headers              = 9 [json_name = "headers"];
+    JaegerBaggageRestrictionsSpec BaggageRestrictions  = 10 [json_name = "baggageRestrictions"];
+    JaegerThrottlerSpec           Throttler            = 11 [json_name = "throttler"];
+    K8sAttributesSpec             K8sAttributes        = 12 [json_name = "k8sAttributes"];
+    ContainerAttributesSpec       ContainerAttributes  = 13 [json_name = "containerAttributes"];
+    HostAttributesSpec            HostAttributes       = 14 [json_name = "hostAttributes"];
+    map<int32, string>            MiddlewareSpanNames  = 15 [json_name = "middlewareSpanNames"];
+    map<int32, string>            TripperwareSpanNames = 16 [json_name = "tripperwareSpanNames"];
+}
+
+message JaegerSamplerSpec {
+    enum JaegerSamplerType {
+        // Const is the type of sampler that always makes the same decision.
+        Const = 0;
+        // Remote is the type of sampler that polls Jaeger agent for sampling strategy.
+        Remote = 1;
+        // Probabilistic is the type of sampler that samples traces
+        // with a certain fixed probability.
+        Probabilistic = 2;
+        // RateLimiting is the type of sampler that samples
+        // only up to a fixed number of traces per second.
+        RateLimiting = 3;
+        // LowerBound is the type of sampler that samples
+        // at least a fixed number of traces per second.
+        LowerBound = 4;
+    }
+
+    // [OPTIONAL]
+    // Type is the sample type.
+    // Default is [Const].
+    JaegerSamplerType Type = 1 [json_name = "type"];
+
+    // [OPTIONAL]
+    // Param is a value passed to the sampler.
+    // Valid values for Param field are as follows.
+    // For "const" sampler, 0 or 1 for always false/true respectively.
+    // For "probabilistic" sampler, a probability between 0 and 1.
+    // For "rateLimiting" sampler, the number of spans per second.
+    // For "remote" sampler, param is the same as for "probabilistic" and indicates
+    // the initial sampling rate before the actual one is received from the mothership.
+    // Default is [1.0].
+    double Param = 2 [json_name = "param"];
+
+    // [OPTIONAL]
+    // SamplingServerURL is the URL of sampling manager that can provide
+    // sampling strategy to this service.
+    // Default is not set.
+    string SamplingServerURL = 3 [json_name = "samplingServerURL"];
+
+    // [OPTIONAL]
+    // SamplingRefreshInterval controls how often the remotely controlled
+    // sampler will poll sampling manager for the appropriate sampling strategy.
+    // The value unit is millisecond.
+    // Default is not set.
+    int32 SamplingRefreshInterval = 4 [json_name = "samplingRefreshInterval"];
+
+    // [OPTIONAL]
+    // MaxOperations is the maximum number of operations that the PerOperationSampler
+    // will keep track of.
+    // If an operation is not tracked, a default probabilistic sampler will be
+    // used rather than the per operation specific sampler.
+    // Default is not set.
+    int32 MaxOperations = 5 [json_name = "maxOperations"];
+}
+
+message JaegerReporterSpec {
+    // [OPTIONAL]
+    // QueueSize controls how many spans the reporter can keep in memory
+    // before it starts dropping new spans.
+    // The queue is continuously drained by a background go-routine,
+    // as fast as spans can be sent out of process.
+    // Default is not set.
+    int32 QueueSize = 1 [json_name = "queueSize"];
+
+    // [OPTIONAL]
+    // BufferFlushInterval controls how often the buffer is force-flushed,
+    // even if it's not full.
+    // It is generally not useful, as it only matters for very low traffic services.
+    // The value unit is millisecond.
+    // Default is not set.
+    int32 BufferFlushInterval = 2 [json_name = "bufferFlushInterval"];
+
+    // [OPTIONAL]
+    // LogSpans, when true, enables LoggingReporter that runs in parallel
+    // with the main reporter and logs all submitted spans.
+    // Default is not set.
+    bool LogSpans = 3 [json_name = "logSpans"];
+
+    // [OPTIONAL]
+    // LocalAgentHostPort instructs reporter to send spans to jaeger-agent at this address.
+    // Default is not set.
+    string LocalAgentHostPort = 4 [json_name = "localAgentHostPort"];
+
+    // [OPTIONAL]
+    // DisableAttemptReconnecting when true,
+    // disables udp connection helper that periodically re-resolves the agent's hostname
+    // and reconnects if there was a change.
+    // This option only applies if LocalAgentHostPort is specified.
+    // Default is not set.
+    bool DisableAttemptReconnecting = 5 [json_name = "disableAttemptReconnecting"];
+
+    // [OPTIONAL]
+    // AttemptReconnectInterval controls how often the agent client re-resolves the
+    // provided hostname in order to detect address changes.
+    // This option only applies if DisableAttemptReconnecting is false.
+    // The value unit is millisecond.
+    // Default is not set.
+    int32 AttemptReconnectInterval = 6 [json_name = "attemptReconnectInterval"];
+
+    // [OPTIONAL]
+    // CollectorEndpoint instructs reporter to send spans to jaeger-collector at this URL.
+    // Default is not set.
+    string CollectorEndpoint = 7 [json_name = "collectorEndpoint"];
+
+    // [OPTIONAL]
+    // User instructs reporter to include a user for basic http authentication
+    // when sending spans to jaeger-collector.
+    // Default is not set.
+    string User = 8 [json_name = "user"];
+
+    // [OPTIONAL]
+    // Password instructs reporter to include a password for basic http authentication
+    // when sending spans to jaeger-collector.
+    // Default is not set.
+    string Password = 9 [json_name = "password"];
+
+    // [OPTIONAL]
+    // HTTPHeaders instructs the reporter to add these headers to the http request
+    // when reporting spans. This field takes effect only when using HTTPTransport
+    // by setting the CollectorEndpoint.
+    // Default is not set.
+    map<string, string> HTTPHeaders = 10 [json_name = "httpHeaders"];
+}
+
+message JaegerHeadersSpec {
+    // [OPTIONAL]
+    // JaegerDebugHeader is the name of HTTP header or a TextMap carrier key which,
+    // if found in the carrier, forces the trace to be sampled as "debug" trace.
+    // The value of the header is recorded as the tag on the root span,
+    // so that the trace can be found in the UI using this value as a correlation ID.
+    // Default is not set.
+    string JaegerDebugHeader = 1 [json_name = "jaegerDebugHeader"];
+
+    // [OPTIONAL]
+    // JaegerBaggageHeader is the name of the HTTP header that is used to submit baggage.
+    // It differs from TraceBaggageHeaderPrefix in that it can be used
+    // only in cases where a root span does not exist.
+    // Default is not set.
+    string JaegerBaggageHeader = 2 [json_name = "jaegerBaggageHeader"];
+
+    // [OPTIONAL]
+    // TraceContextHeaderName is the http header name used to propagate tracing context.
+    // This must be in lower-case to avoid mismatches when decoding incoming headers.
+    // Default is not set.
+    string TraceContextHeaderName = 3 [json_name = "traceContextHeaderName"];
+
+    // [OPTIONAL]
+    // TraceBaggageHeaderPrefix is the prefix for http headers used to propagate baggage.
+    // This must be in lower-case to avoid mismatches when decoding incoming headers.
+    // Default is not set.
+    string TraceBaggageHeaderPrefix = 4 [json_name = "traceBaggageHeaderPrefix"];
+}
+
+message JaegerBaggageRestrictionsSpec {
+    // [OPTIONAL]
+    // DenyBaggageOnInitializationFailure controls the startup failure mode of
+    // the baggage restriction manager.
+    // If true, the manager will not allow any baggage to be written until
+    // baggage restrictions have been retrieved from jaeger-agent.
+    // If false, the manager wil allow any baggage to be written until baggage
+    // restrictions have been retrieved from jaeger-agent.
+    // Default is [false].
+    bool DenyBaggageOnInitializationFailure = 1 [json_name = "denyBaggageOnInitializationFailure"];
+
+    // [OPTIONAL]
+    // HostPort is the hostPort of jaeger-agent's baggage restrictions server
+    // Default is not set.
+    string HostPort = 2 [json_name = "hostPort"];
+
+    // [OPTIONAL]
+    // RefreshInterval controls how often the baggage restriction manager
+    // will poll jaeger-agent for the most recent baggage restrictions.
+    // The unit is milliseconds.
+    // Default is not set.
+    int32 RefreshInterval = 3 [json_name = "refreshInterval"];
+}
+
+message JaegerThrottlerSpec {
+    // [OPTIONAL]
+    // HostPort of jaeger-agent's credit server.
+    // Default is not set.
+    string HostPort = 1 [json_name = "hostPort"];
+
+    // [OPTIONAL]
+    // RefreshInterval controls how often the throttler will poll jaeger-agent for more throttling credits.
+    // The unit is milliseconds.
+    // Default is not set.
+    int32 RefreshInterval = 2 [json_name = "refreshInterval"];
+
+    // [OPTIONAL]
+    // SynchronousInitialization determines whether or not the throttler should
+    // synchronously fetch credits from the agent when an operation is seen for
+    // the first time.
+    // Default is [false].
+    bool SynchronousInitialization = 3 [json_name = "synchronousInitialization"];
+}

@@ -1,0 +1,342 @@
+syntax = "proto3";
+package app.v1;
+
+import "buf/validate/validate.proto";
+import "kernel/resource.proto";
+
+option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
+
+// OPAAuthzMiddleware is the definition of the OPAAuthzMiddleware object.
+// OPAAuthzMiddleware implements interface of the authorization handler.
+// See https://www.openpolicyagent.org/ for about OPA.
+message OPAAuthzMiddleware {
+    // [REQUIRED]
+    // APIVersion is the defined version of the authorization handler.
+    // This value must be "app/v1".
+    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "app/v1"];
+
+    // [REQUIRED]
+    // Kind is the kind of this object.
+    // This value must be "OPAAuthzMiddleware".
+    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "OPAAuthzMiddleware"];
+
+    // [OPTIONAL]
+    // Metadata is the metadata of the http logger object.
+    // If not set, both name and namespace in the metadata
+    // are treated as "default".
+    kernel.Metadata Metadata = 3 [json_name = "metadata"];
+
+    // [OPTIONAL]
+    // Spec is the specification of the authorization handler.
+    // Default values are used when nothing is set.
+    OPAAuthzMiddlewareSpec Spec = 4 [json_name = "spec"];
+}
+
+// OPAAuthzMiddlewareSpec is the specifications of the OPAAuthzMiddleware object.
+message OPAAuthzMiddlewareSpec {
+    // [OPTIONAL]
+    // Logger is the reference to a Logger object.
+    // Referred object must implement Logger interface.
+    // Default Logger is used when not set.
+    kernel.Reference Logger = 1 [json_name = "logger"];
+
+    // [OPTIONAL]
+    // ErrorHandler is the reference to a ErrorHandler object.
+    // Referred object must implement ErrorHandler interface.
+    // Default error handler is used when not set.
+    kernel.Reference ErrorHandler = 2 [json_name = "errorHandler"];
+
+    // [OPTIONAL]
+    // ClaimsKey is the key to get claims to be used for authorization.
+    // This value should be matched to the one which is set in the authentication handler
+    // when using this authorization handler with any authentication handler.
+    // Found values are accessible from rego through "input.auth".
+    // Default is ["AuthnClaims"].
+    string ClaimsKey = 3 [json_name = "claimsKey", (buf.validate.field).string.pattern = "^[0-9A-Za-z-_.]+$"];
+
+    // [OPTIONAL]
+    // EnvData allows optional input of host environment information.
+    // Configured data is available as "input.env" in regos.
+    // Default is not set.
+    EnvDataSpec EnvData = 5 [json_name = "envData"];
+
+    // [OPTIONAL]
+    // Regos is the list of rego policies.
+    // This is optional but should be set at least one to make authorization work.
+    // Default is not set.
+    repeated RegoSpec Regos = 6 [json_name = "regos"];
+
+    // [OPTIONAL]
+    // EnableTrace enables tracing of the policy decision.
+    // Tace logs are input to the logger.
+    // Trace logs are output as-is even the logger is json-based structural logger.
+    // That means the trace logs are output with any log level.
+    // Trace should be disabled in production environment for performance.
+    // Default is [false].
+    bool EnableTrace = 7 [json_name = "enableTrace"];
+}
+
+// RegoSpec is the specification of a OPA rego.
+// See the OPA's official documents for details at https://www.openpolicyagent.org/docs/latest/
+message RegoSpec {
+    // [OPTIONAL]
+    // QueryParameter is the name of the parameter that is used in
+    // the Regos to represent the target was authrorized or not.
+    // For example, "data.authz.allow".
+    // Default is ["data.authz.allow"].
+    string QueryParameter = 1 [json_name = "queryParameter", (buf.validate.field).string.min_len = 1];
+
+    // [OPTIONAL]
+    // PolicyFiles is the list of Rego policy file paths.
+    // Online playground for rego is available at https://play.openpolicyagent.org/
+    // Policies are loaded as a module
+    // https://pkg.go.dev/github.com/open-policy-agent/opa/rego#Module.
+    // Default is not set.
+    repeated string PolicyFiles = 2 [json_name = "policyFiles", (buf.validate.field).repeated.min_items = 1];
+
+    // [OPTIONAL]
+    // BundlePaths is the list of bundle paths.
+    // If a path starts with "http://" or "https://",
+    // it is considered to be an endpoint to a bundle server and
+    // bundles are requested to the specified endpoint with GET request.
+    // If a path does not starts with "http://" or "https://",
+    // the path is considered to be a path in local file system.
+    // If a single file path is provided, it will be treated as a normal tarball bundle.
+    // If a directory path is provided, it will be loaded as an unzipped bundle tree.
+    // See https://www.openpolicyagent.org/docs/latest/management-bundles/.
+    // Default is not set.
+    repeated string BundlePaths = 3 [json_name = "bundlePaths"];
+
+    // [OPTIONAL]
+    // BundleVerification is the bundle verification configuration.
+    // To skip bundle verifications, use SkipBundleVerification.
+    // See https://www.openpolicyagent.org/docs/latest/management-bundles.
+    // Default is not set.
+    BundleVerificationSpec BundleVerification = 4 [json_name = "bundleVerification"];
+
+    // [OPTIONAL]
+    // SkipBundleVerification if true, skips verification of a signed bundle.
+    // To configure verification, use BundleVerification.
+    // See https://pkg.go.dev/github.com/open-policy-agent/opa/rego#SkipBundleVerification
+    // and https://www.openpolicyagent.org/docs/latest/management-bundles/#signature-verification.
+    // Default is [false].
+    bool SkipBundleVerification = 5 [json_name = "skipBundleVerification"];
+
+    // [OPTIONAL]
+    // EnablePrintStatements enables print() calls in regos.
+    // If false, print() calls will be erased from the policy.
+    // Note that the outputs of the print() stateents are passed to the logger as-is.
+    // It means they are output with any log levels and
+    // no formatting will be applied even using a json logger.
+    // See https://pkg.go.dev/github.com/open-policy-agent/opa/rego#EnablePrintStatements
+    // Default is [false].
+    bool EnablePrintStatements = 6 [json_name = "enablePrintStatements"];
+
+    // [OPTIONAL]
+    // ShallowInlining prevents rules that depend on unknown values
+    // from being inlined. Rules that only depend on known values are inlined.
+    // See https://pkg.go.dev/github.com/open-policy-agent/opa/rego#ShallowInlining
+    // Default is [false].
+    bool ShallowInlining = 7 [json_name = "shallowInlining"];
+
+    // [OPTIONAL]
+    // Strict enables or disables strict-mode in the compiler.
+    // See https://pkg.go.dev/github.com/open-policy-agent/opa/rego#Strict and
+    // https://www.openpolicyagent.org/docs/latest/policy-language/#strict-mode.
+    // Default is [false].
+    bool Strict = 8 [json_name = "strict"];
+
+    // [OPTIONAL]
+    // StrictBuiltinErrors tells the evaluator to treat
+    // all built-in function errors as fatal errors.
+    // See https://pkg.go.dev/github.com/open-policy-agent/opa/rego#StrictBuiltinErrors
+    // and https://www.openpolicyagent.org/docs/latest/policy-language/#errors.
+    // Default is [false].
+    bool StrictBuiltinErrors = 9 [json_name = "strictBuiltinErrors"];
+
+    // [OPTIONAL]
+    // RoundTripper is the references to a roundTripper object.
+    // Referred object must implement RoundTripper interface.
+    // This round tripper is used for getting data
+    // from the specified endpoints.
+    // Use Header field to add custom HTTP headers to the requests.
+    // Default is not set.
+    kernel.Reference RoundTripper = 10 [json_name = "roundTripper"];
+
+    // [OPTIONAL]
+    // Header is the HTTP header name and value list.
+    // Specified headers are added to the HTTP requests
+    // when getting model and policies from HTTP endpoints.
+    // This is mainly intended for adding Authorization header.
+    // Default is not set.
+    map<string, string> Header = 11 [json_name = "header"];
+
+    oneof Stores {
+        FileStore FileStore = 15 [json_name = "fileStore"];
+        HTTPStore HTTPStore = 16 [json_name = "httpStore"];
+    }
+}
+
+message BundleVerificationSpec {
+    // [REQUIRED]
+    // VerificationKeys is the list of verification keys
+    // used for verifying bundles.
+    // Default is not set.
+    repeated VerificationKeySpec VerificationKeys = 1 [json_name = "verificationKeys"];
+
+    // [REQUIRED]
+    // KeyID is the key id, or kid value of JWTs, used for validating bundles.
+    // If set, bundles must be signed with the specified key.
+    // At least a public key corresponding to this KeyID should be
+    // confiured to the PublicKeys.
+    // If not set, verification keys are looked up from PublicKeys
+    // with the kid obtained from bundles.
+    // Default is not set.
+    string KeyID = 2 [json_name = "keyID"];
+
+    // [OPTIONAL]
+    // Scope is the scope of valid bundle.
+    // If not set, scope value configured in the VerificationKeys
+    // are used.
+    // This value is optional but at least one of this field or
+    // Scope in the VerificationKeys are required for verification.
+    // Default is not set.
+    string Scope = 3 [json_name = "scope"];
+
+    // [OPTIONAL]
+    // Excludes are files in the bundle to exclude during verification.
+    // Default is not set.
+    repeated string Excludes = 4 [json_name = "excludes"];
+}
+
+message VerificationKeySpec {
+    // [REQUIRED]
+    // KeyID is the key id, or kid value of JWTs, of the key.
+    // Bundle verification keys are looked up by this id.
+    // Verification will fail if no keys were found.
+    // Default is not set.
+    string KeyID = 1 [json_name = "keyID"];
+
+    // [OPTIONAL]
+    // Scope is the scope that this key is valid.
+    // This value is overwritten by the value of BundleVerificationSpec.
+    // Default is not set.
+    string Scope = 2 [json_name = "scope"];
+
+    // [OPTIONAL]
+    // Algorithm is the signature algorith this key can be used for.
+    // Supported algorithms are as follows.
+    // "ES256", "ES384", "ES512"
+    // "HS256", "HS384", "HS512"
+    // "PS256", "PS384", "PS512"
+    // "RS256", "RS384", "RS512"
+    // If not set "RS256" is used.
+    // Default is not set.
+    string Algorithm = 3 [json_name = "algorithm"];
+
+    // [REQUIRED]
+    // KeyFile is the file path that contains key data
+    // corresponging to the algorithm.
+    // The file should contains common key for HS
+    // and pem format public key for others.
+    // For example, "/tmp/keys/foo_public.pem".
+    // Default is not set.
+    string KeyFile = 4 [json_name = "keyFile"];
+}
+
+message EnvDataSpec {
+    // [OPTIONAL]
+    // Vars is the list of environmental variable names
+    // to make accessible from rego.
+    // Values are available with "input.env.vars".
+    // Default is not set.
+    repeated string Vars = 1 [json_name = "vars"];
+
+    // [OPTIONAL]
+    // PID makes the Process ID available in regos.
+    // The PID is available with "input.env.pid".
+    // Default is [false].
+    bool PID = 2 [json_name = "pid"];
+
+    // [OPTIONAL]
+    // PPID makes the Parent Process ID available in regos.
+    // The PPID is available with "input.env.ppid".
+    // Default is [false].
+    bool PPID = 3 [json_name = "ppid"];
+
+    // [OPTIONAL]
+    // GID makes the Group ID available in regos.
+    // The GID is available with "input.env.gid".
+    // On Windows, -1.
+    // Default is [false].
+    bool GID = 4 [json_name = "gid"];
+
+    // [OPTIONAL]
+    // UID makes the User ID available in regos.
+    // The UID is available with "input.env.uid".
+    // Default is [false].
+    bool UID = 5 [json_name = "uid"];
+}
+
+message FileStore {
+    // [REQUIRED]
+    // Path is the storage path and data file path paires.
+    // Data file should go in the values and their paths in
+    // a storage should go in the keys.
+    // e.g. `"/authz": "data/authz/users.json"`.
+    // File extension must be one of ".csv", ".json", ".yaml", ".yml".
+    // Default is not set.
+    map<string, string> Path = 1 [json_name = "path"];
+
+    // [OPTIONAL]
+    // Directory is the directory for OPA disk storage.
+    // If set, the stored data is kept on the disk storage
+    // under the specified directory rather than using
+    // memory storage.
+    // Note that each files are temporarily load on memory
+    // of their entire data even using disk storage.
+    // If not set or empty string, all data is stored on a meory storage.
+    // See the following documentation for in-memory and disk storages.
+    // https://pkg.go.dev/github.com/open-policy-agent/opa/storage/disk
+    // https://pkg.go.dev/github.com/open-policy-agent/opa/storage/inmem
+    // Default is not set.
+    string Directory = 2 [json_name = "directory"];
+}
+
+message HTTPStore {
+    // [REQUIRED]
+    // Endpoint is the storage path and HTTP endpoint paires.
+    // Endpoints should go in the values and their paths in
+    // a storage should go in the keys.
+    // e.g. `"/authz": "http://example.com/data/authz/users.json"`.
+    // Response status code must be 200 OK.
+    // Response content-type must be "application/" or "text/"
+    // + one of "csv", "json", "yaml", "yml".
+    // Default is not set.
+    map<string, string> Endpoint = 1 [json_name = "endpoint"];
+
+    // [OPTIONAL]
+    // Directory is the directory for OPA disk storage.
+    // If set, the stored data is kept on the disk storage
+    // under the specified directory rather than using
+    // memory storage.
+    // Note that each files are temporarily load on memory
+    // of their entire data even using disk storage.
+    // If not set or empty string, all data is stored on a meory storage.
+    // See the following documentation for in-memory and disk storages.
+    // https://pkg.go.dev/github.com/open-policy-agent/opa/storage/disk
+    // https://pkg.go.dev/github.com/open-policy-agent/opa/storage/inmem
+    // Default is not set.
+    string Directory = 2 [json_name = "directory"];
+
+    // [OPTIONAL]
+    // Partitions is the list of partitions for disk storage.
+    // Partitions enables efficient data layout.
+    // Partitions are use only for disk storage and not
+    // used for in-memory storage.
+    // See the disk storage description here
+    // https://www.openpolicyagent.org/docs/latest/storage/
+    // https://www.openpolicyagent.org/docs/latest/configuration/#disk-storage
+    // Default is not set.
+    repeated string Partitions = 3 [json_name = "partitions"];
+}

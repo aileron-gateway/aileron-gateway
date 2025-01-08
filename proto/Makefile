@@ -32,6 +32,7 @@ proto-clean:
 proto-lint: protolint
 	protolint -config_path .protolint.yaml kernel/
 	protolint -config_path .protolint.yaml core/
+	protolint -config_path .protolint.yaml app/
 
 ############################################################
 #                          Tools                           #

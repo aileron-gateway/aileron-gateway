@@ -1,0 +1,6 @@
+apiVersion: app/v1
+kind: CSRFMiddleware
+spec:
+  customRequestHeader:
+    headerName: "X-CSRF-With"
+    allowedPattern: "^ValidToken$"

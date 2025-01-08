@@ -1,0 +1,5 @@
+apiVersion: app/v1
+kind: CasbinAuthzMiddleware
+metadata:
+  name: testName
+  namespace: ""

@@ -1,0 +1,5 @@
+apiVersion: app/v1
+kind: OpenTelemetryTracer
+metadata:
+  name: ""
+  namespace: testNamespace

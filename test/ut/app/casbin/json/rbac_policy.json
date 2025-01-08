@@ -1,0 +1,31 @@
+[
+  {
+    "pType": "p",
+    "v0": "alice",
+    "v1": "/alice/*",
+    "v2": "GET"
+  },
+  {
+    "pType": "p",
+    "v0": "bob",
+    "v1": "/bob/*",
+    "v2": "GET"
+  },
+  {
+    "pType": "p",
+    "v0": "admin",
+    "v1": "/foo/*",
+    "v2": "POST"
+  },
+  {
+    "pType": "p",
+    "v0": "admin",
+    "v1": "/bar/*",
+    "v2": "POST"
+  },
+  {
+    "pType": "g",
+    "v0": "alice",
+    "v1": "admin"
+  }
+]

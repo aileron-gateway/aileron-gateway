@@ -1,0 +1,36 @@
+# --- user0:password0
+# --- No hashing.
+user0:password0
+
+# --- user1:password1
+# --- BCrypt with 10 costs
+# user1:$2a$10$RE6MCaNm1a2spVmF6mLOr.OPj.2gSybZ7EbbfdGIp4t.PZptAOstO
+
+# --- user2:password2
+# --- BCrypt with 15 costs
+# user2:$2a$15$1mS0SHnORpHpvbVb9K2OuejKs/iXf9MMq7F0qBL7zGkG5zAbM2Une
+
+# --- user3:password3
+# --- SCrypt with salt="1234567890", keyLen=32, N=16384, r=8, p=1
+# --- Value = Hex(<salt>) + Hex(SCrypt(<password>))
+# user3:313233343536373839300eac003ee28752ce2f4cd115454a9266b14251fd289cea73abe423267774c64c
+
+# --- user4:password4
+# --- PBKDF2 with salt="1234567890", keyLen=32, iter=1024, hash=SHA256
+# --- Value = Hex(<salt>) + Hex(PBKDF2(<password>))
+# user4:31323334353637383930d28c551ba27d9b733be0ab0b5e14e79099c796fbd53eeaa4ed2e8b27099cc078
+
+# --- user5:password5
+# --- Argon2i with salt="1234567890", keyLen=32, time=2, memory=1024, threads=4
+# --- Value = Hex(<salt>) + Hex(Argon2i(<password>))
+# user5:313233343536373839304833217675af54e2c89b1526a21d43609e81941ed47871d2ef4995fe66ce3214
+
+# --- user6:password6
+# --- Argon2id with salt="1234567890", keyLen=32, time=2, memory=1024, threads=4
+# --- Value = Hex(<salt>) + Hex(Argon2id(<password>))
+# user6:313233343536373839301605ff1e733a407346decf21cfbf917fa1d328b3c65c294438637c925dde3876
+
+# --- user7:password7
+# --- AESCBC encrypted with commonKey="example_password", keySize=128bit, iv="1234567890123456"
+# --- Value = Hex(<iv>) + Hex(AESCBC(PKCS7Padding(<password>)))
+# user7:313233343536373839303132333435366D3315B50BC5BDDB82DF7550A8B2D2B0

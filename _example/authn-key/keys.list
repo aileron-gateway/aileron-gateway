@@ -1,0 +1,12 @@
+# --- plain text API key
+bd16d0c8-7bc0-4bf4-a0b0-bccaa3e2f072
+
+# --- Hashed key (key is the same with plain text)
+# --- Hash with algorithm=SHA256
+# --- Value = Hex(Hash(<key>))
+# d7c405e8697751f4b430f9325417b8fc1d16c83a081bb039c3b1d7bfe12a30d6
+
+# --- HMAC key (key is the same with plain text)
+# --- HMAC with algorithm=SHA256 key="example_password"
+# --- Value = Hex(HMAC(<key>))
+# 066d62d945e88a5b2096dbbd861ff5202efba067b92d194484b64d953de6996f

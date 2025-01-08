@@ -1,0 +1,12 @@
+apiVersion: app/v1
+kind: ThrottleMiddleware
+spec:
+  apiThrottlers:
+    - methods: [GET]
+      matcher:
+        patterns: ["/leaky-bucket"]
+        matchType: Exact
+      leakyBucket:
+        bucketSize: 4
+        leakInterval: 100
+        leakRate: 2

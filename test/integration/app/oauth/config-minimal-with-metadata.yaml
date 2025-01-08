@@ -1,0 +1,7 @@
+apiVersion: app/v1
+kind: OAuthAuthenticationHandler
+metadata:
+  name: testName
+  namespace: testNamespace
+spec:
+  resourceServerHandler: {}

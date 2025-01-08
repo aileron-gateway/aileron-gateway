@@ -1,0 +1,11 @@
+apiVersion: app/v1
+kind: ThrottleMiddleware
+spec:
+  apiThrottlers:
+    - methods: [GET]
+      matcher:
+        patterns: ["/fixed-window"]
+        matchType: Exact
+      fixedWindow:
+        windowSize: 100
+        limit: 5

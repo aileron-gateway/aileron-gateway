@@ -1,0 +1,4 @@
+apiVersion: app/v1
+kind: CompressionMiddleware
+spec:
+  invalid: parameter

@@ -1,0 +1,12 @@
+apiVersion: app/v1
+kind: ThrottleMiddleware
+spec:
+  apiThrottlers:
+    - methods: [GET]
+      matcher:
+        patterns: ["/token-bucket"]
+        matchType: Exact
+      tokenBucket:
+        bucketSize: 5
+        fillInterval: 100
+        fillRate: 2

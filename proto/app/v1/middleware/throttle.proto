@@ -1,0 +1,151 @@
+syntax = "proto3";
+package app.v1;
+
+import "buf/validate/validate.proto";
+import "core/v1/resilience.proto";
+import "kernel/resource.proto";
+import "core/v1/http.proto";
+import "kernel/txtutil.proto";
+
+option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
+
+// ThrottleMiddleware is the definition of the ThrottleMiddleware object.
+// ThrottleMiddleware implements interface of the middleware.
+message ThrottleMiddleware {
+    // [REQUIRED]
+    // APIVersion is the defined version of the midleware.
+    // This value must be "app/v1".
+    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "app/v1"];
+
+    // [REQUIRED]
+    // Kind is the kind of this object.
+    // This value must be "ThrottleMiddleware".
+    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "ThrottleMiddleware"];
+
+    // [OPTIONAL]
+    // Metadata is the metadata of the http logger object.
+    // If not set, both name and namespace in the metadata
+    // are treated as "default".
+    kernel.Metadata Metadata = 3 [json_name = "metadata"];
+
+    // [OPTIONAL]
+    // Spec is the specification of the middleware.
+    // Default values are used when nothing is set.
+    ThrottleMiddlewareSpec Spec = 4 [json_name = "spec"];
+}
+
+// ThrottleMiddlewareSpec is the specifications for the ThrottleMiddleware object.
+message ThrottleMiddlewareSpec {
+    // [OPTIONAL]
+    // ErrorHandler is the reference to a ErrorHandler object.
+    // Referred object must implement ErrorHandler interface.
+    // Default error handler is used when not set.
+    kernel.Reference ErrorHandler = 1 [json_name = "errorHandler"];
+
+    // [OPTIONAL]
+    // APIThrottlers is the list of APIThrottler objects.
+    // Throttler that matches all requests should be defined at the last of this list to
+    // protect the application from DDoS attack.
+    repeated APIThrottlerSpec APIThrottlers = 2 [json_name = "apiThrottlers"];
+}
+
+// APIThrottlerSpec creates a timeout which is applied to requests
+// with configured methods and a path.
+message APIThrottlerSpec {
+    // [REQUIRED]
+    // Matcher is a matcher which matches to defined patterns.
+    // Default is not set.
+    kernel.MatcherSpec Matcher = 1 [json_name = "matcher", (buf.validate.field).required = true];
+
+    // [OPTIONAL]
+    // Methods is the list of HTTP methods to be matched.
+    // If not set, all methods are matched.
+    // If set, only configured methods are matched.
+    // Default is not set.
+    repeated core.v1.HTTPMethod Methods = 2 [json_name = "methods", (buf.validate.field).repeated.unique = true];
+
+    // [OPTIONAL]
+    // maxRetry is the maximum retry count to accept the requests when throttled.
+    // Errors are returned to the requests that are not accepted after retrying maxRetry times.
+    // Default is [0] or no retry by default.
+    int32 MaxRetry = 3 [json_name = "maxRetry", (buf.validate.field).int32 = {gte : 0}];
+
+    // [OPTIONAL]
+    // Waiter is the waiter object to determine the wait time until the next try.
+    // ExponentialBackoffFullJitterWaiter is used by default.
+    core.v1.WaiterSpec Waiter = 4 [json_name = "waiter"];
+
+    // [REQUIRED]
+    // Throttlers is the list of the throttlers that are applied to the requests matched to the matcher.
+    // No throttlers are applied when nothong has specified in this field.
+    oneof Throttlers {
+        option(buf.validate.oneof).required = true;
+        // MaxConnections is the setting for throttler with max connection algorithm.
+        MaxConnectionsSpec MaxConnections = 10 [json_name = "maxConnections"];
+        // TokenBucket is the setting for throttler with token bucket algorithm.
+        TokenBucketSpec TokenBucket = 11 [json_name = "tokenBucket"];
+        // FixedWindow is the setting for throttler with fixed window algorithm.
+        FixedWindowSpec FixedWindow = 12 [json_name = "fixedWindow"];
+        // LeakyBucket is the setting for throttler with leaky bucket algorithm.
+        LeakyBucketSpec LeakyBucket = 13 [json_name = "leakyBucket"];
+    }
+}
+
+// MaxConnectionsSpec is the specification for max connection algorithms of throttling.
+message MaxConnectionsSpec {
+    // [OPTIONAL]
+    // maxConns is the max connection to allow to connect at a moment.
+    // Default is [128].
+    int32 MaxConns = 1 [json_name = "maxConns"];
+}
+
+// FixedWindowSpec is the specification for token fixed window algorithms of throttling.
+message FixedWindowSpec {
+    // [OPTIONAL]
+    // WindowSize is the time span of the window in millisecond.
+    // Default is [1000] or 1 second.
+    int64 WindowSize = 1 [json_name = "windowSize", (buf.validate.field).int64 = {gte : 1}];
+
+    // [OPTIONAL]
+    // Limit is the limit of requests in the windows.
+    // Default is [1000].
+    int32 Limit = 2 [json_name = "limit", (buf.validate.field).int32 = {gte : 1}];
+}
+
+// TokenBucketSpec is the specification for token bucket algorithms of throttling.
+message TokenBucketSpec {
+    // [OPTIONAL]
+    // BucketSize is the number of tokens that the bucket can keep.
+    // Defailt is [1000].
+    int32 BucketSize = 1 [json_name = "bucketSize", (buf.validate.field).int32 = {gte : 1}];
+
+    // [OPTIONAL]
+    // FillInterval is the interval to fill tokens in the bucket in millisecond.
+    // Defailt is [1000] or 1 second.
+    int64 FillInterval = 2 [json_name = "fillInterval", (buf.validate.field).int64 = {gte : 1}];
+
+    // [OPTIONAL]
+    // FillRate is the number of tokens to fill in the bucket at every fill interval.
+    // Defailt is [1000].
+    int32 FillRate = 3 [json_name = "fillRate", (buf.validate.field).int32 = {gte : 1}];
+}
+
+// LeakyBucketSpec is the specification for leaky bucket algorithms of throttling.
+message LeakyBucketSpec {
+    // [OPTIONAL]
+    // BucketSize is the size of bucket.
+    // Requests will be en-queued in the bucket and will be de-queued with
+    // the rate of LeakRate/LeakInterval.
+    // Defailt is [1000].
+    int32 BucketSize = 1 [json_name = "bucketSize", (buf.validate.field).int32 = {gte : 1}];
+
+    // [OPTIONAL]
+    // LeakInterval is the interval to count the leaked tokens in millisecond.
+    // Defailt is [1000] or 1 second.
+    int64 LeakInterval = 2 [json_name = "leakInterval", (buf.validate.field).int64 = {gte : 1}];
+
+    // [OPTIONAL]
+    // LeakRate is the number of requests that will be accepted every LeakInterval.
+    // Defailt is [200].
+    int32 LeakRate = 3 [json_name = "leakRate", (buf.validate.field).int32 = {gte : 1}];
+}

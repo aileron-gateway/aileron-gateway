@@ -1,0 +1,22 @@
+version: "3"
+
+services:
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.5
+    container_name: aileron-keycloak
+    ports:
+      - "18080:8080"
+      - "18443:8443"
+    restart: always
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: password
+    command:
+      - '--config-file=/opt/keycloak/conf/keycloak-mtls.conf'
+      - 'start-dev'
+      - '--import-realm'
+    volumes:
+      - ./data/import:/opt/keycloak/data/import
+      - ./data/keys:/opt/keycloak/data/keys
+      - ./conf:/opt/keycloak/conf

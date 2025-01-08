@@ -1,0 +1,3 @@
+p, r.sub.Auth.Name == 'alice', /*, GET
+p, r.sub.Auth.Name == 'alice', /*, POST
+p, r.sub.Auth.Name == 'bob', /*, POST
