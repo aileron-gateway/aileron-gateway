@@ -222,11 +222,25 @@ func (c *LogicalFileConfig) New() (*LogicalFile, error) {
 	c.SrcDir = filepath.Clean(cmp.Or(c.SrcDir, "./"))     // Use "./" if empty.
 	c.DstDir = filepath.Clean(cmp.Or(c.DstDir, c.SrcDir)) // Use source directory if empty.
 
-	_ = os.Mkdir(c.SrcDir, os.ModePerm)
+	if err := os.Mkdir(c.SrcDir, os.ModePerm); err != nil {
+		return nil, (&er.Error{
+			Package:     ErrPkg,
+			Type:        ErrTypeFile,
+			Description: ErrDscFileSys,
+			Detail:      "failed to make directory.",
+		}).Wrap(err)
+	}
 	if err := ReadWriteTest(c.SrcDir); err != nil {
 		return nil, err // Return err as-is.
 	}
-	_ = os.Mkdir(c.DstDir, os.ModePerm)
+	if err := os.Mkdir(c.DstDir, os.ModePerm); err != nil {
+		return nil, (&er.Error{
+			Package:     ErrPkg,
+			Type:        ErrTypeFile,
+			Description: ErrDscFileSys,
+			Detail:      "failed to make directory.",
+		}).Wrap(err)
+	}
 	if err := ReadWriteTest(c.DstDir); err != nil {
 		return nil, err // Return err as-is.
 	}
