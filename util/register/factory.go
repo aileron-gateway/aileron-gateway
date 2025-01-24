@@ -18,6 +18,7 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/app/middleware/cors"
 	"github.com/aileron-gateway/aileron-gateway/app/middleware/csrf"
 	"github.com/aileron-gateway/aileron-gateway/app/middleware/header"
+	"github.com/aileron-gateway/aileron-gateway/app/middleware/protocolconversion/soaptorest"
 	"github.com/aileron-gateway/aileron-gateway/app/middleware/session"
 	"github.com/aileron-gateway/aileron-gateway/app/middleware/throttle"
 	"github.com/aileron-gateway/aileron-gateway/app/middleware/timeout"
@@ -79,6 +80,7 @@ func RegisterAll(r Registerer) {
 	_ = r.Register(redis.Key, redis.Resource)
 	_ = r.Register(session.Key, session.Resource)
 	_ = r.Register(skipper.Key, skipper.Resource)
+	_ = r.Register(soaptorest.Key, soaptorest.Resource)
 	_ = r.Register(throttle.Key, throttle.Resource)
 	_ = r.Register(timeout.Key, timeout.Resource)
 	_ = r.Register(tracking.Key, tracking.Resource)

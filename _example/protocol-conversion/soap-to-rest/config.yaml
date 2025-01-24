@@ -1,0 +1,62 @@
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  runners:
+    - apiVersion: core/v1
+      kind: HTTPServer
+      name: reverseProxyServer
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+metadata:
+  name: reverseProxyServer
+spec:
+  addr: "localhost:8000"
+  virtualHosts:
+    - hosts: []
+      middleware:
+        - apiVersion: app/v1
+          kind: SoapToRestMiddleware
+        - apiVersion: app/v1
+          kind: TrackingMiddleware
+      handlers:
+        - handler:
+            apiVersion: core/v1
+            kind: ReverseProxyHandler
+
+---
+apiVersion: core/v1
+kind: ReverseProxyHandler
+spec:
+  loadBalancers:
+    - pathMatcher:
+        match: ".*"
+        matchType: Regex
+      upstreams:
+        - url: http://localhost:8080/
+  roundTripper:
+    apiVersion: core/v1
+    kind: HTTPClient
+
+---
+apiVersion: core/v1
+kind: HTTPClient
+spec:
+
+---
+apiVersion: app/v1
+kind: TrackingMiddleware
+spec:
+  requestIDProxyName: "X-Request-ID"
+  traceIDProxyName: "X-Trace-ID"
+
+---
+apiVersion: app/v1
+kind: SoapToRestMiddleware
+spec:
+  attributeKey: "@attribute"
+  textKey: "#text"
+  nameSpaceKey: "_namespace"
+  arrayKey: "item"
+  separatorChar: ":"
