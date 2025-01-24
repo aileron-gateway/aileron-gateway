@@ -42,7 +42,6 @@ type soapToRest struct {
 
 func (m *soapToRest) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 		// If it's not a SOAP request then do nothing.
 		if !isSOAPRequest(r) {
 			next.ServeHTTP(w, r)
@@ -316,7 +315,7 @@ type soapBody struct {
 	Content []xmlElement
 }
 
-// xmlElement is a struct used for marshalling into XML
+// xmlElement is a struct used for marshaling into XML
 type xmlElement struct {
 	XMLName  xml.Name
 	Attrs    []xml.Attr `xml:",attr"`
@@ -327,7 +326,6 @@ type xmlElement struct {
 
 // xmlElement.MarshalXML is a custom marshaller for encoding an xmlElement struct to XML.
 func (e xmlElement) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
-
 	if e.XMLName.Space != "" {
 		start.Name.Local = fmt.Sprintf("%s:%s", e.XMLName.Space, e.XMLName.Local)
 	} else {
@@ -409,7 +407,7 @@ func (s soapToRest) createSOAPEnvelope(data map[string]any, nsManager *namespace
 }
 
 func (s soapToRest) mapToXMLElements(data map[string]any, nsManager *namespaceManager) []xmlElement {
-	var elements []xmlElement
+	elements := make([]xmlElement, 0, len(data))
 	for key, value := range data {
 		// Keys that include attributeKey and textKey have already been processed.
 		if key == s.attributeKey || key == s.namespaceKey {
@@ -432,14 +430,14 @@ func (s soapToRest) mapToXMLElements(data map[string]any, nsManager *namespaceMa
 			}
 		}
 
-		element := s.mapToXMLElement(key, value, namespace, nsManager)
+		element := s.mapToXMLElement(key, value, namespace)
 		elements = append(elements, element)
 	}
 	return elements
 }
 
 // mapToXMLElement is a function that converts JSON data into xmlElement.
-func (s soapToRest) mapToXMLElement(key string, value any, namespace string, nsManager *namespaceManager) xmlElement {
+func (s soapToRest) mapToXMLElement(key string, value any, namespace string) xmlElement {
 	// Separate the namespace and local name from a key.
 	parts := strings.SplitN(key, s.separatorChar, 2)
 	elementName := key
@@ -480,14 +478,14 @@ func (s soapToRest) mapToXMLElement(key string, value any, namespace string, nsM
 			if k == s.attributeKey || k == s.textKey {
 				continue
 			}
-			child := s.mapToXMLElement(k, childValue, namespace, nsManager)
+			child := s.mapToXMLElement(k, childValue, namespace)
 			element.children = append(element.children, child)
 		}
 
 	case []any:
 		// Process each element of the array as a child element.
 		for _, item := range v {
-			child := s.mapToXMLElement(s.arrayKey, item, namespace, nsManager)
+			child := s.mapToXMLElement(s.arrayKey, item, namespace)
 			element.children = append(element.children, child)
 		}
 
