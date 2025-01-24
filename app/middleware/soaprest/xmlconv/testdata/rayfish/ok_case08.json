@@ -1,0 +1,9 @@
+{
+  "#children": [
+    { "#children": [], "#name": "@xmlns:ns", "#text": "http://xyz.com/" },
+    { "#children": [], "#name": "bob", "#text": "charlie" },
+    { "#children": [], "#name": "ns:david", "#text": "edgar" }
+  ],
+  "#name": "alice",
+  "#text": ""
+}

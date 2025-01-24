@@ -1,0 +1,7 @@
+{
+  "alice": {
+    "@xmlns:ns": "http://xyz.com/",
+    "bob": "charlie",
+    "ns:david": "edgar"
+  }
+}

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+    <soap:Body>
+      <soap:Fault>
+        <faultcode>Server</faultcode>
+        <faultstring>"An error has occurred on the upstream server."</faultstring>
+        <faultactor>Server</faultactor>
+        <detail>
+          <error>Server Error</error>
+          <status>500</status>
+        </detail>
+      </soap:Fault>
+  </soap:Body>
+</soap:Envelope>

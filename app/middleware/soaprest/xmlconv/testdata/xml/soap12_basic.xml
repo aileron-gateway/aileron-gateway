@@ -1,0 +1,20 @@
+<!-- SOAP1.2 basic xml structure -->
+<?xml version="1.0" encoding="UTF-8"?>
+<env:Envelope
+  xmlns:env="http://www.w3.org/2003/05/soap-envelope"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+  <env:Header>
+    <auth:Authentication xmlns:auth="http://example.com/auth">
+      <auth:Username>user</auth:Username>
+      <auth:Password>pass</auth:Password>
+    </auth:Authentication>
+  </env:Header>
+
+  <env:Body>
+    <m:GetUserInfo xmlns:m="http://example.com/user">
+      <m:UserId>12345</m:UserId>
+    </m:GetUserInfo>
+  </env:Body>
+</env:Envelope>

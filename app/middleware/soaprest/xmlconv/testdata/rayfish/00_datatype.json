@@ -1,0 +1,111 @@
+{
+  "#children": [
+    {
+      "#children": [],
+      "#name": "@xmlns:xs",
+      "#text": "http://www.w3.org/2001/XMLSchema"
+    },
+    {
+      "#children": [
+        { "#children": [], "#name": "xs:string", "#text": "example text" },
+        { "#children": [], "#name": "xs:boolean", "#text": "true" },
+        {
+          "#children": [],
+          "#name": "xs:decimal",
+          "#text": "1234567890.123456789012345678901234567890"
+        },
+        {
+          "#children": [],
+          "#name": "xs:float",
+          "#text": "1234567890.1234567890"
+        },
+        { "#children": [], "#name": "xs:double", "#text": "1.234567890e100" },
+        {
+          "#children": [],
+          "#name": "xs:duration",
+          "#text": "P1Y2M3DT4H5M6.7S"
+        },
+        {
+          "#children": [],
+          "#name": "xs:dateTime",
+          "#text": "2006-01-02T15:04:05Z"
+        },
+        { "#children": [], "#name": "xs:time", "#text": "15:04:05Z" },
+        { "#children": [], "#name": "xs:date", "#text": "2006-01-02" },
+        { "#children": [], "#name": "xs:gYearMonth", "#text": "2006-01" },
+        { "#children": [], "#name": "xs:gYear", "#text": "2006" },
+        { "#children": [], "#name": "xs:gMonthDay", "#text": "--01-02" },
+        { "#children": [], "#name": "xs:gDay", "#text": "---02" },
+        { "#children": [], "#name": "xs:gMonth", "#text": "--01" },
+        {
+          "#children": [],
+          "#name": "xs:hexBinary",
+          "#text": "5468697320697320612074657374"
+        },
+        {
+          "#children": [],
+          "#name": "xs:base64Binary",
+          "#text": "VGhpcyBpcyBhIHRlc3Q="
+        },
+        {
+          "#children": [],
+          "#name": "xs:anyURI",
+          "#text": "https://example.com"
+        },
+        { "#children": [], "#name": "xs:QName", "#text": "ns:elementName" },
+        { "#children": [], "#name": "xs:NOTATION", "#text": "myNotation" }
+      ],
+      "#name": "primitive",
+      "#text": ""
+    },
+    {
+      "#children": [
+        {
+          "#children": [],
+          "#name": "xs:normalizedString",
+          "#text": "normalized text"
+        },
+        { "#children": [], "#name": "xs:token", "#text": "tokenized text" },
+        { "#children": [], "#name": "xs:language", "#text": "en-US" },
+        { "#children": [], "#name": "xs:NMTOKEN", "#text": "token123" },
+        {
+          "#children": [],
+          "#name": "xs:NMTOKENS",
+          "#text": "token123 token456"
+        },
+        { "#children": [], "#name": "xs:Name", "#text": "MyName" },
+        { "#children": [], "#name": "xs:NCName", "#text": "My_NCName" },
+        { "#children": [], "#name": "xs:ID", "#text": "id123" },
+        { "#children": [], "#name": "xs:IDREF", "#text": "id123" },
+        { "#children": [], "#name": "xs:IDREFS", "#text": "id123 id456" },
+        { "#children": [], "#name": "xs:ENTITY", "#text": "entity123" },
+        {
+          "#children": [],
+          "#name": "xs:ENTITIES",
+          "#text": "entity123 entity456"
+        },
+        { "#children": [], "#name": "xs:integer", "#text": "1234567890" },
+        { "#children": [], "#name": "xs:nonPositiveInteger", "#text": "-1" },
+        { "#children": [], "#name": "xs:negativeInteger", "#text": "-999" },
+        { "#children": [], "#name": "xs:long", "#text": "9223372036854775807" },
+        { "#children": [], "#name": "xs:int", "#text": "2147483647" },
+        { "#children": [], "#name": "xs:short", "#text": "32767" },
+        { "#children": [], "#name": "xs:byte", "#text": "127" },
+        { "#children": [], "#name": "xs:nonNegativeInteger", "#text": "0" },
+        {
+          "#children": [],
+          "#name": "xs:unsignedLong",
+          "#text": "18446744073709551615"
+        },
+        { "#children": [], "#name": "xs:unsignedInt", "#text": "4294967295" },
+        { "#children": [], "#name": "xs:unsignedShort", "#text": "65535" },
+        { "#children": [], "#name": "xs:unsignedByte", "#text": "255" },
+        { "#children": [], "#name": "xs:positiveInteger", "#text": "1" }
+      ],
+      "#name": "derived",
+      "#text": ""
+    }
+  ],
+  "#name": "root",
+  "#text": ""
+}

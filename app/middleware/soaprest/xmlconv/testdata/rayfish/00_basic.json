@@ -1,0 +1,90 @@
+{
+  "#children": [
+    {
+      "#children": [],
+      "#name": "@xmlns:xsi",
+      "#text": "http://www.w3.org/2001/XMLSchema-instance"
+    },
+    {
+      "#children": [],
+      "#name": "@xsi:noNamespaceSchemaLocation",
+      "#text": "sample.xsd"
+    },
+    { "#children": [], "#name": "@version", "#text": "1.0" },
+    { "#children": [], "#name": "@enabled", "#text": "true" },
+    { "#children": [], "#name": "simpleElement", "#text": "text" },
+    {
+      "#children": [
+        {
+          "#children": [
+            {
+              "#children": [
+                { "#children": [], "#name": "@attribute", "#text": "value" }
+              ],
+              "#name": "grandchild",
+              "#text": "text"
+            }
+          ],
+          "#name": "child",
+          "#text": ""
+        }
+      ],
+      "#name": "parent",
+      "#text": ""
+    },
+    {
+      "#children": [
+        { "#children": [], "#name": "@id", "#text": "123" },
+        { "#children": [], "#name": "@type", "#text": "example" },
+        { "#children": [], "#name": "@flag", "#text": "true" }
+      ],
+      "#name": "elementWithAttributes",
+      "#text": ""
+    },
+    {
+      "#children": [
+        {
+          "#children": [],
+          "#name": "@xmlns:ns",
+          "#text": "http://example.com/ns"
+        }
+      ],
+      "#name": "ns:element",
+      "#text": "namespace element"
+    },
+    {
+      "#children": [],
+      "#name": "script",
+      "#text": "function test() { alert(\"JavaScript\"); }"
+    },
+    {
+      "#children": [{ "#children": [], "#name": "b", "#text": "bold text" }],
+      "#name": "mixed",
+      "#text": "This element containsin it."
+    },
+    { "#children": [], "#name": "emptyElement", "#text": "" },
+    {
+      "#children": [
+        {
+          "#children": [{ "#children": [], "#name": "@id", "#text": "1" }],
+          "#name": "item",
+          "#text": "This is item3."
+        },
+        {
+          "#children": [{ "#children": [], "#name": "@id", "#text": "2" }],
+          "#name": "item",
+          "#text": "This is item2."
+        },
+        {
+          "#children": [{ "#children": [], "#name": "@id", "#text": "3" }],
+          "#name": "item",
+          "#text": "This is item3."
+        }
+      ],
+      "#name": "items",
+      "#text": ""
+    }
+  ],
+  "#name": "root",
+  "#text": ""
+}

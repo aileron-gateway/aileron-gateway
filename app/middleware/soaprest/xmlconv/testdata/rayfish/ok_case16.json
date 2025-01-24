@@ -1,0 +1,15 @@
+{
+  "#children": [
+    {
+      "#children": [
+        { "#children": [], "#name": "@xmlns:ns", "#text": "http://xyz.com/" },
+        { "#children": [], "#name": "@ns:foo", "#text": "bar" },
+        { "#children": [], "#name": "ns:david", "#text": "edgar" }
+      ],
+      "#name": "ns:bob",
+      "#text": ""
+    }
+  ],
+  "#name": "alice",
+  "#text": ""
+}

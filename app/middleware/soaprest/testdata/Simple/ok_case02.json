@@ -1,0 +1,8 @@
+{
+    "env:Envelope": {
+        "@xmlns:env": "http://www.w3.org/2003/05/soap-envelope",
+        "@xmlns:ns": "http://example.com/",
+        "env:Body": "",
+        "env:Header": ""
+    }
+}
