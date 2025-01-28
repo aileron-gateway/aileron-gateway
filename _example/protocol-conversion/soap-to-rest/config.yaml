@@ -1,6 +1,9 @@
 apiVersion: core/v1
 kind: Entrypoint
 spec:
+  defaultLogger:
+    apiVersion: core/v1
+    kind: SLogger
   runners:
     - apiVersion: core/v1
       kind: HTTPServer
@@ -50,6 +53,12 @@ kind: TrackingMiddleware
 spec:
   requestIDProxyName: "X-Request-ID"
   traceIDProxyName: "X-Trace-ID"
+
+---
+apiVersion: core/v1
+kind: SLogger
+spec:
+  level: Debug
 
 ---
 apiVersion: app/v1

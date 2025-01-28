@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -27,7 +28,11 @@ const (
 	soapNameSpaceURI = "http://schemas.xmlsoap.org/soap/envelope/"
 	xsiNameSpaceURI  = "http://www.w3.org/2001/XMLSchema-instance"
 
-	soap11ContentType = "text/xml"
+	soap11MIMEType = "text/xml"
+)
+
+var (
+	errInvalidSOAP11Request = utilhttp.NewHTTPError(errors.New("expected a SOAP 1.1 request, but received a request in a different format"), http.StatusForbidden)
 )
 
 type soapToRest struct {
@@ -44,7 +49,7 @@ func (m *soapToRest) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// If it's not a SOAP request then do nothing.
 		if !isSOAPRequest(r) {
-			next.ServeHTTP(w, r)
+			m.eh.ServeHTTPError(w, r, errInvalidSOAP11Request)
 			return
 		}
 
@@ -94,6 +99,12 @@ func (m *soapToRest) Middleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, newReq)
 
 		// Convert REST response to SOAP response
+		//
+		// <TODO>
+		// Need to write these in documents.
+		// If an error occurs within AILERON while converting the response, a 500 error will be returned.
+		// However, even if a response other than 200 is received from the server,
+		// AILERON will return a 200 status to the client.
 		if err := m.convertRestToSoapResponse(ww); err != nil {
 			m.eh.ServeHTTPError(w, r, utilhttp.ErrInternalServerError)
 			return
@@ -288,7 +299,7 @@ func (m *soapToRest) convertRestToSoapResponse(wrapper *wrappedWriter) error {
 	responseBytes := append([]byte(xml.Header), output...)
 
 	// Set response headers
-	wrapper.ResponseWriter.Header().Set("Content-Type", soap11ContentType)
+	wrapper.ResponseWriter.Header().Set("Content-Type", soap11MIMEType+"; charset=utf-8")
 	wrapper.ResponseWriter.Header().Set("Content-Length", strconv.Itoa(len(responseBytes)))
 
 	_, err = wrapper.ResponseWriter.Write(responseBytes)
@@ -585,8 +596,9 @@ func (nm *namespaceManager) addNamespace(prefix, uri string) {
 }
 
 // Only supports conversions for SOAP 1.1
+// If the Content-Type includes "text/xml," determine that it is a SOAP 1.1 request.
 func isSOAPRequest(r *http.Request) bool {
-	return r.Header.Get("Content-Type") == soap11ContentType || r.Header.Get(soapActionHeaderKey) != ""
+	return strings.Contains(r.Header.Get("Content-Type"), soap11MIMEType) || r.Header.Get(soapActionHeaderKey) != ""
 }
 
 func parseValue(content string) any {
