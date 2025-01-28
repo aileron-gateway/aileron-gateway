@@ -7,58 +7,65 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"fmt"
+	"log"
 	"net/http"
 	"os"
-	"os/exec"
 	"testing"
 	"time"
 
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 )
 
-func MoveToRootDirectory(t *testing.T, targetDir string) {
-	err := os.Chdir(targetDir)
-	if err != nil {
-		t.Fatal(err)
-		return
+const (
+	certFilePath = "./_example/proxy-http1/pki/cert.pem"
+	keyFilePath  = "./_example/proxy-http1/pki/key.pem"
+)
+
+func runHTTP1() {
+	svr := &http.Server{
+		Addr:         ":10001",
+		Handler:      http.HandlerFunc(handler),
+		TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler)),
+	}
+
+	log.Println("HTTP 1 server listens on", svr.Addr)
+	defer svr.Shutdown(context.Background())
+
+	if err := svr.ListenAndServeTLS(certFilePath, keyFilePath); err != nil {
+		panic(err)
+	}
+}
+
+func handler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Method : %s\n", r.Method)
+	fmt.Fprintf(w, "Path : %s\n", r.URL.Path)
+	fmt.Fprintf(w, "HTTP : %d.%d\n", r.ProtoMajor, r.ProtoMinor)
+	fmt.Fprintf(w, "Header:\n")
+	for k, v := range r.Header {
+		fmt.Fprintf(w, "  %s: %+v\n", k, v)
 	}
 }
 
 func TestProxyHttp1(t *testing.T) {
 
 	targetDir := "./../.."
-	MoveToRootDirectory(t, targetDir)
+	changeDirectory(t, targetDir)
 
 	env := []string{}
 	config := []string{"./_example/proxy-http1/config-http1.yaml"}
 	entrypoint := getEntrypointRunner(t, env, config)
-	certFilePath := "./_example/proxy-http1/pki/cert.pem"
 
 	ctx, cancel := context.WithCancel(context.Background())
 	timer := time.AfterFunc(5*time.Second, cancel)
 
-	// Read the certificate
 	pem, err := os.ReadFile(certFilePath)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	// Create and start a http server
-	cmd := exec.Command("go", "run", "./_example/proxy-http1/server.go")
-	if err := cmd.Start(); err != nil {
-		t.Fatal(err)
-	}
+	go runHTTP1()
 
-	// Wait until the server finishes after all tests are done
-	defer func() {
-		cmd.Process.Kill()
-		cmd.Wait()
-	}()
-
-	// Wait until the server starts completely
-	time.Sleep(3 * time.Second)
-
-	// Create a new certificate pool and add the certificate to the pool
 	pool := x509.NewCertPool()
 	pool.AppendCertsFromPEM(pem)
 
