@@ -22,7 +22,7 @@ const (
 	keyFilePath  = "./_example/proxy-http1/pki/key.pem"
 )
 
-func runHTTP1() {
+func runHTTP1(t *testing.T, testCtx context.Context) {
 	svr := &http.Server{
 		Addr:         ":10001",
 		Handler:      http.HandlerFunc(handler),
@@ -30,10 +30,19 @@ func runHTTP1() {
 	}
 
 	log.Println("HTTP 1 server listens on", svr.Addr)
-	defer svr.Shutdown(context.Background())
 
-	if err := svr.ListenAndServeTLS(certFilePath, keyFilePath); err != nil {
-		panic(err)
+	go func() {
+		if err := svr.ListenAndServeTLS(certFilePath, keyFilePath); err != nil {
+			t.Fatal(err)
+		}
+	}()
+
+	<-testCtx.Done()
+
+	time.Sleep(1 * time.Second)
+
+	if err := svr.Shutdown(context.Background()); err != nil {
+		t.Fatal(err)
 	}
 }
 
@@ -64,7 +73,9 @@ func TestProxyHttp1(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	go runHTTP1()
+	go runHTTP1(t, ctx)
+
+	time.Sleep(1 * time.Second)
 
 	pool := x509.NewCertPool()
 	pool.AppendCertsFromPEM(pem)
