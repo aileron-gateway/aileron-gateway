@@ -1,4 +1,4 @@
-package soaptorest
+package soaprest
 
 import (
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
@@ -13,20 +13,29 @@ import (
 
 const (
 	apiVersion = "app/v1"
-	kind       = "SoapToRestMiddleware"
+	kind       = "SOAPRESTMiddleware"
 	Key        = apiVersion + "/" + kind
 )
 
 var Resource api.Resource = &API{
 	BaseResource: &api.BaseResource{
-		DefaultProto: &v1.SoapToRestMiddleware{
+		DefaultProto: &v1.SOAPRESTMiddleware{
 			APIVersion: apiVersion,
 			Kind:       kind,
 			Metadata: &kernel.Metadata{
 				Namespace: "default",
 				Name:      "default",
 			},
-			Spec: &v1.SoapToRestMiddlewareSpec{},
+			Spec: &v1.SOAPRESTMiddlewareSpec{
+				AttributeKey:  "@attribute",
+				NameSpaceKey:  "_namespace",
+				ArrayKey:      "item",
+				TextKey:       "#text",
+				SeparatorChar: ":",
+
+				ExtractStringElement:  false,
+				ExtractBooleanElement: false,
+			},
 		},
 	},
 }
@@ -36,7 +45,7 @@ type API struct {
 }
 
 func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.ProtoMessage) (any, error) {
-	c := msg.(*v1.SoapToRestMiddleware)
+	c := msg.(*v1.SOAPRESTMiddleware)
 
 	utilhttp.SetGlobalErrorHandler(utilhttp.DefaultErrorHandlerName, &soapErrorHandler{
 		lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -46,12 +55,17 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.Prot
 		return nil, core.ErrCoreGenCreateObject.WithStack(err, map[string]any{"kind": kind})
 	}
 
-	return &soapToRest{
+	return &soapREST{
 		eh:            eh,
 		attributeKey:  c.Spec.AttributeKey,
 		namespaceKey:  c.Spec.NameSpaceKey,
 		arrayKey:      c.Spec.ArrayKey,
 		textKey:       c.Spec.TextKey,
 		separatorChar: c.Spec.SeparatorChar,
+
+		extractStringElement:  c.Spec.ExtractStringElement,
+		extractBooleanElement: c.Spec.ExtractBooleanElement,
+		extractIntegerElement: c.Spec.ExtractIntegerElement,
+		extractFloatElement:   c.Spec.ExtractFloatElement,
 	}, nil
 }

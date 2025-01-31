@@ -1,4 +1,4 @@
-package soaptorest
+package soaprest
 
 import (
 	"bytes"
@@ -35,7 +35,7 @@ var (
 	errInvalidSOAP11Request = utilhttp.NewHTTPError(errors.New("expected a SOAP 1.1 request, but received a request in a different format"), http.StatusForbidden)
 )
 
-type soapToRest struct {
+type soapREST struct {
 	eh core.ErrorHandler
 
 	attributeKey  string
@@ -43,11 +43,16 @@ type soapToRest struct {
 	namespaceKey  string
 	arrayKey      string
 	separatorChar string
+
+	extractStringElement  bool
+	extractBooleanElement bool
+	extractIntegerElement bool
+	extractFloatElement   bool
 }
 
-func (m *soapToRest) Middleware(next http.Handler) http.Handler {
+func (m *soapREST) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// If it's not a SOAP request then do nothing.
+		// If it's not a SOAP　1.1 request then return VersionMismatch faultcode.
 		if !isSOAPRequest(r) {
 			m.eh.ServeHTTPError(w, r, errInvalidSOAP11Request)
 			return
@@ -78,7 +83,7 @@ func (m *soapToRest) Middleware(next http.Handler) http.Handler {
 		// Convert the map to JSON bytes
 		jsonBody, err := json.Marshal(jsonData)
 		if err != nil {
-			m.eh.ServeHTTPError(w, r, utilhttp.ErrInternalServerError)
+			m.eh.ServeHTTPError(w, r, utilhttp.ErrBadRequest)
 			return
 		}
 
@@ -99,15 +104,19 @@ func (m *soapToRest) Middleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, newReq)
 
 		// Convert REST response to SOAP response
-		//
-		// <TODO>
-		// Need to write these in documents.
-		// If an error occurs within AILERON while converting the response, a 500 error will be returned.
-		// However, even if a response other than 200 is received from the server,
-		// AILERON will return a 200 status to the client.
-		if err := m.convertRestToSoapResponse(ww); err != nil {
+		respBody, err := m.convertRestToSoapResponse(ww)
+		if err != nil {
 			m.eh.ServeHTTPError(w, r, utilhttp.ErrInternalServerError)
 			return
+		}
+
+		ww.ResponseWriter.Header().Set("Content-Type", soap11MIMEType+"; charset=utf-8")
+		ww.ResponseWriter.Header().Set("Content-Length", strconv.Itoa(len(respBody)))
+
+		w.WriteHeader(ww.StatusCode())
+		_, err = ww.ResponseWriter.Write(respBody)
+		if err != nil {
+			m.eh.ServeHTTPError(w, r, utilhttp.ErrInternalServerError)
 		}
 	})
 }
@@ -121,7 +130,7 @@ type xmlNode struct {
 	Children []xmlNode  `xml:",any"`      // recursive contents
 }
 
-func (s soapToRest) xmlToMap(node xmlNode, nsCtx *namespaceContext) any {
+func (s soapREST) xmlToMap(node xmlNode, nsCtx *namespaceContext) any {
 	// Check whether the XML contains `xsi:nil`.
 	for _, attr := range node.Attrs {
 		if (attr.Name.Space == xsiNameSpaceURI || attr.Name.Space == xsiNameSpaceKey) &&
@@ -239,10 +248,10 @@ func (s soapToRest) xmlToMap(node xmlNode, nsCtx *namespaceContext) any {
 
 	// text node with children and attributes
 	if content != "" && (len(node.Children) > 0 || len(node.Attrs) > 0) {
-		resultMap[s.textKey] = parseValue(content)
+		resultMap[s.textKey] = s.parseValue(content)
 	} else if content != "" {
 		// text node without children or attributes
-		return parseValue(content)
+		return s.parseValue(content)
 	} else if len(resultMap) == 0 {
 		// doesn't contain text node and children
 		return map[string]any{}
@@ -258,7 +267,7 @@ func (s soapToRest) xmlToMap(node xmlNode, nsCtx *namespaceContext) any {
 	return map[string]any{nodeName: resultMap}
 }
 
-func (s soapToRest) getNodeName(node xmlNode, nsCtx *namespaceContext) string {
+func (s soapREST) getNodeName(node xmlNode, nsCtx *namespaceContext) string {
 	nodeName := node.XMLName.Local
 
 	// Only supports conversions for SOAP 1.1
@@ -280,10 +289,10 @@ func (s soapToRest) getNodeName(node xmlNode, nsCtx *namespaceContext) string {
 	return nodeName
 }
 
-func (m *soapToRest) convertRestToSoapResponse(wrapper *wrappedWriter) error {
+func (m *soapREST) convertRestToSoapResponse(wrapper *wrappedWriter) ([]byte, error) {
 	var restData map[string]any
 	if err := json.NewDecoder(wrapper.body).Decode(&restData); err != nil {
-		return err
+		return nil, err
 	}
 
 	nsManager := &namespaceManager{
@@ -293,17 +302,11 @@ func (m *soapToRest) convertRestToSoapResponse(wrapper *wrappedWriter) error {
 
 	output, err := xml.MarshalIndent(envelope, "", "  ")
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	responseBytes := append([]byte(xml.Header), output...)
-
-	// Set response headers
-	wrapper.ResponseWriter.Header().Set("Content-Type", soap11MIMEType+"; charset=utf-8")
-	wrapper.ResponseWriter.Header().Set("Content-Length", strconv.Itoa(len(responseBytes)))
-
-	_, err = wrapper.ResponseWriter.Write(responseBytes)
-	return err
+	return responseBytes, err
 }
 
 // soapEnvelope is a struct representing a SOAPEnvelope.
@@ -371,7 +374,7 @@ func (e xmlElement) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
 	return enc.EncodeToken(xml.EndElement{Name: start.Name})
 }
 
-func (s soapToRest) createSOAPEnvelope(data map[string]any, nsManager *namespaceManager) *soapEnvelope {
+func (s soapREST) createSOAPEnvelope(data map[string]any, nsManager *namespaceManager) *soapEnvelope {
 	envelope := &soapEnvelope{
 		Header: &soapHeader{},
 		Body:   &soapBody{},
@@ -417,7 +420,7 @@ func (s soapToRest) createSOAPEnvelope(data map[string]any, nsManager *namespace
 	return envelope
 }
 
-func (s soapToRest) mapToXMLElements(data map[string]any, nsManager *namespaceManager) []xmlElement {
+func (s soapREST) mapToXMLElements(data map[string]any, nsManager *namespaceManager) []xmlElement {
 	elements := make([]xmlElement, 0, len(data))
 	for key, value := range data {
 		// Keys that include attributeKey and textKey have already been processed.
@@ -448,7 +451,7 @@ func (s soapToRest) mapToXMLElements(data map[string]any, nsManager *namespaceMa
 }
 
 // mapToXMLElement is a function that converts JSON data into xmlElement.
-func (s soapToRest) mapToXMLElement(key string, value any, namespace string) xmlElement {
+func (s soapREST) mapToXMLElement(key string, value any, namespace string) xmlElement {
 	// Separate the namespace and local name from a key.
 	parts := strings.SplitN(key, s.separatorChar, 2)
 	elementName := key
@@ -510,7 +513,7 @@ func (s soapToRest) mapToXMLElement(key string, value any, namespace string) xml
 	return element
 }
 
-func (s soapToRest) extractAttributes(data map[string]any) []xml.Attr {
+func (s soapREST) extractAttributes(data map[string]any) []xml.Attr {
 	var attrs []xml.Attr
 	if attrMap, ok := data[s.attributeKey].(map[string]any); ok {
 		for key, value := range attrMap {
@@ -537,15 +540,18 @@ func (w *wrappedWriter) Unwrap() http.ResponseWriter {
 	return w.ResponseWriter
 }
 
+func (w *wrappedWriter) WriteHeader(statusCode int) {
+	if w.written {
+		return
+	}
+	w.code = statusCode
+	w.written = true
+}
+
 func (w *wrappedWriter) Write(b []byte) (int, error) {
 	w.written = true
 	w.length += int64(len(b))
 	return w.body.Write(b)
-}
-
-func (w *wrappedWriter) WriteHeader(statusCode int) {
-	w.written = true
-	w.code = statusCode
 }
 
 func (w *wrappedWriter) Body() *bytes.Buffer {
@@ -596,29 +602,43 @@ func (nm *namespaceManager) addNamespace(prefix, uri string) {
 }
 
 // Only supports conversions for SOAP 1.1
-// If the Content-Type includes "text/xml," determine that it is a SOAP 1.1 request.
+// The request is determined to be SOAP 1.1 if the Content-Type includes "text/xml" or
+// if the value of the SOAPAction header is not empty.
 func isSOAPRequest(r *http.Request) bool {
-	return strings.Contains(r.Header.Get("Content-Type"), soap11MIMEType) || r.Header.Get(soapActionHeaderKey) != ""
+	return strings.Contains(r.Header.Get("Content-Type"), soap11MIMEType) ||
+		r.Header.Get(soapActionHeaderKey) != ""
 }
 
-func parseValue(content string) any {
+// parseValue extracts XML elements according to their type.
+func (s soapREST) parseValue(content string) any {
 	content = strings.TrimSpace(content)
 
-	// avoid escaping quotation marks when it's empty
-	if content == `""` {
-		return ""
+	if s.extractStringElement {
+		if strings.HasPrefix(content, `"`) && strings.HasSuffix(content, `"`) {
+			return content[1 : len(content)-1]
+		}
 	}
 
-	if strings.HasPrefix(content, `"`) && strings.HasSuffix(content, `"`) {
-		return content[1 : len(content)-1]
+	if s.extractBooleanElement {
+		if content == "true" {
+			return true
+		}
+
+		if content == "false" {
+			return false
+		}
 	}
 
-	if i, err := strconv.ParseInt(content, 10, 64); err == nil {
-		return i
+	if s.extractIntegerElement {
+		if i, err := strconv.ParseInt(content, 10, 64); err == nil {
+			return i
+		}
 	}
 
-	if f, err := strconv.ParseFloat(content, 64); err == nil {
-		return f
+	if s.extractFloatElement {
+		if f, err := strconv.ParseFloat(content, 64); err == nil {
+			return f
+		}
 	}
 
 	return content
@@ -643,6 +663,7 @@ func sanitizeControlCharacters(input string) string {
 }
 
 // Recursively check if the JSON contains null.
+// If a JSON element contains null, the xsi namespace will be added to the definition.
 func hasNullValue(data any) bool {
 	switch v := data.(type) {
 	case nil:

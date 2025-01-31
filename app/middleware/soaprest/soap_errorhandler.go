@@ -1,4 +1,4 @@
-package soaptorest
+package soaprest
 
 import (
 	"encoding/xml"
@@ -10,11 +10,11 @@ import (
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 )
 
+// "MustUnderstand" is not handled in SOAP/REST conversion.
 const (
 	faultCodeClient          = "Client"
 	faultCodeServer          = "Server"
 	faultCodeVersionMismatch = "VersionMismatch"
-	faultCodeMustUnderstand  = "MustUnderstand"
 )
 
 type soap11Fault struct {

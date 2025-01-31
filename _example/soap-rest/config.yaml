@@ -20,9 +20,7 @@ spec:
     - hosts: []
       middleware:
         - apiVersion: app/v1
-          kind: SoapToRestMiddleware
-        - apiVersion: app/v1
-          kind: TrackingMiddleware
+          kind: SOAPRESTMiddleware
       handlers:
         - handler:
             apiVersion: core/v1
@@ -38,21 +36,6 @@ spec:
         matchType: Regex
       upstreams:
         - url: http://localhost:8080/
-  roundTripper:
-    apiVersion: core/v1
-    kind: HTTPClient
-
----
-apiVersion: core/v1
-kind: HTTPClient
-spec:
-
----
-apiVersion: app/v1
-kind: TrackingMiddleware
-spec:
-  requestIDProxyName: "X-Request-ID"
-  traceIDProxyName: "X-Trace-ID"
 
 ---
 apiVersion: core/v1
@@ -62,10 +45,9 @@ spec:
 
 ---
 apiVersion: app/v1
-kind: SoapToRestMiddleware
+kind: SOAPRESTMiddleware
 spec:
-  attributeKey: "@attribute"
-  textKey: "#text"
-  nameSpaceKey: "_namespace"
-  arrayKey: "item"
-  separatorChar: ":"
+  extractStringElement: true
+  extractBooleanElement: true
+  extractIntegerElement: true
+  extractFloatElement: true
