@@ -169,72 +169,38 @@ func (s soapREST) xmlToMap(node xmlNode, nsCtx *namespaceContext) any {
 	if len(node.Children) > 0 {
 		childrenMap := make(map[string][]any)
 
-		// Determine whether the content treated as an array.
-		isArray := false
-		if len(node.Children) > 0 {
-			firstChild := node.Children[0]
-			allSameName := true
-			for _, child := range node.Children {
-				if child.XMLName.Local != firstChild.XMLName.Local ||
-					child.XMLName.Space != firstChild.XMLName.Space {
-					allSameName = false
-					break
-				}
-			}
-			// Check if the array key matches the config value.
-			isArrayElement := firstChild.XMLName.Local == s.arrayKey
-			isArray = allSameName && isArrayElement
-		}
-
-		// Handling array content
-		if isArray {
-			values := make([]any, 0, len(node.Children))
-			for _, child := range node.Children {
-				childValue := s.xmlToMap(child, nsCtx)
-				if childMap, ok := childValue.(map[string]any); ok {
+		for _, child := range node.Children {
+			childName := s.getNodeName(child, nsCtx)
+			childValue := s.xmlToMap(child, nsCtx)
+			if childMap, ok := childValue.(map[string]any); ok {
+				if len(childMap) == 1 {
+					// Single entry child node
+					//
+					// <singleEntry>
+					//   <value>OnlyValue</value>
+					// </singleEntry>
+					//
 					for _, v := range childMap {
-						values = append(values, v)
+						childrenMap[childName] = append(childrenMap[childName], v)
 					}
 				} else {
-					values = append(values, childValue)
-				}
-			}
-			nodeName := s.getNodeName(node, nsCtx)
-			return map[string]any{nodeName: values}
-		} else {
-			// Handling not array content
-			for _, child := range node.Children {
-				childName := s.getNodeName(child, nsCtx)
-				childValue := s.xmlToMap(child, nsCtx)
-				if childMap, ok := childValue.(map[string]any); ok {
-					if len(childMap) == 1 {
-						// Single entry child node
-						//
-						// <singleEntry>
-						//   <value>OnlyValue</value>
-						// </singleEntry>
-						//
-						for _, v := range childMap {
-							childrenMap[childName] = append(childrenMap[childName], v)
-						}
-					} else {
-						// Map child node
-						//
-						// <mapNode>
-						//   <entry1>Value1</entry1>
-						//   <entry2>Value2</entry2>
-						// </mapNode>
-						//
-						childrenMap[childName] = append(childrenMap[childName], childMap)
-					}
-				} else {
-					// Non map child node
+					// Map child node
 					//
-					// <nonMapNode>JustText</nonMapNode>
+					// <mapNode>
+					//   <entry1>Value1</entry1>
+					//   <entry2>Value2</entry2>
+					// </mapNode>
 					//
-					childrenMap[childName] = append(childrenMap[childName], childValue)
+					childrenMap[childName] = append(childrenMap[childName], childMap)
 				}
+			} else {
+				// Non map child node
+				//
+				// <nonMapNode>JustText</nonMapNode>
+				//
+				childrenMap[childName] = append(childrenMap[childName], childValue)
 			}
+			// }
 
 			for k, v := range childrenMap {
 				if len(v) == 1 {

@@ -41,25 +41,32 @@ message SOAPRESTMiddlewareSpec {
     kernel.Reference ErrorHandler = 1 [json_name = "errorHandler"];
 
     // [OPTIONAL]
-    // <TODO> implement validation like (buf.validate.field).string.pattern = "^[0-9a-zA-Z-_:]*$"
-    string AttributeKey = 2 [json_name = "attributeKey"];
+    // AttributeKey is the key used in JSON to hold attributes found in XML.
+    // AttributeKey is also used during the conversion from JSON to XML.
+    // Default value is "@attribute".
+    string AttributeKey = 2 [json_name = "attributeKey", (buf.validate.field).string.pattern = "^[a-zA-Z:.\\_|/#@][a-zA-Z0-9_.-]*$"];
 
     // [OPTIONAL]
-    // <TODO> implement validation like (buf.validate.field).string.pattern = "^[0-9a-zA-Z-_:]*$"
-    string TextKey = 3 [json_name = "textKey"];
+    // TextKey is the key used in JSON to hold text nodes found in XML.
+    // TextKey is also used during the conversion from JSON to XML.
+    // Default value is "#text".
+    string TextKey = 3 [json_name = "textKey", (buf.validate.field).string.pattern = "^[a-zA-Z:.\\_|/#@][a-zA-Z0-9_.-]*$"];
 
     // [OPTIONAL]
-    // <TODO> implement validation like (buf.validate.field).string.pattern = "^[0-9a-zA-Z-_:]*$"
-    string NameSpaceKey = 4 [json_name = "nameSpaceKey"];
+    // NamespaceKey is the key used in JSON to hold namespaces found in XML.
+    // NamespaceKey is also used during the conversion from JSON to XML.
+    // Default value is "_namespace".
+    string NamespaceKey = 4 [json_name = "namespaceKey", (buf.validate.field).string.pattern = "^[a-zA-Z:.\\_|/#@][a-zA-Z0-9_.-]*$"];
 
     // [OPTIONAL]
-    // <TODO> implement validation like (buf.validate.field).string.pattern = "^[0-9a-zA-Z-_:]*$"
-    // <TODO> consider whether we need this configuration.
-    string ArrayKey = 5 [json_name = "arrayKey"];
+    // ArrayKey is the key used to represent array elements during the conversion from JSON to XML.
+    // Default value is "item".
+    string ArrayKey = 5 [json_name = "arrayKey", (buf.validate.field).string.pattern = "^[a-zA-Z:.\\_|/#@][a-zA-Z0-9_.-]*$"];
 
     // [OPTIONAL]
-    // <TODO> consider whether we need this configuration.
-    string SeparatorChar = 6 [json_name = "separatorChar"];
+    // SeparatorChar is the symbol used to distinguish between namespaces and keys.
+    // Default value is ":".
+    string SeparatorChar = 6 [json_name = "separatorChar", (buf.validate.field).string.pattern = "^[:.\\_|/#@]$"];
 
     // [OPTIONAL]
     // The `extractStringElement` option is used to extract elements enclosed in double quotes in XML.
@@ -74,7 +81,7 @@ message SOAPRESTMiddlewareSpec {
     //  "100"  → "100"
     //  "true" → "true"
     //
-    // Default value is false.
+    // Default value is [false].
     bool extractStringElement = 7 [json_name = "extractStringElement"];
 
     // [OPTIONAL]
@@ -87,7 +94,7 @@ message SOAPRESTMiddlewareSpec {
     //  "true"  → true
     //  "false" → false
     //
-    // Default value is false.
+    // Default value is [false].
     bool extractBooleanElement = 8 [json_name = "extractBooleanElement"];
 
     // [OPTIONAL]
@@ -101,7 +108,7 @@ message SOAPRESTMiddlewareSpec {
     //  "100" → 100
     //
     // The precision is based on the 64-bit integer type.
-    // Default value is false.
+    // Default value is [false].
     bool extractIntegerElement = 9 [json_name = "extractIntegerElement"];
 
     // [OPTIONAL]
@@ -115,6 +122,6 @@ message SOAPRESTMiddlewareSpec {
     //  "3.14" → 3.14
     //
     // The precision is based on the 64-bit float type.
-    // Default value is false.
+    // Default value is [false].
     bool extractFloatElement = 10 [json_name = "extractFloatElement"];
 }

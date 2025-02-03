@@ -28,7 +28,7 @@ var Resource api.Resource = &API{
 			},
 			Spec: &v1.SOAPRESTMiddlewareSpec{
 				AttributeKey:  "@attribute",
-				NameSpaceKey:  "_namespace",
+				NamespaceKey:  "_namespace",
 				ArrayKey:      "item",
 				TextKey:       "#text",
 				SeparatorChar: ":",
@@ -58,7 +58,7 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.Prot
 	return &soapREST{
 		eh:            eh,
 		attributeKey:  c.Spec.AttributeKey,
-		namespaceKey:  c.Spec.NameSpaceKey,
+		namespaceKey:  c.Spec.NamespaceKey,
 		arrayKey:      c.Spec.ArrayKey,
 		textKey:       c.Spec.TextKey,
 		separatorChar: c.Spec.SeparatorChar,
