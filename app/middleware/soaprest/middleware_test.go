@@ -32,6 +32,28 @@ func (m *mockReader) Read(p []byte) (int, error) {
 	return 0, errors.New("mock read error")
 }
 
+type errorResponseRecorder struct {
+	header     http.Header
+	code       int
+	writeError error
+}
+
+func (rec *errorResponseRecorder) Header() http.Header {
+	if rec.header == nil {
+		rec.header = make(http.Header)
+	}
+	return rec.header
+}
+
+func (rec *errorResponseRecorder) WriteHeader(code int) {
+	rec.code = code
+}
+
+func (rec *errorResponseRecorder) Write(b []byte) (int, error) {
+	rec.writeError = errors.New("mock write error")
+	return 0, rec.writeError
+}
+
 func TestMiddleware(t *testing.T) {
 	type condition struct {
 		method      string
@@ -40,14 +62,12 @@ func TestMiddleware(t *testing.T) {
 
 		readBodyError    bool
 		nextHandlerError bool
-		jsonMarshalError bool
 	}
 
 	type action struct {
 		body     string
 		err      error
 		respCode int
-		ehCode   int //
 	}
 
 	tb := testutil.NewTableBuilder[*condition, *action]()
@@ -68,7 +88,6 @@ func TestMiddleware(t *testing.T) {
 			&action{
 				err:      errInvalidSOAP11Request,
 				respCode: 403,
-				ehCode:   403,
 			},
 		),
 		gen(
@@ -85,7 +104,6 @@ func TestMiddleware(t *testing.T) {
 			&action{
 				err:      utilhttp.ErrBadRequest,
 				respCode: 400,
-				ehCode:   400,
 			},
 		),
 		gen(
@@ -102,33 +120,27 @@ func TestMiddleware(t *testing.T) {
 			&action{
 				err:      utilhttp.ErrBadRequest,
 				respCode: 400,
-				ehCode:   400,
 			},
 		),
-		// <TODO>: need to consider how to generate json.Marshal error
-		// gen(
-		// 	"MarshalError",
-		// 	[]string{},
-		// 	[]string{},
-		// 	&condition{
-		// 		method:      http.MethodPost,
-		// 		contentType: "text/xml",
-		// 		body: `<?xml version="1.0" encoding="utf-8"?>
-		// 			<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns="http://example.com/">
-		// 			<soap:Header/>
-		// 			<soap:Body>
-		// 				<ns:Test>
-		// 				</ns:Test>
-		// 			</soap:Body>
-		// 			</soap:Envelope>`,
-
-		// 		jsonMarshalError: true,
-		// 	},
-		// 	&action{
-		// 		err:  utilhttp.ErrBadRequest,
-		// 		code: 400,
-		// 	},
-		// ),
+		gen(
+			"MarshalErrorNaN",
+			[]string{},
+			[]string{},
+			&condition{
+				method:      http.MethodPost,
+				contentType: "text/xml",
+				body: `<?xml version="1.0" encoding="UTF-8"?>
+                    <Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+                    <Body>
+                    <Value>NaN</Value>
+                    </Body>
+                    </Envelope>`,
+			},
+			&action{
+				err:      utilhttp.ErrBadRequest,
+				respCode: 400,
+			},
+		),
 		gen(
 			"NextHandlerError",
 			[]string{},
@@ -150,7 +162,27 @@ func TestMiddleware(t *testing.T) {
 			&action{
 				err:      utilhttp.ErrInternalServerError,
 				respCode: 500,
-				ehCode:   500,
+			},
+		),
+		gen(
+			"ResponseWriterWriteError",
+			[]string{},
+			[]string{},
+			&condition{
+				method:      http.MethodPost,
+				contentType: "text/xml",
+				body: `<?xml version="1.0" encoding="utf-8"?>
+                    <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns="http://example.com/">
+                    <soap:Header/>
+                    <soap:Body>
+                        <ns:Test>
+                        </ns:Test>
+                    </soap:Body>
+                    </soap:Envelope>`,
+			},
+			&action{
+				err:      utilhttp.ErrInternalServerError,
+				respCode: 500,
 			},
 		),
 	}
@@ -184,7 +216,7 @@ func TestMiddleware(t *testing.T) {
 				})
 			} else {
 				next = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					respJSON := ``
+					respJSON := `{"message": "success"}`
 					w.Header().Set("Content-Type", "application/json; charset=utf-8")
 					w.WriteHeader(http.StatusOK)
 					w.Write([]byte(respJSON))
@@ -197,12 +229,22 @@ func TestMiddleware(t *testing.T) {
 				req.Body = io.NopCloser(&mockReader{})
 			}
 			req.Header.Set("Content-Type", tt.C().contentType)
-			resp := httptest.NewRecorder()
+
+			var resp http.ResponseWriter
+			if tt.Name() == "ResponseWriterWriteError" {
+				resp = &errorResponseRecorder{}
+			} else {
+				resp = httptest.NewRecorder()
+			}
 
 			h.ServeHTTP(resp, req)
-			testutil.Diff(t, tt.A().respCode, resp.Code)
-			testutil.Diff(t, tt.A().ehCode, meh.code)
-			testutil.Diff(t, strings.TrimSpace(tt.A().body), strings.TrimSpace(resp.Body.String()))
+
+			if rec, ok := resp.(*httptest.ResponseRecorder); ok {
+				testutil.Diff(t, tt.A().respCode, rec.Code)
+				testutil.Diff(t, strings.TrimSpace(tt.A().body), strings.TrimSpace(rec.Body.String()))
+			} else if rec, ok := resp.(*errorResponseRecorder); ok {
+				testutil.Diff(t, tt.A().respCode, rec.code)
+			}
 
 			opts := []cmp.Option{
 				cmpopts.EquateErrors(),

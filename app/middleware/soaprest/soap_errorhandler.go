@@ -1,6 +1,7 @@
 package soaprest
 
 import (
+	"bytes"
 	"encoding/xml"
 	"net/http"
 	"strconv"
@@ -108,24 +109,29 @@ func (h *soapErrorHandler) ServeHTTPError(w http.ResponseWriter, r *http.Request
 		},
 	}
 
-	header := w.Header()
-	header.Set("Content-Type", "text/xml; charset=utf-8")
-	header.Set("X-Content-Type-Options", "nosniff")
-	header.Add("Vary", "Accept")
-	w.WriteHeader(statusCode)
+	var buf bytes.Buffer
+	buf.WriteString(xml.Header)
 
-	// Create an indented XML encoder.
-	encoder := xml.NewEncoder(w)
+	encoder := xml.NewEncoder(&buf)
 	encoder.Indent("", "  ")
-
-	if _, err := w.Write([]byte(xml.Header)); err != nil {
-		name, value := utilhttp.LogAttr(err, true)
-		h.lg.Error(r.Context(), "failed to write XML header", name, value)
-		return
-	}
 
 	if err := encoder.Encode(envelope); err != nil {
 		name, value := utilhttp.LogAttr(err, true)
 		h.lg.Error(r.Context(), "failed to encode SOAP fault", name, value)
+		return
+	}
+
+	header := w.Header()
+	header.Set("Content-Type", "text/xml; charset=utf-8")
+	header.Set("X-Content-Type-Options", "nosniff")
+	header.Add("Vary", "Accept")
+	header.Set("Content-Length", strconv.Itoa(buf.Len()))
+
+	w.WriteHeader(statusCode)
+
+	if _, err := buf.WriteTo(w); err != nil {
+		name, value := utilhttp.LogAttr(err, true)
+		h.lg.Error(r.Context(), "failed to write response body to client", name, value)
+		return
 	}
 }

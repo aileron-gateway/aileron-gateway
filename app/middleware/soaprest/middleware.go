@@ -98,10 +98,9 @@ func (m *soapREST) Middleware(next http.Handler) http.Handler {
 			ResponseWriter: w,
 			body:           &bytes.Buffer{},
 		}
-		w = ww
 
 		// Call the next handler with the modified request
-		next.ServeHTTP(w, newReq)
+		next.ServeHTTP(ww, newReq)
 
 		// Convert REST response to SOAP response
 		respBody, err := m.convertRestToSoapResponse(ww)
