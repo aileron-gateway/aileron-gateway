@@ -123,12 +123,11 @@ func (m *bodyLimit) Middleware(next http.Handler) http.Handler {
 			}
 			r.Body = io.NopCloser(bytes.NewReader(body))
 		} else {
-			// This case, load the body content on the temp file
-			// up to r.ContentLength
-			filePath := m.tempPath + "body-" + time.Now().Format("20060102150405-") + fmt.Sprintf("%020d", counter.Add(1))
+			// This case, load the body content on the temp file up to r.ContentLength
+			filePath := m.tempPath + "body-" + time.Now().Format("20060102150405.000000-") + fmt.Sprintf("%020d", counter.Add(1))
 			f, err := os.OpenFile(filePath, os.O_CREATE|os.O_TRUNC|os.O_RDWR, os.ModePerm)
 			if err != nil {
-				err := app.ErrAppMiddleBodyLimit.WithoutStack(nil, nil)
+				err := app.ErrAppMiddleBodyLimit.WithoutStack(err, nil)
 				m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusInternalServerError))
 				return
 			}
@@ -138,7 +137,7 @@ func (m *bodyLimit) Middleware(next http.Handler) http.Handler {
 			}()
 			n, err := kio.CopyBuffer(f, io.LimitReader(r.Body, m.maxSize))
 			if err != nil {
-				err := app.ErrAppMiddleBodyLimit.WithoutStack(nil, nil)
+				err := app.ErrAppMiddleBodyLimit.WithoutStack(err, nil)
 				m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusInternalServerError))
 				return
 			}

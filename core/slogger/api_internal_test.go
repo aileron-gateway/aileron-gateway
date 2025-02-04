@@ -243,7 +243,7 @@ func TestCreate(t *testing.T) {
 					Spec: &v1.SLoggerSpec{
 						LogOutput: &v1.LogOutputSpec{
 							OutputTarget: v1.OutputTarget_File,
-							LogDir:       `Z://not-exist  !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_abcdefghijklmnopqrstuvwxyz{|}~`,
+							LogDir:       "invalid dir \x00\n",
 						},
 					},
 				},
@@ -445,7 +445,7 @@ func TestNewFileWriter(t *testing.T) {
 			[]string{},
 			&condition{
 				spec: &v1.LogOutputSpec{
-					LogDir:    "this dir /is not exist\n",
+					LogDir:    "this dir is not exist \x00\n",
 					BackupDir: os.TempDir(),
 				},
 			},
@@ -466,7 +466,7 @@ func TestNewFileWriter(t *testing.T) {
 				spec: &v1.LogOutputSpec{
 					OutputTarget: v1.OutputTarget_File,
 					LogDir:       os.TempDir(),
-					BackupDir:    "this dir /is not exist",
+					BackupDir:    "this dir is not exist \x00\n",
 				},
 			},
 			&action{

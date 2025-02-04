@@ -121,7 +121,7 @@ func (m *headerPolicy) Middleware(next http.Handler) http.Handler {
 		if len(m.allowedMIMEs) > 0 {
 			mt, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
 			if !slices.Contains(m.allowedMIMEs, mt) {
-				err := app.ErrAppMiddleHeaderPolicy.WithoutStack(nil, nil)
+				err := app.ErrAppMiddleHeaderPolicy.WithoutStack(nil, map[string]any{"reason": "requested media type is not allowed: " + mt})
 				m.eh.ServeHTTPError(w, r, httputil.NewHTTPError(err, http.StatusUnsupportedMediaType))
 				return
 			}
@@ -130,11 +130,11 @@ func (m *headerPolicy) Middleware(next http.Handler) http.Handler {
 		// Restrict maximum content length.
 		if m.maxContentLength > 0 {
 			if r.ContentLength == -1 { // Unknown sized body or streaming body.
-				err := app.ErrAppMiddleHeaderPolicy.WithoutStack(nil, nil)
+				err := app.ErrAppMiddleHeaderPolicy.WithoutStack(nil, map[string]any{"reason": "unknown sized request is not allowed."})
 				m.eh.ServeHTTPError(w, r, httputil.NewHTTPError(err, http.StatusLengthRequired))
 				return
 			} else if r.ContentLength > m.maxContentLength {
-				err := app.ErrAppMiddleHeaderPolicy.WithoutStack(nil, nil)
+				err := app.ErrAppMiddleHeaderPolicy.WithoutStack(nil, map[string]any{"reason": "request's ContentLength exceeded max allowed length."})
 				m.eh.ServeHTTPError(w, r, httputil.NewHTTPError(err, http.StatusRequestEntityTooLarge))
 				return
 			}

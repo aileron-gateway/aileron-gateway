@@ -12,7 +12,7 @@ var (
 	ErrAppGenInvalidResponse  = errorutil.NewKind("E3002", "AppGenInvalidResponse", "invalid response. method={{method}} url={{url}} Content-Type={{type}} Status={{status}} body={{body}}")
 	ErrAppGenReadHTTPBody     = errorutil.NewKind("E3003", "AppGenReadHTTPBody", "failed to read {{direction}} body. read={{body}}")
 	ErrAppGenSessionOperation = errorutil.NewKind("E3004", "AppGenSessionOperation", "session operation failed. {{operation}} {{reason}}")
-	ErrAppGenUnmarshal        = errorutil.NewKind("E3006", "AppGenUnmarshal", "failed to unmarshal from={{from}} to={{to}} {{content}}")
+	ErrAppGenUnmarshal        = errorutil.NewKind("E3005", "AppGenUnmarshal", "failed to unmarshal from={{from}} to={{to}} {{content}}")
 	// ---------------------------------------------------------
 
 	// ---------------------------------------------------------
@@ -36,7 +36,7 @@ var (
 	// ---------------------------------------------------------
 	// app/authz: E3100 - E3149
 	ErrAppAuthzAuthorization = errorutil.NewKind("E3100", "AppAuthzAuthorization", "authorization failed")
-	ErrAppAuthzForbidden     = errorutil.NewKind("E3100", "AppAuthzAuthorization", "authorization failed")
+	ErrAppAuthzForbidden     = errorutil.NewKind("E3101", "ErrAppAuthzForbidden", "forbidden on authorization")
 	// ---------------------------------------------------------
 
 	// ---------------------------------------------------------
@@ -49,15 +49,15 @@ var (
 	ErrAppMiddleAPITimeout     = errorutil.NewKind("E3202", "AppMiddleAPITimeout", "api timeout occurred")
 	ErrAppMiddlePanicRecovered = errorutil.NewKind("E3203", "AppMiddlePanicRecovered", "panic recovered")
 	ErrAppMiddleCORSForbidden  = errorutil.NewKind("E3204", "AppMiddleCORSForbidden", "forbidden by cors policy")
-	ErrAppMiddleBodyTooLarge   = errorutil.NewKind("E3205", "ErrAppMiddleBodyTooLarge", "request body too large.")
-	ErrAppMiddleInvalidLength  = errorutil.NewKind("E3206", "ErrAppMiddleInvalidLength", "request body too large.")
-	ErrAppMiddleBodyLimit      = errorutil.NewKind("E3207", "ErrAppMiddleBodyLimit", "request body too large.")
-	ErrAppMiddleCSRFNewToken   = errorutil.NewKind("E3208", "ErrAppMiddleCSRFNewToken", "failed to create new CSRF token.")
-	ErrAppMiddleCSRFToken      = errorutil.NewKind("E3209", "ErrAppMiddleCSRFToken", "failed to create new CSRF token.")
-	ErrAppMiddleCSRFSession    = errorutil.NewKind("E3210", "ErrAppMiddleCSRFSession", "failed to create new CSRF token.")
-	ErrAppMiddleHeaderPolicy   = errorutil.NewKind("E3211", "ErrAppMiddleHeaderPolicy", "failed to create new CSRF token.")
-	ErrAppMiddleSession        = errorutil.NewKind("E3211", "ErrAppMiddleSession", "failed to create new CSRF token.")
-	ErrAppMiddleThrottle       = errorutil.NewKind("E3211", "ErrAppMiddleThrottle", "failed to create new CSRF token.")
+	ErrAppMiddleBodyTooLarge   = errorutil.NewKind("E3205", "AppMiddleBodyTooLarge", "request body size exceeded the body limit.")
+	ErrAppMiddleInvalidLength  = errorutil.NewKind("E3206", "AppMiddleInvalidLength", "Content-Length header invalid or not found.")
+	ErrAppMiddleBodyLimit      = errorutil.NewKind("E3207", "AppMiddleBodyLimit", "error limiting body size")
+	ErrAppMiddleCSRFNewToken   = errorutil.NewKind("E3208", "AppMiddleCSRFNewToken", "failed to create new CSRF token.")
+	ErrAppMiddleCSRFToken      = errorutil.NewKind("E3209", "AppMiddleCSRFToken", "error on checking CSRF token..")
+	ErrAppMiddleCSRFSession    = errorutil.NewKind("E3210", "AppMiddleCSRFSession", "csrf session operation error.")
+	ErrAppMiddleHeaderPolicy   = errorutil.NewKind("E3211", "AppMiddleHeaderPolicy", "header policy error. {{reason}}")
+	ErrAppMiddleSession        = errorutil.NewKind("E3212", "AppMiddleSession", "session operation failed.")
+	ErrAppMiddleThrottle       = errorutil.NewKind("E3213", "AppMiddleThrottle", "too many requests.")
 	// ---------------------------------------------------------
 
 	// ---------------------------------------------------------
@@ -71,8 +71,7 @@ var (
 
 	// ---------------------------------------------------------
 	// app/util: E3400 - E3449
-	ErrAppUtilGenerateJWTKey       = errorutil.NewKind("E3400", "AppUtilGenerateJWTKey", "failed to generate JWT key")
-	ErrAppUtilGetJWKSet            = errorutil.NewKind("E3401", "AppUtilGetJWKSet", "failed to get JWK sets from JWKs endpoint")
-	ErrAppUtilUnsupportedSerialize = errorutil.NewKind("E3402", "AppUtilUnsupportedSerialize", "unsupported serialize method")
+	ErrAppUtilGenerateJWTKey = errorutil.NewKind("E3400", "AppUtilGenerateJWTKey", "failed to generate JWT key")
+	ErrAppUtilGetJWKSet      = errorutil.NewKind("E3401", "AppUtilGetJWKSet", "failed to get JWK sets from JWKs endpoint")
 	// ---------------------------------------------------------
 )
