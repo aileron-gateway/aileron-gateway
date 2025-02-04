@@ -62,7 +62,6 @@ func (h *soapErrorHandler) ServeHTTPError(w http.ResponseWriter, r *http.Request
 	if c, ok := err.(core.HTTPError); ok {
 		statusCode = c.StatusCode()
 		if statusCode < 500 {
-			faultCode = faultCodeClient
 			if err == errInvalidSOAP11Request {
 				// If a request that is not SOAP1.1 is received, return a VersionMismatch.
 				faultCode = faultCodeVersionMismatch
