@@ -32,9 +32,6 @@ var Resource api.Resource = &API{
 				ArrayKey:      "item",
 				TextKey:       "#text",
 				SeparatorChar: ":",
-
-				ExtractStringElement:  false,
-				ExtractBooleanElement: false,
 			},
 		},
 	},
