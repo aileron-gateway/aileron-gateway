@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"slices"
 
+	"github.com/aileron-gateway/aileron-gateway/app"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
@@ -41,7 +42,8 @@ func (m *throttle) Middleware(next http.Handler) http.Handler {
 				break
 			}
 
-			m.eh.ServeHTTPError(w, r, utilhttp.ErrTooManyRequests)
+			err := app.ErrAppMiddleThrottle.WithoutStack(nil, nil)
+			m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusTooManyRequests))
 			return
 		}
 

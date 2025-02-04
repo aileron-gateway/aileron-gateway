@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/aileron-gateway/aileron-gateway/app"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 )
@@ -78,6 +79,7 @@ func (m *csrf) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if token == "" {
 		newToken, err := m.token.new()
 		if err != nil {
+			err = app.ErrAppMiddleCSRFNewToken.WithoutStack(err, nil)
 			m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusInternalServerError))
 			return
 		}

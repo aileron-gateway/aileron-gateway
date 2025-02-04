@@ -9,6 +9,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/aileron-gateway/aileron-gateway/app"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	kio "github.com/aileron-gateway/aileron-gateway/kernel/io"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
@@ -75,11 +76,13 @@ func (m *bodyLimit) Middleware(next http.Handler) http.Handler {
 		// First, we trust and check the Content-Length.
 		// Serve error if it exceeds the maxSize.
 		if r.ContentLength > m.maxSize {
-			m.eh.ServeHTTPError(w, r, utilhttp.ErrRequestEntityTooLarge)
+			err := app.ErrAppMiddleBodyTooLarge.WithoutStack(nil, nil)
+			m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusRequestEntityTooLarge))
 			return
 		}
 		if r.ContentLength < 0 {
-			m.eh.ServeHTTPError(w, r, utilhttp.ErrLengthRequired)
+			err := app.ErrAppMiddleInvalidLength.WithoutStack(nil, nil)
+			m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusLengthRequired))
 			return
 		}
 
@@ -94,7 +97,8 @@ func (m *bodyLimit) Middleware(next http.Handler) http.Handler {
 				maxSize:    m.maxSize,
 				exceedFunc: func() {
 					if !ww.Written() {
-						m.eh.ServeHTTPError(w, r, utilhttp.ErrRequestEntityTooLarge)
+						err := app.ErrAppMiddleBodyTooLarge.WithoutStack(nil, nil)
+						m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusRequestEntityTooLarge))
 					}
 				},
 			}
@@ -108,21 +112,23 @@ func (m *bodyLimit) Middleware(next http.Handler) http.Handler {
 			body := make([]byte, r.ContentLength)
 			n, err := r.Body.Read(body)
 			if err != nil && err != io.EOF {
-				m.eh.ServeHTTPError(w, r, utilhttp.ErrRequestEntityTooLarge)
+				err = app.ErrAppMiddleBodyTooLarge.WithoutStack(err, nil)
+				m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusRequestEntityTooLarge))
 				return
 			}
 			if int64(n) != r.ContentLength {
-				m.eh.ServeHTTPError(w, r, utilhttp.ErrBadRequest)
+				err := app.ErrAppMiddleInvalidLength.WithoutStack(nil, nil)
+				m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusBadRequest))
 				return
 			}
 			r.Body = io.NopCloser(bytes.NewReader(body))
 		} else {
-			// This case, load the body content on the temp file
-			// up to r.ContentLength
-			filePath := m.tempPath + "body-" + time.Now().Format("20060102150405-") + fmt.Sprintf("%020d", counter.Add(1))
+			// This case, load the body content on the temp file up to r.ContentLength
+			filePath := m.tempPath + "body-" + time.Now().Format("20060102150405.000000-") + fmt.Sprintf("%020d", counter.Add(1))
 			f, err := os.OpenFile(filePath, os.O_CREATE|os.O_TRUNC|os.O_RDWR, os.ModePerm)
 			if err != nil {
-				m.eh.ServeHTTPError(w, r, utilhttp.ErrInternalServerError)
+				err := app.ErrAppMiddleBodyLimit.WithoutStack(err, nil)
+				m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusInternalServerError))
 				return
 			}
 			defer func() {
@@ -131,13 +137,15 @@ func (m *bodyLimit) Middleware(next http.Handler) http.Handler {
 			}()
 			n, err := kio.CopyBuffer(f, io.LimitReader(r.Body, m.maxSize))
 			if err != nil {
-				m.eh.ServeHTTPError(w, r, utilhttp.ErrInternalServerError)
+				err := app.ErrAppMiddleBodyLimit.WithoutStack(err, nil)
+				m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusInternalServerError))
 				return
 			}
 			if n != r.ContentLength {
 				// ContentLength and the actual body size are different.
 				// It should be a bad request in this case.
-				m.eh.ServeHTTPError(w, r, utilhttp.ErrBadRequest)
+				err := app.ErrAppMiddleInvalidLength.WithoutStack(nil, nil)
+				m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusBadRequest))
 				return
 			}
 			f.Seek(0, 0)

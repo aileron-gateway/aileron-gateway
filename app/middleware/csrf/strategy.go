@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"regexp"
 
+	"github.com/aileron-gateway/aileron-gateway/app"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 	"github.com/aileron-gateway/aileron-gateway/util/session"
@@ -47,13 +48,15 @@ type customRequestHeaders struct {
 func (s *customRequestHeaders) get(r *http.Request) (string, core.HTTPError) {
 	token := r.Header.Get(s.headerName)
 	if token == "" {
-		return "", utilhttp.NewHTTPError(errInvalidToken, http.StatusForbidden)
+		err := app.ErrAppMiddleCSRFToken.WithoutStack(errInvalidToken, nil)
+		return "", utilhttp.NewHTTPError(err, http.StatusForbidden)
 	}
 	if s.pattern != nil && s.pattern.MatchString(token) {
 		return token, nil
 	}
 	if !s.token.verify(token) {
-		return "", utilhttp.NewHTTPError(errInvalidToken, http.StatusForbidden)
+		err := app.ErrAppMiddleCSRFToken.WithoutStack(errInvalidToken, nil)
+		return "", utilhttp.NewHTTPError(err, http.StatusForbidden)
 	}
 	return token, nil
 }
@@ -81,19 +84,23 @@ type synchronizerToken struct {
 func (s *synchronizerToken) get(r *http.Request) (string, core.HTTPError) {
 	ss := session.SessionFromContext(r.Context())
 	if ss == nil {
-		return "", utilhttp.NewHTTPError(errSessionNotFound, http.StatusInternalServerError)
+		err := app.ErrAppMiddleCSRFSession.WithoutStack(errSessionNotFound, nil)
+		return "", utilhttp.NewHTTPError(err, http.StatusInternalServerError)
 	}
 	var b []byte
 	if err := ss.Extract("__csrf_token__", &b); err != nil {
+		err := app.ErrAppMiddleCSRFSession.WithoutStack(err, nil)
 		return "", utilhttp.NewHTTPError(err, http.StatusInternalServerError)
 	}
 	token1 := string(b)
 	token2, err := s.ext.extract(r)
 	if err != nil {
+		err = app.ErrAppMiddleCSRFToken.WithoutStack(err, nil)
 		return "", utilhttp.NewHTTPError(err, http.StatusForbidden)
 	}
 	if token1 != token2 || !s.token.verify(token1) {
-		return "", utilhttp.NewHTTPError(errInvalidToken, http.StatusForbidden)
+		err = app.ErrAppMiddleCSRFToken.WithoutStack(errInvalidToken, nil)
+		return "", utilhttp.NewHTTPError(err, http.StatusForbidden)
 	}
 	return token1, nil
 }
@@ -101,9 +108,11 @@ func (s *synchronizerToken) get(r *http.Request) (string, core.HTTPError) {
 func (s *synchronizerToken) set(token string, _ http.ResponseWriter, r *http.Request) core.HTTPError {
 	ss := session.SessionFromContext(r.Context())
 	if ss == nil {
-		return utilhttp.NewHTTPError(errSessionNotFound, http.StatusInternalServerError)
+		err := app.ErrAppMiddleCSRFSession.WithoutStack(errSessionNotFound, nil)
+		return utilhttp.NewHTTPError(err, http.StatusInternalServerError)
 	}
 	if err := ss.Persist("__csrf_token__", []byte(token)); err != nil {
+		err = app.ErrAppMiddleCSRFSession.WithoutStack(err, nil)
 		return utilhttp.NewHTTPError(err, http.StatusInternalServerError)
 	}
 	return nil
@@ -131,15 +140,18 @@ type doubleSubmitCookies struct {
 func (s *doubleSubmitCookies) get(r *http.Request) (string, core.HTTPError) {
 	ck, err := r.Cookie(s.cookieName)
 	if err != nil {
+		err = app.ErrAppMiddleCSRFToken.WithoutStack(err, nil)
 		return "", utilhttp.NewHTTPError(err, http.StatusForbidden)
 	}
 	token1 := ck.Value
 	token2, err := s.ext.extract(r)
 	if err != nil {
+		err = app.ErrAppMiddleCSRFToken.WithoutStack(err, nil)
 		return "", utilhttp.NewHTTPError(err, http.StatusForbidden)
 	}
 	if token1 != token2 || !s.token.verify(token1) {
-		return "", utilhttp.NewHTTPError(errInvalidToken, http.StatusForbidden)
+		err = app.ErrAppMiddleCSRFToken.WithoutStack(errInvalidToken, nil)
+		return "", utilhttp.NewHTTPError(err, http.StatusForbidden)
 	}
 	return token1, nil
 }
