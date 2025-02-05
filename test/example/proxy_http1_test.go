@@ -22,7 +22,7 @@ const (
 	keyFilePath  = "./_example/proxy-http1/pki/key.pem"
 )
 
-func runHTTP1(t *testing.T, testCtx context.Context) {
+func runHTTP1(t *testing.T, ctx context.Context) {
 	svr := &http.Server{
 		Addr:         ":10001",
 		Handler:      http.HandlerFunc(handler),
