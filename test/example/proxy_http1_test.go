@@ -86,9 +86,9 @@ func TestProxyHttp1(t *testing.T) {
 			RootCAs: pool,
 		},
 	}
-	
+
 	var resp *http.Response
-	
+
 	go func() {
 		req, _ := http.NewRequest(http.MethodGet, "https://localhost:8443/test", nil)
 		resp, err = transport.RoundTrip(req)
