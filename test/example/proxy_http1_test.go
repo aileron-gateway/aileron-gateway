@@ -33,16 +33,16 @@ func runHTTP1(t *testing.T, ctx context.Context) {
 
 	go func() {
 		if err := svr.ListenAndServeTLS(certFilePath, keyFilePath); err != nil {
-			t.Fatal(err)
+			t.Error(err)
 		}
 	}()
 
-	<-testCtx.Done()
+	<-ctx.Done()
 
 	time.Sleep(1 * time.Second)
 
 	if err := svr.Shutdown(context.Background()); err != nil {
-		t.Fatal(err)
+		t.Error(err)
 	}
 }
 
@@ -70,7 +70,7 @@ func TestProxyHttp1(t *testing.T) {
 
 	pem, err := os.ReadFile(certFilePath)
 	if err != nil {
-		t.Fatal(err)
+		t.Error(err)
 	}
 
 	go runHTTP1(t, ctx)
@@ -80,14 +80,15 @@ func TestProxyHttp1(t *testing.T) {
 	pool := x509.NewCertPool()
 	pool.AppendCertsFromPEM(pem)
 
-	var resp *http.Response
 	transport := &http.Transport{
 		ForceAttemptHTTP2: false,
 		TLSClientConfig: &tls.Config{
 			RootCAs: pool,
 		},
 	}
-
+	
+	var resp *http.Response
+	
 	go func() {
 		req, _ := http.NewRequest(http.MethodGet, "https://localhost:8443/test", nil)
 		resp, err = transport.RoundTrip(req)
