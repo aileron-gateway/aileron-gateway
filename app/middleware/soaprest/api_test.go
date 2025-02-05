@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
-	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
@@ -49,7 +48,7 @@ func TestCreate(t *testing.T) {
 				manifest: &v1.SOAPRESTMiddleware{
 					APIVersion: apiVersion,
 					Kind:       kind,
-					Metadata: &kernel.Metadata{
+					Metadata: &k.Metadata{
 						Namespace: "default",
 						Name:      "default",
 					},
