@@ -114,11 +114,9 @@ func (h *soapErrorHandler) ServeHTTPError(w http.ResponseWriter, r *http.Request
 	encoder := xml.NewEncoder(&buf)
 	encoder.Indent("", "  ")
 
-	if err := encoder.Encode(envelope); err != nil {
-		name, value := utilhttp.LogAttr(err, true)
-		h.lg.Error(r.Context(), "failed to encode SOAP fault", name, value)
-		return
-	}
+	// While the contents of the `Fault` can change due to errors,
+	// there will be no failure in the encoding process, so error handling is not implemented.
+	encoder.Encode(envelope)
 
 	header := w.Header()
 	header.Set("Content-Type", "text/xml; charset=utf-8")

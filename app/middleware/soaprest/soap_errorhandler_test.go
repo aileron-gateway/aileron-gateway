@@ -18,13 +18,23 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
+// Define a ResponseWriter that fails on Write
+type erroringResponseWriter struct {
+	*httptest.ResponseRecorder
+}
+
+func (w *erroringResponseWriter) Write(b []byte) (int, error) {
+	return 0, errors.New("forced write error")
+}
+
 func TestSOAPErrorHandler_ServeHTTPError(t *testing.T) {
 	type condition struct {
 		eh  *soapErrorHandler
 		err error
 		req *http.Request
 
-		loggingOnly bool
+		loggingOnly         bool
+		failWritingResponse bool
 	}
 
 	type action struct {
@@ -163,21 +173,27 @@ func TestSOAPErrorHandler_ServeHTTPError(t *testing.T) {
 				body:   nil,
 			},
 		),
-		// <TODO> implement rest cases.
-		// gen(
-		// 	"Failed to encode",
-		// 	nil,
-		// 	nil,
-		// 	&condition{},
-		// 	&action{},
-		// ),
-		// gen(
-		// 	"Failed to write response body",
-		// 	nil,
-		// 	nil,
-		// 	&condition{},
-		// 	&action{},
-		// ),
+		gen(
+			"Failed to write response body",
+			nil,
+			nil,
+			&condition{
+				eh: &soapErrorHandler{
+					lg:          debugLogger,
+					stackAlways: false,
+				},
+				err: utilhttp.ErrInternalServerError,
+				req: httptest.NewRequest(http.MethodGet, "http://test.com/foo", nil),
+
+				loggingOnly:         true, // Since the write operation to the body will fail, the body check will not be performed.
+				failWritingResponse: true,
+			},
+			&action{
+				status: http.StatusInternalServerError,
+				header: nil,
+				body:   nil,
+			},
+		),
 	}
 
 	testutil.Register(table, testCases...)
@@ -185,16 +201,22 @@ func TestSOAPErrorHandler_ServeHTTPError(t *testing.T) {
 	for _, tt := range table.Entries() {
 		tt := tt
 		t.Run(tt.Name(), func(t *testing.T) {
-			w := httptest.NewRecorder()
-			r := tt.C().req
+			rr := httptest.NewRecorder()
+			var w http.ResponseWriter
 
-			tt.C().eh.ServeHTTPError(w, r, tt.C().err)
+			if tt.C().failWritingResponse {
+				w = &erroringResponseWriter{
+					ResponseRecorder: rr,
+				}
+			} else {
+				w = rr
+			}
 
-			resp := w.Result()
+			tt.C().eh.ServeHTTPError(w, tt.C().req, tt.C().err)
+			resp := rr.Result()
 			defer resp.Body.Close()
 			b, _ := io.ReadAll(resp.Body)
 
-			t.Logf("Response Body:\n%s\n", string(b))
 			testutil.Diff(t, tt.A().status, resp.StatusCode)
 
 			for k, v := range tt.A().header {
@@ -212,12 +234,10 @@ func TestSOAPErrorHandler_ServeHTTPError(t *testing.T) {
 					cmpopts.IgnoreFields(soapFaultBody{}),
 					cmpopts.IgnoreFields(soap11Fault{}, "XMLName"),
 					cmpopts.IgnoreFields(soap11FaultDetail{}, "XMLName"),
-					cmpopts.EquateEmpty(),
 				}
 
 				testutil.Diff(t, tt.A().body, &gotBody, opts...)
 			}
-
 		})
 	}
 }
