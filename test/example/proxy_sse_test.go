@@ -8,40 +8,34 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"sync"
 	"testing"
 	"time"
 
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 )
 
-func runServer(t *testing.T, testCtx context.Context) {
+func runServer(t *testing.T, ctx context.Context) {
 	addr := "0.0.0.0:9999"
 	log.Println("SSE server listens at", addr)
-
-	wg := sync.WaitGroup{}
 
 	svr := &http.Server{
 		Addr:    addr,
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { sse(w, r) }),
 	}
 
-	wg.Add(1)
-
 	go func() {
-		defer wg.Done()
 		if err := svr.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			t.Fatal(err)
+			t.Error(err)
 		}
 	}()
 
-	wg.Wait()
+	time.Sleep(time.Second * 1)
 
-	<-testCtx.Done()
+	<-ctx.Done()
 
 	err := svr.Shutdown(context.Background())
 	if err != nil {
-		t.Fatal(err)
+		t.Error(err)
 	}
 
 }
