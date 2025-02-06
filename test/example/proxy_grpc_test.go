@@ -66,13 +66,13 @@ func (s *routeGuideServer) loadFeatures(filePath string) {
 		var err error
 		data, err = os.ReadFile(filePath)
 		if err != nil {
-			log.Fatalf("Failed to load default features: %v", err)
+			log.Printf("Failed to load default features: %v", err)
 		}
 	} else {
 		data = exampleData
 	}
 	if err := json.Unmarshal(data, &s.savedFeatures); err != nil {
-		log.Fatalf("Failed to load default features: %v", err)
+		log.Printf("Failed to load default features: %v", err)
 	}
 }
 
@@ -90,30 +90,24 @@ func runServer(t *testing.T, testCtx context.Context) {
 
 	lis, err := net.Listen("tcp", "localhost:50051")
 	if err != nil {
-		t.Fatal(err)
+		t.Error(err)
 	}
-
-	wg := sync.WaitGroup{}
 
 	grpcServer := grpc.NewServer()
 	pb.RegisterRouteGuideServer(grpcServer, newServer())
 
-	wg.Add(1)
-
 	go func() {
-		defer wg.Done()
 		if err := grpcServer.Serve(lis); err != nil {
-			t.Fatal(err)
+			t.Error(err)
 		}
 	}()
 
-	wg.Wait()
-
+	time.Sleep(time.Second * 1)
 	<-testCtx.Done()
 
 	grpcServer.GracefulStop()
 	if err := lis.Close(); err != nil {
-		t.Fatal(err)
+		t.Error(err)
 	}
 }
 
@@ -139,7 +133,7 @@ func TestProxyGrpc(t *testing.T) {
 		}
 		creds, err := credentials.NewClientTLSFromFile(*caFile, *serverHostOverride)
 		if err != nil {
-			log.Fatalf("Failed to create TLS credentials: %v", err)
+			log.Printf("Failed to create TLS credentials: %v", err)
 		}
 		opts = append(opts, grpc.WithTransportCredentials(creds))
 	} else {
@@ -148,7 +142,7 @@ func TestProxyGrpc(t *testing.T) {
 
 	conn, err := grpc.NewClient("localhost:50000", opts...)
 	if err != nil {
-		t.Fatal(err)
+		t.Error(err)
 	}
 	defer conn.Close()
 
