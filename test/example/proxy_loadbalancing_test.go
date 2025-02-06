@@ -10,12 +10,11 @@ import (
 	"net/http"
 	"testing"
 	"time"
-	"sync"
 
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 )
 
-func runServers(t *testing.T, testCtx context.Context) {
+func runServers(t *testing.T, ctx context.Context) {
 	addrs := []string{
 		":8001",
 		":8002",
@@ -24,13 +23,10 @@ func runServers(t *testing.T, testCtx context.Context) {
 		":8005",
 	}
 
-	wg := sync.WaitGroup{}
 	servers := make([]*http.Server, len(addrs))
 
 	for i, addr := range addrs {
-		wg.Add(1)
 		go func(i int, a string) {
-			defer wg.Done()
 			mux := &http.ServeMux{}
 			mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 				fmt.Fprintf(w, "Hello! %s from %s\n", r.RemoteAddr, a)
@@ -44,23 +40,24 @@ func runServers(t *testing.T, testCtx context.Context) {
 
 			log.Println("Server listens at", a)
 			if err := svr.ListenAndServe(); err != nil {
-				t.Fatal(err)
+				t.Error(err)
 			}
 		}(i, addr)
 	}
 
-	wg.Wait()
+	time.Sleep(time.Second * 2)
 
-	<-testCtx.Done()
+	<-ctx.Done()
 
 	for _, svr := range servers {
 		if err := svr.Shutdown(context.Background()); err != nil {
-			t.Fatal(err)
+			t.Error(err)
 		}
 	}
 }
 
 func TestProxyLoadBalancing(t *testing.T) {
+
 	targetDir := "./../.."
 	changeDirectory(t, targetDir)
 

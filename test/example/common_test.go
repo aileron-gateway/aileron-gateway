@@ -6,6 +6,7 @@ package example_test
 import (
 	"context"
 	"errors"
+	"os"
 	"testing"
 
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
@@ -57,4 +58,12 @@ func getEntrypointRunner(t *testing.T, env, config []string) Runner {
 
 	return entrypoint
 
+}
+
+func changeDirectory(t *testing.T, targetDir string) {
+	err := os.Chdir(targetDir)
+	if err != nil {
+		t.Fatal(err)
+		return
+	}
 }
