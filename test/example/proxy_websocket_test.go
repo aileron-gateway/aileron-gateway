@@ -1,4 +1,5 @@
 //go:build example
+
 // + build example
 
 package example_test
@@ -8,15 +9,14 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"sync"
 	"testing"
 	"time"
 
-	"golang.org/x/net/websocket"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"golang.org/x/net/websocket"
 )
 
-func runServer(t *testing.T, testCtx context.Context) {
+func runServer(t *testing.T, ctx context.Context) {
 	addr := "0.0.0.0:9999"
 	log.Println("WebSocket server listens at", addr)
 
@@ -24,28 +24,23 @@ func runServer(t *testing.T, testCtx context.Context) {
 	http.Handle("/", http.FileServer(dir))
 	http.HandleFunc("/ws", ws())
 
-	wg := sync.WaitGroup{}
-
 	svr := &http.Server{
 		Addr: addr,
 	}
 
-	wg.Add(1)
-
 	go func() {
-		defer wg.Done()
 		if err := svr.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			t.Fatal(err)
+			t.Error(err)
 		}
 	}()
 
-	wg.Wait()
+	time.Sleep(time.Second * 1)
 
-	<-testCtx.Done()
+	<-ctx.Done()
 
 	err := svr.Shutdown(context.Background())
 	if err != nil {
-		t.Fatal(err)
+		t.Error(err)
 	}
 }
 
@@ -113,7 +108,7 @@ func TestProxyWebsocket(t *testing.T) {
 
 	go runServer(t, ctx)
 
-	time.Sleep(1*time.Second)
+	time.Sleep(1 * time.Second)
 
 	var resp *http.Response
 	var err error
@@ -132,5 +127,3 @@ func TestProxyWebsocket(t *testing.T) {
 	testutil.Diff(t, nil, err)
 	testutil.Diff(t, http.StatusOK, resp.StatusCode)
 }
-
-
