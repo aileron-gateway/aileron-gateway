@@ -63,7 +63,7 @@ func getEntrypointRunner(t *testing.T, env, config []string) Runner {
 func changeDirectory(t *testing.T, targetDir string) {
 	err := os.Chdir(targetDir)
 	if err != nil {
-		t.Fatal(err)
+		t.Error(err)
 		return
 	}
 }
