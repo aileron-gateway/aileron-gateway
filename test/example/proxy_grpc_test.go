@@ -86,7 +86,7 @@ func newServer() *routeGuideServer {
 	return s
 }
 
-func runServer(t *testing.T, testCtx context.Context) {
+func runServer(t *testing.T, ctx context.Context) {
 
 	lis, err := net.Listen("tcp", "localhost:50051")
 	if err != nil {
@@ -103,7 +103,7 @@ func runServer(t *testing.T, testCtx context.Context) {
 	}()
 
 	time.Sleep(time.Second * 1)
-	<-testCtx.Done()
+	<-ctx.Done()
 
 	grpcServer.GracefulStop()
 	if err := lis.Close(); err != nil {
