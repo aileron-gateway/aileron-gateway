@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"sync"
 	"testing"
 	"time"
 
@@ -23,43 +25,38 @@ func runServers(t *testing.T, ctx context.Context) {
 		":8005",
 	}
 
-	servers := make([]*http.Server, len(addrs))
-
-	for i, addr := range addrs {
-		go func(i int, a string) {
-			mux := &http.ServeMux{}
-			mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-				fmt.Fprintf(w, "Hello! %s from %s\n", r.RemoteAddr, a)
-			})
-			svr := &http.Server{
-				Addr:    addr,
-				Handler: mux,
-			}
-
-			servers[i] = svr
-
-			log.Println("Server listens at", a)
-			if err := svr.ListenAndServe(); err != nil {
+	var wg sync.WaitGroup
+	for _, addr := range addrs {
+		wg.Add(1)
+		mux := &http.ServeMux{}
+		mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+			fmt.Fprintf(w, "Hello! %s from %s\n", r.RemoteAddr, addr)
+		})
+		svr := &http.Server{
+			Addr:    addr,
+			Handler: mux,
+		}
+		go func() {
+			log.Println("Server listens at", addr)
+			if err := svr.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 				t.Error(err)
 			}
-		}(i, addr)
+		}()
+		go func() {
+			defer wg.Done()
+			<-ctx.Done()
+			if err := svr.Shutdown(context.Background()); err != nil {
+				t.Error(err)
+			}
+		}()
 	}
-
-	time.Sleep(time.Second * 2)
-
-	<-ctx.Done()
-
-	for _, svr := range servers {
-		if err := svr.Shutdown(context.Background()); err != nil {
-			t.Error(err)
-		}
-	}
+	wg.Wait()
 }
 
 func TestProxyLoadBalancing(t *testing.T) {
-
-	targetDir := "./../.."
-	changeDirectory(t, targetDir)
+	wd, _ := os.Getwd()
+	defer changeDirectory(t, wd)
+	changeDirectory(t, "./../../")
 
 	env := []string{}
 	config := []string{"./_example/proxy-loadbalancing/config-direct-hash.yaml"}
@@ -67,14 +64,11 @@ func TestProxyLoadBalancing(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	timer := time.AfterFunc(5*time.Second, cancel)
-
 	go runServers(t, ctx)
-
-	time.Sleep(1 * time.Second)
+	time.Sleep(1 * time.Second) // Wait the server to start up.
 
 	var resp *http.Response
 	var err error
-
 	go func() {
 		req, _ := http.NewRequest(http.MethodGet, "http://localhost:8080/", nil)
 		resp, err = http.DefaultTransport.RoundTrip(req)
