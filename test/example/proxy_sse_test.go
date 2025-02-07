@@ -17,7 +17,7 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 )
 
-func runServer(t *testing.T, ctx context.Context) {
+func runSSEServer(t *testing.T, ctx context.Context) {
 	addr := "0.0.0.0:9999"
 	log.Println("SSE server listens at", addr)
 
@@ -75,8 +75,8 @@ func TestProxySSE(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	timer := time.AfterFunc(5*time.Second, cancel)
-	go runServer(t, ctx)
-	time.Sleep(1 * time.Second)
+	go runSSEServer(t, ctx)
+	time.Sleep(1 * time.Second) // Wait for the server start up.
 
 	var resp *http.Response
 	var err error
