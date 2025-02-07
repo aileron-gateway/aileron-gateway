@@ -18,64 +18,51 @@ import (
 )
 
 const (
-	certFilePath = "./_example/proxy-http1/pki/cert.pem"
-	keyFilePath  = "./_example/proxy-http1/pki/key.pem"
+	proxyHTTP1CertFilePath = "./_example/proxy-http1/pki/cert.pem"
+	proxyHTTP1KeyFilePath  = "./_example/proxy-http1/pki/key.pem"
 )
 
 func runHTTP1(t *testing.T, ctx context.Context) {
 	svr := &http.Server{
-		Addr:         ":10001",
-		Handler:      http.HandlerFunc(handler),
+		Addr: ":10001",
+		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			fmt.Fprint(w, "OK")
+		}),
 		TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler)),
 	}
 
 	log.Println("HTTP 1 server listens on", svr.Addr)
-
 	go func() {
-		if err := svr.ListenAndServeTLS(certFilePath, keyFilePath); err != nil {
+		if err := svr.ListenAndServeTLS(proxyHTTP1CertFilePath, proxyHTTP1KeyFilePath); err != nil && err != http.ErrServerClosed {
 			t.Error(err)
 		}
 	}()
 
 	<-ctx.Done()
-
-	time.Sleep(1 * time.Second)
-
 	if err := svr.Shutdown(context.Background()); err != nil {
 		t.Error(err)
 	}
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Method : %s\n", r.Method)
-	fmt.Fprintf(w, "Path : %s\n", r.URL.Path)
-	fmt.Fprintf(w, "HTTP : %d.%d\n", r.ProtoMajor, r.ProtoMinor)
-	fmt.Fprintf(w, "Header:\n")
-	for k, v := range r.Header {
-		fmt.Fprintf(w, "  %s: %+v\n", k, v)
-	}
-}
-
 func TestProxyHttp1(t *testing.T) {
 
-	targetDir := "./../.."
-	changeDirectory(t, targetDir)
+	wd, _ := os.Getwd()
+	defer changeDirectory(t, wd)
+	changeDirectory(t, "./../../")
 
 	env := []string{}
-	config := []string{"./_example/proxy-http1/config-http1.yaml"}
+	config := []string{"_example/proxy-http1/config-http1.yaml"}
 	entrypoint := getEntrypointRunner(t, env, config)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	timer := time.AfterFunc(5*time.Second, cancel)
-
-	pem, err := os.ReadFile(certFilePath)
+	pem, err := os.ReadFile(proxyHTTP1CertFilePath)
 	if err != nil {
 		t.Error(err)
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	go runHTTP1(t, ctx)
-
-	time.Sleep(1 * time.Second)
+	time.Sleep(1 * time.Second) // Wait the server to start up.
 
 	pool := x509.NewCertPool()
 	pool.AppendCertsFromPEM(pem)
@@ -85,15 +72,14 @@ func TestProxyHttp1(t *testing.T) {
 		TLSClientConfig: &tls.Config{
 			RootCAs: pool,
 		},
+		ResponseHeaderTimeout: 3 * time.Second,
 	}
 
 	var resp *http.Response
-
 	go func() {
 		req, _ := http.NewRequest(http.MethodGet, "https://localhost:8443/test", nil)
 		resp, err = transport.RoundTrip(req)
-		timer.Stop()
-		cancel()
+		cancel() // Stop the server and the proxy.
 	}()
 
 	if err := entrypoint.Run(ctx); err != nil {
