@@ -8,10 +8,10 @@ spec:
     - apiVersion: core/v1
       kind: HTTPServer
       name: http2
- 
+
 ---
 apiVersion: core/v1
-kind: HTTPServer 
+kind: HTTPServer
 metadata:
   name: http2
 spec:
@@ -21,14 +21,14 @@ spec:
     listenConfig:
       tlsConfig:
         certKeyPairs:
-          - certFile: ./_example/http3-server/pki/cert.pem # Set server cert.
-            keyFile: ./_example/http3-server/pki/key.pem # Set server key.
+          - certFile: ./_example/http3-server/pki/server.crt # Set server cert.
+            keyFile: ./_example/http3-server/pki/server.key # Set server key.
   virtualHosts:
     - handlers:
         - handler:
             apiVersion: core/v1
             kind: ReverseProxyHandler
- 
+
 ---
 apiVersion: core/v1
 kind: HTTPServer
@@ -40,8 +40,8 @@ spec:
     altSvc: h3=":8443";ma=3600,h3-29=":8443";ma=3600
     tlsConfig:
       certKeyPairs:
-        - certFile: "./_example/http3-server/pki/cert.pem" # Replace to your cert
-          keyFile: "./_example/http3-server/pki/key.pem" # Replace to your key.
+        - certFile: "./_example/http3-server/pki/server.crt" # Replace to your cert
+          keyFile: "./_example/http3-server/pki/server.key" # Replace to your key.
   virtualHosts:
     - hosts: []
       handlers:

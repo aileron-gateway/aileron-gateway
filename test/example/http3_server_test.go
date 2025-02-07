@@ -17,9 +17,9 @@ import (
 )
 
 func TestHTTP3Server(t *testing.T) {
-
-	targetDir := "./../.."
-	changeDirectory(t, targetDir)
+	wd, _ := os.Getwd()
+	defer changeDirectory(t, wd)
+	changeDirectory(t, "./../../")
 
 	env := []string{}
 	config := []string{"./_example/http3-server/"}
@@ -28,8 +28,7 @@ func TestHTTP3Server(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	timer := time.AfterFunc(5*time.Second, cancel)
 
-	pem, _ := os.ReadFile("./_example/http3-server/pki/cert.pem")
-
+	pem, _ := os.ReadFile("./_example/http3-server/pki/server.crt")
 	pool := x509.NewCertPool()
 	pool.AppendCertsFromPEM(pem)
 
@@ -41,7 +40,6 @@ func TestHTTP3Server(t *testing.T) {
 
 	var resp *http.Response
 	var err error
-
 	go func() {
 		req, _ := http.NewRequest(http.MethodGet, "https://localhost:8443/get", nil)
 		resp, err = transport.RoundTrip(req)
@@ -55,5 +53,4 @@ func TestHTTP3Server(t *testing.T) {
 
 	testutil.Diff(t, nil, err)
 	testutil.Diff(t, http.StatusOK, resp.StatusCode)
-
 }
