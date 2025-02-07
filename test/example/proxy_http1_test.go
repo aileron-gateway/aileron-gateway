@@ -44,7 +44,7 @@ func runHTTP1(t *testing.T, ctx context.Context) {
 	}
 }
 
-func TestProxyHttp1(t *testing.T) {
+func TestProxyHTTP1(t *testing.T) {
 
 	wd, _ := os.Getwd()
 	defer changeDirectory(t, wd)

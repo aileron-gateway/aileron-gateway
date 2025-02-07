@@ -8,7 +8,6 @@ import (
 	"errors"
 	"os"
 	"testing"
-	"os"
 
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/cmd/aileron/app"
