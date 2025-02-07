@@ -222,7 +222,7 @@ func (c *LogicalFileConfig) New() (*LogicalFile, error) {
 	c.SrcDir = filepath.Clean(cmp.Or(c.SrcDir, "./"))     // Use "./" if empty.
 	c.DstDir = filepath.Clean(cmp.Or(c.DstDir, c.SrcDir)) // Use source directory if empty.
 
-	if err := os.Mkdir(c.SrcDir, os.ModePerm); err != nil {
+	if err := os.MkdirAll(c.SrcDir, os.ModePerm); err != nil {
 		return nil, (&er.Error{
 			Package:     ErrPkg,
 			Type:        ErrTypeFile,
@@ -233,7 +233,7 @@ func (c *LogicalFileConfig) New() (*LogicalFile, error) {
 	if err := ReadWriteTest(c.SrcDir); err != nil {
 		return nil, err // Return err as-is.
 	}
-	if err := os.Mkdir(c.DstDir, os.ModePerm); err != nil {
+	if err := os.MkdirAll(c.DstDir, os.ModePerm); err != nil {
 		return nil, (&er.Error{
 			Package:     ErrPkg,
 			Type:        ErrTypeFile,

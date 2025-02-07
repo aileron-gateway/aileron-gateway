@@ -30,8 +30,7 @@ func main() {
 	a.ParseArgs(os.Args[1:])
 
 	f := api.NewFactoryAPI()
-	register.RegisterAll(f) // Register all APIs.
-
+	register.RegisterAll(f)    // Register all APIs.
 	_ = svr.Handle("core/", f) // Handle "core/*" APIs.
 	_ = svr.Handle("app/", f)  // Handle "app/*" APIs.
 
