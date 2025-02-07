@@ -6,16 +6,17 @@ package example_test
 import (
 	"context"
 	"net/http"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 )
 
-func TestStaticServer(t *testing.T) {
-
-	targetDir := "./../.."
-	changeDirectory(t, targetDir)
+func TestTemplate(t *testing.T) {
+	wd, _ := os.Getwd()
+	defer changeDirectory(t, wd)
+	changeDirectory(t, "./../../")
 
 	env := []string{}
 	config := []string{"./_example/template/"}
