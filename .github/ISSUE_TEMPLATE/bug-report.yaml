@@ -30,12 +30,18 @@ body:
     attributes:
       label: AILERON Gateway version
       value: |
-        <details>
         ```console
-        $ aileron --version
-        $ aileron --info
+         $ aileron --version
         # paste output here
         ```
+
+        <details>
+
+        ```console
+         $ aileron --info
+        # paste output here
+        ```
+
         </details>
     validations:
       required: true
