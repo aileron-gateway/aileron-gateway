@@ -1,13 +1,16 @@
-//go:build examle
-// +build examle
+//go:build example
+// +build example
 
 package example_test
 
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"os"
+	"strconv"
 	"testing"
 	"time"
 
@@ -20,7 +23,7 @@ func runServer(t *testing.T, ctx context.Context) {
 
 	svr := &http.Server{
 		Addr:    addr,
-		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { sse(w, r) }),
+		Handler: http.HandlerFunc(sseHandlerFunc),
 	}
 
 	go func() {
@@ -29,54 +32,30 @@ func runServer(t *testing.T, ctx context.Context) {
 		}
 	}()
 
-	time.Sleep(time.Second * 1)
-
 	<-ctx.Done()
-
 	err := svr.Shutdown(context.Background())
 	if err != nil {
 		t.Error(err)
 	}
-
 }
 
-func sse(w http.ResponseWriter, r *http.Request) {
+func sseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	flusher, _ := w.(http.Flusher)
-
 	// Set response headers.
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 	w.Header().Set("Transfer-Encoding", "identity")
-
 	// Flush before sending the body.
 	flusher.Flush()
-
 	done := make(chan struct{})
 	go func() {
-		fmt.Fprintf(w, "Hello !!\n")
-
-		for i := 0; i < 30; i++ {
-			select {
-			case <-r.Context().Done():
-				return
-			case <-time.After(time.Second):
-			}
-
-			n, err := fmt.Fprintf(w, "It's %s\n", time.Now().Format(http.TimeFormat))
-			if n > 0 {
-				flusher.Flush()
-			}
-			if err != nil {
-				panic(err)
-			}
+		for i := 1; i <= 5; i++ {
+			fmt.Fprintf(w, strconv.Itoa(i))
+			flusher.Flush()
 		}
-
-		fmt.Fprintf(w, "Goodbye!!\n")
-		flusher.Flush()
 		close(done)
 	}()
-
 	select {
 	case <-r.Context().Done():
 		log.Println("Client closed connection.")
@@ -85,10 +64,10 @@ func sse(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func TestProxySEE(t *testing.T) {
-
-	targetDir := "./../.."
-	changeDirectory(t, targetDir)
+func TestProxySSE(t *testing.T) {
+	wd, _ := os.Getwd()
+	defer changeDirectory(t, wd)
+	changeDirectory(t, "./../../")
 
 	env := []string{}
 	config := []string{"./_example/proxy-sse/config.yaml"}
@@ -96,14 +75,11 @@ func TestProxySEE(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	timer := time.AfterFunc(5*time.Second, cancel)
-
 	go runServer(t, ctx)
-
 	time.Sleep(1 * time.Second)
 
 	var resp *http.Response
 	var err error
-
 	go func() {
 		req, _ := http.NewRequest(http.MethodGet, "http://localhost:8080", nil)
 		resp, err = http.DefaultTransport.RoundTrip(req)
@@ -117,5 +93,6 @@ func TestProxySEE(t *testing.T) {
 
 	testutil.Diff(t, nil, err)
 	testutil.Diff(t, http.StatusOK, resp.StatusCode)
-
+	body, _ := io.ReadAll(resp.Body)
+	testutil.Diff(t, "12345", string(body))
 }
