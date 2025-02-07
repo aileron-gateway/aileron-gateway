@@ -40,6 +40,7 @@ func (h *handler) Middleware(next http.Handler) http.Handler {
 		newReq, status, err := h.ServeAuthn(w, r)
 		r = newReq
 		if err != nil {
+			err = app.ErrAppAuthnAuthentication.WithoutStack(err, nil)
 			h.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusUnauthorized))
 			return
 		}
@@ -51,7 +52,8 @@ func (h *handler) Middleware(next http.Handler) http.Handler {
 			return
 		}
 
-		h.eh.ServeHTTPError(w, r, utilhttp.ErrUnauthorized)
+		err = app.ErrAppAuthnAuthentication.WithoutStack(nil, nil)
+		h.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusUnauthorized))
 	})
 }
 
