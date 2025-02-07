@@ -707,3 +707,197 @@ func TestXmlElement_MarshalXML(t *testing.T) {
 		})
 	}
 }
+
+func TestCreateSOAPEnvelope(t *testing.T) {
+	type condition struct {
+		data map[string]any
+	}
+
+	type action struct {
+		expected *soapEnvelope
+	}
+
+	tb := testutil.NewTableBuilder[*condition, *action]()
+	tb.Name(t.Name())
+	table := tb.Build()
+	gen := testutil.NewCase[*condition, *action]
+
+	testCases := []*testutil.Case[*condition, *action]{
+		gen(
+			"EmptyEnvelope",
+			nil,
+			nil,
+			&condition{
+				data: map[string]any{
+					"soap:Envelope": map[string]any{},
+				},
+			},
+			&action{
+				expected: &soapEnvelope{
+					Header: &soapHeader{},
+					Body:   &soapBody{},
+				},
+			},
+		),
+		gen(
+			"EnvelopeWithNamespaces",
+			nil,
+			nil,
+			&condition{
+				data: map[string]any{
+					"soap:Envelope": map[string]any{
+						"_namespace": map[string]any{
+							"soap": "http://schemas.xmlsoap.org/soap/envelope/",
+							"xsi":  "http://www.w3.org/2001/XMLSchema-instance",
+						},
+						"soap:Body": map[string]any{},
+					},
+				},
+			},
+			&action{
+				expected: &soapEnvelope{
+					ExtraNS: []xml.Attr{
+						{Name: xml.Name{Local: "xmlns:soap"}, Value: "http://schemas.xmlsoap.org/soap/envelope/"},
+						{Name: xml.Name{Local: "xmlns:xsi"}, Value: "http://www.w3.org/2001/XMLSchema-instance"},
+					},
+					Header: &soapHeader{},
+					Body: &soapBody{
+						Content: []xmlElement{},
+					},
+				},
+			},
+		),
+		gen(
+			"EnvelopeWithHeader",
+			nil,
+			nil,
+			&condition{
+				data: map[string]any{
+					"soap:Envelope": map[string]any{
+						"soap:Header": map[string]any{
+							"TestHeader": map[string]any{
+								"Key1": "Value1",
+								"Key2": "Value2",
+							},
+						},
+						"soap:Body": map[string]any{},
+					},
+				},
+			},
+			&action{
+				expected: &soapEnvelope{
+					Header: &soapHeader{
+						Content: []xmlElement{
+							{
+								XMLName: xml.Name{Local: "TestHeader"},
+								children: []xmlElement{
+									{XMLName: xml.Name{Local: "Key1"}, Content: "Value1"},
+									{XMLName: xml.Name{Local: "Key2"}, Content: "Value2"},
+								},
+							},
+						},
+					},
+					Body: &soapBody{
+						Content: []xmlElement{},
+					},
+				},
+			},
+		),
+		gen(
+			"EnvelopeWithNamespacesAndNullValue",
+			nil,
+			nil,
+			&condition{
+				data: map[string]any{
+					"soap:Envelope": map[string]any{
+						"_namespace": map[string]any{
+							"soap": "http://schemas.xmlsoap.org/soap/envelope/",
+							"xsi":  "http://www.w3.org/2001/XMLSchema-instance",
+						},
+						"soap:Body": map[string]any{
+							"PartialResponse": map[string]any{
+								"Value": nil,
+							},
+						},
+					},
+				},
+			},
+			&action{
+				expected: &soapEnvelope{
+					ExtraNS: []xml.Attr{
+						{Name: xml.Name{Local: "xmlns:xsi"}, Value: "http://www.w3.org/2001/XMLSchema-instance"},
+						{Name: xml.Name{Local: "xmlns:soap"}, Value: "http://schemas.xmlsoap.org/soap/envelope/"},
+					},
+					Header: &soapHeader{},
+					Body: &soapBody{
+						Content: []xmlElement{
+							{
+								XMLName: xml.Name{Local: "PartialResponse"},
+								children: []xmlElement{
+									{
+										XMLName: xml.Name{Local: "Value"},
+										isNil:   true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		),
+	}
+
+	testutil.Register(table, testCases...)
+	for _, tt := range table.Entries() {
+		tt := tt
+		t.Run(tt.Name(), func(t *testing.T) {
+			s := soapREST{
+				attributeKey:          "@attribute",
+				textKey:               "#text",
+				namespaceKey:          "_namespace",
+				arrayKey:              "item",
+				separatorChar:         ":",
+				extractStringElement:  true,
+				extractBooleanElement: true,
+				extractIntegerElement: true,
+				extractFloatElement:   true,
+			}
+
+			nsManager := &namespaceManager{
+				namespaces: make(map[string]string),
+			}
+
+			result := s.createSOAPEnvelope(tt.C().data, nsManager)
+
+			opts := []cmp.Option{
+				cmpopts.SortSlices(func(a, b xml.Attr) bool {
+					if a.Name.Local < b.Name.Local {
+						return true
+					}
+					if a.Name.Local > b.Name.Local {
+						return false
+					}
+					return a.Value < b.Value
+				}),
+				cmpopts.SortSlices(func(a, b xmlElement) bool {
+					if a.XMLName.Space < b.XMLName.Space {
+						return true
+					}
+					if a.XMLName.Space > b.XMLName.Space {
+						return false
+					}
+					return a.XMLName.Local < b.XMLName.Local
+				}),
+				testutil.DeepAllowUnexported(
+					xmlElement{},
+					soapEnvelope{},
+					soapHeader{},
+					soapBody{},
+					namespaceManager{},
+				),
+			}
+
+			testutil.Diff(t, tt.A().expected, result, opts...)
+		})
+	}
+}
