@@ -6,6 +6,7 @@ package example_test
 import (
 	"context"
 	"net/http"
+	"os"
 	"testing"
 	"time"
 
@@ -13,9 +14,9 @@ import (
 )
 
 func TestListener(t *testing.T) {
-
-	targetDir := "./../.."
-	changeDirectory(t, targetDir)
+	wd, _ := os.Getwd()
+	defer changeDirectory(t, wd)
+	changeDirectory(t, "./../../")
 
 	env := []string{}
 	config := []string{"./_example/listener/config.yaml"}
