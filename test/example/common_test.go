@@ -6,6 +6,7 @@ package example_test
 import (
 	"context"
 	"errors"
+	"os"
 	"testing"
 	"os"
 
