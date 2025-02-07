@@ -4,19 +4,44 @@ spec:
   runners:
     - apiVersion: core/v1
       kind: HTTPServer
+      name: http3
+    - apiVersion: core/v1
+      kind: HTTPServer
+      name: http2
 
 ---
 apiVersion: core/v1
 kind: HTTPServer
+metadata:
+  name: http2
 spec:
   addr: ":8443"
-  http2Config: {}
+  httpConfig:
+    altSvc: h3=":8443";ma=3600,h3-29=":8443";ma=3600
+    listenConfig:
+      tlsConfig:
+        certKeyPairs:
+          - certFile: ./_example/http3-server/pki/server.crt # Set server cert.
+            keyFile: ./_example/http3-server/pki/server.key # Set server key.
+  virtualHosts:
+    - handlers:
+        - handler:
+            apiVersion: core/v1
+            kind: ReverseProxyHandler
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+metadata:
+  name: http3
+spec:
+  addr: ":8443"
   http3Config:
     altSvc: h3=":8443";ma=3600,h3-29=":8443";ma=3600
     tlsConfig:
       certKeyPairs:
-        - certFile: "./_example/http3-server/pki/cert.crt" # Replace to your cert
-          keyFile: "./_example/http3-server/pki/cert.key" # Replace to your key.
+        - certFile: "./_example/http3-server/pki/server.crt" # Replace to your cert
+          keyFile: "./_example/http3-server/pki/server.key" # Replace to your key.
   virtualHosts:
     - hosts: []
       handlers:
