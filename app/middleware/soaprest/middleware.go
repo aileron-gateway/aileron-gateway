@@ -103,7 +103,7 @@ func (m *soapREST) Middleware(next http.Handler) http.Handler {
 		next.ServeHTTP(ww, newReq)
 
 		// Convert REST response to SOAP response
-		respBody, err := m.convertRestToSoapResponse(ww)
+		respBody, err := m.convertRESTtoSOAPResponse(ww)
 		if err != nil {
 			m.eh.ServeHTTPError(w, r, utilhttp.ErrInternalServerError)
 			return
@@ -173,33 +173,15 @@ func (s soapREST) xmlToMap(node xmlNode, nsCtx *namespaceContext) any {
 			childValue := s.xmlToMap(child, nsCtx)
 			if childMap, ok := childValue.(map[string]any); ok {
 				if len(childMap) == 1 {
-					// Single entry child node
-					//
-					// <singleEntry>
-					//   <value>OnlyValue</value>
-					// </singleEntry>
-					//
 					for _, v := range childMap {
 						childrenMap[childName] = append(childrenMap[childName], v)
 					}
 				} else {
-					// Map child node
-					//
-					// <mapNode>
-					//   <entry1>Value1</entry1>
-					//   <entry2>Value2</entry2>
-					// </mapNode>
-					//
 					childrenMap[childName] = append(childrenMap[childName], childMap)
 				}
 			} else {
-				// Non map child node
-				//
-				// <nonMapNode>JustText</nonMapNode>
-				//
 				childrenMap[childName] = append(childrenMap[childName], childValue)
 			}
-			// }
 
 			for k, v := range childrenMap {
 				if len(v) == 1 {
@@ -223,8 +205,7 @@ func (s soapREST) xmlToMap(node xmlNode, nsCtx *namespaceContext) any {
 	}
 
 	// Only supports conversions for SOAP 1.1
-	if node.XMLName.Local == soapEnvelopeKey &&
-		node.XMLName.Space == soapNameSpaceURI {
+	if node.XMLName.Local == soapEnvelopeKey && node.XMLName.Space == soapNameSpaceURI {
 		return map[string]any{soapNameSpaceKey + s.separatorChar + soapEnvelopeKey: resultMap}
 	}
 
@@ -254,7 +235,7 @@ func (s soapREST) getNodeName(node xmlNode, nsCtx *namespaceContext) string {
 	return nodeName
 }
 
-func (m *soapREST) convertRestToSoapResponse(wrapper *wrappedWriter) ([]byte, error) {
+func (m *soapREST) convertRESTtoSOAPResponse(wrapper *wrappedWriter) ([]byte, error) {
 	var restData map[string]any
 	if err := json.NewDecoder(wrapper.body).Decode(&restData); err != nil {
 		return nil, err
@@ -265,6 +246,7 @@ func (m *soapREST) convertRestToSoapResponse(wrapper *wrappedWriter) ([]byte, er
 	}
 	envelope := m.createSOAPEnvelope(restData, nsManager)
 
+	// <TODO> Check whether MarshalIndent reliably returns no errors.
 	output, err := xml.MarshalIndent(envelope, "", "  ")
 	if err != nil {
 		return nil, err
@@ -320,10 +302,12 @@ func (e xmlElement) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
 		})
 	}
 
+	// <TODO> Check whether EncodeToken(start) reliably returns no errors.
 	if err := enc.EncodeToken(start); err != nil {
 		return err
 	}
 
+	// <TODO> Check whether EncodeToken(start) reliably returns no errors.
 	if e.Content != "" {
 		if err := enc.EncodeToken(xml.CharData([]byte(e.Content))); err != nil {
 			return err
@@ -331,6 +315,7 @@ func (e xmlElement) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
 	}
 
 	for _, child := range e.children {
+		// <TODO> Check whether EncodeToken(start) reliably returns no errors.
 		if err := enc.Encode(child); err != nil {
 			return err
 		}
