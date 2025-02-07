@@ -6,8 +6,8 @@ package example_test
 import (
 	"context"
 	"errors"
-	"testing"
 	"os"
+	"testing"
 
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/cmd/aileron/app"
