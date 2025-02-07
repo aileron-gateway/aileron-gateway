@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/aileron-gateway/aileron-gateway/app"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 	"github.com/aileron-gateway/aileron-gateway/util/session"
@@ -74,7 +75,8 @@ func (m *sessioner) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ss, err := m.store.Get(r)
 		if err != nil {
-			m.eh.ServeHTTPError(w, r, err)
+			err := app.ErrAppMiddleSession.WithStack(err, nil)
+			m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusInternalServerError))
 			return
 		}
 		ctx := session.ContextWithSession(r.Context(), ss)
@@ -89,7 +91,8 @@ func (m *sessioner) Middleware(next http.Handler) http.Handler {
 				ssw.saveSession(ctx)
 			}
 			if ssw.saveErr != nil {
-				m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(ssw.saveErr, http.StatusInternalServerError))
+				err := app.ErrAppMiddleSession.WithStack(ssw.saveErr, nil)
+				m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusInternalServerError))
 			}
 		}(ctx)
 
