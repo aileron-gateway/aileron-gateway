@@ -315,7 +315,7 @@ func (e xmlElement) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
 	}
 
 	for _, child := range e.children {
-		// <TODO> Check whether EncodeToken(start) reliably returns no errors.
+		// <TODO> Check whether Encode reliably returns no errors.
 		if err := enc.Encode(child); err != nil {
 			return err
 		}
