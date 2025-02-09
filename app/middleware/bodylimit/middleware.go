@@ -112,8 +112,8 @@ func (m *bodyLimit) Middleware(next http.Handler) http.Handler {
 			body := make([]byte, r.ContentLength)
 			n, err := io.ReadFull(r.Body, body)
 			if err != nil && err != io.EOF {
-				err = app.ErrAppMiddleBodyTooLarge.WithoutStack(err, nil)
-				m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusRequestEntityTooLarge))
+				err = app.ErrAppMiddleInvalidLength.WithoutStack(err, nil)
+				m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusBadRequest))
 				return
 			}
 			if int64(n) != r.ContentLength {
