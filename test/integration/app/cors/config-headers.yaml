@@ -1,0 +1,17 @@
+apiVersion: app/v1
+kind: CORSMiddleware
+spec:
+  corsPolicy:
+    allowedHeaders:
+      - "X-Allowed-1"
+      - "X-Allowed-2"
+    exposedHeaders:
+      - "X-Exposed-1"
+      - "X-Exposed-2"
+    allowCredentials: true
+    maxAge: 3600
+    corsEmbedderPolicy: EmbedderRequireCorp
+    corsOpenerPolicy: OpenerSameOrigin
+    corsResourcePolicy: ResourceSameOrigin
+    allowPrivateNetwork: true
+    disableWildCardOrigin: true

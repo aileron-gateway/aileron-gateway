@@ -1,0 +1,9 @@
+apiVersion: app/v1
+kind: CSRFMiddleware
+metadata:
+  name: testName
+  namespace: testNamespace
+spec:
+  customRequestHeader:
+    headerName: "X-CSRF-Token" # Header name to store the token
+    allowedPattern: "^ValidToken$" # Valid token regular expression patterns

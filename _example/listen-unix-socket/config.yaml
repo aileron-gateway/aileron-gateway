@@ -65,7 +65,8 @@ spec:
         match: ".*"
         matchType: Regex
       upstreams:
-        - url: http://abstract.socket.com
+        - url: http://localhost:8080
+        # - url: http://abstract.socket.com
         # - url: http://pathname.socket.com
 
 ---
@@ -75,5 +76,6 @@ spec:
   httpTransportConfig:
     dialConfig:
       replaceTargets:
-        - "(tcp|abstract.socket.com:80) > (unix|@hello)"
+        - "(tcp|localhost:8080) > (unix|@hello)"
+        # - "(tcp|abstract.socket.com:80) > (unix|@hello)"
         # - "(tcp|pathname.socket.com:80) > (unix|/var/run/hello.sock)"

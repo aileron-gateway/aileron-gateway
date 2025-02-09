@@ -1,0 +1,1 @@
+p, "regexMatch(r.sub.API,'^/allowed.*')", /*, GET

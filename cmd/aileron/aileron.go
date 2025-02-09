@@ -29,10 +29,10 @@ func main() {
 	a := app.New()
 	a.ParseArgs(os.Args[1:])
 
-	core := api.NewFactoryAPI()
-	register.RegisterAll(core) // Register all core APIs.
-
-	_ = svr.Handle("core/", core) // Handle "core/*" APIs.
+	f := api.NewFactoryAPI()
+	register.RegisterAll(f)    // Register all APIs.
+	_ = svr.Handle("core/", f) // Handle "core/*" APIs.
+	_ = svr.Handle("app/", f)  // Handle "app/*" APIs.
 
 	if err := a.Run(svr); err != nil {
 		e := app.ErrAppMain.WithStack(err, nil)

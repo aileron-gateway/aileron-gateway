@@ -1,0 +1,6 @@
+apiVersion: app/v1
+kind: BodyLimitMiddleware
+spec:
+  maxSize: 10
+  memLimit: 5
+  tempPath: "./"

@@ -1,0 +1,156 @@
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  runners:
+    - apiVersion: core/v1
+      kind: HTTPServer
+      namespace: sampleNamespace
+      name: EchoServer
+
+---
+apiVersion: app/v1
+kind: EchoHandler
+metadata:
+  name: default
+  namespace: sampleNamespace
+spec: {}
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+metadata:
+  name: EchoServer
+  namespace: sampleNamespace
+spec:
+  addr: ":8080"
+  virtualHosts:
+    - hosts: []
+      middleware:
+        - apiVersion: app/v1
+          kind: SessionMiddleware
+          namespace: sampleNamespace
+          name: default
+        - apiVersion: app/v1
+          kind: AuthenticationMiddleware
+          namespace: sampleNamespace
+          name: default
+      handlers:
+        - handler:
+            apiVersion: app/v1
+            kind: EchoHandler
+            namespace: sampleNamespace
+            name: default
+
+---
+apiVersion: core/v1
+kind: ErrorHandler
+metadata:
+  name: default
+  namespace: sampleNamespace
+spec:
+
+---
+apiVersion: app/v1
+kind: SessionMiddleware
+metadata:
+  name: default
+  namespace: sampleNamespace
+spec:
+  errorHandler:
+    apiVersion: core/v1
+    kind: ErrorHandler
+    name: default
+    namespace: sampleNamespace
+  secureEncoder:
+    enableCompression: false
+    disableHMAC: true
+    disableEncryption: true
+
+---
+apiVersion: app/v1
+kind: AuthenticationMiddleware
+metadata:
+  name: default
+  namespace: sampleNamespace
+spec:
+  handlers:
+    - apiVersion: app/v1
+      kind: OAuthAuthenticationHandler
+      namespace: sampleNamespace
+      name: default
+
+---
+apiVersion: app/v1
+kind: OAuthAuthenticationHandler
+metadata:
+  name: default
+  namespace: sampleNamespace
+spec:
+  contexts:
+    - provider:
+        issuer: ""
+        baseURL: "https://localhost:18443"
+        endpoints:
+          discovery: "/realms/aileron/.well-known/openid-configuration"
+        roundTripper:
+          apiVersion: core/v1
+          kind: HTTPClient
+          namespace: sampleNamespace
+          name: discoveryClient
+      client:
+        id: "certificate-bound-access-tokens"
+        audience: "certificate-bound-access-tokens"
+        scopes:
+          - openid
+          - address
+          - phone
+        jwtHandler:
+          privateKeys:
+            - keyID: "xFzm4BYgi-A0uzO9PpjgXmSS9HrsLZPhc0IrH8hedX4"
+              algorithm: RS256
+              keyType: PRIVATE
+              keyFilePath: "./_example/authn-fapi/keys/aileron/private.key"
+      tokenRedeemer:
+        clientAuthMethod: SelfSignedTLSClientAuth
+        roundTripper:
+          apiVersion: core/v1
+          kind: HTTPClient
+          namespace: sampleNamespace
+          name: tokenRedeemerClient
+      jwtHandler:
+        publicKeys:
+          - keyID: "LO9dmmUtUOiV1P7OkzYW-CDbTJV94nADvDFhojxvSqk" # "Realm settings” -> "Keys" -> "RS256" Kid in Keycloak
+            algorithm: RS256
+            keyType: PUBLIC
+            keyFilePath: "./_devtools/keycloak/keys/public.key" # Download “Realm settings” -> “Keys” -> “RS256” public key in Keycloak
+  ropcHandler:
+    redeemTokenPath: "/redeem"
+    usernameKey: "username"
+    passwordKey: "password"
+
+---
+apiVersion: core/v1
+kind: HTTPClient
+metadata:
+  namespace: sampleNamespace
+  name: tokenRedeemerClient
+spec:
+  HTTPTransportConfig:
+    tlsConfig:
+      certKeyPairs:
+        - certFile: "./_example/authn-fapi/keys/mtls/client.crt"
+          keyFile: "./_example/authn-fapi/keys/mtls/client.key"
+      rootCAs:
+        - "./_example/authn-fapi/keys/mtls/server-ca.crt"
+
+---
+apiVersion: core/v1
+kind: HTTPClient
+metadata:
+  namespace: sampleNamespace
+  name: discoveryClient
+spec:
+  HTTPTransportConfig:
+    tlsConfig:
+      rootCAs:
+        - "./_example/authn-fapi/keys/mtls/server-ca.crt"

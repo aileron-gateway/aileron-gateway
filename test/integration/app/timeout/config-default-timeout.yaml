@@ -1,0 +1,7 @@
+apiVersion: app/v1
+kind: TimeoutMiddleware
+metadata:
+  name: test
+  namespace: testNamespace
+spec:
+  defaultTimeout: 50 # milliseconds

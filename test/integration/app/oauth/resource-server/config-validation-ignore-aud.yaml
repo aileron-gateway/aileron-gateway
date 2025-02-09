@@ -1,0 +1,19 @@
+apiVersion: app/v1
+kind: OAuthAuthenticationHandler
+spec:
+  resourceServerHandler: {}
+  contexts:
+    - name: default
+      provider:
+        issuer: "http://test.provider.com/"
+      client:
+        id: "test-client"
+        audience: "test-audience"
+      jwtHandler:
+        publicKeys:
+          - keyID: test-key
+            algorithm: RS256
+            keyType: PUBLIC
+            keyFilePath: ./public.key
+      atValidation:
+        aud: "-"

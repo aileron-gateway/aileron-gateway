@@ -1,0 +1,9 @@
+apiVersion: app/v1
+kind: CORSMiddleware
+spec:
+  corsPolicy:
+    allowedOrigins:
+      - "http://allowed-origin.com"
+    allowedMethods:
+      - POST
+      - GET

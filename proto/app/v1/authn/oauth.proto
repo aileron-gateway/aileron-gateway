@@ -1,0 +1,427 @@
+syntax = "proto3";
+package app.v1;
+
+import "app/v1/jwt.proto";
+import "buf/validate/validate.proto";
+import "kernel/resource.proto";
+
+option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
+
+// OAuthAuthenticationHandler is the definition of the OAuthAuthenticationHandler object.
+// OAuthAuthenticationHandler implements interface of the AuthenticationHandler.
+message OAuthAuthenticationHandler {
+    // [REQUIRED]
+    // APIVersion is the defined version of the midleware.
+    // This value must be "app/v1".
+    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "app/v1"];
+
+    // [REQUIRED]
+    // Kind is the kind of this object.
+    // This value must be "OAuthAuthenticationHandler".
+    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "OAuthAuthenticationHandler"];
+
+    // [OPTIONAL]
+    // Metadata is the metadata of the http logger object.
+    // If not set, both name and namespace in the metadata
+    // are treated as "default".
+    kernel.Metadata Metadata = 3 [json_name = "metadata"];
+
+    // [OPTIONAL]
+    // Spec is the specification of the authentication handler.
+    // Default values are used when nothing is set.
+    OAuthAuthenticationHandlerSpec Spec = 4 [json_name = "spec"];
+}
+
+// OAuthAuthenticationHandlerStatus is the specifications for the OAuthAuthenticationHandler object.
+message OAuthAuthenticationHandlerSpec {
+    // [OPTIONAL]
+    // Logger is the reference to a Logger object.
+    // Referred object must implement Logger interface.
+    // Default Logger is used when not set.
+    kernel.Reference Logger = 1 [json_name = "logger"];
+
+    // [OPTIONAL]
+    // ErrorHandler is the reference to a ErrorHandler object.
+    // Referred object must implement ErrorHandler interface.
+    // Default error handler is used when not set.
+    kernel.Reference ErrorHandler = 2 [json_name = "errorHandler"];
+
+    // [REQUIRED]
+    // Contexts is the authentication context.
+    // This field is optional but should be set at least 1 context
+    // to make authentication work.
+    // Default is not set.
+    repeated Context Contexts = 3 [json_name = "contexts"];
+
+    // [OPTIONAL]
+    // ClaimsKey is the key to save claims in the context and make it usable
+    // from authorization middleware.
+    // Default is not set.
+    string ContextQueryKey = 4 [json_name = "contextQueryKey"];
+
+    // [OPTIONAL]
+    // ClaimsKey is the key to save claims in the context and make it usable
+    // from authorization middleware.
+    // Default is not set, or empty .
+    string ContextHeaderKey = 5 [json_name = "contextHeaderKey"];
+
+    // [REQUIRED]
+    // Handlers are the options of OAuth authentication handlers.
+    oneof Handlers {
+        option(buf.validate.oneof).required               = true;
+        AuthorizationCodeHandler AuthorizationCodeHandler = 10 [json_name = "authorizationCodeHandler"];
+        ClientCredentialsHandler ClientCredentialsHandler = 11 [json_name = "clientCredentialsHandler"];
+        ResourceServerHandler    ResourceServerHandler    = 12 [json_name = "resourceServerHandler"];
+        ROPCHandler              ROPCHandler              = 13 [json_name = "ropcHandler"];
+    }
+}
+
+// ProviderEndpoints is the endpoints of OAuth provider.
+message ProviderEndpoints {
+    string Authorization = 1 [json_name = "authorization"];
+    string Token         = 2 [json_name = "token"];
+    string Userinfo      = 3 [json_name = "userinfo"];
+    string Introspection = 4 [json_name = "introspection"];
+    string Revocation    = 5 [json_name = "revocation"];
+    string JWKs          = 6 [json_name = "jwks"];
+    string Discovery     = 7 [json_name = "discovery"];
+}
+
+// OAuthProvider is the configuration of OAuth provider.
+message OAuthProvider {
+    string            Issuer       = 1 [json_name = "issuer"];
+    string            BaseURL      = 2 [json_name = "baseURL"];
+    ProviderEndpoints Endpoints    = 3 [json_name = "endpoints"];
+    kernel.Reference  RoundTripper = 4 [json_name = "roundTripper"];
+}
+
+// OAuthClient is the configuration of OAuth client.
+message OAuthClient {
+    string          ID         = 1 [json_name = "id"];
+    string          Secret     = 2 [json_name = "secret"];
+    string          Audience   = 3 [json_name = "audience"];
+    repeated string Scopes     = 4 [json_name = "scopes"];
+    JWTHandlerSpec  JWTHandler = 5 [json_name = "jwtHandler"];
+}
+
+// PKCEMethod is the PKCE code challenge methods.
+// Method is defined in https://datatracker.ietf.org/doc/rfc7636/
+enum PKCEMethod {
+    S256  = 0;  // "S256"
+    Plain = 1;  // "plain"
+}
+
+// ClientAuthMethod is the method of authentication
+// used for OAuth client authentication.
+enum ClientAuthMethod {
+    FormAuth                = 0;  // Form authentication
+    BasicAuth               = 1;  // Basic authentication
+    ClientSecretJWT         = 2;  // Authentication by JWT signed with a client secret
+    PrivateKeyJWT           = 3;  // Authentication by JWT signed with a client secret
+    TLSClientAuth           = 4;  // Authentication by PKI-based X.509 certificates
+    SelfSignedTLSClientAuth = 5;  // Authentication by self-signed X.509 certificates
+}
+
+message ClientRequester {
+    // [OPTIONAL]
+    // RoundTripper is the reference to a HTTP round tripper object.
+    // A default round trupper will be used when not set.
+    // Default is not set.
+    kernel.Reference RoundTripper = 1 [json_name = "roundTripper"];
+
+    // [OPTIONAL]
+    // ClientAuthMethod is the OAuth client authentication method.
+    // Form or Basic authentication is available for now.
+    // Default is [Form].
+    ClientAuthMethod ClientAuthMethod = 2 [json_name = "clientAuthMethod"];
+
+    // [OPTIONAL]
+    // ExtraHeader is the additional HTTP request headers
+    // set when request is sent by the client.
+    // Default is not set.
+    map<string, string> ExtraHeader = 3 [json_name = "extraHeader"];
+
+    // [OPTIONAL]
+    // ExtraQuery is the additional HTTP query parameters
+    // for form request body which is set when request is sent by the client.
+    // Default is not set.
+    map<string, string> ExtraQuery = 4 [json_name = "extraQuery"];
+}
+
+message Context {
+    // [REQUIRED]
+    // Provider is the configurations of OAuth provider.
+    string Name = 1 [json_name = "name"];
+
+    // [REQUIRED]
+    // Provider is the configurations of OAuth provider.
+    OAuthProvider Provider = 2 [json_name = "provider"];
+
+    // [REQUIRED]
+    // Client is the configurations of OAuth client.
+    OAuthClient Client = 3 [json_name = "client"];
+
+    // [OPTIONAL]
+    // TokenRedeemer is the configuration for token requests.
+    ClientRequester TokenRedeemer = 4 [json_name = "tokenRedeemer"];
+
+    // [OPTIONAL]
+    // TokenRedeemer is the configuration for token introspection requests.
+    ClientRequester TokenIntrospector = 5 [json_name = "tokenIntrospector"];
+
+    // [OPTIONAL]
+    // JWTHandler is the configuration for JWT handlers.
+    JWTHandlerSpec JWTHandler = 6 [json_name = "jwtHandler"];
+
+    // [OPTIONAL]
+    // EnableIntrospection
+    // If false, JWTs are validated locally
+    // Enabling both local validation and validation by introspection
+    // is not supported.
+    // Default is [false].
+    bool EnableIntrospection = 7 [json_name = "enableIntrospection"];
+
+    // [OPTIONAL]
+    // ClaimsKey is the key to save claims in the context and make it usable
+    // from authorization middleware.
+    // Default is ["AuthnClaims"].
+    string ClaimsKey = 8 [json_name = "claimsKey"];
+
+    // [OPTIONAL]
+    // ATProxyHeader is the header name to proxy access token if exists.
+    // Token is not proxied when the value is empty.
+    // Default is [""].
+    string ATProxyHeader = 9 [json_name = "atProxyHeader"];
+
+    // [OPTIONAL]
+    // IDTProxyHeader is the header name to proxy ID token if exists.
+    // Token is not proxied when the value is empty.
+    // Default is [""].
+    string IDTProxyHeader = 10 [json_name = "idtProxyHeader"];
+
+    TokenValidation ATValidation  = 11 [json_name = "atValidation"];
+    TokenValidation IDTValidation = 12 [json_name = "idtValidation"];
+}
+
+message AuthorizationRequestObject {
+    // [OPTIONAL]
+    // RequestURIPath specifies the URI for the request object by reference
+    // used for OpenID Connect authorization requests.
+    // If this field is set, it allows OpenID Connect requests to be passed by reference.
+    // Note: To use RequestObjectURI, EnabledRequestObject must be set to true.
+    string RequestURI = 1 [json_name = "requestURI"];
+
+    // [OPTIONAL]
+    // JWTHandler is the configuration for JWT handlers.
+    // JWTHandler is a required parameter of AuthorizationRequestObject.
+    JWTHandlerSpec JWTHandler = 2 [json_name = "jwtHandler"];
+
+    // [OPTIONAL]
+    // Exp specifies the remaining time in seconds before the request object expires.
+    // Default is [0].
+    int64 Exp = 3 [json_name = "exp", (buf.validate.field).int64 = { gte: 0 }];
+
+    // [OPTIONAL]
+    // NbfLeeway compensates for clock skew by adding a grace period in seconds to the nbf claim.
+    // Default is [0].
+    int64 Nbf = 4 [json_name = "nbf", (buf.validate.field).int64 = { gte: 0 }];
+
+    // [OPTIONAL]
+    // Disablecache set to true adds a Base64URL-encoded SHA-256 hash to request_uri to disable caching.
+    // Default is [false].
+    bool DisableCache = 5 [json_name = "disableCache"];
+}
+
+message AuthorizationResponseJARM {
+    // [OPTIONAL]
+    // ResponseModeMethod is the method of response_mode parmeter
+    // used for authorization request.
+    // Default is [ResponseModeJWT].
+    ResponseModeMethod ResponseMode = 1 [json_name = "responseMode"];
+
+    // [OPTIONAL]
+    // JWTHandler is the configuration for JWT handlers.
+    JWTHandlerSpec JWTHandler = 2 [json_name = "jwtHandler"];
+}
+
+// ResponseModeMethod is the method of response_mode parmeter
+// used for authorization responses.
+// Method is defined in https://openid.net/specs/openid-financial-api-jarm.html
+enum ResponseModeMethod {
+    ResponseModeJWT         = 0;
+    ResponseModeQueryJWT    = 1;
+    ResponseModeFragmentJWT = 2;
+    ResponseModeFormPostJWT = 3;
+}
+
+message AuthorizationCodeHandler {
+    bool       DisableState        = 1 [json_name = "disableState"];
+    bool       DisableNonce        = 2 [json_name = "disableNonce"];
+    bool       DisablePKCE         = 3 [json_name = "disablePKCE"];
+    PKCEMethod PKCEMethod          = 4 [json_name = "pkceMethod"];
+    string     LoginPath           = 5 [json_name = "loginPath"];
+    string     CallbackURL         = 6 [json_name = "callbackURL"];
+    string     RedirectPath        = 7 [json_name = "redirectPath"];
+    string     RedirectKey         = 8 [json_name = "redirectKey"];
+    string     RedirectPathPattern = 9 [json_name = "redirectPathPattern"];
+
+    // [OPTIONAL]
+    // RedirectToLogin is the flag to redirect unauthenticated users
+    // to the login url.
+    // This value is prior to the UnauthorizeAny when set to true.
+    // Default ["false"].
+    bool RedirectToLogin = 10 [json_name = "redirectToLogin"];
+
+    // [OPTIONAL]
+    // UnauthorizeAny disallow to access any path except for login path
+    // when users are not authenticated.
+    // If this field is set to false, users are redirected to login path
+    // when they have not been authenticated yet.
+    // If true, unauthorized error will be returned.
+    // This value is prior to the RestoreRequest when set to true.
+    // Default is ["false"]
+    bool UnauthorizeAny = 11 [json_name = "unauthorizeAny"];
+
+    // [OPTIONAL]
+    // RestoreRequest allow users to access any path
+    // even they have not been authenticated yet.
+    // Initial API requests will temporarily  be stored in the session
+    // while users are taking authentication processes and
+    // be restored after they come back to callback path
+    // after authentication.
+    // Default is ["false"]
+    bool RestoreRequest = 12 [json_name = "restoreRequest"];
+
+    // [OPTIONAL]
+    // URLParams is the list of additional url parameters
+    // for authentication request.
+    // Default is not set.
+    repeated string URLParams = 13 [json_name = "urlParams"];
+
+    // [OPTIONAL]
+    // EnabledFAPI ensures client security by following the
+    // Financial-grade API specifications.
+    // Default is [false].
+    bool EnabledFAPI = 14 [json_name = "enabledFAPI"];
+
+    // [OPTIONAL]
+    // RequestObject specifies whether the request object method
+    // is used for OpenID Connect authorization requests.
+    AuthorizationRequestObject RequestObject = 15 [json_name = "requestObject"];
+
+    // [OPTIONAL]
+    // JARM specifies whether the response mode method
+    // is used for authorization responses.
+    AuthorizationResponseJARM JARM = 16 [json_name = "jarm"];
+}
+
+// ClientCredentialsHandler is the specification of ClientCredentialsHandler object.
+message ClientCredentialsHandler {
+}
+
+// ResourceServerHandler is the specification of ResourceServerHandler object.
+message ResourceServerHandler {
+    // [OPTIONAL]
+    // Header key name to get access token from.
+    // Default is ["Authorization"]
+    string HeaderKey = 1 [json_name = "headerKey"];
+
+    // [OPTIONAL]
+    // EnabledFAPI enables token validation by following the
+    // Financial-grade API specifications.
+    // Default is [false].
+    bool EnabledFAPI = 2 [json_name = "enabledFAPI"];
+}
+
+message ROPCHandler {
+    // [OPTIONAL]
+    // RedeemTokenPath is the url path to redeem access token
+    // by exchangind with the username and password.
+    // If not set, username and password have to be sent
+    // for every requests.
+    string RedeemTokenPath = 1 [json_name = "redeemTokenPath"];
+
+    // [OPTIONAL]
+    // UsernameKey is the key to obtain username from
+    // Post form request body.
+    // Both UsernameKey and PasswordKey have to be set
+    // when sending the username and password with
+    // Post form request. Otherwise, they should be
+    // sent with authorization basic header.
+    string UsernameKey = 2 [json_name = "usernameKey"];
+
+    // [OPTIONAL]
+    // PasswordKey is the key to obtain password from
+    // Post form request body.
+    // Both UsernameKey and PasswordKey have to be set
+    // when sending the username and password with
+    // Post form request. Otherwise, they should be
+    // sent with authorization basic header.
+    string PasswordKey = 3 [json_name = "passwordKey"];
+}
+
+message TokenValidation {
+    // [OPTIONAL]
+    // SkipUnexpired is the flag to skip token validation
+    // if the token is not expired.
+    // This flag works only when the exp claim is
+    // available in the tokens and the tokens are
+    // resored from session objects.
+    // That means the authentication flow that do not use
+    // session cannot use this flag.
+    // Default is [false].
+    bool SkipUnexpired = 1 [json_name = "skipUnexpired"];
+
+    // [OPTIONAL]
+    // Iss is the valid value of iss claim
+    // that is used for token validations.
+    // Set "-" to disable iss claim validation.
+    // Default is the provider's issuer.
+    string Iss = 2 [json_name = "iss"];
+
+    // [OPTIONAL]
+    // Aud is the valid value of aud claim
+    // that is used for token validations.
+    // Set "-" to disable aud claim validation.
+    // Default is the client id.
+    string Aud = 3 [json_name = "aud"];
+
+    // [OPTIONAL]
+    // ExpOptional is the flag to make the exp claim optional.
+    // If true, validation of the exp claim is done only when
+    // the exp was present in the claims.
+    // If false, exp claim is mandate and always be validated.
+    // This field is bounded to the
+    // https://pkg.go.dev/github.com/golang-jwt/jwt/v5#WithExpirationRequired
+    // Default is [false].
+    bool ExpOptional = 4 [json_name = "expOptional"];
+
+    // [OPTIONAL]
+    // IatDisabled is the flag to disable validation of iat claim.
+    // If true, validation of the iat claim is skipped even
+    // the iat was found in the claims.
+    // If false, iat claim is validated only when the iat
+    // is present in the claims.
+    // This field is bounded to the
+    // https://pkg.go.dev/github.com/golang-jwt/jwt/v5#WithIssuedAt
+    // Default is [false].
+    bool IatDisabled = 5 [json_name = "iatDisabled"];
+
+    // [OPTIONAL]
+    // Leeway is the time duration in second.
+    // exp claim will be (exp + leeway), nbf claim will be (nbf - leeway),
+    // iat claim will be (iat - leeway < now).
+    // This field is bounded to the
+    // https://pkg.go.dev/github.com/golang-jwt/jwt/v5#WithLeeway
+    // Default is [5] second.
+    int32 Leeway = 6 [json_name = "leeway"];
+
+    // [OPTIONAL]
+    // ValidMethods is the allowed algorithms list of JWT singning methods.
+    // Only JWTs signed with the algorithms listed here are valid.
+    // If not set, all algorithms are allowed.
+    // This field is bounded to the
+    // https://pkg.go.dev/github.com/golang-jwt/jwt/v5#WithValidMethods
+    // Default is not set.
+    repeated string ValidMethods = 7 [json_name = "validMethods"];
+}

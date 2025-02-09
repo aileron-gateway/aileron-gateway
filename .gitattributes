@@ -1,5 +1,6 @@
-# Always check-out / check-in files with LF line endings.
 * text=auto eol=lf
+*.{cmd,[cC][mM][dD]} text eol=crlf
+*.{bat,[bB][aA][tT]} text eol=crlf
 
-**/*.pb.go linguist-generated=true
-go.sum linguist-generated=true
+*.pb.go linguist-generated=true
+go.sum merge=union

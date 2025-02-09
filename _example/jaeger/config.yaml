@@ -1,0 +1,197 @@
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  defaultLogger:
+    apiVersion: core/v1
+    kind: SLogger
+    namespace: sampleNamespace
+    name: default
+  runners:
+    - apiVersion: core/v1
+      kind: ChannelGroup
+      namespace: sampleNamespace
+      name: default
+  finalizers:
+    - apiVersion: app/v1
+      kind: JaegerTracer
+      name: default
+      namespace: sampleNamespace
+---
+apiVersion: core/v1
+kind: ChannelGroup
+metadata:
+  namespace: sampleNamespace
+  name: default
+spec:
+  members:
+    - apiVersion: core/v1
+      kind: HTTPServer
+      namespace: sampleNamespace
+      name: echoServer
+    - apiVersion: core/v1
+      kind: HTTPServer
+      namespace: sampleNamespace
+      name: reverseProxyServer
+
+---
+apiVersion: core/v1
+kind: SLogger
+metadata:
+  name: default
+  namespace: sampleNamespace
+spec:
+  level: "Debug"
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+metadata:
+  namespace: sampleNamespace
+  name: echoServer
+spec:
+  addr: ":8000"
+  virtualHosts:
+    - hosts: []
+      handlers:
+        - handler:
+            apiVersion: app/v1
+            kind: EchoHandler
+            namespace: sampleNamespace
+            name: default
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+metadata:
+  name: reverseProxyServer
+  namespace: sampleNamespace
+spec:
+  addr: ":8080"
+  virtualHosts:
+    - hosts: []
+      middleware:
+        - apiVersion: app/v1
+          kind: TrackingMiddleware
+          namespace: sampleNamespace
+          name: default
+        - apiVersion: app/v1
+          kind: JaegerTracer
+          namespace: sampleNamespace
+          name: default
+        - apiVersion: core/v1
+          kind: HTTPLogger
+          namespace: sampleNamespace
+          name: default
+        - apiVersion: app/v1
+          kind: JaegerTracer
+          namespace: sampleNamespace
+          name: default
+      handlers:
+        - handler:
+            apiVersion: core/v1
+            kind: ReverseProxyHandler
+            namespace: sampleNamespace
+            name: default
+
+---
+apiVersion: app/v1
+kind: EchoHandler
+metadata:
+  name: default
+  namespace: sampleNamespace
+spec:
+  patterns:
+    - "/"
+
+---
+apiVersion: core/v1
+kind: ReverseProxyHandler
+metadata:
+  namespace: sampleNamespace
+  name: default
+spec:
+  loadBalancers:
+    - pathMatcher:
+        match: ".*"
+        matchType: Regex
+      upstreams:
+        - url: http://localhost:8000/
+  roundTripper:
+    apiVersion: core/v1
+    kind: HTTPClient
+    namespace: sampleNamespace
+    name: default
+
+---
+apiVersion: core/v1
+kind: HTTPClient
+metadata:
+  namespace: sampleNamespace
+  name: default
+spec:
+  tripperwares:
+    - apiVersion: app/v1
+      kind: JaegerTracer
+      namespace: sampleNamespace
+      name: default
+
+---
+apiVersion: core/v1
+kind: MessageLogCreator
+metadata:
+  name: default
+  namespace: sampleNamespace
+spec:
+  location: "Asia/Tokyo"
+  noLocation: true
+
+---
+apiVersion: core/v1
+kind: HTTPLogger
+metadata:
+  name: default
+  namespace: sampleNamespace
+spec:
+  logCreator:
+    apiVersion: core/v1
+    kind: MessageLogCreator
+    name: default
+    namespace: sampleNamespace
+
+---
+apiVersion: app/v1
+kind: TrackingMiddleware
+metadata:
+  name: default
+  namespace: sampleNamespace
+spec:
+  requestID:
+    proxyHeaderName: "X-Internal-Request-ID"
+  traceID:
+    proxyHeaderName: "X-Internal-Trace-ID"
+
+---
+apiVersion: app/v1
+kind: JaegerTracer
+metadata:
+  name: default
+  namespace: sampleNamespace
+spec:
+  gen128Bit: true
+  headers:
+    jaegerDebugHeader: "sampleDebugHeader"
+  reporter:
+    logSpans: true
+    localAgentHostPort: "localhost:6831"
+    httpHeaders:
+      sampleHeader: sampleValue
+  sampler:
+  serviceName: aileron
+  throttler:
+  middlewareSpanNames:
+    "0": "TrackingMiddleware"
+    "1": "HTTPLogger"
+  tripperwareSpanNames:
+    "0": "ReverseProxyHandler"
+  tags:
+    sampleKey: sampleValue

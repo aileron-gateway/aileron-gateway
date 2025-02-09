@@ -1,0 +1,9 @@
+apiVersion: app/v1
+kind: CSRFMiddleware
+spec:
+  synchronizerToken:
+    tokenSource: Header # Source of token
+    sourceKey: "X-CSRF-Token" # Key name of token
+  secret: "bXktc2VjdXJlLXNlY3JldC1rZXktc3RyaW5nLWZvci1jc3Jm"
+  seedSize: 20
+  hashAlg: SHA256

@@ -13,6 +13,10 @@
 *.exe
 *.so
 *.test
+*.log
+*.gz
+*.tmp
+*.temp
 /*.env
 /*.html
 

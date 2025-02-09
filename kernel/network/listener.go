@@ -223,8 +223,15 @@ type ListenConfig struct {
 	// networks that can be connected.
 	// By default, Networks works as a whitelist.
 	// To use as a blacklist, set Blacklist to true.
-	Networks  []string
+	Networks []string
+
+	// Blacklist if true, consider the networks listed in the
+	// Networks as blacklist.
 	Blacklist bool
+
+	// KeepAliveConfig is the keep-alive configuration.
+	// This config is not used for DTLS.
+	KeepAliveConfig net.KeepAliveConfig
 
 	// SockOption is the socket option.
 	// SocketOption is not applied for DTLS.
@@ -262,6 +269,22 @@ func NewListenerFromSpec(spec *k.ListenConfig) (net.Listener, error) {
 		WriteDeadline:   time.Duration(spec.WriteDeadline) * time.Millisecond,
 		SockOption:      SockOptionFromSpec(spec.SockOption),
 	}
+	if spec.KeepAliveConfig != nil {
+		kc := spec.KeepAliveConfig
+		if kc.Disable {
+			config.KeepAliveConfig = net.KeepAliveConfig{
+				Enable: false,            // Use net.ListenConfig.KeepAlive rather than net.ListenConfig.KeepAliveConfig.
+				Idle:   -1 * time.Second, // Negative value of net.ListenConfig.KeepAlive disables keep-alive.
+			}
+		} else {
+			config.KeepAliveConfig = net.KeepAliveConfig{
+				Enable:   true,
+				Idle:     time.Second * time.Duration(kc.Idle),
+				Interval: time.Second * time.Duration(kc.Interval),
+				Count:    int(kc.Count),
+			}
+		}
+	}
 	return NewListener(config)
 }
 
@@ -284,7 +307,8 @@ func NewListener(c *ListenConfig) (net.Listener, error) {
 
 	lc := &net.ListenConfig{
 		Control:         c.SockOption.ControlFunc(SockOptSO | SockOptIP | SockOptIPV6 | SockOptTCP),
-		KeepAliveConfig: net.KeepAliveConfig{}, // TODO: make KeepAliveConfig configurable.
+		KeepAlive:       c.KeepAliveConfig.Idle,
+		KeepAliveConfig: c.KeepAliveConfig,
 	}
 
 	var ln net.Listener

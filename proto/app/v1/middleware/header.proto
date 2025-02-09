@@ -1,0 +1,121 @@
+syntax = "proto3";
+package app.v1;
+
+import "buf/validate/validate.proto";
+import "kernel/resource.proto";
+import "kernel/txtutil.proto";
+
+option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
+
+// HeaderPolicyMiddleware is the definition of the HeaderPolicyMiddleware object.
+// HeaderPolicyMiddleware implements interface of the middleware.
+message HeaderPolicyMiddleware {
+    // [REQUIRED]
+    // APIVersion is the defined version of the midleware.
+    // This value must be "app/v1".
+    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "app/v1"];
+
+    // [REQUIRED]
+    // Kind is the kind of this object.
+    // This value must be "HeaderPolicyMiddleware".
+    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "HeaderPolicyMiddleware"];
+
+    // [OPTIONAL]
+    // Metadata is the metadata of the http logger object.
+    // If not set, both name and namespace in the metadata
+    // are treated as "default".
+    kernel.Metadata Metadata = 3 [json_name = "metadata"];
+
+    // [OPTIONAL]
+    // Spec is the specification of the middleware.
+    // Default values are used when nothing is set.
+    HeaderPolicyMiddlewareSpec Spec = 4 [json_name = "spec"];
+}
+
+// HeaderPolicyMiddlewareSpec is the specifications for the HeaderPolicyMiddleware object.
+message HeaderPolicyMiddlewareSpec {
+    // [OPTIONAL]
+    // ErrorHandler is the reference to a ErrorHandler object.
+    // Referred object must implement ErrorHandler interface.
+    // Default error handler is used when not set.
+    kernel.Reference ErrorHandler = 1 [json_name = "errorHandler"];
+
+    // [OPTIONAL]
+    // AllowMIMEs are the list of MIME types to allow.
+    // See https://www.iana.org/assignments/media-types/media-types.xhtml for all mime types.
+    // This field is ignored when nothing is specified.
+    repeated string AllowMIMEs = 2 [json_name = "allowMIMEs"];
+
+    // [OPTIONAL]
+    // MaxContentLength is the maximum content-length of the requests to allow.
+    // All requests including unknown-length requests are allowed
+    // when the value is less than or equal to 0.
+    // Default is 0.
+    int64 MaxContentLength = 3 [json_name = "maxContentLength"];
+
+    // [OPTIONAL]
+    // RequestPolicy is the header policy imposed to the request headers.
+    // Default is not set.
+    HeaderPolicySpec RequestPolicy = 4 [json_name = "requestPolicy"];
+
+    // [OPTIONAL]
+    // RequestPolicy is the header policy imposed to the response headers.
+    // Default is not set.
+    HeaderPolicySpec ResponsePolicy = 5 [json_name = "responsePolicy"];
+}
+
+// HeaderPolicySpec is the specifications of header policy.
+message HeaderPolicySpec {
+    // [OPTIONAL]
+    // Allows is the list of HTTP header names to allow to pass.
+    // This list works as a whitelist and other HTTP headers are removed.
+    // When no values are set, this field is ignored.
+    repeated string Allows = 1 [json_name                                                   = "allows",
+                                (buf.validate.field).repeated.items.string.well_known_regex = KNOWN_REGEX_HTTP_HEADER_NAME];
+
+    // [OPTIONAL]
+    // Removes is the list of HTTP header names to remove.
+    // This list works as a blacklist and the listed HTTP headers are removed.
+    // When no values are set, this field is ignored.
+    repeated string Removes = 2 [json_name                                                   = "removes",
+                                 (buf.validate.field).repeated.items.string.well_known_regex = KNOWN_REGEX_HTTP_HEADER_NAME];
+
+    // [OPTIONAL]
+    // Add is the list of HTTP header names and values to add.
+    // The listed values are added to the header.
+    // All existing values are kept in the header if any.
+    // Default is not set.
+    map<string, string> Add = 3 [json_name                                               = "add",
+                                 (buf.validate.field).map.keys.string.well_known_regex   = KNOWN_REGEX_HTTP_HEADER_NAME,
+                                 (buf.validate.field).map.values.string.well_known_regex = KNOWN_REGEX_HTTP_HEADER_VALUE];
+
+    // [OPTIONAL]
+    // Set is the list of HTTP header names and values to set.
+    // The listed values are set to the header.
+    // All existing values are removed if any.
+    // Default is not set.
+    map<string, string> Set = 4 [json_name                                               = "set",
+                                 (buf.validate.field).map.keys.string.well_known_regex   = KNOWN_REGEX_HTTP_HEADER_NAME,
+                                 (buf.validate.field).map.values.string.well_known_regex = KNOWN_REGEX_HTTP_HEADER_VALUE];
+
+    // [OPTIONAL]
+    // Rewrites is the list of HTTP header rewrite rules.
+    // Header values, if exists, are rewritten by the
+    // specified rewrite rules.
+    // Default is not set.
+    repeated HeaderRewriteSpec Rewrites = 5 [json_name = "rewrites"];
+}
+
+// HeaderRewriteSpec is the configuration for rewriting HTTP headers.
+message HeaderRewriteSpec {
+    // [REQUIRED]
+    // Name is the target header name.
+    // Wildcards such as "*" cannot be used.
+    // Default is not set.
+    string Name = 1 [json_name = "name", (buf.validate.field).string.well_known_regex = KNOWN_REGEX_HTTP_HEADER_NAME];
+
+    // [REQUIRED]
+    // Replacer is the value replace rule.
+    // Default is not set.
+    kernel.ReplacerSpec Replacer = 2 [json_name = "replacer"];
+}

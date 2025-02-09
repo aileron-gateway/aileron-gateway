@@ -1,0 +1,22 @@
+apiVersion: app/v1
+kind: HeaderPolicyMiddleware
+spec:
+  responsePolicy:
+    removes:
+      - "X-Removes-Foo"
+      - "X-Removes-Bar"
+    add:
+      "X-Add-Foo": "foo"
+      "X-Add-Bar": "bar"
+    set:
+      "X-Set-Foo": "foo"
+      "X-Set-Bar": "bar"
+    rewrites:
+      - name: "X-Rewrites-Foo"
+        replacer:
+          fixed:
+            value: "fOo"
+      - name: "X-Rewrites-Bar"
+        replacer:
+          fixed:
+            value: "bAr"

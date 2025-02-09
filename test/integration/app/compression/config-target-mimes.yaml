@@ -1,0 +1,6 @@
+apiVersion: app/v1
+kind: CompressionMiddleware
+spec:
+  minimumSize: 1
+  targetMIMEs:
+    - "application/json"

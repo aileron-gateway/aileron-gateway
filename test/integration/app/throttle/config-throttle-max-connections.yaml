@@ -1,0 +1,10 @@
+apiVersion: app/v1
+kind: ThrottleMiddleware
+spec:
+  apiThrottlers:
+    - methods: [GET]
+      matcher:
+        Patterns: ["/max-connection"]
+        MatchType: Exact
+      maxConnections:
+        maxConns: 3

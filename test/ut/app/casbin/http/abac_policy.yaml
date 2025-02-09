@@ -1,0 +1,8 @@
+- pType: p
+  v0: "mapValue(r.sub, 'age') > 10"
+  v1: "/*"
+  v2: GET
+- pType: p
+  v0: "mapValue(r.sub, 'age') > 20"
+  v1: "/*"
+  v2: POST

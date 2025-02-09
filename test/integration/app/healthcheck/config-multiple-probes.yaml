@@ -1,0 +1,14 @@
+apiVersion: app/v1
+kind: HealthCheckHandler
+spec:
+  patterns: ["/healthz"]
+  timeout: 30
+  externalProbes:
+    - apiVersion: container/v1
+      kind: Container
+      name: testProbe1
+      namespace: test
+    - apiVersion: container/v1
+      kind: Container
+      name: testProbe2
+      namespace: test

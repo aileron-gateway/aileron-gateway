@@ -1,0 +1,8 @@
+apiVersion: app/v1
+kind: CSRFMiddleware
+metadata:
+  name: testName
+  namespace: testNamespace
+spec:
+  customRequestHeader:
+    allowedPattern: "^ValidToken$"

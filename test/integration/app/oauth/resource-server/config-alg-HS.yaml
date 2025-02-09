@@ -1,0 +1,27 @@
+apiVersion: app/v1
+kind: OAuthAuthenticationHandler
+spec:
+  resourceServerHandler: {}
+  contexts:
+    - name: default
+      provider:
+        issuer: "http://test.provider.com/"
+      client:
+        id: "test-client"
+        audience: "test-audience"
+      jwtHandler:
+        publicKeys:
+          # Multiple algorithms for the same key
+          # is not supported for now.
+          - keyID: test-key-256
+            algorithm: HS256
+            keyType: COMMON
+            KeyString: dGVzdC1jb21tb24ta2V5 # "test-common-key"
+          - keyID: test-key-384
+            algorithm: HS384
+            keyType: COMMON
+            KeyString: dGVzdC1jb21tb24ta2V5 # "test-common-key"
+          - keyID: test-key-512
+            algorithm: HS512
+            keyType: COMMON
+            KeyString: dGVzdC1jb21tb24ta2V5 # "test-common-key"

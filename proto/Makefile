@@ -32,6 +32,7 @@ proto-clean:
 proto-lint: protolint
 	protolint -config_path .protolint.yaml kernel/
 	protolint -config_path .protolint.yaml core/
+	protolint -config_path .protolint.yaml app/
 
 ############################################################
 #                          Tools                           #
@@ -40,7 +41,7 @@ proto-lint: protolint
 .PHONY: protoc-gen-go
 protoc-gen-go:
 ifeq (, $(shell which protoc-gen-go 2>/dev/null))
-	go install "google.golang.org/protobuf/cmd/protoc-gen-go@latest"
+	go install "google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.4"
 endif
 
 .PHONY: protoc-gen-doc
@@ -57,5 +58,6 @@ endif
 
 .PHONY: protovalidate
 protovalidate:
-	rm -rf protovalidate/
-	git clone --branch v0.9.0 https://github.com/bufbuild/protovalidate.git
+ifeq (,$(wildcard protovalidate/*))
+	git clone --branch v0.10.0 https://github.com/bufbuild/protovalidate.git
+endif

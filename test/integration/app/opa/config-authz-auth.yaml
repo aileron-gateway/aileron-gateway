@@ -1,0 +1,8 @@
+apiVersion: app/v1
+kind: OPAAuthzMiddleware
+spec:
+  claimsKey: AuthClaims
+  regos:
+    - queryParameter: "data.authz.allow"
+      policyFiles:
+        - "./policy-auth.rego"

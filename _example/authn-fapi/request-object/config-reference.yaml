@@ -1,0 +1,133 @@
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  runners:
+    - apiVersion: core/v1
+      kind: HTTPServer
+      namespace: sampleNamespace
+      name: EchoServer
+
+---
+apiVersion: app/v1
+kind: EchoHandler
+metadata:
+  name: default
+  namespace: sampleNamespace
+spec: {}
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+metadata:
+  name: EchoServer
+  namespace: sampleNamespace
+spec:
+  addr: ":8080"
+  virtualHosts:
+    - hosts: []
+      middleware:
+        - apiVersion: app/v1
+          kind: SessionMiddleware
+          namespace: sampleNamespace
+          name: default
+        - apiVersion: app/v1
+          kind: AuthenticationMiddleware
+          namespace: sampleNamespace
+          name: default
+      handlers:
+        - handler:
+            apiVersion: app/v1
+            kind: EchoHandler
+            namespace: sampleNamespace
+            name: default
+
+---
+apiVersion: core/v1
+kind: ErrorHandler
+metadata:
+  name: default
+  namespace: sampleNamespace
+spec:
+
+---
+apiVersion: app/v1
+kind: SessionMiddleware
+metadata:
+  name: default
+  namespace: sampleNamespace
+spec:
+  errorHandler:
+    apiVersion: core/v1
+    kind: ErrorHandler
+    name: default
+    namespace: sampleNamespace
+  secureEncoder:
+    enableCompression: false
+    disableHMAC: true
+    disableEncryption: true
+
+---
+apiVersion: app/v1
+kind: AuthenticationMiddleware
+metadata:
+  name: default
+  namespace: sampleNamespace
+spec:
+  handlers:
+    - apiVersion: app/v1
+      kind: OAuthAuthenticationHandler
+      namespace: sampleNamespace
+      name: default
+
+---
+apiVersion: app/v1
+kind: OAuthAuthenticationHandler
+metadata:
+  name: default
+  namespace: sampleNamespace
+spec:
+  contexts:
+    - provider:
+        issuer: ""
+        baseURL: "http://localhost:18080"
+        endpoints:
+          discovery: "/realms/aileron/.well-known/openid-configuration"
+      client:
+        id: "request-object"
+        secret: "mFofYoEehKmF67qJpSGZmHfZ5ez0BGTr"
+        audience: "request-object"
+        scopes:
+          - openid
+          - address
+          - phone
+      tokenRedeemer:
+        clientAuthMethod: BasicAuth
+      jwtHandler:
+        publicKeys:
+          - keyID: "LO9dmmUtUOiV1P7OkzYW-CDbTJV94nADvDFhojxvSqk" # "Realm settings” -> "Keys" -> "RS256" Kid in Keycloak
+            algorithm: RS256
+            keyType: PUBLIC
+            keyFilePath: "./_example/authn-fapi/keys/keycloak/public.key" # Download “Realm settings” -> “Keys” -> “RS256” public key in Keycloak
+  authorizationCodeHandler:
+    disableState: false
+    disableNonce: false
+    disablePKCE: false
+    redirectPath: "/auth/success"
+    loginPath: "/auth/login"
+    callbackURL: "http://localhost:8080/auth/callback"
+    redirectToLogin: false
+    unauthorizeAny: false
+    restoreRequest: false
+    urlParams:
+      - "max_age=120"
+      - "login_hint=user001"
+    requestObject:
+      requestURI: "http://172.21.91.101:8080/auth/request-uri"
+      jwtHandler:
+        privateKeys:
+          - keyID: "xFzm4BYgi-A0uzO9PpjgXmSS9HrsLZPhc0IrH8hedX4"
+            algorithm: RS256
+            keyType: PRIVATE
+            keyFilePath: "./_example/authn-fapi/keys/aileron/private.key"
+      exp: 300
+      disableCache: true

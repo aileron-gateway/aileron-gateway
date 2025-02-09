@@ -1,0 +1,5 @@
+apiVersion: app/v1
+kind: TimeoutMiddleware
+metadata:
+  name: testName
+  namespace: testNamespace
