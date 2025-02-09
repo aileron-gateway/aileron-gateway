@@ -20,7 +20,7 @@ PROTOC_OPTS += --plugin=protoc-gen-doc=$(shell which protoc-gen-doc)
 PROTOC_OPTS += --doc_out=../ --doc_opt=html,api.html
 
 .PHONY: proto
-proto: protoc-gen-go protoc-gen-doc protovalidate
+proto: protoc-gen-go protoc-gen-doc
 	protoc $(PROTO_PATH) $(PROTOC_OPTS) $(shell find ./ -type f -name "*.proto" -not -path "./protovalidate/*")
 	@git update-index --assume-unchanged $(shell find ../apis/ -type f)
 

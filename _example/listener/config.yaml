@@ -2,9 +2,9 @@ apiVersion: core/v1
 kind: Entrypoint
 spec:
   runners:
-    - apiVersion: core/v1
-      kind: HTTPServer
-      name: hello-server
+    # - apiVersion: core/v1
+    #   kind: HTTPServer
+    #   name: hello-server
     - apiVersion: core/v1
       kind: HTTPServer
       name: proxy-server
@@ -30,6 +30,7 @@ metadata:
 spec:
   addr: ":8080"
   httpConfig:
+    disableKeepAlive: true
     listenConfig:
       # connectionLimit: 10
       # readBuffer: 65536
@@ -38,21 +39,26 @@ spec:
       # addr: "/var/run/gateway.sock"
       # networks:
       #   - "127.0.0.1/32:0-60900"
+      keepAliveConfig:
+        disable: true
+        idle: 10
+        interval: 3
+        count: 5
       sockOption:
-        soOption:
-          # bindToDevice: ""
-          # debug: false
-          # keepAlive: true
-          # linger: 123456
-          # mark: 0
-          # receiveBuffer: 3000
-          # receiveBufferForce: 0
-          # sendBuffer: 4000
-          # sendBufferForce: 0
-          # receiveTimeout: 1.23
-          # sendTimeout: 2.23
-          # reuseAddr: true
-          reusePort: true
+        # soOption:
+        #   bindToDevice: ""
+        #   debug: false
+        #   keepAlive: true
+        #   linger: 123456
+        #   mark: 0
+        #   receiveBuffer: 3000
+        #   receiveBufferForce: 0
+        #   sendBuffer: 4000
+        #   sendBufferForce: 0
+        #   receiveTimeout: 1.23
+        #   sendTimeout: 2.23
+        #   reuseAddr: true
+        #   reusePort: true
         # ipOption:
         #   bindAddressNoPort: true
         #   freeBind: true
