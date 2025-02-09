@@ -2,9 +2,9 @@ apiVersion: core/v1
 kind: Entrypoint
 spec:
   runners:
-    # - apiVersion: core/v1
-    #   kind: HTTPServer
-    #   name: hello-server
+    - apiVersion: core/v1
+      kind: HTTPServer
+      name: hello-server
     - apiVersion: core/v1
       kind: HTTPServer
       name: proxy-server
@@ -39,11 +39,11 @@ spec:
       # addr: "/var/run/gateway.sock"
       # networks:
       #   - "127.0.0.1/32:0-60900"
-      keepAliveConfig:
-        disable: true
-        idle: 10
-        interval: 3
-        count: 5
+      # keepAliveConfig:
+      #   disable: true
+      #   idle: 10
+      #   interval: 3
+      #   count: 5
       sockOption:
         # soOption:
         #   bindToDevice: ""
