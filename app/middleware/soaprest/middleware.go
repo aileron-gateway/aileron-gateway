@@ -431,7 +431,15 @@ func (s soapREST) mapToXMLElement(key string, value any, namespace string) xmlEl
 			return element
 		}
 
-		element.Attrs = s.extractAttributes(v)
+		var attrs []xml.Attr
+		if attrMap, ok := v[s.attributeKey].(map[string]any); ok {
+			for key, value := range attrMap {
+				element.Attrs = append(attrs, xml.Attr{
+					Name:  xml.Name{Local: key},
+					Value: fmt.Sprintf("%v", value),
+				})
+			}
+		}
 
 		if textContent, ok := v[s.textKey].(string); ok {
 			element.Content = sanitizeControlCharacters(textContent)
@@ -454,26 +462,13 @@ func (s soapREST) mapToXMLElement(key string, value any, namespace string) xmlEl
 		}
 
 	case float64:
-		element.Content = formatFloat(v)
+		element.Content = strconv.FormatFloat(v, 'f', -1, 64)
 
 	default:
 		element.Content = sanitizeControlCharacters(fmt.Sprintf("%v", v))
 	}
 
 	return element
-}
-
-func (s soapREST) extractAttributes(data map[string]any) []xml.Attr {
-	var attrs []xml.Attr
-	if attrMap, ok := data[s.attributeKey].(map[string]any); ok {
-		for key, value := range attrMap {
-			attrs = append(attrs, xml.Attr{
-				Name:  xml.Name{Local: key},
-				Value: fmt.Sprintf("%v", value),
-			})
-		}
-	}
-	return attrs
 }
 
 // wrappedWriter wraps http.ResponseWriter.
@@ -502,10 +497,6 @@ func (w *wrappedWriter) Write(b []byte) (int, error) {
 	w.written = true
 	w.length += int64(len(b))
 	return w.body.Write(b)
-}
-
-func (w *wrappedWriter) Body() *bytes.Buffer {
-	return w.body
 }
 
 func (w *wrappedWriter) Written() bool {
@@ -592,13 +583,6 @@ func (s soapREST) parseValue(content string) any {
 	}
 
 	return content
-}
-
-// formatFloat converts float to string, removing unnecessary trailing zeros and decimal point.
-func formatFloat(v float64) string {
-	str := strconv.FormatFloat(v, 'f', -1, 64)
-	str = strings.TrimRight(strings.TrimRight(str, "0"), ".")
-	return str
 }
 
 // sanitizeControlCharacters sanitizes characters that are not allowed in XML.
