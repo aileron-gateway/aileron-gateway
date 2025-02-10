@@ -5,45 +5,41 @@ package example_test
 
 import (
 	"context"
-	"crypto/tls"
-	"crypto/x509"
+	"net"
 	"net/http"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
-	"github.com/quic-go/quic-go/http3"
 )
 
-func TestHTTP3Server(t *testing.T) {
+func TestUnixSocket(t *testing.T) {
+
 	wd, _ := os.Getwd()
 	defer changeDirectory(t, wd)
 	changeDirectory(t, "./../../")
 
 	env := []string{}
-	config := []string{"./_example/http3-server/"}
+	config := []string{"_example/listen-unix-socket/"}
 	entrypoint := getEntrypointRunner(t, env, config)
 
 	ctx, cancel := context.WithCancel(context.Background())
-	timer := time.AfterFunc(5*time.Second, cancel)
+	defer cancel()
 
-	pem, _ := os.ReadFile("./_example/http3-server/pki/server.crt")
-	pool := x509.NewCertPool()
-	pool.AppendCertsFromPEM(pem)
+	dial := func(network, addr string) (net.Conn, error) {
+		return net.Dial("unix", "@gateway")
+	}
 
-	transport := &http3.Transport{
-		TLSClientConfig: &tls.Config{
-			RootCAs: pool,
-		},
+	transport := &http.Transport{
+		Dial: dial,
 	}
 
 	var resp *http.Response
 	var err error
 	go func() {
-		req, _ := http.NewRequest(http.MethodGet, "https://localhost:8443/get", nil)
+		req, _ := http.NewRequest(http.MethodGet, "http://localhost:8080", nil)
+		req.Header.Set("Accept", "text/plain")
 		resp, err = transport.RoundTrip(req)
-		timer.Stop()
 		cancel()
 	}()
 

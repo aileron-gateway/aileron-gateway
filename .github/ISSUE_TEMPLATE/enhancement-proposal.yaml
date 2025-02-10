@@ -1,0 +1,17 @@
+name: Enhancement Proposal
+description: Propose any enhancement on this project
+labels: ["kind/enhancement"]
+body:
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would you like to propose for enhancement?
+    validations:
+      required: true
+
+  - type: textarea
+    id: rationale
+    attributes:
+      label: Why is this needed?
+    validations:
+      required: true

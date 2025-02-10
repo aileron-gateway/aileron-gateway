@@ -58,5 +58,6 @@ endif
 
 .PHONY: protovalidate
 protovalidate:
-	rm -rf protovalidate/
+ifeq (,$(wildcard protovalidate/*))
 	git clone --branch v0.10.0 https://github.com/bufbuild/protovalidate.git
+endif

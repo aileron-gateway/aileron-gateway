@@ -331,7 +331,7 @@ message DialConfig {
     // follow the specification of net.Dialer.
     // See https://pkg.go.dev/net#Dialer.
     // As described in the link, TCP and UDP must have a port number.
-    // That menas "example.com" not works. Set with a port number like "example.com:80".
+    // That means "example.com" not works. Set with a port number like "example.com:80".
     // If nothing set, requested network and address are used as-is.
     // Default is not set.
     repeated string ReplaceTargets = 5 [json_name                                          = "replaceTargets",
@@ -358,7 +358,7 @@ message DialConfig {
 }
 
 // HTTP3TransportConfig is the specifications for the HTTP3 TransportConfig object.
-// This is the configuration for the trasportation layer of HTTP3.
+// This is the configuration for the transport layer of HTTP3.
 // http3.RoundTri
 // See https://pkg.go.dev/github.com/lucas-clemente/quic-go/http3#RoundTripper
 message HTTP3TransportConfig {
@@ -434,7 +434,7 @@ message ListenConfig {
     // Check out the valid values at https://pkg.go.dev/net#Dial.
     // The value must be valid for the specified network type.
     // For TCP networks, if the host in the address parameter is empty or
-    // a literal unsfpecified IP address, all available unicast and anycast IP addresses
+    // a literal unspecified IP address, all available unicast and anycast IP addresses
     // of the local system are used.
     // If the port in the address parameter is empty or "0",
     // as in "127.0.0.1:" or "[::1]:0", a port number is automatically chosen.
@@ -449,14 +449,14 @@ message ListenConfig {
     int32 ConnectionLimit = 5 [json_name = "connectionLimit"];
 
     // [OPTIONAL]
-    // Networks is the nework address list which can be used as whitelist or blacklist
+    // Networks is the network address list which can be used as whitelist or blacklist
     // that the server can accept.
     // This list is considered to be a whitelist by default.
     // Set "blacklist" to true to use this list as a blacklist.
     // For example, to restrict connection only to the private networks,
     // set "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "127.0.0.1/32".
     // IPv6 can also be set like "::1/128".
-    // In addition to the neworwork addresses, port number can be set.
+    // In addition to the network addresses, port number can be set.
     // TCP/UDP connections line in "127.0.0.1/32:8080" or "127.0.0.1/32:8080-80809"
     // Default is not set.
     repeated string Networks = 6 [json_name = "networks", (buf.validate.field).repeated.unique = true];
@@ -470,7 +470,7 @@ message ListenConfig {
 
     // [OPTIONAL]
     // Timeout is the timeout duration as an client in millisecond.
-    // This field will be used only for cliet.
+    // This field will be used only for client.
     // There will be no timeout when not set or 0.
     // This field will be passed to https://pkg.go.dev/net#Conn.SetReadDeadline.
     // Default is [0] millisecond.
@@ -478,16 +478,59 @@ message ListenConfig {
 
     // [OPTIONAL]
     // Timeout is the timeout duration as an client in millisecond.
-    // This field will be used only for cliet.
+    // This field will be used only for client.
     // There will be no timeout when not set or 0.
     // This field will be passed to https://pkg.go.dev/net#Conn.SetWriteDeadline.
     // Default is [0] millisecond.
     int32 WriteDeadline = 9 [json_name = "writeDeadline"];
 
     // [OPTIONAL]
+    // KeepAliveConfig is the configuration for keep-alive probes.
+    // If not set and the protocol supports keep-alive,
+    // default values of the KeepAliveConfig are used.
+    // Default is not set.
+    KeepAliveConfig KeepAliveConfig = 10 [json_name = "keepAliveConfig"];
+
+    // [OPTIONAL]
     // SockOption is the socket options.
     // Default is not set.
     SockOption SockOption = 12 [json_name = "sockOption"];
+}
+
+// KeepAliveConfig is the configuration for listener keep-alive.
+// This configuration is bounded to net.KeepAliveConfig.
+// See https://pkg.go.dev/net#KeepAliveConfig.
+message KeepAliveConfig {
+    // [OPTIONAL]
+    // Disable disables keep-alive probes.
+    // Default is [false].
+    bool Disable = 1 [json_name = "disable"];
+
+    // [OPTIONAL]
+    // Idle is the time in second that the connection must be idle
+    // before the first keep-alive probe is sent.
+    // For TCP, this is equivalent to set TCP_KEEPIDLE socket option on Linux.
+    // This value is used for https://pkg.go.dev/net#KeepAliveConfig.Idle.
+    // If zero or not set, a default value of 15 seconds is used.
+    // Default is not set.
+    int32 Idle = 2 [json_name = "idle"];
+
+    // [OPTIONAL]
+    // Interval is the time in second between keep-alive probes.
+    // For TCP, this is equivalent to set TCP_KEEPINTVL socket option on Linux.
+    // This value is used for https://pkg.go.dev/net#KeepAliveConfig.Interval.
+    // If zero or not set, a default value of 15 seconds is used.
+    // Default is not set.
+    int32 Interval = 3 [json_name = "interval"];
+
+    // [OPTIONAL]
+    // Count is the maximum number of keep-alive probes that
+    // can go unanswered before dropping a connection.
+    // For TCP, this is equivalent to set TCP_KEEPCNT socket option on Linux.
+    // This value is used for https://pkg.go.dev/net#KeepAliveConfig.Count.
+    // If zero or not set, a default value of 9 is used.
+    // Default is not set.
+    int32 Count = 4 [json_name = "count"];
 }
 
 // SockOption is the options for networking sockets.

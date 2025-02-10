@@ -700,6 +700,45 @@ func TestNewListenerFromSpec(t *testing.T) {
 				},
 			},
 		),
+		gen(
+			"with keep-alive disabled",
+			[]string{},
+			[]string{},
+			&condition{
+				spec: &k.ListenConfig{
+					Network: "tcp",
+					Addr:    testAddr,
+					KeepAliveConfig: &k.KeepAliveConfig{
+						Disable: true,
+					},
+				},
+			},
+			&action{
+				address: testAddr,
+				err:     nil,
+			},
+		),
+		gen(
+			"with keep-alive enabled",
+			[]string{},
+			[]string{},
+			&condition{
+				spec: &k.ListenConfig{
+					Network: "tcp",
+					Addr:    testAddr,
+					KeepAliveConfig: &k.KeepAliveConfig{
+						Disable:  false,
+						Idle:     1,
+						Interval: 2,
+						Count:    3,
+					},
+				},
+			},
+			&action{
+				address: testAddr,
+				err:     nil,
+			},
+		),
 	}
 
 	testutil.Register(table, testCases...)
