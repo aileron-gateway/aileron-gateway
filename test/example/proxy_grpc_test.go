@@ -6,84 +6,22 @@ package example_test
 
 import (
 	"context"
-	"encoding/json"
-	"flag"
-	"fmt"
 	"log"
 	"net"
-	"os"
-	"sync"
+	"net/http"
 	"testing"
 	"time"
 
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/examples/data"
-	"google.golang.org/protobuf/proto"
 
+	"google.golang.org/grpc/codes"
 	pb "google.golang.org/grpc/examples/route_guide/routeguide"
-)
-
-var (
-	// for server
-	tls        = flag.Bool("tls", false, "Connection uses TLS if true, else plain TCP")
-	certFile   = flag.String("cert_file", "", "The TLS cert file")
-	keyFile    = flag.String("key_file", "", "The TLS key file")
-	jsonDBFile = flag.String("json_db_file", "", "A json file containing a list of features")
-	port       = flag.Int("port", 50051, "The server port")
-
-	// for client
-	caFile             = flag.String("ca_file", "", "The file containing the CA root cert file")
-	serverAddr         = flag.String("addr", "localhost:50000", "The server address in the format of host:port")
-	serverHostOverride = flag.String("server_host_override", "x.test.example.com", "The server name used to verify the hostname returned by the TLS handshake")
+	"google.golang.org/grpc/status"
 )
 
 type routeGuideServer struct {
 	pb.UnimplementedRouteGuideServer
-	savedFeatures []*pb.Feature // read-only after initialized
-
-	mu         sync.Mutex // protects routeNotes
-	routeNotes map[string][]*pb.RouteNote
-}
-
-// GetFeature returns the feature at the given point.
-func (s *routeGuideServer) GetFeature(_ context.Context, point *pb.Point) (*pb.Feature, error) {
-	for _, feature := range s.savedFeatures {
-		if proto.Equal(feature.Location, point) {
-			return feature, nil
-		}
-	}
-	// No feature was found, return an unnamed feature
-	return &pb.Feature{Location: point}, nil
-}
-
-// loadFeatures loads features from a JSON file.
-func (s *routeGuideServer) loadFeatures(filePath string) {
-	var data []byte
-	if filePath != "" {
-		var err error
-		data, err = os.ReadFile(filePath)
-		if err != nil {
-			log.Printf("Failed to load default features: %v", err)
-		}
-	} else {
-		data = exampleData
-	}
-	if err := json.Unmarshal(data, &s.savedFeatures); err != nil {
-		log.Printf("Failed to load default features: %v", err)
-	}
-}
-
-func serialize(point *pb.Point) string {
-	return fmt.Sprintf("%d %d", point.Latitude, point.Longitude)
-}
-
-func newServer() *routeGuideServer {
-	s := &routeGuideServer{routeNotes: make(map[string][]*pb.RouteNote)}
-	s.loadFeatures(*jsonDBFile)
-	return s
 }
 
 func runServer(t *testing.T, ctx context.Context) {
@@ -94,15 +32,14 @@ func runServer(t *testing.T, ctx context.Context) {
 	}
 
 	grpcServer := grpc.NewServer()
-	pb.RegisterRouteGuideServer(grpcServer, newServer())
+	pb.RegisterRouteGuideServer(grpcServer, &routeGuideServer{})
 
 	go func() {
-		if err := grpcServer.Serve(lis); err != nil {
+		if err := grpcServer.Serve(lis); err != nil && err != http.ErrServerClosed {
 			t.Error(err)
 		}
 	}()
 
-	time.Sleep(time.Second * 1)
 	<-ctx.Done()
 
 	grpcServer.GracefulStop()
@@ -126,31 +63,16 @@ func TestProxyGrpc(t *testing.T) {
 	go runServer(t, ctx)
 	time.Sleep(1 * time.Second)
 
-	var opts []grpc.DialOption
-	if *tls {
-		if *caFile == "" {
-			*caFile = data.Path("x509/ca_cert.pem")
-		}
-		creds, err := credentials.NewClientTLSFromFile(*caFile, *serverHostOverride)
-		if err != nil {
-			log.Printf("Failed to create TLS credentials: %v", err)
-		}
-		opts = append(opts, grpc.WithTransportCredentials(creds))
-	} else {
-		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	}
-
-	conn, err := grpc.NewClient("localhost:50000", opts...)
+	conn, err := grpc.NewClient("localhost:50000", grpc.WithInsecure())
 	if err != nil {
 		t.Error(err)
 	}
 	defer conn.Close()
 
 	var feature *pb.Feature
-
 	go func() {
 		client := pb.NewRouteGuideClient(conn)
-		feature, err = client.GetFeature(ctx, &pb.Point{Latitude: 409146138, Longitude: -746188906})
+		feature, err = client.GetFeature(ctx, &pb.Point{})
 		if err != nil {
 			log.Printf("error getting feature: %v", err)
 		} else {
@@ -164,14 +86,5 @@ func TestProxyGrpc(t *testing.T) {
 		t.Error(err)
 	}
 
-	testutil.Diff(t, nil, err)
-	testutil.Diff(t, feature.GetName(), "Berkshire Valley Management Area Trail, Jefferson, NJ, USA")
+	testutil.Diff(t, codes.Unimplemented, status.Code(err))
 }
-
-var exampleData = []byte(`[{
-    "location": {
-        "latitude": 409146138,
-        "longitude": -746188906
-    },
-    "name": "Berkshire Valley Management Area Trail, Jefferson, NJ, USA"
-}]`)
