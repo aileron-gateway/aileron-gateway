@@ -13,6 +13,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/aileron-gateway/aileron-gateway/app"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
@@ -543,7 +544,7 @@ func TestConvertRESTtoSOAPResponse(t *testing.T) {
 
 	type action struct {
 		xml        []byte
-		err        error
+		err        any // error or errorutil.Kind
 		errPattern *regexp.Regexp
 	}
 
@@ -584,8 +585,21 @@ func TestConvertRESTtoSOAPResponse(t *testing.T) {
 			},
 			&action{
 				xml:        nil,
-				err:        nil,
-				errPattern: regexp.MustCompile(`xml: encoding error: invalid UTF-8`),
+				err:        app.ErrAppMiddleSOAPRESTDecode,
+				errPattern: regexp.MustCompile(`EOF`),
+			},
+		),
+		gen(
+			"EmptyJSONKey",
+			nil,
+			nil,
+			&condition{
+				restData: []byte(`{"soap:Envelope": {"soap:Body": {"": "EmptyKeyValue"}}}`),
+			},
+			&action{
+				xml:        nil,
+				err:        app.ErrAppMiddleSOAPRESTMarshal,
+				errPattern: regexp.MustCompile(`xml: start tag with no name.`),
 			},
 		),
 	}
@@ -614,11 +628,8 @@ func TestConvertRESTtoSOAPResponse(t *testing.T) {
 				cmpopts.IgnoreFields(soapHeader{}, "XMLName"),
 			}
 
-			if tt.A().err != nil {
-				testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
-			} else {
-				testutil.Diff(t, tt.A().xml, result, opts...)
-			}
+			testutil.Diff(t, tt.A().xml, result, opts...)
+			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
 		})
 	}
 }
@@ -629,8 +640,9 @@ func TestXmlElement_MarshalXML(t *testing.T) {
 	}
 
 	type action struct {
-		xmlOutput string
-		err       error
+		xmlOutput  string
+		err        any // error or errorutil.Kind
+		errPattern *regexp.Regexp
 	}
 
 	tb := testutil.NewTableBuilder[*condition, *action]()
@@ -685,6 +697,41 @@ func TestXmlElement_MarshalXML(t *testing.T) {
 				err:       nil,
 			},
 		),
+		gen(
+			"InvalidStartElement",
+			nil,
+			nil,
+			&condition{
+				element: xmlElement{
+					XMLName: xml.Name{Local: ""},
+				},
+			},
+			&action{
+				xmlOutput:  ``,
+				err:        app.ErrAppMiddleSOAPRESTMarshal,
+				errPattern: regexp.MustCompile("xml: start tag with no name."),
+			},
+		),
+		gen(
+			"InvalidStartElementInChildren",
+			nil,
+			nil,
+			&condition{
+				element: xmlElement{
+					XMLName: xml.Name{Local: "Test"},
+					children: []xmlElement{
+						{
+							XMLName: xml.Name{Local: ""},
+						},
+					},
+				},
+			},
+			&action{
+				xmlOutput:  `<Test>`,
+				err:        app.ErrAppMiddleSOAPRESTMarshal,
+				errPattern: regexp.MustCompile("xml: start tag with no name."),
+			},
+		),
 	}
 
 	testutil.Register(table, testCases...)
@@ -697,14 +744,11 @@ func TestXmlElement_MarshalXML(t *testing.T) {
 
 			enc := xml.NewEncoder(&buf)
 			err = tt.C().element.MarshalXML(enc, xml.StartElement{Name: tt.C().element.XMLName})
-			if tt.A().err != nil {
-				testutil.DiffError(t, tt.A().err, nil, err)
-				return
-			}
+			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err, gocmp.Options{
+				cmpopts.EquateErrors(),
+			})
 
-			err = enc.Flush()
-			testutil.DiffError(t, tt.A().err, nil, err)
-
+			enc.Flush()
 			testutil.Diff(t, string([]byte(tt.A().xmlOutput)), string(bytes.TrimSpace(buf.Bytes())))
 		})
 	}

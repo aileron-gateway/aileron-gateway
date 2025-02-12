@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/aileron-gateway/aileron-gateway/app"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 )
@@ -238,7 +239,7 @@ func (s soapREST) getNodeName(node xmlNode, nsCtx *namespaceContext) string {
 func (m *soapREST) convertRESTtoSOAPResponse(wrapper *wrappedWriter) ([]byte, error) {
 	var restData map[string]any
 	if err := json.NewDecoder(wrapper.body).Decode(&restData); err != nil {
-		return nil, err
+		return nil, app.ErrAppMiddleSOAPRESTDecode.WithoutStack(err, map[string]any{"wrapper.body": wrapper.body})
 	}
 
 	nsManager := &namespaceManager{
@@ -246,7 +247,6 @@ func (m *soapREST) convertRESTtoSOAPResponse(wrapper *wrappedWriter) ([]byte, er
 	}
 	envelope := m.createSOAPEnvelope(restData, nsManager)
 
-	// <TODO> Check whether MarshalIndent reliably returns no errors.
 	output, err := xml.MarshalIndent(envelope, "", "  ")
 	if err != nil {
 		return nil, err
@@ -302,25 +302,23 @@ func (e xmlElement) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
 		})
 	}
 
-	// <TODO> Check whether EncodeToken(start) reliably returns no errors.
 	if err := enc.EncodeToken(start); err != nil {
-		return err
+		return app.ErrAppMiddleSOAPRESTMarshal.WithoutStack(err, map[string]any{"start": start})
 	}
 
-	// <TODO> Check whether EncodeToken(start) reliably returns no errors.
+	// EncodeToken does not perform error handling when the Token is CharData.
 	if e.Content != "" {
-		if err := enc.EncodeToken(xml.CharData([]byte(e.Content))); err != nil {
-			return err
-		}
+		enc.EncodeToken(xml.CharData([]byte(e.Content)))
 	}
 
 	for _, child := range e.children {
-		// <TODO> Check whether Encode reliably returns no errors.
 		if err := enc.Encode(child); err != nil {
-			return err
+			return app.ErrAppMiddleSOAPRESTMarshal.WithoutStack(err, map[string]any{"child": child})
 		}
 	}
 
+	// EncodeToken raises an error if the Token does not match the StartToken or if the Local is an empty string,
+	// but no error occurs during the EndToken check in this scenario; therefore, no error handling is performed.
 	return enc.EncodeToken(xml.EndElement{Name: start.Name})
 }
 
