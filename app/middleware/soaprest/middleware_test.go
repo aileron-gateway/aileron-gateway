@@ -6,6 +6,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"io"
+	"math"
 	"net/http"
 	"net/http/httptest"
 	"regexp"
@@ -1813,6 +1814,697 @@ func TestWrappedWriter_StatusCode(t *testing.T) {
 		t.Run(tt.Name(), func(t *testing.T) {
 			tt.C().ww.WriteHeader(tt.C().code)
 			testutil.Diff(t, tt.A().code, tt.C().ww.StatusCode())
+		})
+	}
+}
+
+func TestNamespaceContext(t *testing.T) {
+	type condition struct {
+		prefix string
+		uri    string
+	}
+
+	type action struct {
+		prefix string
+		uri    string
+	}
+
+	tb := testutil.NewTableBuilder[*condition, *action]()
+	tb.Name(t.Name())
+	table := tb.Build()
+
+	gen := testutil.NewCase[*condition, *action]
+	testCases := []*testutil.Case[*condition, *action]{
+		gen(
+			"Prefix exists in namespaceContext",
+			nil,
+			nil,
+			&condition{
+				prefix: "test",
+				uri:    "http://test.com/",
+			},
+			&action{
+				prefix: "test",
+				uri:    "http://test.com/",
+			},
+		),
+	}
+
+	testutil.Register(table, testCases...)
+
+	for _, tt := range table.Entries() {
+		tt := tt
+		t.Run(tt.Name(), func(t *testing.T) {
+			nc := &namespaceContext{
+				prefixToURI: map[string]string{},
+				uriToPrefix: map[string]string{},
+			}
+
+			nc.addNamespace(tt.C().prefix, tt.C().uri)
+			testutil.Diff(t, tt.A().prefix, nc.uriToPrefix[tt.C().uri])
+			testutil.Diff(t, tt.A().uri, nc.prefixToURI[tt.C().prefix])
+			testutil.Diff(t, tt.A().prefix, nc.getPrefix(tt.C().uri))
+
+			// a prefix that does not exist in namespaceContext.
+			testutil.Diff(t, "", nc.getPrefix("notExists"))
+		})
+	}
+}
+
+func TestNamespaceManager(t *testing.T) {
+	type condition struct {
+		prefix      string
+		originalUri string
+		anotherUri  string
+	}
+
+	type action struct {
+		uri string
+	}
+
+	tb := testutil.NewTableBuilder[*condition, *action]()
+	tb.Name(t.Name())
+	table := tb.Build()
+
+	gen := testutil.NewCase[*condition, *action]
+	testCases := []*testutil.Case[*condition, *action]{
+		gen(
+			"add namespace once",
+			nil,
+			nil,
+			&condition{
+				prefix:      "test",
+				originalUri: "http://test.com/",
+			},
+			&action{
+				uri: "http://test.com/",
+			},
+		),
+		gen(
+			"add namespace multiple times",
+			nil,
+			nil,
+			&condition{
+				prefix:      "test",
+				originalUri: "http://original.com/",
+				anotherUri:  "http://another.com/",
+			},
+			&action{
+				uri: "http://original.com/",
+			},
+		),
+	}
+
+	testutil.Register(table, testCases...)
+
+	for _, tt := range table.Entries() {
+		tt := tt
+		t.Run(tt.Name(), func(t *testing.T) {
+			nm := &namespaceManager{
+				namespaces: map[string]string{},
+			}
+			nm.addNamespace(tt.C().prefix, tt.C().originalUri)
+			testutil.Diff(t, tt.A().uri, nm.namespaces[tt.C().prefix])
+
+		})
+	}
+}
+
+func TestParseValue(t *testing.T) {
+	type condition struct {
+		content               string
+		extractStringElement  bool
+		extractBooleanElement bool
+		extractIntegerElement bool
+		extractFloatElement   bool
+	}
+
+	type action struct {
+		expect any
+	}
+
+	tb := testutil.NewTableBuilder[*condition, *action]()
+	tb.Name(t.Name())
+	table := tb.Build()
+
+	gen := testutil.NewCase[*condition, *action]
+	testCases := []*testutil.Case[*condition, *action]{
+		gen(
+			"string element",
+			nil,
+			nil,
+			&condition{
+				content:              "test",
+				extractStringElement: true,
+			},
+			&action{
+				expect: "test",
+			},
+		),
+		gen(
+			"escaped string element",
+			nil,
+			nil,
+			&condition{
+				content:              "\"test\"",
+				extractStringElement: true,
+			},
+			&action{
+				expect: "test",
+			},
+		),
+		gen(
+			"escaped string element but not extracted",
+			nil,
+			nil,
+			&condition{
+				content:              "\"test\"",
+				extractStringElement: false,
+			},
+			&action{
+				expect: "\"test\"",
+			},
+		),
+		gen(
+			"boolean element (true)",
+			nil,
+			nil,
+			&condition{
+				content:               "true",
+				extractBooleanElement: true,
+			},
+			&action{
+				expect: true,
+			},
+		),
+		gen(
+			"boolean element (false)",
+			nil,
+			nil,
+			&condition{
+				content:               "false",
+				extractBooleanElement: true,
+			},
+			&action{
+				expect: false,
+			},
+		),
+		gen(
+			"boolean element (true) but not extracted",
+			nil,
+			nil,
+			&condition{
+				content:               "true",
+				extractBooleanElement: false,
+			},
+			&action{
+				expect: "true",
+			},
+		),
+		gen(
+			"boolean element (false) but not extracted",
+			nil,
+			nil,
+			&condition{
+				content:               "false",
+				extractBooleanElement: false,
+			},
+			&action{
+				expect: "false",
+			},
+		),
+		gen(
+			"integer element (zero)",
+			nil,
+			nil,
+			&condition{
+				content:               "0",
+				extractIntegerElement: true,
+			},
+			&action{
+				expect: int64(0),
+			},
+		),
+		gen(
+			"integer element (positive)",
+			nil,
+			nil,
+			&condition{
+				content:               "100",
+				extractIntegerElement: true,
+			},
+			&action{
+				expect: int64(100),
+			},
+		),
+		gen(
+			"integer element (negative)",
+			nil,
+			nil,
+			&condition{
+				content:               "-100",
+				extractIntegerElement: true,
+			},
+			&action{
+				expect: int64(-100),
+			},
+		),
+		gen(
+			"integer element (upper bound)",
+			nil,
+			nil,
+			&condition{
+				content:               "9223372036854775807",
+				extractIntegerElement: true,
+			},
+			&action{
+				expect: int64(math.MaxInt64),
+			},
+		),
+		gen(
+			"integer element (lower bound)",
+			nil,
+			nil,
+			&condition{
+				content:               "-9223372036854775808",
+				extractIntegerElement: true,
+			},
+			&action{
+				expect: int64(math.MinInt64),
+			},
+		),
+		gen(
+			"integer element (over upper bound)",
+			nil,
+			nil,
+			&condition{
+				content:               "9223372036854775808",
+				extractIntegerElement: true,
+			},
+			&action{
+				expect: "9223372036854775808",
+			},
+		),
+		gen(
+			"integer element (over lower bound)",
+			nil,
+			nil,
+			&condition{
+				content:               "-9223372036854775809",
+				extractIntegerElement: true,
+			},
+			&action{
+				expect: "-9223372036854775809",
+			},
+		),
+		gen(
+			"integer element (zero) but not extracted",
+			nil,
+			nil,
+			&condition{
+				content:               "0",
+				extractIntegerElement: false,
+			},
+			&action{
+				expect: "0",
+			},
+		),
+		gen(
+			"integer element (positive) but not extracted",
+			nil,
+			nil,
+			&condition{
+				content:               "100",
+				extractIntegerElement: false,
+			},
+			&action{
+				expect: "100",
+			},
+		),
+		gen(
+			"integer element (negative) but not extracted",
+			nil,
+			nil,
+			&condition{
+				content:               "-100",
+				extractIntegerElement: false,
+			},
+			&action{
+				expect: "-100",
+			},
+		),
+		gen(
+			"integer element (upper bound) but not extracted",
+			nil,
+			nil,
+			&condition{
+				content:               "9223372036854775807",
+				extractIntegerElement: false,
+			},
+			&action{
+				expect: "9223372036854775807",
+			},
+		),
+		gen(
+			"integer element (lower bound) but not extracted",
+			nil,
+			nil,
+			&condition{
+				content:               "-9223372036854775808",
+				extractIntegerElement: false,
+			},
+			&action{
+				expect: "-9223372036854775808",
+			},
+		),
+		gen(
+			"integer element (over upper bound) but not extracted",
+			nil,
+			nil,
+			&condition{
+				content:               "9223372036854775808",
+				extractIntegerElement: false,
+			},
+			&action{
+				expect: "9223372036854775808",
+			},
+		),
+		gen(
+			"integer element (over lower bound) but not extracted",
+			nil,
+			nil,
+			&condition{
+				content:               "-9223372036854775809",
+				extractIntegerElement: false,
+			},
+			&action{
+				expect: "-9223372036854775809",
+			},
+		),
+		gen(
+			"float element (zero)",
+			nil,
+			nil,
+			&condition{
+				content:             "0.00",
+				extractFloatElement: true,
+			},
+			&action{
+				expect: float64(0),
+			},
+		),
+		gen(
+			"float element (positive)",
+			nil,
+			nil,
+			&condition{
+				content:             "100.123000",
+				extractFloatElement: true,
+			},
+			&action{
+				expect: float64(100.123),
+			},
+		),
+		gen(
+			"float element (negative)",
+			nil,
+			nil,
+			&condition{
+				content:             "-100.123000",
+				extractFloatElement: true,
+			},
+			&action{
+				expect: float64(-100.123),
+			},
+		),
+		gen(
+			"float element (upper bound)",
+			nil,
+			nil,
+			&condition{
+				content:             "1.79769313486231570814527423731704356798070e+308",
+				extractFloatElement: true,
+			},
+			&action{
+				expect: math.MaxFloat64,
+			},
+		),
+		gen(
+			"float element (lower bound)",
+			nil,
+			nil,
+			&condition{
+				content:             "4.9406564584124654417656879286822137236505980e-324",
+				extractFloatElement: true,
+			},
+			&action{
+				expect: math.SmallestNonzeroFloat64,
+			},
+		),
+		gen(
+			"float element (positive false precision)",
+			nil,
+			nil,
+			&condition{
+				content:             "0.1234567890123456789",
+				extractFloatElement: true,
+			},
+			&action{
+				expect: float64(0.12345678901234568),
+			},
+		),
+		gen(
+			"float element (negative false precision)",
+			nil,
+			nil,
+			&condition{
+				content:             "-0.1234567890123456789",
+				extractFloatElement: true,
+			},
+			&action{
+				expect: float64(-0.12345678901234568),
+			},
+		),
+		gen(
+			"float element (zero) but not extracted",
+			nil,
+			nil,
+			&condition{
+				content:             "0.00",
+				extractFloatElement: false,
+			},
+			&action{
+				expect: "0.00",
+			},
+		),
+		gen(
+			"float element (positive) but not extracted",
+			nil,
+			nil,
+			&condition{
+				content:             "100.123000",
+				extractFloatElement: false,
+			},
+			&action{
+				expect: "100.123000",
+			},
+		),
+		gen(
+			"float element (negative) but not extracted",
+			nil,
+			nil,
+			&condition{
+				content:             "-100.123000",
+				extractFloatElement: false,
+			},
+			&action{
+				expect: "-100.123000",
+			},
+		),
+		gen(
+			"float element (upper bound) but not extracted",
+			nil,
+			nil,
+			&condition{
+				content:             "1.79769313486231570814527423731704356798070e+308",
+				extractFloatElement: false,
+			},
+			&action{
+				expect: "1.79769313486231570814527423731704356798070e+308",
+			},
+		),
+		gen(
+			"float element (lower bound) but not extracted",
+			nil,
+			nil,
+			&condition{
+				content:             "4.9406564584124654417656879286822137236505980e-324",
+				extractFloatElement: false,
+			},
+			&action{
+				expect: "4.9406564584124654417656879286822137236505980e-324",
+			},
+		),
+		gen(
+			"float element (positive false precision) but not extracted",
+			nil,
+			nil,
+			&condition{
+				content:             "0.1234567890123456789",
+				extractFloatElement: false,
+			},
+			&action{
+				expect: "0.1234567890123456789",
+			},
+		),
+		gen(
+			"float element (negative false precision) but not extracted",
+			nil,
+			nil,
+			&condition{
+				content:             "-0.1234567890123456789",
+				extractFloatElement: false,
+			},
+			&action{
+				expect: "-0.1234567890123456789",
+			},
+		),
+	}
+
+	testutil.Register(table, testCases...)
+
+	for _, tt := range table.Entries() {
+		tt := tt
+		t.Run(tt.Name(), func(t *testing.T) {
+			sr := soapREST{
+				extractStringElement:  tt.C().extractStringElement,
+				extractBooleanElement: tt.C().extractBooleanElement,
+				extractIntegerElement: tt.C().extractIntegerElement,
+				extractFloatElement:   tt.C().extractFloatElement,
+			}
+
+			testutil.Diff(t, tt.A().expect, sr.parseValue(tt.C().content))
+		})
+	}
+}
+
+func TestHasNullValue(t *testing.T) {
+	type condition struct {
+		data any
+	}
+	type action struct {
+		expect bool
+	}
+
+	tb := testutil.NewTableBuilder[*condition, *action]()
+	tb.Name(t.Name())
+	table := tb.Build()
+
+	gen := testutil.NewCase[*condition, *action]
+	testCases := []*testutil.Case[*condition, *action]{
+		gen(
+			"contains nil data",
+			nil,
+			nil,
+			&condition{
+				data: nil,
+			},
+			&action{
+				expect: true,
+			},
+		),
+		gen(
+			"contains map[string]any data without nil",
+			nil,
+			nil,
+			&condition{
+				data: map[string]any{
+					"testKey": "nonNil",
+				},
+			},
+			&action{
+				expect: false,
+			},
+		),
+		gen(
+			"contains map[string]any data with nil",
+			nil,
+			nil,
+			&condition{
+				data: map[string]any{
+					"nilKey": nil,
+				},
+			},
+			&action{
+				expect: true,
+			},
+		),
+		gen(
+			"contains map[string]any data with multiple nil",
+			nil,
+			nil,
+			&condition{
+				data: map[string]any{
+					"nonNilKey": "nonNil",
+					"otherKey":  "other",
+					"nilKey1":   nil,
+					"nilKey2":   nil,
+				},
+			},
+			&action{
+				expect: true,
+			},
+		),
+		gen(
+			"contains []any data without nil",
+			nil,
+			nil,
+			&condition{
+				data: []any{
+					"nonNil",
+				},
+			},
+			&action{
+				expect: false,
+			},
+		),
+		gen(
+			"contains []any data with nil",
+			nil,
+			nil,
+			&condition{
+				data: []any{
+					nil,
+				},
+			},
+			&action{
+				expect: true,
+			},
+		),
+		gen(
+			"contains []any data with multiple nil",
+			nil,
+			nil,
+			&condition{
+				data: []any{
+					"nonNil",
+					"other",
+					nil,
+					nil,
+				},
+			},
+			&action{
+				expect: true,
+			},
+		),
+	}
+
+	testutil.Register(table, testCases...)
+
+	for _, tt := range table.Entries() {
+		tt := tt
+		t.Run(tt.Name(), func(t *testing.T) {
+			testutil.Diff(t, tt.A().expect, hasNullValue(tt.C().data))
 		})
 	}
 }
