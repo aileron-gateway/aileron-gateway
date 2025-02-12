@@ -16,12 +16,19 @@ import (
 	"google.golang.org/grpc"
 
 	"google.golang.org/grpc/codes"
-	pb "google.golang.org/grpc/examples/route_guide/routeguide"
+	pb "google.golang.org/grpc/examples/helloworld/helloworld"
 	"google.golang.org/grpc/status"
 )
 
-type routeGuideServer struct {
-	pb.UnimplementedRouteGuideServer
+// server is used to implement helloworld.GreeterServer.
+type server struct {
+	pb.UnimplementedGreeterServer
+}
+
+// SayHello implements helloworld.GreeterServer
+func (s *server) SayHello(_ context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
+	log.Printf("Received: %v", in.GetName())
+	return &pb.HelloReply{Message: "Hello " + in.GetName()}, nil
 }
 
 func runServer(t *testing.T, ctx context.Context) {
@@ -32,7 +39,7 @@ func runServer(t *testing.T, ctx context.Context) {
 	}
 
 	grpcServer := grpc.NewServer()
-	pb.RegisterRouteGuideServer(grpcServer, &routeGuideServer{})
+	pb.RegisterGreeterServer(grpcServer, &server{})
 
 	go func() {
 		if err := grpcServer.Serve(lis); err != nil && err != http.ErrServerClosed {
@@ -69,14 +76,14 @@ func TestProxyGrpc(t *testing.T) {
 	}
 	defer conn.Close()
 
-	var feature *pb.Feature
+	var in *pb.HelloReply
 	go func() {
-		client := pb.NewRouteGuideClient(conn)
-		feature, err = client.GetFeature(ctx, &pb.Point{})
+		client := pb.NewGreeterClient(conn)
+		in, err = client.SayHello(ctx, &pb.HelloRequest{Name: "AILERON"})
 		if err != nil {
 			log.Printf("error getting feature: %v", err)
 		} else {
-			log.Printf("feature: %v", feature)
+			log.Printf("feature: %v", in)
 		}
 		timer.Stop()
 		cancel()
@@ -86,5 +93,6 @@ func TestProxyGrpc(t *testing.T) {
 		t.Error(err)
 	}
 
-	testutil.Diff(t, codes.Unimplemented, status.Code(err))
+	testutil.Diff(t, codes.OK, status.Code(err))
+	testutil.Diff(t, "Hello AILERON", in.GetMessage())
 }
