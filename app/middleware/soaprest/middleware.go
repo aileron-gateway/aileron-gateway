@@ -51,18 +51,18 @@ type soapREST struct {
 	extractFloatElement   bool
 }
 
-func (m *soapREST) Middleware(next http.Handler) http.Handler {
+func (s *soapREST) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// If it's not a SOAP　1.1 request then return VersionMismatch faultcode.
 		if !isSOAPRequest(r) {
-			m.eh.ServeHTTPError(w, r, errInvalidSOAP11Request)
+			s.eh.ServeHTTPError(w, r, errInvalidSOAP11Request)
 			return
 		}
 
 		// Read the request body
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
-			m.eh.ServeHTTPError(w, r, utilhttp.ErrBadRequest)
+			s.eh.ServeHTTPError(w, r, utilhttp.ErrBadRequest)
 			return
 		}
 		r.Body.Close()
@@ -70,7 +70,7 @@ func (m *soapREST) Middleware(next http.Handler) http.Handler {
 		// Parse XML
 		var root xmlNode
 		if err := xml.Unmarshal(body, &root); err != nil {
-			m.eh.ServeHTTPError(w, r, utilhttp.ErrBadRequest)
+			s.eh.ServeHTTPError(w, r, utilhttp.ErrBadRequest)
 			return
 		}
 
@@ -79,12 +79,12 @@ func (m *soapREST) Middleware(next http.Handler) http.Handler {
 			prefixToURI: map[string]string{},
 			uriToPrefix: map[string]string{},
 		}
-		jsonData := m.xmlToMap(root, nsCtx)
+		jsonData := s.xmlToMap(root, nsCtx)
 
 		// Convert the map to JSON bytes
 		jsonBody, err := json.Marshal(jsonData)
 		if err != nil {
-			m.eh.ServeHTTPError(w, r, utilhttp.ErrBadRequest)
+			s.eh.ServeHTTPError(w, r, utilhttp.ErrBadRequest)
 			return
 		}
 
@@ -104,9 +104,9 @@ func (m *soapREST) Middleware(next http.Handler) http.Handler {
 		next.ServeHTTP(ww, newReq)
 
 		// Convert REST response to SOAP response
-		respBody, err := m.convertRESTtoSOAPResponse(ww)
+		respBody, err := s.convertRESTtoSOAPResponse(ww)
 		if err != nil {
-			m.eh.ServeHTTPError(w, r, utilhttp.ErrInternalServerError)
+			s.eh.ServeHTTPError(w, r, utilhttp.ErrInternalServerError)
 			return
 		}
 
@@ -116,7 +116,7 @@ func (m *soapREST) Middleware(next http.Handler) http.Handler {
 		w.WriteHeader(ww.StatusCode())
 		_, err = ww.ResponseWriter.Write(respBody)
 		if err != nil {
-			m.eh.ServeHTTPError(w, r, utilhttp.ErrInternalServerError)
+			s.eh.ServeHTTPError(w, r, utilhttp.ErrInternalServerError)
 		}
 	})
 }

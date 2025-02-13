@@ -18,27 +18,34 @@ const (
 )
 
 var Resource api.Resource = &API{
-	BaseResource: &api.BaseResource{
-		DefaultProto: &v1.SOAPRESTMiddleware{
-			APIVersion: apiVersion,
-			Kind:       kind,
-			Metadata: &kernel.Metadata{
-				Namespace: "default",
-				Name:      "default",
-			},
-			Spec: &v1.SOAPRESTMiddlewareSpec{
-				AttributeKey:  "@attribute",
-				NamespaceKey:  "_namespace",
-				ArrayKey:      "item",
-				TextKey:       "#text",
-				SeparatorChar: ":",
-			},
-		},
-	},
+	BaseResource: &api.BaseResource{},
 }
 
 type API struct {
 	*api.BaseResource
+}
+
+func (o *API) Default() protoreflect.ProtoMessage {
+	return &v1.SOAPRESTMiddleware{
+		APIVersion: apiVersion,
+		Kind:       kind,
+		Metadata: &kernel.Metadata{
+			Namespace: "default",
+			Name:      "default",
+		},
+		Spec: &v1.SOAPRESTMiddlewareSpec{
+			AttributeKey:  "@attribute",
+			NamespaceKey:  "_namespace",
+			ArrayKey:      "item",
+			TextKey:       "#text",
+			SeparatorChar: ":",
+
+			ExtractStringElement:  false,
+			ExtractBooleanElement: false,
+			ExtractIntegerElement: false,
+			ExtractFloatElement:   false,
+		},
+	}
 }
 
 func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.ProtoMessage) (any, error) {
