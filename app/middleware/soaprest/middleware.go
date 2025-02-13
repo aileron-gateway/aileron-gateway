@@ -239,7 +239,7 @@ func (s soapREST) getNodeName(node xmlNode, nsCtx *namespaceContext) string {
 func (m *soapREST) convertRESTtoSOAPResponse(wrapper *wrappedWriter) ([]byte, error) {
 	var restData map[string]any
 	if err := json.NewDecoder(wrapper.body).Decode(&restData); err != nil {
-		return nil, app.ErrAppMiddleSOAPRESTDecode.WithoutStack(err, map[string]any{"wrapper.body": wrapper.body})
+		return nil, app.ErrAppMiddleSOAPRESTDecode.WithoutStack(err, map[string]any{"body": "failed to decode: " + wrapper.body.String()})
 	}
 
 	nsManager := &namespaceManager{
@@ -303,7 +303,7 @@ func (e xmlElement) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
 	}
 
 	if err := enc.EncodeToken(start); err != nil {
-		return app.ErrAppMiddleSOAPRESTMarshal.WithoutStack(err, map[string]any{"start": start})
+		return app.ErrAppMiddleSOAPRESTMarshal.WithoutStack(err, map[string]any{"reason": "failed to EncodeToken: " + start.Name.Local})
 	}
 
 	// EncodeToken does not perform error handling when the Token is CharData.
@@ -313,7 +313,7 @@ func (e xmlElement) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
 
 	for _, child := range e.children {
 		if err := enc.Encode(child); err != nil {
-			return app.ErrAppMiddleSOAPRESTMarshal.WithoutStack(err, map[string]any{"child": child})
+			return app.ErrAppMiddleSOAPRESTMarshal.WithoutStack(err, map[string]any{"reason": "failed to Encode child"})
 		}
 	}
 

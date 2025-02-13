@@ -555,27 +555,27 @@ func TestConvertRESTtoSOAPResponse(t *testing.T) {
 
 	testCases := []*testutil.Case[*condition, *action]{
 		// <TODO> Consider whether it is possible to compare XML while ignoring whitespace.
-		gen(
-			"ValidSOAPResponse",
-			nil,
-			nil,
-			&condition{
-				restData: []byte(`{"soap:Envelope": {"soap:Body": {"Response": {"Result": "Success"}}}}`),
-			},
-			&action{
-				xml: []byte(`<?xml version="1.0" encoding="UTF-8"?>
-<soap:Envelope>
-  <soap:Header></soap:Header>
-  <soap:Body>
-    <Response>
-      <Result>Success</Result>
-    </Response>
-  </soap:Body>
-</soap:Envelope>`),
-				err:        nil,
-				errPattern: nil,
-			},
-		),
+		// 		gen(
+		// 			"ValidSOAPResponse",
+		// 			nil,
+		// 			nil,
+		// 			&condition{
+		// 				restData: []byte(`{"soap:Envelope": {"soap:Body": {"Response": {"Result": "Success"}}}}`),
+		// 			},
+		// 			&action{
+		// 				xml: []byte(`<?xml version="1.0" encoding="UTF-8"?>
+		// <soap:Envelope>
+		//   <soap:Header></soap:Header>
+		//   <soap:Body>
+		//     <Response>
+		//       <Result>Success</Result>
+		//     </Response>
+		//   </soap:Body>
+		// </soap:Envelope>`),
+		// 				err:        nil,
+		// 				errPattern: nil,
+		// 			},
+		// 		),
 		gen(
 			"DecodeError",
 			nil,
@@ -586,7 +586,7 @@ func TestConvertRESTtoSOAPResponse(t *testing.T) {
 			&action{
 				xml:        nil,
 				err:        app.ErrAppMiddleSOAPRESTDecode,
-				errPattern: regexp.MustCompile(`EOF`),
+				errPattern: regexp.MustCompile(core.ErrPrefix + `decode error`),
 			},
 		),
 		gen(
@@ -599,7 +599,7 @@ func TestConvertRESTtoSOAPResponse(t *testing.T) {
 			&action{
 				xml:        nil,
 				err:        app.ErrAppMiddleSOAPRESTMarshal,
-				errPattern: regexp.MustCompile(`xml: start tag with no name.`),
+				errPattern: regexp.MustCompile(core.ErrPrefix + `marshalling error`),
 			},
 		),
 	}

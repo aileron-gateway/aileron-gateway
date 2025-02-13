@@ -58,9 +58,8 @@ var (
 	ErrAppMiddleHeaderPolicy    = errorutil.NewKind("E3211", "AppMiddleHeaderPolicy", "header policy error. {{reason}}")
 	ErrAppMiddleSession         = errorutil.NewKind("E3212", "AppMiddleSession", "session operation failed.")
 	ErrAppMiddleThrottle        = errorutil.NewKind("E3213", "AppMiddleThrottle", "too many requests.")
-	ErrAppMiddleSOAPRESTDecode  = errorutil.NewKind("E3214", "AppMiddleSOAPRESTMarshal", "decode error.")
-	ErrAppMiddleSOAPRESTMarshal = errorutil.NewKind("E3215", "AppMiddleSOAPRESTMarshal", "marshalling error.")
-
+	ErrAppMiddleSOAPRESTDecode  = errorutil.NewKind("E3214", "AppMiddleSOAPRESTMarshal", "decode error. {{body}}")
+	ErrAppMiddleSOAPRESTMarshal = errorutil.NewKind("E3215", "AppMiddleSOAPRESTMarshal", "marshalling error. {{reason}}")
 	// ---------------------------------------------------------
 
 	// ---------------------------------------------------------
