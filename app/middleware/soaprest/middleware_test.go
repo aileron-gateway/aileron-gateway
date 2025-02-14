@@ -66,14 +66,16 @@ func TestMiddleware(t *testing.T) {
 		contentType string
 		body        string
 
-		readBodyError    bool
-		nextHandlerError bool
+		readBodyError      bool
+		nextHandlerError   bool
+		responseWriteError bool
 	}
 
 	type action struct {
-		body     string
-		err      error
-		respCode int
+		body       string
+		err        any // error or errorKind
+		errPattern *regexp.Regexp
+		respCode   int
 	}
 
 	tb := testutil.NewTableBuilder[*condition, *action]()
@@ -82,6 +84,33 @@ func TestMiddleware(t *testing.T) {
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
+		gen(
+			"GetSOAPRequest",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodGet,
+				contentType: "text/xml",
+				body: `<?xml version="1.0" encoding="utf-8"?>
+						<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns="http://example.com/">
+						<soap:Header/>
+						<soap:Body>
+							<ns:Test>
+							</ns:Test>
+						</soap:Body>
+						</soap:Envelope>`,
+			},
+			&action{
+				body: `<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope xmlns:ns="http://example.com/" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Header></soap:Header>
+  <soap:Body>
+    <ns:Test></ns:Test>
+  </soap:Body>
+</soap:Envelope>`,
+				respCode: 200,
+			},
+		),
 		gen(
 			"NonSOAPRequest",
 			nil,
@@ -136,11 +165,11 @@ func TestMiddleware(t *testing.T) {
 				method:      http.MethodPost,
 				contentType: "text/xml",
 				body: `<?xml version="1.0" encoding="UTF-8"?>
-			<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">
-			<Body>
-			<Value>NaN</Value>
-			</Body>
-			</Envelope>`,
+							<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+							<Body>
+							<Value>NaN</Value>
+							</Body>
+							</Envelope>`,
 			},
 			&action{
 				err:      utilhttp.ErrBadRequest,
@@ -166,8 +195,9 @@ func TestMiddleware(t *testing.T) {
 				nextHandlerError: true,
 			},
 			&action{
-				err:      utilhttp.ErrInternalServerError,
-				respCode: 500,
+				err:        app.ErrAppMiddleSOAPRESTDecode,
+				errPattern: regexp.MustCompile("failed to decode:"),
+				respCode:   500,
 			},
 		),
 		gen(
@@ -185,6 +215,8 @@ func TestMiddleware(t *testing.T) {
 			</ns:Test>
 		</soap:Body>
 		</soap:Envelope>`,
+
+				responseWriteError: true,
 			},
 			&action{
 				err:      utilhttp.ErrInternalServerError,
@@ -222,7 +254,7 @@ func TestMiddleware(t *testing.T) {
 				})
 			} else {
 				next = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					respJSON := `{"message": "success"}`
+					respJSON := `{"soap:Envelope":{"_namespace":{"ns":"http://example.com/","soap":"http://schemas.xmlsoap.org/soap/envelope/"},"soap:Body":{"ns:Test":{}},"soap:Header":{}}}`
 					w.Header().Set("Content-Type", "application/json; charset=utf-8")
 					w.WriteHeader(http.StatusOK)
 					w.Write([]byte(respJSON))
@@ -237,7 +269,7 @@ func TestMiddleware(t *testing.T) {
 			req.Header.Set("Content-Type", tt.C().contentType)
 
 			var resp http.ResponseWriter
-			if tt.Name() == "ResponseWriterWriteError" {
+			if tt.C().responseWriteError {
 				resp = &errorResponseRecorder{}
 			} else {
 				resp = httptest.NewRecorder()
@@ -255,7 +287,7 @@ func TestMiddleware(t *testing.T) {
 			opts := []gocmp.Option{
 				cmpopts.EquateErrors(),
 			}
-			testutil.DiffError(t, tt.A().err, nil, meh.err, opts...)
+			testutil.DiffError(t, tt.A().err, tt.A().errPattern, meh.err, opts...)
 		})
 	}
 }
@@ -555,27 +587,27 @@ func TestConvertRESTtoSOAPResponse(t *testing.T) {
 
 	testCases := []*testutil.Case[*condition, *action]{
 		// <TODO> Consider whether it is possible to compare XML while ignoring whitespace.
-		// 		gen(
-		// 			"ValidSOAPResponse",
-		// 			nil,
-		// 			nil,
-		// 			&condition{
-		// 				restData: []byte(`{"soap:Envelope": {"soap:Body": {"Response": {"Result": "Success"}}}}`),
-		// 			},
-		// 			&action{
-		// 				xml: []byte(`<?xml version="1.0" encoding="UTF-8"?>
-		// <soap:Envelope>
-		//   <soap:Header></soap:Header>
-		//   <soap:Body>
-		//     <Response>
-		//       <Result>Success</Result>
-		//     </Response>
-		//   </soap:Body>
-		// </soap:Envelope>`),
-		// 				err:        nil,
-		// 				errPattern: nil,
-		// 			},
-		// 		),
+		gen(
+			"ValidSOAPResponse",
+			nil,
+			nil,
+			&condition{
+				restData: []byte(`{"soap:Envelope": {"soap:Body": {"Response": {"Result": "Success"}}}}`),
+			},
+			&action{
+				xml: []byte(`<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope>
+  <soap:Header></soap:Header>
+  <soap:Body>
+    <Response>
+      <Result>Success</Result>
+    </Response>
+  </soap:Body>
+</soap:Envelope>`),
+				err:        nil,
+				errPattern: nil,
+			},
+		),
 		gen(
 			"DecodeError",
 			nil,

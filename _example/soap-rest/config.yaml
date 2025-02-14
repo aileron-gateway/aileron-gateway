@@ -46,3 +46,8 @@ spec:
 ---
 apiVersion: app/v1
 kind: SOAPRESTMiddleware
+spec:
+  extractStringElement: true
+  extractBooleanElement: true
+  extractIntegerElement: true
+  extractFloatElement: true
