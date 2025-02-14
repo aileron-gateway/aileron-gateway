@@ -121,7 +121,7 @@ func TestMiddleware(t *testing.T) {
 				body:        ``,
 			},
 			&action{
-				err:      errInvalidSOAP11Request,
+				err:      app.ErrAppMiddleSOAPRESTVersionMismatch,
 				respCode: 403,
 			},
 		),
@@ -137,7 +137,7 @@ func TestMiddleware(t *testing.T) {
 				readBodyError: true,
 			},
 			&action{
-				err:      utilhttp.ErrBadRequest,
+				err:      app.ErrAppMiddleSOAPRESTReadRequestBody,
 				respCode: 400,
 			},
 		),
@@ -172,7 +172,7 @@ func TestMiddleware(t *testing.T) {
 							</Envelope>`,
 			},
 			&action{
-				err:      utilhttp.ErrBadRequest,
+				err:      app.ErrAppMiddleSOAPRESTMarshalJSONData,
 				respCode: 400,
 			},
 		),
@@ -195,7 +195,7 @@ func TestMiddleware(t *testing.T) {
 				nextHandlerError: true,
 			},
 			&action{
-				err:        app.ErrAppMiddleSOAPRESTDecode,
+				err:        app.ErrAppMiddleSOAPRESTDecodeResponseBody,
 				errPattern: regexp.MustCompile("failed to decode:"),
 				respCode:   500,
 			},
@@ -617,8 +617,8 @@ func TestConvertRESTtoSOAPResponse(t *testing.T) {
 			},
 			&action{
 				xml:        nil,
-				err:        app.ErrAppMiddleSOAPRESTDecode,
-				errPattern: regexp.MustCompile(core.ErrPrefix + `decode error`),
+				err:        app.ErrAppMiddleSOAPRESTDecodeResponseBody,
+				errPattern: regexp.MustCompile(core.ErrPrefix + `failed to decode response body.`),
 			},
 		),
 		gen(
@@ -629,9 +629,12 @@ func TestConvertRESTtoSOAPResponse(t *testing.T) {
 				restData: []byte(`{"soap:Envelope": {"soap:Body": {"": "EmptyKeyValue"}}}`),
 			},
 			&action{
-				xml:        nil,
-				err:        app.ErrAppMiddleSOAPRESTMarshal,
-				errPattern: regexp.MustCompile(core.ErrPrefix + `marshalling error`),
+				xml: nil,
+				err: utilhttp.NewHTTPError(
+					app.ErrAppMiddleSOAPRESTMarshalResponseEnvelope.WithoutStack(nil, nil),
+					http.StatusInternalServerError,
+				),
+				errPattern: regexp.MustCompile(core.ErrPrefix + `failed to marshal response envelope.`),
 			},
 		),
 	}
@@ -661,7 +664,7 @@ func TestConvertRESTtoSOAPResponse(t *testing.T) {
 			}
 
 			testutil.Diff(t, tt.A().xml, result, opts...)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err, cmpopts.EquateErrors())
 		})
 	}
 }
@@ -739,9 +742,12 @@ func TestXmlElement_MarshalXML(t *testing.T) {
 				},
 			},
 			&action{
-				xmlOutput:  ``,
-				err:        app.ErrAppMiddleSOAPRESTMarshal,
-				errPattern: regexp.MustCompile("xml: start tag with no name."),
+				xmlOutput: ``,
+				err: utilhttp.NewHTTPError(
+					app.ErrAppMiddleSOAPRESTMarshalResponseEnvelope.WithoutStack(nil, nil),
+					http.StatusInternalServerError,
+				),
+				errPattern: regexp.MustCompile(core.ErrPrefix + `failed to marshal response envelope.`),
 			},
 		),
 		gen(
@@ -759,9 +765,12 @@ func TestXmlElement_MarshalXML(t *testing.T) {
 				},
 			},
 			&action{
-				xmlOutput:  `<Test>`,
-				err:        app.ErrAppMiddleSOAPRESTMarshal,
-				errPattern: regexp.MustCompile("xml: start tag with no name."),
+				xmlOutput: `<Test>`,
+				err: utilhttp.NewHTTPError(
+					app.ErrAppMiddleSOAPRESTMarshalResponseEnvelope.WithoutStack(nil, nil),
+					http.StatusInternalServerError,
+				),
+				errPattern: regexp.MustCompile(core.ErrPrefix + `failed to marshal response envelope`),
 			},
 		),
 	}
@@ -776,9 +785,7 @@ func TestXmlElement_MarshalXML(t *testing.T) {
 
 			enc := xml.NewEncoder(&buf)
 			err = tt.C().element.MarshalXML(enc, xml.StartElement{Name: tt.C().element.XMLName})
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err, gocmp.Options{
-				cmpopts.EquateErrors(),
-			})
+			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err, cmpopts.EquateErrors())
 
 			enc.Flush()
 			testutil.Diff(t, string([]byte(tt.A().xmlOutput)), string(bytes.TrimSpace(buf.Bytes())))

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/aileron-gateway/aileron-gateway/app"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
@@ -62,7 +63,7 @@ func (h *soapErrorHandler) ServeHTTPError(w http.ResponseWriter, r *http.Request
 	if c, ok := err.(core.HTTPError); ok {
 		statusCode = c.StatusCode()
 		if statusCode < 500 {
-			if err == errInvalidSOAP11Request {
+			if app.ErrAppMiddleSOAPRESTVersionMismatch.Is(err) {
 				// If a request that is not SOAP1.1 is received, return a VersionMismatch.
 				faultCode = faultCodeVersionMismatch
 				detailMessage = "Expected a SOAP 1.1 request, but received a request in a different format."

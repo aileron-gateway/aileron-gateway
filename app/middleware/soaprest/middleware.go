@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -32,10 +31,6 @@ const (
 	soap11MIMEType = "text/xml"
 )
 
-var (
-	errInvalidSOAP11Request = utilhttp.NewHTTPError(errors.New("expected a SOAP 1.1 request, but received a request in a different format"), http.StatusForbidden)
-)
-
 type soapREST struct {
 	eh core.ErrorHandler
 
@@ -55,14 +50,16 @@ func (s *soapREST) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// If it's not a SOAP　1.1 request then return VersionMismatch faultcode.
 		if !isSOAPRequest(r) {
-			s.eh.ServeHTTPError(w, r, errInvalidSOAP11Request)
+			err := app.ErrAppMiddleSOAPRESTVersionMismatch.WithoutStack(nil, nil)
+			s.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusForbidden))
 			return
 		}
 
 		// Read the request body
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
-			s.eh.ServeHTTPError(w, r, utilhttp.ErrBadRequest)
+			err = app.ErrAppMiddleSOAPRESTReadRequestBody.WithoutStack(err, map[string]any{"body": body})
+			s.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusBadRequest))
 			return
 		}
 		r.Body.Close()
@@ -70,6 +67,7 @@ func (s *soapREST) Middleware(next http.Handler) http.Handler {
 		// Parse XML
 		var root xmlNode
 		if err := xml.Unmarshal(body, &root); err != nil {
+			err = app.ErrAppGenUnmarshal.WithoutStack(err, map[string]any{"body": body})
 			s.eh.ServeHTTPError(w, r, utilhttp.ErrBadRequest)
 			return
 		}
@@ -84,7 +82,8 @@ func (s *soapREST) Middleware(next http.Handler) http.Handler {
 		// Convert the map to JSON bytes
 		jsonBody, err := json.Marshal(jsonData)
 		if err != nil {
-			s.eh.ServeHTTPError(w, r, utilhttp.ErrBadRequest)
+			err = app.ErrAppMiddleSOAPRESTMarshalJSONData.WithoutStack(err, map[string]any{"jsonData": jsonData})
+			s.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusBadRequest))
 			return
 		}
 
@@ -239,7 +238,7 @@ func (s soapREST) getNodeName(node xmlNode, nsCtx *namespaceContext) string {
 func (m *soapREST) convertRESTtoSOAPResponse(wrapper *wrappedWriter) ([]byte, error) {
 	var restData map[string]any
 	if err := json.NewDecoder(wrapper.body).Decode(&restData); err != nil {
-		err = app.ErrAppMiddleSOAPRESTDecode.WithoutStack(err, map[string]any{"body": "failed to decode: " + wrapper.body.String()})
+		err = app.ErrAppMiddleSOAPRESTDecodeResponseBody.WithoutStack(err, map[string]any{"body": "failed to decode: " + wrapper.body.String()})
 		return nil, utilhttp.NewHTTPError(err, http.StatusInternalServerError)
 	}
 
@@ -254,7 +253,7 @@ func (m *soapREST) convertRESTtoSOAPResponse(wrapper *wrappedWriter) ([]byte, er
 	}
 
 	responseBytes := append([]byte(xml.Header), output...)
-	return responseBytes, err
+	return responseBytes, nil
 }
 
 // soapEnvelope is a struct representing a SOAPEnvelope.
@@ -304,7 +303,7 @@ func (e xmlElement) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
 	}
 
 	if err := enc.EncodeToken(start); err != nil {
-		err = app.ErrAppMiddleSOAPRESTMarshal.WithoutStack(err, map[string]any{"reason": "failed to EncodeToken: " + start.Name.Local})
+		err = app.ErrAppMiddleSOAPRESTMarshalResponseEnvelope.WithoutStack(err, map[string]any{"reason": "failed to EncodeToken: " + start.Name.Local})
 		return utilhttp.NewHTTPError(err, http.StatusInternalServerError)
 	}
 
@@ -315,7 +314,7 @@ func (e xmlElement) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
 
 	for _, child := range e.children {
 		if err := enc.Encode(child); err != nil {
-			err = app.ErrAppMiddleSOAPRESTMarshal.WithoutStack(err, map[string]any{"reason": "failed to Encode child"})
+			err = app.ErrAppMiddleSOAPRESTMarshalResponseEnvelope.WithoutStack(err, map[string]any{"reason": "failed to Encode child"})
 			return utilhttp.NewHTTPError(err, http.StatusInternalServerError)
 		}
 	}

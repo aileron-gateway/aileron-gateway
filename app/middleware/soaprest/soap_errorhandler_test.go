@@ -11,6 +11,7 @@ import (
 
 	"log/slog"
 
+	"github.com/aileron-gateway/aileron-gateway/app"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
@@ -60,7 +61,10 @@ func TestSOAPErrorHandler_ServeHTTPError(t *testing.T) {
 					lg:          debugLogger,
 					stackAlways: false,
 				},
-				err: errInvalidSOAP11Request,
+				err: utilhttp.NewHTTPError(
+					app.ErrAppMiddleSOAPRESTVersionMismatch.WithoutStack(nil, nil),
+					http.StatusForbidden,
+				),
 				req: httptest.NewRequest(http.MethodGet, "http://test.com/foo", nil),
 			},
 			&action{
