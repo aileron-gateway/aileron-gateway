@@ -115,7 +115,8 @@ func (s *soapREST) Middleware(next http.Handler) http.Handler {
 		w.WriteHeader(ww.StatusCode())
 		_, err = ww.ResponseWriter.Write(respBody)
 		if err != nil {
-			s.eh.ServeHTTPError(w, r, utilhttp.ErrInternalServerError)
+			err = app.ErrAppMiddleSOAPRESTWriteResponseBody.WithoutStack(err, map[string]any{"body": respBody})
+			s.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusInternalServerError))
 		}
 	})
 }

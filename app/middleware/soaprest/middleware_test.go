@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"regexp"
+	"sort"
 	"strings"
 	"testing"
 
@@ -60,22 +61,20 @@ func (rec *errorResponseRecorder) Write(b []byte) (int, error) {
 	return 0, rec.writeError
 }
 
-func TestMiddleware(t *testing.T) {
+func TestMiddleware_RequestConversion(t *testing.T) {
 	type condition struct {
+		body        string
 		method      string
 		contentType string
-		body        string
 
-		readBodyError      bool
-		nextHandlerError   bool
-		responseWriteError bool
+		readBodyError bool
 	}
 
 	type action struct {
 		body       string
 		err        any // error or errorKind
 		errPattern *regexp.Regexp
-		respCode   int
+		code       int
 	}
 
 	tb := testutil.NewTableBuilder[*condition, *action]()
@@ -92,23 +91,48 @@ func TestMiddleware(t *testing.T) {
 				method:      http.MethodGet,
 				contentType: "text/xml",
 				body: `<?xml version="1.0" encoding="utf-8"?>
-						<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns="http://example.com/">
-						<soap:Header/>
-						<soap:Body>
-							<ns:Test>
-							</ns:Test>
-						</soap:Body>
-						</soap:Envelope>`,
+		        <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns="http://example.com/">
+		            <soap:Header/>
+		            <soap:Body>
+		                <ns:Test>
+		                    <ns:Value>123</ns:Value>
+		                </ns:Test>
+		            </soap:Body>
+		        </soap:Envelope>`,
 			},
 			&action{
-				body: `<?xml version="1.0" encoding="UTF-8"?>
-<soap:Envelope xmlns:ns="http://example.com/" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-  <soap:Header></soap:Header>
-  <soap:Body>
-    <ns:Test></ns:Test>
-  </soap:Body>
-</soap:Envelope>`,
-				respCode: 200,
+				body: `{"soap:Envelope":{"_namespace":{"ns":"http://example.com/","soap":"http://schemas.xmlsoap.org/soap/envelope/"},"soap:Body":{"ns:Test":{"ns:Value":123}},"soap:Header":{}}}`,
+
+				// This is a case where no errors occur on the request side, and no body is set for the response.
+				// As a result, a decode error occurs on the response side.
+				err:  app.ErrAppMiddleSOAPRESTDecodeResponseBody,
+				code: 500,
+			},
+		),
+		gen(
+			"PostSOAPRequest",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "text/xml",
+				body: `<?xml version="1.0" encoding="utf-8"?>
+		        <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns="http://example.com/">
+		            <soap:Header/>
+		            <soap:Body>
+		                <ns:Test>
+		                    <ns:Value>123</ns:Value>
+		                </ns:Test>
+		            </soap:Body>
+		        </soap:Envelope>`,
+			},
+			&action{
+				body: `{"soap:Envelope":{"_namespace":{"ns":"http://example.com/","soap":"http://schemas.xmlsoap.org/soap/envelope/"},"soap:Body":{"ns:Test":{"ns:Value":123}},"soap:Header":{}}}`,
+
+				// This is a case where no errors occur on the request side, and no body is set for the response.
+				// As a result, a decode error occurs on the response side.
+				err:  app.ErrAppMiddleSOAPRESTDecodeResponseBody,
+				code: 500,
 			},
 		),
 		gen(
@@ -116,13 +140,13 @@ func TestMiddleware(t *testing.T) {
 			nil,
 			nil,
 			&condition{
-				method:      http.MethodGet,
+				method:      http.MethodPost,
 				contentType: "application/json",
 				body:        ``,
 			},
 			&action{
-				err:      app.ErrAppMiddleSOAPRESTVersionMismatch,
-				respCode: 403,
+				err:  app.ErrAppMiddleSOAPRESTVersionMismatch,
+				code: 403,
 			},
 		),
 		gen(
@@ -137,8 +161,8 @@ func TestMiddleware(t *testing.T) {
 				readBodyError: true,
 			},
 			&action{
-				err:      app.ErrAppMiddleSOAPRESTReadRequestBody,
-				respCode: 400,
+				err:  app.ErrAppMiddleSOAPRESTReadRequestBody,
+				code: 400,
 			},
 		),
 		gen(
@@ -153,8 +177,8 @@ func TestMiddleware(t *testing.T) {
 				readBodyError: false,
 			},
 			&action{
-				err:      utilhttp.ErrBadRequest,
-				respCode: 400,
+				err:  utilhttp.ErrBadRequest,
+				code: 400,
 			},
 		),
 		gen(
@@ -165,62 +189,15 @@ func TestMiddleware(t *testing.T) {
 				method:      http.MethodPost,
 				contentType: "text/xml",
 				body: `<?xml version="1.0" encoding="UTF-8"?>
-							<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">
-							<Body>
-							<Value>NaN</Value>
-							</Body>
-							</Envelope>`,
+						<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+						  <Body>
+						    <Value>NaN</Value>
+						  </Body>
+						</Envelope>`,
 			},
 			&action{
-				err:      app.ErrAppMiddleSOAPRESTMarshalJSONData,
-				respCode: 400,
-			},
-		),
-		gen(
-			"NextHandlerError",
-			nil,
-			nil,
-			&condition{
-				method:      http.MethodPost,
-				contentType: "text/xml",
-				body: `<?xml version="1.0" encoding="utf-8"?>
-			<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns="http://example.com/">
-			<soap:Header/>
-			<soap:Body>
-				<ns:Test>
-				</ns:Test>
-			</soap:Body>
-			</soap:Envelope>`,
-
-				nextHandlerError: true,
-			},
-			&action{
-				err:        app.ErrAppMiddleSOAPRESTDecodeResponseBody,
-				errPattern: regexp.MustCompile("failed to decode:"),
-				respCode:   500,
-			},
-		),
-		gen(
-			"ResponseWriterWriteError",
-			nil,
-			nil,
-			&condition{
-				method:      http.MethodPost,
-				contentType: "text/xml",
-				body: `<?xml version="1.0" encoding="utf-8"?>
-		<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns="http://example.com/">
-		<soap:Header/>
-		<soap:Body>
-			<ns:Test>
-			</ns:Test>
-		</soap:Body>
-		</soap:Envelope>`,
-
-				responseWriteError: true,
-			},
-			&action{
-				err:      utilhttp.ErrInternalServerError,
-				respCode: 500,
+				err:  app.ErrAppMiddleSOAPRESTMarshalJSONData,
+				code: 400,
 			},
 		),
 	}
@@ -244,29 +221,144 @@ func TestMiddleware(t *testing.T) {
 				extractFloatElement:   true,
 			}
 
-			var next http.Handler
-			if tt.C().nextHandlerError {
-				next = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					respJSON := `brokenJSON`
-					w.Header().Set("Content-Type", "application/json; charset=utf-8")
-					w.WriteHeader(http.StatusInternalServerError)
-					w.Write([]byte(respJSON))
-				})
-			} else {
-				next = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					respJSON := `{"soap:Envelope":{"_namespace":{"ns":"http://example.com/","soap":"http://schemas.xmlsoap.org/soap/envelope/"},"soap:Body":{"ns:Test":{}},"soap:Header":{}}}`
-					w.Header().Set("Content-Type", "application/json; charset=utf-8")
-					w.WriteHeader(http.StatusOK)
-					w.Write([]byte(respJSON))
-				})
-			}
+			nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				bodyBytes, err := io.ReadAll(r.Body)
+				if err != nil {
+					t.Fatalf("Failed to read request body: %v", err)
+				}
+				r.Body.Close()
 
-			h := m.Middleware(next)
+				// Check whether the SOAP/XML request is being converted
+				// into a REST/JSON request by the SOAPRESTMiddleware.
+				testutil.Diff(t, tt.A().body, string(bodyBytes))
+				w.WriteHeader(http.StatusOK)
+			})
+
+			h := m.Middleware(nextHandler)
 			req := httptest.NewRequest(tt.C().method, "http://test.com/test", strings.NewReader(tt.C().body))
 			if tt.C().readBodyError {
 				req.Body = io.NopCloser(&mockReader{})
 			}
 			req.Header.Set("Content-Type", tt.C().contentType)
+
+			resp := httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
+
+			opts := []gocmp.Option{
+				cmpopts.EquateErrors(),
+			}
+			testutil.DiffError(t, tt.A().err, tt.A().errPattern, meh.err, opts...)
+		})
+	}
+}
+
+func TestMiddleware_ResponseConversion(t *testing.T) {
+	type condition struct {
+		body        string
+		method      string
+		contentType string
+
+		responseWriteError bool
+	}
+
+	type action struct {
+		body       string
+		err        any // error or errorKind
+		errPattern *regexp.Regexp
+		code       int
+	}
+
+	tb := testutil.NewTableBuilder[*condition, *action]()
+	tb.Name(t.Name())
+	table := tb.Build()
+
+	gen := testutil.NewCase[*condition, *action]
+	testCases := []*testutil.Case[*condition, *action]{
+		gen(
+			"SimpleSOAPResponse",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "application/json",
+				body:        `{"soap:Envelope":{"_namespace":{"ns":"http://example.com/","soap":"http://schemas.xmlsoap.org/soap/envelope/"},"soap:Body":{"ns:Test":{"ns:Value":123}},"soap:Header":{}}}`,
+			},
+			&action{
+				body: `<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope xmlns:ns="http://example.com/" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Header></soap:Header>
+  <soap:Body>
+    <ns:Test>
+      <ns:Value>123</ns:Value>
+    </ns:Test>
+  </soap:Body>
+</soap:Envelope>`,
+			},
+		),
+		gen(
+			"NextHandlerError",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "text/xml",
+				body:        `{brokenJSON}`,
+			},
+			&action{
+				body:       ``,
+				err:        app.ErrAppMiddleSOAPRESTDecodeResponseBody,
+				errPattern: regexp.MustCompile("failed to decode:"),
+				code:       500,
+			},
+		),
+		gen(
+			"ResponseWriterWriteError",
+			nil,
+			nil,
+			&condition{
+				responseWriteError: true,
+
+				method:      http.MethodPost,
+				contentType: "text/xml",
+				body:        `{"soap:Envelope":{"_namespace":{"ns":"http://example.com/","soap":"http://schemas.xmlsoap.org/soap/envelope/"},"soap:Body":{"ns:Test":{}},"soap:Header":{}}}`,
+			},
+			&action{
+				err:  app.ErrAppMiddleSOAPRESTWriteResponseBody,
+				code: 500,
+			},
+		),
+	}
+
+	testutil.Register(table, testCases...)
+
+	for _, tt := range table.Entries() {
+		tt := tt
+		t.Run(tt.Name(), func(t *testing.T) {
+			meh := &mockErrorHandler{}
+			m := &soapREST{
+				eh:                    meh,
+				attributeKey:          "@attribute",
+				textKey:               "#text",
+				namespaceKey:          "_namespace",
+				arrayKey:              "item",
+				separatorChar:         ":",
+				extractStringElement:  true,
+				extractBooleanElement: true,
+				extractIntegerElement: true,
+				extractFloatElement:   true,
+			}
+
+			nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Type", tt.C().contentType+"; charset=utf-8")
+				w.WriteHeader(http.StatusOK)
+				w.Write([]byte(tt.C().body))
+			})
+
+			h := m.Middleware(nextHandler)
+
+			req := httptest.NewRequest(http.MethodPost, "http://example.com",
+				strings.NewReader(`<?xml version="1.0" encoding="utf-8"?> <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"> </soap:Envelope>"`))
+			req.Header.Set("Content-Type", "text/xml; charset=utf-8")
 
 			var resp http.ResponseWriter
 			if tt.C().responseWriteError {
@@ -278,10 +370,18 @@ func TestMiddleware(t *testing.T) {
 			h.ServeHTTP(resp, req)
 
 			if rec, ok := resp.(*httptest.ResponseRecorder); ok {
-				testutil.Diff(t, tt.A().respCode, rec.Code)
-				testutil.Diff(t, strings.TrimSpace(tt.A().body), strings.TrimSpace(rec.Body.String()))
+				expectedNormalized, err := normalizeXML(tt.A().body)
+				if err != nil {
+					t.Fatalf("Failed to normalize expected XML: %v", err)
+				}
+
+				actualNormalized, err := normalizeXML(rec.Body.String())
+				if err != nil {
+					t.Fatalf("Failed to normalize actual XML: %v", err)
+				}
+				testutil.Diff(t, expectedNormalized, actualNormalized)
 			} else if rec, ok := resp.(*errorResponseRecorder); ok {
-				testutil.Diff(t, tt.A().respCode, rec.code)
+				testutil.Diff(t, tt.A().code, rec.code)
 			}
 
 			opts := []gocmp.Option{
@@ -290,6 +390,36 @@ func TestMiddleware(t *testing.T) {
 			testutil.DiffError(t, tt.A().err, tt.A().errPattern, meh.err, opts...)
 		})
 	}
+}
+
+func normalizeXML(xmlStr string) (string, error) {
+	decoder := xml.NewDecoder(strings.NewReader(xmlStr))
+	var buffer bytes.Buffer
+	encoder := xml.NewEncoder(&buffer)
+	for {
+		tok, err := decoder.Token()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return "", err
+		}
+		switch tok := tok.(type) {
+		case xml.StartElement:
+			sort.Slice(tok.Attr, func(i, j int) bool {
+				return tok.Attr[i].Name.Local < tok.Attr[j].Name.Local
+			})
+			if err := encoder.EncodeToken(tok); err != nil {
+				return "", err
+			}
+		default:
+			if err := encoder.EncodeToken(tok); err != nil {
+				return "", err
+			}
+		}
+	}
+	encoder.Flush()
+	return buffer.String(), nil
 }
 
 func TestXmlToMap(t *testing.T) {

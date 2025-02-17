@@ -64,6 +64,7 @@ var (
 	ErrAppMiddleSOAPRESTMarshalJSONData         = errorutil.NewKind("E3217", "AppMiddleSOAPRESTMarshalJSONData", "failed to marshal jsonData. {{jsonData}}")
 	ErrAppMiddleSOAPRESTDecodeResponseBody      = errorutil.NewKind("E3218", "AppMiddleSOAPRESTDecodeResponseBody", "failed to decode response body. {{body}}")
 	ErrAppMiddleSOAPRESTMarshalResponseEnvelope = errorutil.NewKind("E3219", "AppMiddleSOAPRESTMarshalResponseEnvelope", "failed to marshal response envelope. {{reason}}")
+	ErrAppMiddleSOAPRESTWriteResponseBody       = errorutil.NewKind("E3220", "AppMiddleSOAPRESTWriteResponseBody", "failed to write response body. {{body}}")
 	// ---------------------------------------------------------
 
 	// ---------------------------------------------------------
