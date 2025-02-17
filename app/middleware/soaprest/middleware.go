@@ -236,7 +236,7 @@ func (s soapREST) getNodeName(node xmlNode, nsCtx *namespaceContext) string {
 	return nodeName
 }
 
-func (m *soapREST) convertRESTtoSOAPResponse(wrapper *wrappedWriter) ([]byte, error) {
+func (s *soapREST) convertRESTtoSOAPResponse(wrapper *wrappedWriter) ([]byte, error) {
 	var restData map[string]any
 	if err := json.NewDecoder(wrapper.body).Decode(&restData); err != nil {
 		err = app.ErrAppMiddleSOAPRESTDecodeResponseBody.WithoutStack(err, map[string]any{"body": "failed to decode: " + wrapper.body.String()})
@@ -246,15 +246,15 @@ func (m *soapREST) convertRESTtoSOAPResponse(wrapper *wrappedWriter) ([]byte, er
 	nsManager := &namespaceManager{
 		namespaces: make(map[string]string),
 	}
-	envelope := m.createSOAPEnvelope(restData, nsManager)
+	envelope := s.createSOAPEnvelope(restData, nsManager)
 
 	output, err := xml.MarshalIndent(envelope, "", "  ")
 	if err != nil {
 		return nil, err
 	}
 
-	responseBytes := append([]byte(xml.Header), output...)
-	return responseBytes, nil
+	respBytes := append([]byte(xml.Header), output...)
+	return respBytes, nil
 }
 
 // soapEnvelope is a struct representing a SOAPEnvelope.
