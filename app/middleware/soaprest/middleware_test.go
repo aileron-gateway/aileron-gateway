@@ -91,14 +91,14 @@ func TestMiddleware_RequestConversion(t *testing.T) {
 				method:      http.MethodGet,
 				contentType: "text/xml",
 				body: `<?xml version="1.0" encoding="utf-8"?>
-		        <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns="http://example.com/">
-		            <soap:Header/>
-		            <soap:Body>
-		                <ns:Test>
-		                    <ns:Value>123</ns:Value>
-		                </ns:Test>
-		            </soap:Body>
-		        </soap:Envelope>`,
+						<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns="http://example.com/">
+							<soap:Header/>
+							<soap:Body>
+								<ns:Test>
+									<ns:Value>123</ns:Value>
+								</ns:Test>
+							</soap:Body>
+						</soap:Envelope>`,
 			},
 			&action{
 				body: `{"soap:Envelope":{"_namespace":{"ns":"http://example.com/","soap":"http://schemas.xmlsoap.org/soap/envelope/"},"soap:Body":{"ns:Test":{"ns:Value":123}},"soap:Header":{}}}`,
@@ -117,14 +117,14 @@ func TestMiddleware_RequestConversion(t *testing.T) {
 				method:      http.MethodPost,
 				contentType: "text/xml",
 				body: `<?xml version="1.0" encoding="utf-8"?>
-		        <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns="http://example.com/">
-		            <soap:Header/>
-		            <soap:Body>
-		                <ns:Test>
-		                    <ns:Value>123</ns:Value>
-		                </ns:Test>
-		            </soap:Body>
-		        </soap:Envelope>`,
+						<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns="http://example.com/">
+							<soap:Header/>
+							<soap:Body>
+								<ns:Test>
+									<ns:Value>123</ns:Value>
+								</ns:Test>
+							</soap:Body>
+						</soap:Envelope>`,
 			},
 			&action{
 				body: `{"soap:Envelope":{"_namespace":{"ns":"http://example.com/","soap":"http://schemas.xmlsoap.org/soap/envelope/"},"soap:Body":{"ns:Test":{"ns:Value":123}},"soap:Header":{}}}`,
@@ -190,9 +190,9 @@ func TestMiddleware_RequestConversion(t *testing.T) {
 				contentType: "text/xml",
 				body: `<?xml version="1.0" encoding="UTF-8"?>
 						<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">
-						  <Body>
-						    <Value>NaN</Value>
-						  </Body>
+							<Body>
+								<Value>NaN</Value>
+							</Body>
 						</Envelope>`,
 			},
 			&action{
@@ -252,6 +252,102 @@ func TestMiddleware_RequestConversion(t *testing.T) {
 	}
 }
 
+// testNode is a struct that represents an XML node in middleware test
+type testNode struct {
+	Name       xml.Name
+	Attr       []xml.Attr
+	Text       string
+	ChildNodes []*testNode
+}
+
+// parseXML parses an XML string and builds a Node tree.
+func parseXML(r io.Reader) (*testNode, error) {
+	decoder := xml.NewDecoder(r)
+	var root *testNode
+	var stack []*testNode
+
+	for {
+		tok, err := decoder.Token()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return nil, err
+		}
+
+		switch tok := tok.(type) {
+		case xml.StartElement:
+			node := &testNode{
+				Name: tok.Name,
+				Attr: tok.Attr,
+			}
+			sort.Slice(node.Attr, func(i, j int) bool {
+				return node.Attr[i].Name.Local < node.Attr[j].Name.Local
+			})
+			if len(stack) == 0 {
+				root = node
+			} else {
+				parent := stack[len(stack)-1]
+				parent.ChildNodes = append(parent.ChildNodes, node)
+			}
+			stack = append(stack, node)
+
+		case xml.EndElement:
+			if len(stack) > 0 {
+				stack = stack[:len(stack)-1]
+			}
+
+		case xml.CharData:
+			if len(stack) > 0 {
+				text := strings.TrimSpace(string(tok))
+				if text != "" {
+					currentNode := stack[len(stack)-1]
+					currentNode.Text += text
+				}
+			}
+		}
+	}
+
+	return root, nil
+}
+
+func compareNodes(a, b *testNode) bool {
+	// If the result of parseXML is nil, it is considered a match.
+	if a == nil && b == nil {
+		return true
+	}
+
+	if a.Name.Local != b.Name.Local || a.Name.Space != b.Name.Space {
+		return false
+	}
+
+	if len(a.Attr) != len(b.Attr) {
+		return false
+	}
+	for i := range a.Attr {
+		if a.Attr[i].Name.Local != b.Attr[i].Name.Local ||
+			a.Attr[i].Name.Space != b.Attr[i].Name.Space ||
+			a.Attr[i].Value != b.Attr[i].Value {
+			return false
+		}
+	}
+
+	if a.Text != b.Text {
+		return false
+	}
+
+	if len(a.ChildNodes) != len(b.ChildNodes) {
+		return false
+	}
+	for i := range a.ChildNodes {
+		if !compareNodes(a.ChildNodes[i], b.ChildNodes[i]) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func TestMiddleware_ResponseConversion(t *testing.T) {
 	type condition struct {
 		body        string
@@ -285,14 +381,14 @@ func TestMiddleware_ResponseConversion(t *testing.T) {
 			},
 			&action{
 				body: `<?xml version="1.0" encoding="UTF-8"?>
-<soap:Envelope xmlns:ns="http://example.com/" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-  <soap:Header></soap:Header>
-  <soap:Body>
-    <ns:Test>
-      <ns:Value>123</ns:Value>
-    </ns:Test>
-  </soap:Body>
-</soap:Envelope>`,
+						<soap:Envelope xmlns:ns="http://example.com/" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+							<soap:Header></soap:Header>
+							<soap:Body>
+								<ns:Test>
+									<ns:Value>123</ns:Value>
+								</ns:Test>
+							</soap:Body>
+						</soap:Envelope>`,
 			},
 		),
 		gen(
@@ -370,16 +466,16 @@ func TestMiddleware_ResponseConversion(t *testing.T) {
 			h.ServeHTTP(resp, req)
 
 			if rec, ok := resp.(*httptest.ResponseRecorder); ok {
-				expectedNormalized, err := normalizeXML(tt.A().body)
+				expectedNode, err := parseXML(strings.NewReader(tt.A().body))
 				if err != nil {
-					t.Fatalf("Failed to normalize expected XML: %v", err)
+					t.Fatalf("Failed to parse expected XML: %v", err)
 				}
 
-				actualNormalized, err := normalizeXML(rec.Body.String())
+				actualNode, err := parseXML(strings.NewReader(rec.Body.String()))
 				if err != nil {
-					t.Fatalf("Failed to normalize actual XML: %v", err)
+					t.Fatalf("Failed to parse actual XML: %v", err)
 				}
-				testutil.Diff(t, expectedNormalized, actualNormalized)
+				testutil.Diff(t, true, compareNodes(expectedNode, actualNode))
 			} else if rec, ok := resp.(*errorResponseRecorder); ok {
 				testutil.Diff(t, tt.A().code, rec.code)
 			}
@@ -390,36 +486,6 @@ func TestMiddleware_ResponseConversion(t *testing.T) {
 			testutil.DiffError(t, tt.A().err, tt.A().errPattern, meh.err, opts...)
 		})
 	}
-}
-
-func normalizeXML(xmlStr string) (string, error) {
-	decoder := xml.NewDecoder(strings.NewReader(xmlStr))
-	var buffer bytes.Buffer
-	encoder := xml.NewEncoder(&buffer)
-	for {
-		tok, err := decoder.Token()
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			return "", err
-		}
-		switch tok := tok.(type) {
-		case xml.StartElement:
-			sort.Slice(tok.Attr, func(i, j int) bool {
-				return tok.Attr[i].Name.Local < tok.Attr[j].Name.Local
-			})
-			if err := encoder.EncodeToken(tok); err != nil {
-				return "", err
-			}
-		default:
-			if err := encoder.EncodeToken(tok); err != nil {
-				return "", err
-			}
-		}
-	}
-	encoder.Flush()
-	return buffer.String(), nil
 }
 
 func TestXmlToMap(t *testing.T) {
@@ -716,7 +782,6 @@ func TestConvertRESTtoSOAPResponse(t *testing.T) {
 	gen := testutil.NewCase[*condition, *action]
 
 	testCases := []*testutil.Case[*condition, *action]{
-		// <TODO> Consider whether it is possible to compare XML while ignoring whitespace.
 		gen(
 			"ValidSOAPResponse",
 			nil,
@@ -726,14 +791,14 @@ func TestConvertRESTtoSOAPResponse(t *testing.T) {
 			},
 			&action{
 				xml: []byte(`<?xml version="1.0" encoding="UTF-8"?>
-<soap:Envelope>
-  <soap:Header></soap:Header>
-  <soap:Body>
-    <Response>
-      <Result>Success</Result>
-    </Response>
-  </soap:Body>
-</soap:Envelope>`),
+								<soap:Envelope>
+									<soap:Header></soap:Header>
+									<soap:Body>
+										<Response>
+											<Result>Success</Result>
+										</Response>
+									</soap:Body>
+								</soap:Envelope>`),
 				err:        nil,
 				errPattern: nil,
 			},
@@ -785,16 +850,20 @@ func TestConvertRESTtoSOAPResponse(t *testing.T) {
 			wrapper := &wrappedWriter{
 				body: bytes.NewBuffer(tt.C().restData),
 			}
-			result, err := s.convertRESTtoSOAPResponse(wrapper)
+			result, actualErr := s.convertRESTtoSOAPResponse(wrapper)
 
-			opts := []gocmp.Option{
-				cmpopts.IgnoreFields(soapEnvelope{}, "XMLName"),
-				cmpopts.IgnoreFields(soapBody{}, "XMLName"),
-				cmpopts.IgnoreFields(soapHeader{}, "XMLName"),
+			expectedNode, err := parseXML(strings.NewReader(string(tt.A().xml)))
+			if err != nil {
+				t.Fatalf("Failed to parse expected XML: %v", err)
 			}
 
-			testutil.Diff(t, tt.A().xml, result, opts...)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err, cmpopts.EquateErrors())
+			actualNode, err := parseXML(strings.NewReader(string(result)))
+			if err != nil {
+				t.Fatalf("Failed to parse actual XML: %v", err)
+			}
+			testutil.Diff(t, true, compareNodes(expectedNode, actualNode))
+
+			testutil.DiffError(t, tt.A().err, tt.A().errPattern, actualErr, cmpopts.EquateErrors())
 		})
 	}
 }

@@ -236,7 +236,7 @@ func (s soapREST) getNodeName(node xmlNode, nsCtx *namespaceContext) string {
 	return nodeName
 }
 
-func (s *soapREST) convertRESTtoSOAPResponse(wrapper *wrappedWriter) ([]byte, error) {
+func (s soapREST) convertRESTtoSOAPResponse(wrapper *wrappedWriter) ([]byte, error) {
 	var restData map[string]any
 	if err := json.NewDecoder(wrapper.body).Decode(&restData); err != nil {
 		err = app.ErrAppMiddleSOAPRESTDecodeResponseBody.WithoutStack(err, map[string]any{"body": "failed to decode: " + wrapper.body.String()})
@@ -571,12 +571,14 @@ func (s soapREST) parseValue(content string) any {
 		}
 	}
 
+	// If the conversion to integer fails, it is handled as a string without any error handling.
 	if s.extractIntegerElement {
 		if i, err := strconv.ParseInt(content, 10, 64); err == nil {
 			return i
 		}
 	}
 
+	// If the conversion to float fails, it is handled as a string without any error handling.
 	if s.extractFloatElement {
 		if f, err := strconv.ParseFloat(content, 64); err == nil {
 			return f
