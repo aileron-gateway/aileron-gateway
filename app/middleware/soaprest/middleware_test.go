@@ -61,7 +61,7 @@ func (rec *errorResponseRecorder) Write(b []byte) (int, error) {
 	return 0, rec.writeError
 }
 
-func TestMiddleware_RequestConversion(t *testing.T) {
+func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 	type condition struct {
 		body        string
 		method      string
@@ -348,7 +348,7 @@ func compareNodes(a, b *testNode) bool {
 	return true
 }
 
-func TestMiddleware_ResponseConversion(t *testing.T) {
+func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 	type condition struct {
 		body        string
 		method      string
@@ -488,7 +488,7 @@ func TestMiddleware_ResponseConversion(t *testing.T) {
 	}
 }
 
-func TestXmlToMap(t *testing.T) {
+func TestSOAPREST_XmlToMap(t *testing.T) {
 	type condition struct {
 		xmlInput xmlNode
 	}
@@ -765,7 +765,7 @@ func TestXmlToMap(t *testing.T) {
 	}
 }
 
-func TestConvertRESTtoSOAPResponse(t *testing.T) {
+func TestSOAPREST_ConvertRESTtoSOAPResponse(t *testing.T) {
 	type condition struct {
 		restData []byte
 	}
@@ -992,7 +992,7 @@ func TestXmlElement_MarshalXML(t *testing.T) {
 	}
 }
 
-func TestCreateSOAPEnvelope(t *testing.T) {
+func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 	type condition struct {
 		data map[string]any
 	}
@@ -1184,7 +1184,7 @@ func TestCreateSOAPEnvelope(t *testing.T) {
 		})
 	}
 }
-func TestMapToXMLElements(t *testing.T) {
+func TestSOAPREST_MapToXMLElements(t *testing.T) {
 	type condition struct {
 		data map[string]any
 
@@ -1442,7 +1442,7 @@ func TestMapToXMLElements(t *testing.T) {
 	}
 }
 
-func TestMapToXMLElement(t *testing.T) {
+func TestSOAPREST_MapToXMLElement(t *testing.T) {
 	type condition struct {
 		key       string
 		value     any
@@ -2100,7 +2100,7 @@ func TestWrappedWriter_StatusCode(t *testing.T) {
 	}
 }
 
-func TestNamespaceContext(t *testing.T) {
+func TestNamespaceContext_AddNamespace(t *testing.T) {
 	type condition struct {
 		prefix string
 		uri    string
@@ -2145,15 +2145,80 @@ func TestNamespaceContext(t *testing.T) {
 			nc.addNamespace(tt.C().prefix, tt.C().uri)
 			testutil.Diff(t, tt.A().prefix, nc.uriToPrefix[tt.C().uri])
 			testutil.Diff(t, tt.A().uri, nc.prefixToURI[tt.C().prefix])
-			testutil.Diff(t, tt.A().prefix, nc.getPrefix(tt.C().uri))
-
-			// a prefix that does not exist in namespaceContext.
-			testutil.Diff(t, "", nc.getPrefix("notExists"))
 		})
 	}
 }
 
-func TestNamespaceManager(t *testing.T) {
+func TestNamespaceContext_GetPrefix(t *testing.T) {
+	type condition struct {
+		prefix string
+		uri    string
+
+		notExist bool
+	}
+
+	type action struct {
+		prefix string
+		uri    string
+	}
+
+	tb := testutil.NewTableBuilder[*condition, *action]()
+	tb.Name(t.Name())
+	table := tb.Build()
+
+	gen := testutil.NewCase[*condition, *action]
+	testCases := []*testutil.Case[*condition, *action]{
+		gen(
+			"Prefix exists in namespaceContext",
+			nil,
+			nil,
+			&condition{
+				prefix:   "test",
+				uri:      "http://test.com/",
+				notExist: false,
+			},
+			&action{
+				prefix: "test",
+				uri:    "http://test.com/",
+			},
+		),
+		gen(
+			"Prefix does not exist in namespaceContext",
+			nil,
+			nil,
+			&condition{
+				notExist: true,
+			},
+			&action{
+				prefix: "",
+			},
+		),
+	}
+
+	testutil.Register(table, testCases...)
+
+	for _, tt := range table.Entries() {
+		tt := tt
+		t.Run(tt.Name(), func(t *testing.T) {
+			nc := &namespaceContext{
+				prefixToURI: map[string]string{
+					tt.C().prefix: tt.C().uri,
+				},
+				uriToPrefix: map[string]string{
+					tt.C().uri: tt.C().prefix,
+				},
+			}
+
+			if tt.C().notExist {
+				testutil.Diff(t, tt.A().prefix, nc.getPrefix("notExists"))
+			} else {
+				testutil.Diff(t, tt.A().prefix, nc.getPrefix(tt.C().uri))
+			}
+		})
+	}
+}
+
+func TestNamespaceManager_AddNamespace(t *testing.T) {
 	type condition struct {
 		prefix      string
 		originalUri string
@@ -2212,7 +2277,7 @@ func TestNamespaceManager(t *testing.T) {
 	}
 }
 
-func TestParseValue(t *testing.T) {
+func TestSOAPREST_ParseValue(t *testing.T) {
 	type condition struct {
 		content               string
 		extractStringElement  bool
