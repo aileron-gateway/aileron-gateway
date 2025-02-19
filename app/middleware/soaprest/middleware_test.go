@@ -63,11 +63,21 @@ func (rec *errorResponseRecorder) Write(b []byte) (int, error) {
 	return 0, rec.writeError
 }
 
+type testMatcher struct {
+	match bool
+}
+
+func (t testMatcher) Match(s string) bool {
+	return t.match
+}
+
 func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 	type condition struct {
 		body        string
 		method      string
 		contentType string
+
+		paths *testMatcher
 
 		attributeKey  string
 		textKey       string
@@ -124,6 +134,8 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 								</ns:Array>
 							</soap:Body>
 						</soap:Envelope>`,
+
+				paths: &testMatcher{match: true},
 
 				extractStringElement:  true,
 				extractBooleanElement: true,
@@ -191,6 +203,8 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 							</soap:Body>
 						</soap:Envelope>`,
 
+				paths: &testMatcher{match: true},
+
 				extractStringElement:  true,
 				extractBooleanElement: true,
 				extractIntegerElement: true,
@@ -235,6 +249,7 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 				method:      http.MethodPost,
 				contentType: "application/json",
 				body:        ``,
+				paths:       &testMatcher{match: true},
 			},
 			&action{
 				err:  app.ErrAppMiddleSOAPRESTVersionMismatch,
@@ -249,6 +264,7 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 				method:      http.MethodPost,
 				contentType: "text/xml",
 				body:        `<invalid_xml>`,
+				paths:       &testMatcher{match: true},
 
 				readBodyError: true,
 			},
@@ -265,6 +281,7 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 				method:      http.MethodPost,
 				contentType: "text/xml",
 				body:        `<invalid_xml>`,
+				paths:       &testMatcher{match: true},
 
 				readBodyError: false,
 			},
@@ -286,6 +303,7 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 								<Value>NaN</Value>
 							</Body>
 						</Envelope>`,
+				paths: &testMatcher{match: true},
 
 				extractFloatElement: true,
 			},
@@ -322,6 +340,8 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 								</ns:Array>
 							</soap:Body>
 						</soap:Envelope>`,
+
+				paths: &testMatcher{match: true},
 
 				attributeKey:  "@attr!",
 				textKey:       "#textKey",
@@ -395,6 +415,8 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 							</soap:Body>
 						</soap:Envelope>`,
 
+				paths: &testMatcher{match: true},
+
 				extractStringElement:  false,
 				extractBooleanElement: false,
 				extractIntegerElement: false,
@@ -440,8 +462,9 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 		tt := tt
 		t.Run(tt.Name(), func(t *testing.T) {
 			meh := &mockErrorHandler{}
-			m := &soapREST{
+			sr := &soapREST{
 				eh:                    meh,
+				paths:                 tt.C().paths,
 				attributeKey:          cmp.Or(tt.C().attributeKey, "@attribute"),
 				textKey:               cmp.Or(tt.C().textKey, "#text"),
 				namespaceKey:          cmp.Or(tt.C().namespaceKey, "_namespace"),
@@ -475,7 +498,7 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 				w.WriteHeader(http.StatusOK)
 			})
 
-			h := m.Middleware(nextHandler)
+			h := sr.Middleware(nextHandler)
 			req := httptest.NewRequest(tt.C().method, "http://test.com/test", strings.NewReader(tt.C().body))
 			if tt.C().readBodyError {
 				req.Body = io.NopCloser(&mockReader{})
