@@ -1,6 +1,5 @@
 //go:build example
-
-// + build example
+// +build example
 
 package example_test
 
@@ -9,6 +8,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"testing"
 	"time"
 
@@ -16,6 +16,7 @@ import (
 	"google.golang.org/grpc"
 
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
 	pb "google.golang.org/grpc/examples/helloworld/helloworld"
 	"google.golang.org/grpc/status"
 )
@@ -57,8 +58,9 @@ func runServer(t *testing.T, ctx context.Context) {
 
 func TestProxyGrpc(t *testing.T) {
 
-	targetDir := "./../.."
-	changeDirectory(t, targetDir)
+	wd, _ := os.Getwd()
+	defer changeDirectory(t, wd)
+	changeDirectory(t, "./../../")
 
 	env := []string{}
 	config := []string{"./_example/proxy-grpc/config-http-http.yaml"}
@@ -70,7 +72,7 @@ func TestProxyGrpc(t *testing.T) {
 	go runServer(t, ctx)
 	time.Sleep(1 * time.Second)
 
-	conn, err := grpc.NewClient("localhost:50000", grpc.WithInsecure())
+	conn, err := grpc.NewClient("localhost:50000", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		t.Error(err)
 	}
