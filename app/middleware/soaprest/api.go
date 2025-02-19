@@ -6,6 +6,7 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
+	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
@@ -59,8 +60,15 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.Prot
 		return nil, core.ErrCoreGenCreateObject.WithStack(err, map[string]any{"kind": kind})
 	}
 
+	m, err := txtutil.NewStringMatcher(txtutil.MatchTypes[c.Spec.Matcher.MatchType], c.Spec.Matcher.Patterns...)
+	if err != nil {
+		return nil, err // Return err as-is.
+	}
+
 	return &soapREST{
-		eh:            eh,
+		eh:    eh,
+		paths: m,
+
 		attributeKey:  c.Spec.AttributeKey,
 		namespaceKey:  c.Spec.NamespaceKey,
 		arrayKey:      c.Spec.ArrayKey,

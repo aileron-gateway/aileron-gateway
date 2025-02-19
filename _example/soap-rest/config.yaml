@@ -47,6 +47,9 @@ spec:
 apiVersion: app/v1
 kind: SOAPRESTMiddleware
 spec:
+  matcher:
+    patterns: ["/soap/apiA"]
+    matchType: Exact
   extractStringElement: true
   extractBooleanElement: true
   extractIntegerElement: true

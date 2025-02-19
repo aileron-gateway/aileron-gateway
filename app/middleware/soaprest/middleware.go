@@ -12,6 +12,7 @@ import (
 
 	"github.com/aileron-gateway/aileron-gateway/app"
 	"github.com/aileron-gateway/aileron-gateway/core"
+	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 )
 
@@ -34,6 +35,10 @@ const (
 type soapREST struct {
 	eh core.ErrorHandler
 
+	// paths is the path matcher to apply SOAP/REST conversion.
+	// paths must not be nil.
+	paths txtutil.Matcher[string]
+
 	attributeKey  string
 	textKey       string
 	namespaceKey  string
@@ -48,6 +53,13 @@ type soapREST struct {
 
 func (s *soapREST) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// If the request path does not match the configured value,
+		// the conversion process will not be executed, and the request will be passed to the next handler.
+		if !s.paths.Match(r.URL.Path) {
+			next.ServeHTTP(w, r)
+			return
+		}
+
 		// If it's not a SOAP　1.1 request then return VersionMismatch faultcode.
 		if !isSOAPRequest(r) {
 			err := app.ErrAppMiddleSOAPRESTVersionMismatch.WithoutStack(nil, nil)
