@@ -3,8 +3,10 @@ package soaprest
 import (
 	"bytes"
 	"cmp"
+	"encoding/json"
 	"encoding/xml"
 	"errors"
+	"fmt"
 	"io"
 	"math"
 	"net/http"
@@ -67,6 +69,17 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 		method      string
 		contentType string
 
+		attributeKey  string
+		textKey       string
+		namespaceKey  string
+		arrayKey      string
+		separatorChar string
+
+		extractStringElement  bool
+		extractBooleanElement bool
+		extractIntegerElement bool
+		extractFloatElement   bool
+
 		readBodyError bool
 	}
 
@@ -92,16 +105,56 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 				contentType: "text/xml",
 				body: `<?xml version="1.0" encoding="utf-8"?>
 						<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns="http://example.com/">
-							<soap:Header/>
+							<soap:Header>
+								<ns:Auth>
+									<ns:Username>TestUser</ns:Username>
+									<ns:Password>password</ns:Password>
+								</ns:Auth>
+								"double quoted text"
+							</soap:Header>
 							<soap:Body>
-								<ns:Test>
+								<ns:Test testAttributeKey="someValue">
 									<ns:Value>123</ns:Value>
 								</ns:Test>
+								<ns:Array>
+									<item>100</item>
+									<item>3.14</item>
+									<item>true</item>
+									<item>someText</item>
+								</ns:Array>
 							</soap:Body>
 						</soap:Envelope>`,
+
+				extractStringElement:  true,
+				extractBooleanElement: true,
+				extractIntegerElement: true,
+				extractFloatElement:   true,
 			},
 			&action{
-				body: `{"soap:Envelope":{"_namespace":{"ns":"http://example.com/","soap":"http://schemas.xmlsoap.org/soap/envelope/"},"soap:Body":{"ns:Test":{"ns:Value":123}},"soap:Header":{}}}`,
+				body: `{"soap:Envelope": {
+							"_namespace": {
+								"ns": "http://example.com/",
+								"soap": "http://schemas.xmlsoap.org/soap/envelope/"
+							},
+							"soap:Body": {
+								"ns:Test": {
+									"@attribute": {
+										"testAttributeKey": "someValue"
+									},
+									"ns:Value": 123
+								},
+								"ns:Array": {
+									"item": [100, 3.14, true, "someText"]
+								}
+							},
+							"soap:Header": {
+								"#text": "double quoted text",
+								"ns:Auth": {
+									"ns:Username": "TestUser",
+									"ns:Password": "password"
+								}
+							}
+						}}`,
 
 				// This is a case where no errors occur on the request side, and no body is set for the response.
 				// As a result, a decode error occurs on the response side.
@@ -118,17 +171,56 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 				contentType: "text/xml",
 				body: `<?xml version="1.0" encoding="utf-8"?>
 						<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns="http://example.com/">
-							<soap:Header/>
+							<soap:Header>
+								<ns:Auth>
+									<ns:Username>TestUser</ns:Username>
+									<ns:Password>password</ns:Password>
+								</ns:Auth>
+								"double quoted text"
+							</soap:Header>
 							<soap:Body>
-								<ns:Test>
+								<ns:Test testAttributeKey="someValue">
 									<ns:Value>123</ns:Value>
 								</ns:Test>
+								<ns:Array>
+									<item>100</item>
+									<item>3.14</item>
+									<item>true</item>
+									<item>someText</item>
+								</ns:Array>
 							</soap:Body>
 						</soap:Envelope>`,
+
+				extractStringElement:  true,
+				extractBooleanElement: true,
+				extractIntegerElement: true,
+				extractFloatElement:   true,
 			},
 			&action{
-				body: `{"soap:Envelope":{"_namespace":{"ns":"http://example.com/","soap":"http://schemas.xmlsoap.org/soap/envelope/"},"soap:Body":{"ns:Test":{"ns:Value":123}},"soap:Header":{}}}`,
-
+				body: `{"soap:Envelope": {
+							"_namespace": {
+								"ns": "http://example.com/",
+								"soap": "http://schemas.xmlsoap.org/soap/envelope/"
+							},
+							"soap:Body": {
+								"ns:Test": {
+									"@attribute": {
+										"testAttributeKey": "someValue"
+									},
+									"ns:Value": 123
+								},
+								"ns:Array": {
+									"item": [100, 3.14, true, "someText"]
+								}
+							},
+							"soap:Header": {
+								"#text": "double quoted text",
+								"ns:Auth": {
+									"ns:Username": "TestUser",
+									"ns:Password": "password"
+								}
+							}
+						}}`,
 				// This is a case where no errors occur on the request side, and no body is set for the response.
 				// As a result, a decode error occurs on the response side.
 				err:  app.ErrAppMiddleSOAPRESTDecodeResponseBody,
@@ -177,7 +269,7 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 				readBodyError: false,
 			},
 			&action{
-				err:  utilhttp.ErrBadRequest,
+				err:  app.ErrAppGenUnmarshal,
 				code: 400,
 			},
 		),
@@ -194,10 +286,150 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 								<Value>NaN</Value>
 							</Body>
 						</Envelope>`,
+
+				extractFloatElement: true,
 			},
 			&action{
 				err:  app.ErrAppMiddleSOAPRESTMarshalJSONData,
 				code: 400,
+			},
+		),
+		gen(
+			"PostSOAPRequestWithModifiedKeys",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "text/xml",
+				body: `<?xml version="1.0" encoding="utf-8"?>
+						<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns="http://example.com/">
+							<soap:Header>
+								<ns:Auth>
+									<ns:Username>TestUser</ns:Username>
+									<ns:Password>password</ns:Password>
+								</ns:Auth>
+								"double quoted text"
+							</soap:Header>
+							<soap:Body>
+								<ns:Test testAttributeKey="someValue">
+									<ns:Value>123</ns:Value>
+								</ns:Test>
+								<ns:Array>
+									<item>100</item>
+									<item>3.14</item>
+									<item>true</item>
+									<item>someText</item>
+								</ns:Array>
+							</soap:Body>
+						</soap:Envelope>`,
+
+				attributeKey:  "@attr!",
+				textKey:       "#textKey",
+				namespaceKey:  "_ns",
+				arrayKey:      "element",
+				separatorChar: "*",
+
+				extractStringElement:  true,
+				extractBooleanElement: true,
+				extractIntegerElement: true,
+				extractFloatElement:   true,
+			},
+			&action{
+				body: `{"soap*Envelope": {
+							"_ns": {
+								"ns": "http://example.com/",
+								"soap": "http://schemas.xmlsoap.org/soap/envelope/"
+							},
+							"soap*Body": {
+								"ns*Test": {
+									"@attr!": {
+										"testAttributeKey": "someValue"
+									},
+									"ns*Value": 123
+								},
+								"ns*Array": {
+									"item": [100, 3.14, true, "someText"]
+								}
+							},
+							"soap*Header": {
+								"#textKey": "double quoted text",
+								"ns*Auth": {
+									"ns*Username": "TestUser",
+									"ns*Password": "password"
+								}
+							}
+						}}`,
+
+				// This is a case where no errors occur on the request side, and no body is set for the response.
+				// As a result, a decode error occurs on the response side.
+				err:  app.ErrAppMiddleSOAPRESTDecodeResponseBody,
+				code: 500,
+			},
+		),
+		gen(
+			"PostSOAPRequestWithModifiedKeys",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "text/xml",
+				body: `<?xml version="1.0" encoding="utf-8"?>
+						<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns="http://example.com/">
+							<soap:Header>
+								<ns:Auth>
+									<ns:Username>TestUser</ns:Username>
+									<ns:Password>password</ns:Password>
+								</ns:Auth>
+								"double quoted text"
+							</soap:Header>
+							<soap:Body>
+								<ns:Test testAttributeKey="someValue">
+									<ns:Value>123</ns:Value>
+								</ns:Test>
+								<ns:Array>
+									<item>100</item>
+									<item>3.14</item>
+									<item>true</item>
+									<item>someText</item>
+								</ns:Array>
+							</soap:Body>
+						</soap:Envelope>`,
+
+				extractStringElement:  false,
+				extractBooleanElement: false,
+				extractIntegerElement: false,
+				extractFloatElement:   false,
+			},
+			&action{
+				body: `{"soap:Envelope": {
+							"_namespace": {
+								"ns": "http://example.com/",
+								"soap": "http://schemas.xmlsoap.org/soap/envelope/"
+							},
+							"soap:Body": {
+								"ns:Test": {
+									"@attribute": {
+										"testAttributeKey": "someValue"
+									},
+									"ns:Value": "123"
+								},
+								"ns:Array": {
+									"item": ["100", "3.14", "true", "someText"]
+								}
+							},
+							"soap:Header": {
+								"#text": "\"double quoted text\"",
+								"ns:Auth": {
+									"ns:Username": "TestUser",
+									"ns:Password": "password"
+								}
+							}
+						}}`,
+
+				// This is a case where no errors occur on the request side, and no body is set for the response.
+				// As a result, a decode error occurs on the response side.
+				err:  app.ErrAppMiddleSOAPRESTDecodeResponseBody,
+				code: 500,
 			},
 		),
 	}
@@ -210,15 +442,15 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 			meh := &mockErrorHandler{}
 			m := &soapREST{
 				eh:                    meh,
-				attributeKey:          "@attribute",
-				textKey:               "#text",
-				namespaceKey:          "_namespace",
-				arrayKey:              "item",
-				separatorChar:         ":",
-				extractStringElement:  true,
-				extractBooleanElement: true,
-				extractIntegerElement: true,
-				extractFloatElement:   true,
+				attributeKey:          cmp.Or(tt.C().attributeKey, "@attribute"),
+				textKey:               cmp.Or(tt.C().textKey, "#text"),
+				namespaceKey:          cmp.Or(tt.C().namespaceKey, "_namespace"),
+				arrayKey:              cmp.Or(tt.C().arrayKey, "item"),
+				separatorChar:         cmp.Or(tt.C().separatorChar, ":"),
+				extractStringElement:  tt.C().extractStringElement,
+				extractBooleanElement: tt.C().extractBooleanElement,
+				extractIntegerElement: tt.C().extractIntegerElement,
+				extractFloatElement:   tt.C().extractFloatElement,
 			}
 
 			nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -228,9 +460,18 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 				}
 				r.Body.Close()
 
+				var actualJSON, expectedJSON any
+				if err := json.Unmarshal([]byte(bodyBytes), &actualJSON); err != nil {
+					t.Fatalf("Failed to unmarshal transformed JSON: %v", err)
+				}
+
+				if err := json.Unmarshal([]byte(tt.A().body), &expectedJSON); err != nil {
+					t.Fatalf("Failed to unmarshal expected JSON: %v", err)
+				}
+
 				// Check whether the SOAP/XML request is being converted
 				// into a REST/JSON request by the SOAPRESTMiddleware.
-				testutil.Diff(t, tt.A().body, string(bodyBytes))
+				testutil.Diff(t, expectedJSON, actualJSON)
 				w.WriteHeader(http.StatusOK)
 			})
 
@@ -377,18 +618,57 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 			&condition{
 				method:      http.MethodPost,
 				contentType: "application/json",
-				body:        `{"soap:Envelope":{"_namespace":{"ns":"http://example.com/","soap":"http://schemas.xmlsoap.org/soap/envelope/"},"soap:Body":{"ns:Test":{"ns:Value":123}},"soap:Header":{}}}`,
+				body: `{
+                    "soap:Envelope": {
+                        "_namespace": {
+                            "ns": "http://example.com/",
+                            "soap": "http://schemas.xmlsoap.org/soap/envelope/"
+                        },
+                        "soap:Body": {
+                            "ns:Test": {
+                                "@attribute": {
+                                    "testAttributeKey": "someValue"
+                                },
+                                "ns:Value": 123
+                            },
+                            "ns:Array": {
+                                "item": [100, 3.14, true, "someText"]
+                            }
+                        },
+                        "soap:Header": {
+                            "#text": "double quoted text",
+                            "ns:Auth": {
+                                "ns:Username": "TestUser",
+                                "ns:Password": "password"
+                            }
+                        }
+                    }
+                }`,
 			},
 			&action{
-				body: `<?xml version="1.0" encoding="UTF-8"?>
-						<soap:Envelope xmlns:ns="http://example.com/" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-							<soap:Header></soap:Header>
-							<soap:Body>
-								<ns:Test>
-									<ns:Value>123</ns:Value>
-								</ns:Test>
-							</soap:Body>
-						</soap:Envelope>`,
+				body: `<?xml version="1.0" encoding="utf-8"?>
+                        <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns="http://example.com/">
+                            <soap:Header>
+                                double quoted text
+                                <ns:Auth>
+                                    <ns:Username>TestUser</ns:Username>
+                                    <ns:Password>password</ns:Password>
+                                </ns:Auth>
+                            </soap:Header>
+                            <soap:Body>
+                                <ns:Test testAttributeKey="someValue">
+                                    <ns:Value>123</ns:Value>
+                                </ns:Test>
+                                <ns:Array>
+                                    <item>100</item>
+                                    <item>3.14</item>
+                                    <item>true</item>
+                                    <item>someText</item>
+                                </ns:Array>
+                            </soap:Body>
+                        </soap:Envelope>`,
+				err:  nil,
+				code: 0,
 			},
 		),
 		gen(
@@ -444,6 +724,8 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 				extractFloatElement:   true,
 			}
 
+			var actualXML []byte
+
 			nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("Content-Type", tt.C().contentType+"; charset=utf-8")
 				w.WriteHeader(http.StatusOK)
@@ -453,7 +735,7 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 			h := m.Middleware(nextHandler)
 
 			req := httptest.NewRequest(http.MethodPost, "http://example.com",
-				strings.NewReader(`<?xml version="1.0" encoding="utf-8"?> <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"> </soap:Envelope>"`))
+				strings.NewReader(`<?xml version="1.0" encoding="utf-8"?> <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"> </soap:Envelope>`))
 			req.Header.Set("Content-Type", "text/xml; charset=utf-8")
 
 			var resp http.ResponseWriter
@@ -466,12 +748,15 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 			h.ServeHTTP(resp, req)
 
 			if rec, ok := resp.(*httptest.ResponseRecorder); ok {
+				actualXML = rec.Body.Bytes()
+				fmt.Printf("Generated XML in Test: \n%s\n", string(actualXML))
+
 				expectedNode, err := parseXML(strings.NewReader(tt.A().body))
 				if err != nil {
 					t.Fatalf("Failed to parse expected XML: %v", err)
 				}
 
-				actualNode, err := parseXML(strings.NewReader(rec.Body.String()))
+				actualNode, err := parseXML(bytes.NewReader(actualXML))
 				if err != nil {
 					t.Fatalf("Failed to parse actual XML: %v", err)
 				}
@@ -886,6 +1171,21 @@ func TestXmlElement_MarshalXML(t *testing.T) {
 
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
+			"DebugCase",
+			nil,
+			nil,
+			&condition{
+				element: xmlElement{
+					XMLName: xml.Name{Local: "#textKey"},
+					Content: "textNode",
+				},
+			},
+			&action{
+				xmlOutput: `<#textKey>textNode</#textKey>`,
+				err:       nil,
+			},
+		),
+		gen(
 			"SimpleElement",
 			nil,
 			nil,
@@ -1007,6 +1307,36 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 	gen := testutil.NewCase[*condition, *action]
 
 	testCases := []*testutil.Case[*condition, *action]{
+		gen(
+			"TextNodeInBody",
+			nil,
+			nil,
+			&condition{
+				data: map[string]any{
+					"soap:Envelope": map[string]any{
+						"soap:Header": map[string]any{},
+						"soap:Body": map[string]any{
+							"outerKey": map[string]any{
+								"#text": "textNode",
+							},
+						},
+					},
+				},
+			},
+			&action{
+				expected: &soapEnvelope{
+					Header: &soapHeader{},
+					Body: &soapBody{
+						Content: []xmlElement{
+							{
+								XMLName: xml.Name{Local: "outerKey"},
+								Content: "textNode",
+							},
+						},
+					},
+				},
+			},
+		),
 		gen(
 			"EmptyEnvelope",
 			nil,
