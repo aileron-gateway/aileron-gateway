@@ -34,7 +34,7 @@ func (s *server) SayHello(_ context.Context, in *pb.HelloRequest) (*pb.HelloRepl
 
 func runServer(t *testing.T, ctx context.Context) {
 
-	lis, err := net.Listen("tcp", "localhost:50051")
+	ln, err := net.Listen("tcp", "localhost:50051")
 	if err != nil {
 		t.Error(err)
 	}
@@ -43,7 +43,7 @@ func runServer(t *testing.T, ctx context.Context) {
 	pb.RegisterGreeterServer(grpcServer, &server{})
 
 	go func() {
-		if err := grpcServer.Serve(lis); err != nil && err != http.ErrServerClosed {
+		if err := grpcServer.Serve(ln); err != nil && err != http.ErrServerClosed {
 			t.Error(err)
 		}
 	}()
@@ -51,9 +51,6 @@ func runServer(t *testing.T, ctx context.Context) {
 	<-ctx.Done()
 
 	grpcServer.GracefulStop()
-	if err := lis.Close(); err != nil {
-		t.Error(err)
-	}
 }
 
 func TestProxyGrpc(t *testing.T) {
