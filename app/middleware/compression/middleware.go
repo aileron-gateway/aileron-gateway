@@ -57,6 +57,13 @@ func (c *compression) Middleware(next http.Handler) http.Handler {
 		// See the RFC7231 for possible formats of the Accept-Encoding headers.
 		// 	- https://datatracker.ietf.org/doc/rfc7231/
 		encoding := r.Header.Get("Accept-Encoding")
+		if encoding == "" {
+			next.ServeHTTP(w, r) // Skip response compression.
+			return
+		}
+
+		// Always add the Vary header for cache control.
+		w.Header().Add("Vary", "Accept-Encoding")
 
 		switch {
 		case strings.Contains(encoding, brotliEncoding): // Brotli compression.
