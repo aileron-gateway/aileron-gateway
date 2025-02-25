@@ -29,6 +29,7 @@ spec: {}
 apiVersion: app/v1
 kind: BasicAuthnMiddleware
 spec:
+  preferError: false
   realm: "example"
   # commonKeyCryptType: AESCBC
   # cryptSecret: ZXhhbXBsZV9wYXNzd29yZA== # Base64("example_password")

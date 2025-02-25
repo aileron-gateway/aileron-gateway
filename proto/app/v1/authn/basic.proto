@@ -98,6 +98,13 @@ message BasicAuthnMiddlewareSpec {
     string Realm = 8 [json_name = "realm"];
 
     // [OPTIONAL]
+    // PreferError if true, returns an error
+    // when authentication failed rather than asking
+    // a new username and password.
+    // Default is [false].
+    bool PreferError = 9 [json_name = "preferError"];
+
+    // [OPTIONAL]
     // Providers is the credentials provider to use.
     // If not set, EnvProvider with default values are used.
     oneof Providers {
