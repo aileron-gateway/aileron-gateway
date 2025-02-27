@@ -33,6 +33,11 @@ type handler struct {
 	passwd      []byte
 	decryptFunc encrypt.DecryptFunc
 	compareFunc encrypt.PasswordCompareFunc
+
+	// preferError if true, returns an error
+	// when authentication failed rather than asking
+	// a new username and password.
+	preferError bool
 }
 
 func (h *handler) Middleware(next http.Handler) http.Handler {
@@ -68,6 +73,9 @@ func (h *handler) ServeAuthn(w http.ResponseWriter, r *http.Request) (*http.Requ
 
 	cred, err := h.authenticate(r.Context(), un, pw)
 	if err != nil {
+		if h.preferError { // Fail first. Do not ask re-authentication.
+			return r, app.AuthFail, app.ErrAppAuthnInvalidCredential.WithoutStack(err, map[string]any{"purpose": "Basic authentication"})
+		}
 		// Invalid credentials passed and re-require authentication.
 		w.Header().Set("WWW-Authenticate", h.challenge)
 		w.WriteHeader(http.StatusUnauthorized)

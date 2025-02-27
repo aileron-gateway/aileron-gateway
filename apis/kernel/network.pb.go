@@ -515,6 +515,7 @@ type HTTPTransportConfig struct {
 	// ResponseHeaderTimeout, if non-zero, specifies the amount of time to wait
 	// for a server's response headers after fully writing the request (including its body, if any).
 	// This time does not include the time to read the response body.
+	// Zero or negative value does not have any effect and no timeout applied.
 	// The unit is milliseconds.
 	// Default is [0] milliseconds.
 	ResponseHeaderTimeout int64 `protobuf:"varint,9,opt,name=ResponseHeaderTimeout,json=responseHeaderTimeout,proto3" json:"ResponseHeaderTimeout,omitempty"`

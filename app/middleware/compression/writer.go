@@ -120,9 +120,8 @@ func (w *compressionWriter) initialize() {
 		ce = w.encoding
 	}
 
-	wh.Add("Vary", "Accept-Encoding") // Don't let client use cached content when required for different types of encoding.
-	wh.Set("Content-Encoding", ce)    // Set the encoding by replacing existing one.
-	wh.Del("Content-Length")          // Delete Content-Length because the content will be compressed.
+	wh.Set("Content-Encoding", ce) // Set the encoding by replacing existing one.
+	wh.Del("Content-Length")       // Delete Content-Length because the content will be compressed.
 	w.writer.Reset(w.ResponseWriter)
 }
 

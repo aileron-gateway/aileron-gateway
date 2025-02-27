@@ -43,6 +43,21 @@ func TestCompressionMiddleware(t *testing.T) {
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
+			"accept header not exist",
+			[]string{},
+			[]string{},
+			&condition{
+				acceptEncoding: "",
+				encoding:       "",
+				contentType:    "text/plain",
+				body:           []byte("test response body"),
+			},
+			&action{
+				encoding: "",
+				body:     "test response body",
+			},
+		),
+		gen(
 			"accept gzip",
 			[]string{},
 			[]string{},
@@ -193,7 +208,9 @@ func TestCompressionMiddleware(t *testing.T) {
 			})
 
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
-			req.Header.Set("Accept-Encoding", tt.C().acceptEncoding)
+			if tt.C().acceptEncoding != "" {
+				req.Header.Set("Accept-Encoding", tt.C().acceptEncoding)
+			}
 			resp := httptest.NewRecorder()
 			comp.Middleware(h).ServeHTTP(resp, req)
 
