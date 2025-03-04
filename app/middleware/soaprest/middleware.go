@@ -79,7 +79,7 @@ func (s *soapREST) Middleware(next http.Handler) http.Handler {
 		// Parse XML
 		var root xmlNode
 		if err := xml.Unmarshal(body, &root); err != nil {
-			err = app.ErrAppGenUnmarshal.WithoutStack(err, map[string]any{"body": body})
+			err = app.ErrAppMiddleSOAPRESTUnmarshalRequestBody.WithoutStack(err, map[string]any{"body": body})
 			s.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusBadRequest))
 			return
 		}
