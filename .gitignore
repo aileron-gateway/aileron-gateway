@@ -8,6 +8,7 @@
 !Makefile
 !LICENSE
 !Dockerfile
+!CODEOWNERS
 
 # Ignore files with extension.
 *.exe
