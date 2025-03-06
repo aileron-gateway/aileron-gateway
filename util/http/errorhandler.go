@@ -258,7 +258,8 @@ func (h *DefaultErrorHandler) ServeHTTPError(w http.ResponseWriter, r *http.Requ
 	}
 
 	// Overwrite response if configured.
-	if err != nil {
+	// Do not overwrite logging only error (statusCode<100).
+	if statusCode >= 100 && err != nil {
 		var errCode, errKind string
 		errMsg := []byte(err.Error())
 		if ek, ok := err.(errorutil.ErrorKind); ok {
