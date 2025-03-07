@@ -35,11 +35,13 @@ func (o *API) Default() protoreflect.ProtoMessage {
 			Name:      "default",
 		},
 		Spec: &v1.SOAPRESTMiddlewareSpec{
-			AttributeKey:  "@attribute",
-			NamespaceKey:  "_namespace",
-			ArrayKey:      "item",
-			TextKey:       "#text",
-			SeparatorChar: ":",
+			AttributeKey:  "attrKey",
+			NamespaceKey:  "nsKey",
+			ArrayKey:      "arrayKey",
+			TextKey:       "textKey",
+			SeparatorChar: "_",
+
+			Matcher: &kernel.MatcherSpec{Patterns: []string{"/"}, MatchType: kernel.MatchType_Contains},
 
 			ExtractStringElement:  false,
 			ExtractBooleanElement: false,

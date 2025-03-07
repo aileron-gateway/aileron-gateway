@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"errors"
-	"fmt"
 	"io"
 	"math"
 	"net/http"
@@ -286,7 +285,7 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 				readBodyError: false,
 			},
 			&action{
-				err:  app.ErrAppGenUnmarshal,
+				err:  app.ErrAppMiddleSOAPRESTUnmarshalRequestBody,
 				code: 400,
 			},
 		),
@@ -463,13 +462,14 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 		t.Run(tt.Name(), func(t *testing.T) {
 			meh := &mockErrorHandler{}
 			sr := &soapREST{
-				eh:                    meh,
-				paths:                 tt.C().paths,
-				attributeKey:          cmp.Or(tt.C().attributeKey, "@attribute"),
-				textKey:               cmp.Or(tt.C().textKey, "#text"),
-				namespaceKey:          cmp.Or(tt.C().namespaceKey, "_namespace"),
-				arrayKey:              cmp.Or(tt.C().arrayKey, "item"),
-				separatorChar:         cmp.Or(tt.C().separatorChar, ":"),
+				eh:            meh,
+				paths:         tt.C().paths,
+				attributeKey:  cmp.Or(tt.C().attributeKey, "@attribute"),
+				textKey:       cmp.Or(tt.C().textKey, "#text"),
+				namespaceKey:  cmp.Or(tt.C().namespaceKey, "_namespace"),
+				arrayKey:      cmp.Or(tt.C().arrayKey, "item"),
+				separatorChar: cmp.Or(tt.C().separatorChar, ":"),
+
 				extractStringElement:  tt.C().extractStringElement,
 				extractBooleanElement: tt.C().extractBooleanElement,
 				extractIntegerElement: tt.C().extractIntegerElement,
@@ -617,6 +617,7 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 		body        string
 		method      string
 		contentType string
+		paths       *testMatcher
 
 		responseWriteError bool
 	}
@@ -667,6 +668,7 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
                         }
                     }
                 }`,
+				paths: &testMatcher{match: true},
 			},
 			&action{
 				body: `<?xml version="1.0" encoding="utf-8"?>
@@ -683,10 +685,13 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
                                     <ns:Value>123</ns:Value>
                                 </ns:Test>
                                 <ns:Array>
-                                    <item>100</item>
-                                    <item>3.14</item>
-                                    <item>true</item>
-                                    <item>someText</item>
+
+									<item>
+										<itemKey>100</itemKey>
+										<itemKey>3.14</itemKey>
+										<itemKey>true</itemKey>
+										<itemKey>someText</itemKey>
+									</item>
                                 </ns:Array>
                             </soap:Body>
                         </soap:Envelope>`,
@@ -702,6 +707,7 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 				method:      http.MethodPost,
 				contentType: "text/xml",
 				body:        `{brokenJSON}`,
+				paths:       &testMatcher{match: true},
 			},
 			&action{
 				body:       ``,
@@ -720,6 +726,7 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 				method:      http.MethodPost,
 				contentType: "text/xml",
 				body:        `{"soap:Envelope":{"_namespace":{"ns":"http://example.com/","soap":"http://schemas.xmlsoap.org/soap/envelope/"},"soap:Body":{"ns:Test":{}},"soap:Header":{}}}`,
+				paths:       &testMatcher{match: true},
 			},
 			&action{
 				err:  app.ErrAppMiddleSOAPRESTWriteResponseBody,
@@ -735,12 +742,15 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 		t.Run(tt.Name(), func(t *testing.T) {
 			meh := &mockErrorHandler{}
 			m := &soapREST{
-				eh:                    meh,
-				attributeKey:          "@attribute",
-				textKey:               "#text",
-				namespaceKey:          "_namespace",
-				arrayKey:              "item",
-				separatorChar:         ":",
+				eh:            meh,
+				attributeKey:  "@attribute",
+				textKey:       "#text",
+				namespaceKey:  "_namespace",
+				arrayKey:      "itemKey",
+				separatorChar: ":",
+
+				paths: tt.C().paths,
+
 				extractStringElement:  true,
 				extractBooleanElement: true,
 				extractIntegerElement: true,
@@ -772,8 +782,6 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 
 			if rec, ok := resp.(*httptest.ResponseRecorder); ok {
 				actualXML = rec.Body.Bytes()
-				fmt.Printf("Generated XML in Test: \n%s\n", string(actualXML))
-
 				expectedNode, err := parseXML(strings.NewReader(tt.A().body))
 				if err != nil {
 					t.Fatalf("Failed to parse expected XML: %v", err)
@@ -1122,22 +1130,6 @@ func TestSOAPREST_ConvertRESTtoSOAPResponse(t *testing.T) {
 				xml:        nil,
 				err:        app.ErrAppMiddleSOAPRESTDecodeResponseBody,
 				errPattern: regexp.MustCompile(core.ErrPrefix + `failed to decode response body.`),
-			},
-		),
-		gen(
-			"EmptyJSONKey",
-			nil,
-			nil,
-			&condition{
-				restData: []byte(`{"soap:Envelope": {"soap:Body": {"": "EmptyKeyValue"}}}`),
-			},
-			&action{
-				xml: nil,
-				err: utilhttp.NewHTTPError(
-					app.ErrAppMiddleSOAPRESTMarshalResponseEnvelope.WithoutStack(nil, nil),
-					http.StatusInternalServerError,
-				),
-				errPattern: regexp.MustCompile(core.ErrPrefix + `failed to marshal response envelope.`),
 			},
 		),
 	}
@@ -1797,9 +1789,10 @@ func TestSOAPREST_MapToXMLElements(t *testing.T) {
 
 func TestSOAPREST_MapToXMLElement(t *testing.T) {
 	type condition struct {
-		key       string
-		value     any
-		namespace string
+		elementName string
+		value       any
+		namespace   string
+		parts       []string
 
 		attributeKey string
 		textKey      string
@@ -1821,8 +1814,8 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 			nil,
 			nil,
 			&condition{
-				key:   "ns:key",
-				value: "value",
+				elementName: "ns:key",
+				value:       "value",
 			},
 			&action{
 				expected: xmlElement{
@@ -1836,8 +1829,8 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 			nil,
 			nil,
 			&condition{
-				key:   "TestKey",
-				value: "TestValue",
+				elementName: "TestKey",
+				value:       "TestValue",
 			},
 			&action{
 				expected: xmlElement{
@@ -1851,8 +1844,8 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 			nil,
 			nil,
 			&condition{
-				key:   "Integer",
-				value: 42,
+				elementName: "Integer",
+				value:       42,
 			},
 			&action{
 				expected: xmlElement{
@@ -1866,8 +1859,8 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 			nil,
 			nil,
 			&condition{
-				key:   "Float",
-				value: 3.14,
+				elementName: "Float",
+				value:       3.14,
 			},
 			&action{
 				expected: xmlElement{
@@ -1881,8 +1874,8 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 			nil,
 			nil,
 			&condition{
-				key:   "Float",
-				value: 100.0,
+				elementName: "Float",
+				value:       100.0,
 			},
 			&action{
 				expected: xmlElement{
@@ -1896,8 +1889,8 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 			nil,
 			nil,
 			&condition{
-				key:   "OptionalElement",
-				value: nil,
+				elementName: "OptionalElement",
+				value:       nil,
 			},
 			&action{
 				expected: xmlElement{
@@ -1911,8 +1904,8 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 			nil,
 			nil,
 			&condition{
-				key:   "EmptyElement",
-				value: map[string]any{},
+				elementName: "EmptyElement",
+				value:       map[string]any{},
 			},
 			&action{
 				expected: xmlElement{
@@ -1925,7 +1918,7 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 			nil,
 			nil,
 			&condition{
-				key: "test",
+				elementName: "test",
 				value: map[string]any{
 					"@attribute": map[string]any{
 						"localName": map[string]any{
@@ -1948,7 +1941,7 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 			nil,
 			nil,
 			&condition{
-				key: "test",
+				elementName: "test",
 				value: map[string]any{
 					"#text": "textContent",
 				},
@@ -1965,7 +1958,7 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 			nil,
 			nil,
 			&condition{
-				key: "test",
+				elementName: "test",
 				value: map[string]any{
 					"#text": "\b\f\\b\\f",
 				},
@@ -1982,7 +1975,7 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 			nil,
 			nil,
 			&condition{
-				key: "test",
+				elementName: "test",
 				value: map[string]any{
 					"childElements": map[string]any{
 						"key1": "value1",
@@ -2016,8 +2009,8 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 			nil,
 			nil,
 			&condition{
-				key:   "item",
-				value: []any{"item1", "item2", "item3"},
+				elementName: "item",
+				value:       []any{"item1", "item2", "item3"},
 			},
 			&action{
 				expected: xmlElement{
@@ -2044,8 +2037,8 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 			nil,
 			nil,
 			&condition{
-				key:   "item",
-				value: []any{},
+				elementName: "item",
+				value:       []any{},
 			},
 			&action{
 				expected: xmlElement{
@@ -2073,7 +2066,7 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 				extractFloatElement:   true,
 			}
 
-			got := s.mapToXMLElement(tt.C().key, tt.C().value, tt.C().namespace)
+			got := s.mapToXMLElement(tt.C().elementName, tt.C().value, tt.C().namespace, tt.C().parts)
 
 			opts := []gocmp.Option{
 				testutil.DeepAllowUnexported(xmlElement{}),

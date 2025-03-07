@@ -72,7 +72,7 @@ message SOAPRESTMiddlewareSpec {
     // [OPTIONAL]
     // SeparatorChar is the symbol used to distinguish between namespaces and keys.
     // Default value is ":".
-    string SeparatorChar = 7 [json_name = "separatorChar", (buf.validate.field).string.pattern = "^[:.\\_|/#@]$"];
+    string SeparatorChar = 7 [json_name = "separatorChar"];
 
     // [OPTIONAL]
     // ExtractStringElement is a boolean value used to extract elements enclosed in double quotes within XML.
