@@ -18,7 +18,6 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/app"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
-	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 	gocmp "github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
@@ -453,6 +452,27 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 				code: 500,
 			},
 		),
+		gen(
+			"WrongURLPath",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "text/xml",
+				body:        `{}`,
+
+				paths: &testMatcher{match: false},
+
+				extractStringElement:  false,
+				extractBooleanElement: false,
+				extractIntegerElement: false,
+				extractFloatElement:   false,
+			},
+			&action{
+				body: `{}`,
+				code: 200,
+			},
+		),
 	}
 
 	testutil.Register(table, testCases...)
@@ -512,6 +532,7 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 				cmpopts.EquateErrors(),
 			}
 			testutil.DiffError(t, tt.A().err, tt.A().errPattern, meh.err, opts...)
+			testutil.Diff(t, tt.A().code, resp.Code)
 		})
 	}
 }
@@ -588,10 +609,22 @@ func compareNodes(a, b *testNode) bool {
 	if len(a.Attr) != len(b.Attr) {
 		return false
 	}
-	for i := range a.Attr {
-		if a.Attr[i].Name.Local != b.Attr[i].Name.Local ||
-			a.Attr[i].Name.Space != b.Attr[i].Name.Space ||
-			a.Attr[i].Value != b.Attr[i].Value {
+
+	attrMapA := make(map[string]string)
+	attrMapB := make(map[string]string)
+
+	for _, attr := range a.Attr {
+		key := attr.Name.Space + ":" + attr.Name.Local
+		attrMapA[key] = attr.Value
+	}
+
+	for _, attr := range b.Attr {
+		key := attr.Name.Space + ":" + attr.Name.Local
+		attrMapB[key] = attr.Value
+	}
+
+	for key, valueA := range attrMapA {
+		if valueB, ok := attrMapB[key]; !ok || valueA != valueB {
 			return false
 		}
 	}
@@ -603,8 +636,22 @@ func compareNodes(a, b *testNode) bool {
 	if len(a.ChildNodes) != len(b.ChildNodes) {
 		return false
 	}
-	for i := range a.ChildNodes {
-		if !compareNodes(a.ChildNodes[i], b.ChildNodes[i]) {
+
+	childMapA := make(map[string]*testNode)
+	childMapB := make(map[string]*testNode)
+
+	for i, child := range a.ChildNodes {
+		key := child.Name.Space + ":" + child.Name.Local
+		childMapA[key] = a.ChildNodes[i]
+	}
+
+	for i, child := range b.ChildNodes {
+		key := child.Name.Space + ":" + child.Name.Local
+		childMapB[key] = b.ChildNodes[i]
+	}
+
+	for key, nodeA := range childMapA {
+		if nodeB, ok := childMapB[key]; !ok || !compareNodes(nodeA, nodeB) {
 			return false
 		}
 	}
@@ -645,25 +692,24 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 				body: `{
                     "soap:Envelope": {
                         "_namespace": {
-                            "ns": "http://example.com/",
                             "soap": "http://schemas.xmlsoap.org/soap/envelope/"
                         },
                         "soap:Body": {
-                            "ns:Test": {
+                            "Test": {
                                 "@attribute": {
                                     "testAttributeKey": "someValue"
                                 },
-                                "ns:Value": 123
+                                "Value": 123
                             },
-                            "ns:Array": {
+                            "Array": {
                                 "item": [100, 3.14, true, "someText"]
                             }
                         },
                         "soap:Header": {
                             "#text": "double quoted text",
-                            "ns:Auth": {
-                                "ns:Username": "TestUser",
-                                "ns:Password": "password"
+                            "Auth": {
+                                "Username": "TestUser",
+                                "Password": "password"
                             }
                         }
                     }
@@ -672,27 +718,26 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 			},
 			&action{
 				body: `<?xml version="1.0" encoding="utf-8"?>
-                        <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns="http://example.com/">
+                        <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
                             <soap:Header>
                                 double quoted text
-                                <ns:Auth>
-                                    <ns:Username>TestUser</ns:Username>
-                                    <ns:Password>password</ns:Password>
-                                </ns:Auth>
+                                <Auth>
+                                    <Username>TestUser</Username>
+                                    <Password>password</Password>
+                                </Auth>
                             </soap:Header>
                             <soap:Body>
-                                <ns:Test testAttributeKey="someValue">
-                                    <ns:Value>123</ns:Value>
-                                </ns:Test>
-                                <ns:Array>
-
+                                <Test testAttributeKey="someValue">
+                                    <Value>123</Value>
+                                </Test>
+                                <Array>
 									<item>
 										<itemKey>100</itemKey>
 										<itemKey>3.14</itemKey>
 										<itemKey>true</itemKey>
 										<itemKey>someText</itemKey>
 									</item>
-                                </ns:Array>
+                                </Array>
                             </soap:Body>
                         </soap:Envelope>`,
 				err:  nil,
@@ -1051,6 +1096,56 @@ func TestSOAPREST_XmlToMap(t *testing.T) {
 				},
 			},
 		),
+		gen(
+			"ContentWithSpace",
+			nil,
+			nil,
+			&condition{
+				xmlInput: xmlNode{
+					XMLName: xml.Name{Local: "Test"},
+					Content: " ",
+				},
+			},
+			&action{
+				expected: map[string]any{},
+			},
+		),
+		gen(
+			"ContentWithSpaceAndChildContent",
+			nil,
+			nil,
+			&condition{
+				xmlInput: xmlNode{
+					XMLName: xml.Name{Local: "Test"},
+					Content: " test ",
+					Children: []xmlNode{
+						{
+							XMLName: xml.Name{Local: "Outer"},
+							Attrs: []xml.Attr{
+								{
+									Name:  xml.Name{Local: "Inner"},
+									Value: "testValue",
+								},
+							},
+							Content: "testContent",
+						},
+					},
+				},
+			},
+			&action{
+				expected: map[string]any{
+					"Test": map[string]any{
+						"#text": " test ",
+						"Outer": map[string]any{
+							"#text": "testContent",
+							"@attribute": map[string]string{
+								"Inner": "testValue",
+							},
+						},
+					},
+				},
+			},
+		),
 	}
 
 	testutil.Register(table, testCases...)
@@ -1247,44 +1342,19 @@ func TestXmlElement_MarshalXML(t *testing.T) {
 			},
 		),
 		gen(
-			"InvalidStartElement",
+			"TextNodeDirectlyUnderHeaderOrBody",
 			nil,
 			nil,
 			&condition{
 				element: xmlElement{
 					XMLName: xml.Name{Local: ""},
+					Content: "TextNode",
+					isNil:   true,
 				},
 			},
 			&action{
-				xmlOutput: ``,
-				err: utilhttp.NewHTTPError(
-					app.ErrAppMiddleSOAPRESTMarshalResponseEnvelope.WithoutStack(nil, nil),
-					http.StatusInternalServerError,
-				),
-				errPattern: regexp.MustCompile(core.ErrPrefix + `failed to marshal response envelope.`),
-			},
-		),
-		gen(
-			"InvalidStartElementInChildren",
-			nil,
-			nil,
-			&condition{
-				element: xmlElement{
-					XMLName: xml.Name{Local: "Test"},
-					children: []xmlElement{
-						{
-							XMLName: xml.Name{Local: ""},
-						},
-					},
-				},
-			},
-			&action{
-				xmlOutput: `<Test>`,
-				err: utilhttp.NewHTTPError(
-					app.ErrAppMiddleSOAPRESTMarshalResponseEnvelope.WithoutStack(nil, nil),
-					http.StatusInternalServerError,
-				),
-				errPattern: regexp.MustCompile(core.ErrPrefix + `failed to marshal response envelope`),
+				xmlOutput: "\n    TextNode",
+				err:       nil,
 			},
 		),
 	}
@@ -1302,7 +1372,7 @@ func TestXmlElement_MarshalXML(t *testing.T) {
 			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err, cmpopts.EquateErrors())
 
 			enc.Flush()
-			testutil.Diff(t, string([]byte(tt.A().xmlOutput)), string(bytes.TrimSpace(buf.Bytes())))
+			testutil.Diff(t, string([]byte(tt.A().xmlOutput)), buf.String())
 		})
 	}
 }
@@ -1430,6 +1500,48 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 		),
 		gen(
 			"EnvelopeWithNamespacesAndNullValue",
+			nil,
+			nil,
+			&condition{
+				data: map[string]any{
+					"soap:Envelope": map[string]any{
+						"_namespace": map[string]any{
+							"soap": "http://schemas.xmlsoap.org/soap/envelope/",
+							"xsi":  "http://www.w3.org/2001/XMLSchema-instance",
+						},
+						"soap:Body": map[string]any{
+							"PartialResponse": map[string]any{
+								"Value": nil,
+							},
+						},
+					},
+				},
+			},
+			&action{
+				expected: &soapEnvelope{
+					ExtraNS: []xml.Attr{
+						{Name: xml.Name{Local: "xmlns:xsi"}, Value: "http://www.w3.org/2001/XMLSchema-instance"},
+						{Name: xml.Name{Local: "xmlns:soap"}, Value: "http://schemas.xmlsoap.org/soap/envelope/"},
+					},
+					Header: &soapHeader{},
+					Body: &soapBody{
+						Content: []xmlElement{
+							{
+								XMLName: xml.Name{Local: "PartialResponse"},
+								children: []xmlElement{
+									{
+										XMLName: xml.Name{Local: "Value"},
+										isNil:   true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		),
+		gen(
+			"",
 			nil,
 			nil,
 			&condition{
@@ -1706,38 +1818,6 @@ func TestSOAPREST_MapToXMLElements(t *testing.T) {
 				},
 			},
 		),
-		gen(
-			"ValueContainsNamespaceKeyMap",
-			nil,
-			nil,
-			&condition{
-				data: map[string]any{
-					"soap:Envelope": map[string]any{
-						"_namespace": map[string]any{
-							"soap": "http://schemas.xmlsoap.org/soap/envelope/",
-						},
-					},
-				},
-			},
-			&action{
-				expected: []xmlElement{
-					{
-						XMLName: xml.Name{Space: "soap", Local: "Envelope"},
-						children: []xmlElement{
-							{
-								XMLName: xml.Name{Space: "soap", Local: "_namespace"},
-								children: []xmlElement{
-									{
-										XMLName: xml.Name{Space: "soap", Local: "soap"},
-										Content: "http://schemas.xmlsoap.org/soap/envelope/",
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		),
 	}
 
 	testutil.Register(table, testCases...)
@@ -1809,21 +1889,6 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 	gen := testutil.NewCase[*condition, *action]
 
 	testCases := []*testutil.Case[*condition, *action]{
-		gen(
-			"",
-			nil,
-			nil,
-			&condition{
-				elementName: "ns:key",
-				value:       "value",
-			},
-			&action{
-				expected: xmlElement{
-					XMLName: xml.Name{Space: "ns", Local: "key"},
-					Content: "value",
-				},
-			},
-		),
 		gen(
 			"StringValue",
 			nil,

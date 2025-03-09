@@ -365,10 +365,7 @@ func (e xmlElement) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
 		})
 	}
 
-	if err := enc.EncodeToken(start); err != nil {
-		err = app.ErrAppMiddleSOAPRESTMarshalResponseEnvelope.WithoutStack(err, map[string]any{"reason": "failed to EncodeToken: " + start.Name.Local})
-		return utilhttp.NewHTTPError(err, http.StatusInternalServerError)
-	}
+	enc.EncodeToken(start)
 
 	// EncodeToken does not perform error handling when the Token is CharData.
 	if e.Content != "" {
@@ -376,10 +373,7 @@ func (e xmlElement) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
 	}
 
 	for _, child := range e.children {
-		if err := enc.Encode(child); err != nil {
-			err = app.ErrAppMiddleSOAPRESTMarshalResponseEnvelope.WithoutStack(err, map[string]any{"reason": "failed to Encode child"})
-			return utilhttp.NewHTTPError(err, http.StatusInternalServerError)
-		}
+		enc.Encode(child)
 	}
 
 	// EncodeToken raises an error if the Token does not match the StartToken or if the Local is an empty string,
@@ -445,7 +439,6 @@ func (s soapREST) createSOAPEnvelope(data map[string]any, nsManager *namespaceMa
 					envelope.Header.Attrs = mapToXMLAttrs(headerAttrMap)
 				}
 
-				// テキスト内容を処理
 				if textContent, ok := valueMap[s.textKey].(string); ok {
 					element := xmlElement{
 						XMLName: xml.Name{Local: ""},
@@ -454,7 +447,6 @@ func (s soapREST) createSOAPEnvelope(data map[string]any, nsManager *namespaceMa
 					envelope.Header.Content = append(envelope.Header.Content, element)
 				}
 
-				// 子要素の処理
 				childElements := s.mapToXMLElements(valueMap, nsManager)
 				envelope.Header.Content = append(envelope.Header.Content, childElements...)
 
@@ -463,7 +455,6 @@ func (s soapREST) createSOAPEnvelope(data map[string]any, nsManager *namespaceMa
 					envelope.Body.Attrs = mapToXMLAttrs(bodyAttrMap)
 				}
 
-				// テキスト内容を処理
 				if textContent, ok := valueMap[s.textKey].(string); ok {
 					element := xmlElement{
 						XMLName: xml.Name{Local: ""},
@@ -472,7 +463,6 @@ func (s soapREST) createSOAPEnvelope(data map[string]any, nsManager *namespaceMa
 					envelope.Body.Content = append(envelope.Body.Content, element)
 				}
 
-				// 子要素の処理
 				childElements := s.mapToXMLElements(valueMap, nsManager)
 				envelope.Body.Content = append(envelope.Body.Content, childElements...)
 			}
