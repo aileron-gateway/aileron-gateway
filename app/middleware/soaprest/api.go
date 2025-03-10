@@ -64,7 +64,7 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.Prot
 
 	m, err := txtutil.NewStringMatcher(txtutil.MatchTypes[c.Spec.Matcher.MatchType], c.Spec.Matcher.Patterns...)
 	if err != nil {
-		return nil, err // Return err as-is.
+		return nil, core.ErrCoreGenCreateObject.WithStack(err, map[string]any{"kind": kind})
 	}
 
 	return &soapREST{
