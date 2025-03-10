@@ -1,7 +1,6 @@
 package soaprest
 
 import (
-	"context"
 	"regexp"
 	"testing"
 
@@ -10,6 +9,8 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
@@ -21,6 +22,7 @@ func TestCreate(t *testing.T) {
 	type action struct {
 		err        any
 		errPattern *regexp.Regexp
+		expect     any
 	}
 
 	tb := testutil.NewTableBuilder[*condition, *action]()
@@ -38,6 +40,13 @@ func TestCreate(t *testing.T) {
 			},
 			&action{
 				err: nil,
+				expect: &soapREST{
+					attributeKey:  "attrKey",
+					textKey:       "textKey",
+					namespaceKey:  "nsKey",
+					arrayKey:      "arrayKey",
+					separatorChar: "_",
+				},
 			},
 		),
 		gen(
@@ -64,6 +73,31 @@ func TestCreate(t *testing.T) {
 				errPattern: regexp.MustCompile(core.ErrPrefix + `failed to create SOAPRESTMiddleware`),
 			},
 		),
+		gen(
+			"",
+			[]string{},
+			[]string{},
+			&condition{
+				manifest: &v1.SOAPRESTMiddleware{
+					APIVersion: apiVersion,
+					Kind:       kind,
+					Metadata: &k.Metadata{
+						Namespace: "default",
+						Name:      "default",
+					},
+					Spec: &v1.SOAPRESTMiddlewareSpec{
+						Matcher: &k.MatcherSpec{
+							MatchType: k.MatchType_Regex,
+							Patterns:  []string{"[0-9"},
+						},
+					},
+				},
+			},
+			&action{
+				err:        core.ErrCoreGenCreateObject,
+				errPattern: regexp.MustCompile(core.ErrPrefix + `failed to create SOAPRESTMiddleware`),
+			},
+		),
 	}
 
 	testutil.Register(table, testCases...)
@@ -72,27 +106,15 @@ func TestCreate(t *testing.T) {
 		tt := tt
 		t.Run(tt.Name(), func(t *testing.T) {
 			server := api.NewContainerAPI()
-			postTestResource(server, nil)
+			a := &API{}
+			got, err := a.Create(server, tt.C().manifest)
+			opts := []cmp.Option{
+				cmp.AllowUnexported(soapREST{}),
+				cmpopts.IgnoreFields(soapREST{}, "paths", "eh"),
+			}
 
-			_, err := Resource.Create(server, tt.C().manifest)
 			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+			testutil.Diff(t, tt.A().expect, got, opts...)
 		})
-	}
-}
-
-func postTestResource(server api.API[*api.Request, *api.Response], res any) {
-	ref := &k.Reference{
-		APIVersion: "container/v1",
-		Kind:       "Container",
-		Namespace:  "externalOptions",
-		Name:       "externalOptions",
-	}
-	req := &api.Request{
-		Method:  api.MethodPost,
-		Key:     ref.APIVersion + "/" + ref.Kind + "/" + ref.Namespace + "/" + ref.Name,
-		Content: res,
-	}
-	if _, err := server.Serve(context.Background(), req); err != nil {
-		panic(err)
 	}
 }
