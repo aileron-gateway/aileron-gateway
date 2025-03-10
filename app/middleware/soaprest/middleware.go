@@ -295,11 +295,7 @@ func (s soapREST) convertRESTtoSOAPResponse(wrapper *wrappedWriter) ([]byte, err
 		namespaces: make(map[string]string),
 	}
 	envelope := s.createSOAPEnvelope(restData, nsManager)
-
-	output, err := xml.MarshalIndent(envelope, "", "  ")
-	if err != nil {
-		return nil, err
-	}
+	output, _ := xml.MarshalIndent(envelope, "", "  ")
 
 	respBytes := append([]byte(xml.Header), output...)
 	return respBytes, nil
@@ -349,7 +345,7 @@ func (e xmlElement) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
 		if e.Content != "" {
 			content := e.Content
 			if !strings.Contains(content, "\n") {
-				content = "\n    " + content
+				content = "\n    " + content + "\n  "
 			}
 			enc.EncodeToken(xml.CharData([]byte(content)))
 		}
@@ -378,19 +374,8 @@ func (e xmlElement) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
 
 	// EncodeToken raises an error if the Token does not match the StartToken or if the Local is an empty string,
 	// but no error occurs during the EndToken check in this scenario; therefore, no error handling is performed.
-	return enc.EncodeToken(xml.EndElement{Name: start.Name})
-}
-
-// mapToXMLAttrs is a helper function that converts attributes (key-value pairs) in JSON to `xml.Attr`
-func mapToXMLAttrs(attrMap map[string]any) []xml.Attr {
-	attrs := make([]xml.Attr, 0, len(attrMap))
-	for k, v := range attrMap {
-		attrs = append(attrs, xml.Attr{
-			Name:  xml.Name{Local: k},
-			Value: fmt.Sprintf("%v", v),
-		})
-	}
-	return attrs
+	enc.EncodeToken(xml.EndElement{Name: start.Name})
+	return nil
 }
 
 func (s soapREST) createSOAPEnvelope(data map[string]any, nsManager *namespaceManager) *soapEnvelope {
@@ -721,4 +706,16 @@ func hasNullValue(data any) bool {
 		}
 	}
 	return false
+}
+
+// mapToXMLAttrs is a helper function that converts attributes (key-value pairs) in JSON to `xml.Attr`
+func mapToXMLAttrs(attrMap map[string]any) []xml.Attr {
+	attrs := make([]xml.Attr, 0, len(attrMap))
+	for k, v := range attrMap {
+		attrs = append(attrs, xml.Attr{
+			Name:  xml.Name{Local: k},
+			Value: fmt.Sprintf("%v", v),
+		})
+	}
+	return attrs
 }

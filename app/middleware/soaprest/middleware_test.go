@@ -1269,9 +1269,7 @@ func TestXmlElement_MarshalXML(t *testing.T) {
 	}
 
 	type action struct {
-		xmlOutput  string
-		err        any // error or errorutil.Kind
-		errPattern *regexp.Regexp
+		xmlOutput string
 	}
 
 	tb := testutil.NewTableBuilder[*condition, *action]()
@@ -1292,7 +1290,6 @@ func TestXmlElement_MarshalXML(t *testing.T) {
 			},
 			&action{
 				xmlOutput: `<#textKey>textNode</#textKey>`,
-				err:       nil,
 			},
 		),
 		gen(
@@ -1307,7 +1304,6 @@ func TestXmlElement_MarshalXML(t *testing.T) {
 			},
 			&action{
 				xmlOutput: `<Test>TestContent</Test>`,
-				err:       nil,
 			},
 		),
 		gen(
@@ -1322,7 +1318,6 @@ func TestXmlElement_MarshalXML(t *testing.T) {
 			},
 			&action{
 				xmlOutput: `<ns:Test xmlns="ns">TestContent</ns:Test>`,
-				err:       nil,
 			},
 		),
 		gen(
@@ -1338,7 +1333,6 @@ func TestXmlElement_MarshalXML(t *testing.T) {
 			},
 			&action{
 				xmlOutput: `<Test xsi:nil="true">NilContent</Test>`,
-				err:       nil,
 			},
 		),
 		gen(
@@ -1353,8 +1347,7 @@ func TestXmlElement_MarshalXML(t *testing.T) {
 				},
 			},
 			&action{
-				xmlOutput: "\n    TextNode",
-				err:       nil,
+				xmlOutput: "\n    TextNode\n  ",
 			},
 		),
 	}
@@ -1365,11 +1358,9 @@ func TestXmlElement_MarshalXML(t *testing.T) {
 		tt := tt
 		t.Run(tt.Name(), func(t *testing.T) {
 			var buf bytes.Buffer
-			var err error
 
 			enc := xml.NewEncoder(&buf)
-			err = tt.C().element.MarshalXML(enc, xml.StartElement{Name: tt.C().element.XMLName})
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err, cmpopts.EquateErrors())
+			tt.C().element.MarshalXML(enc, xml.StartElement{Name: tt.C().element.XMLName})
 
 			enc.Flush()
 			testutil.Diff(t, string([]byte(tt.A().xmlOutput)), buf.String())
@@ -1541,7 +1532,7 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 			},
 		),
 		gen(
-			"",
+			"Attributes directly under the SOAPEnvelope",
 			nil,
 			nil,
 			&condition{
@@ -1549,12 +1540,9 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 					"soap:Envelope": map[string]any{
 						"_namespace": map[string]any{
 							"soap": "http://schemas.xmlsoap.org/soap/envelope/",
-							"xsi":  "http://www.w3.org/2001/XMLSchema-instance",
 						},
-						"soap:Body": map[string]any{
-							"PartialResponse": map[string]any{
-								"Value": nil,
-							},
+						"@attribute": map[string]any{
+							"testAttr": "exampleAttribute",
 						},
 					},
 				},
@@ -1562,20 +1550,124 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 			&action{
 				expected: &soapEnvelope{
 					ExtraNS: []xml.Attr{
-						{Name: xml.Name{Local: "xmlns:xsi"}, Value: "http://www.w3.org/2001/XMLSchema-instance"},
 						{Name: xml.Name{Local: "xmlns:soap"}, Value: "http://schemas.xmlsoap.org/soap/envelope/"},
 					},
+					Attrs: []xml.Attr{
+						{
+							Name:  xml.Name{Local: "testAttr"},
+							Value: "exampleAttribute",
+						},
+					},
+					Header: &soapHeader{},
+					Body:   &soapBody{},
+				},
+			},
+		),
+		gen(
+			"Child elements under SOAPEnvelope that do not have map[string]any",
+			nil,
+			nil,
+			&condition{
+				data: map[string]any{
+					"soap:Envelope": map[string]any{
+						"testKey": "testValue",
+					},
+				},
+			},
+			&action{
+				expected: &soapEnvelope{
+					Header: &soapHeader{},
+					Body:   &soapBody{},
+				},
+			},
+		),
+		gen(
+			"Attributes directly under the SOAPHeader element",
+			nil,
+			nil,
+			&condition{
+				data: map[string]any{
+					"soap:Envelope": map[string]any{
+						"soap:Header": map[string]any{
+							"@attribute": map[string]any{
+								"testAttr": "exampleAttribute",
+							},
+						},
+					},
+				},
+			},
+			&action{
+				expected: &soapEnvelope{
+					Header: &soapHeader{
+						Attrs: []xml.Attr{
+							{
+								Name:  xml.Name{Local: "testAttr"},
+								Value: "exampleAttribute",
+							},
+						},
+					},
+					Body: &soapBody{},
+				},
+			},
+		),
+		gen(
+			"Attributes directly under the SOAPBody element",
+			nil,
+			nil,
+			&condition{
+				data: map[string]any{
+					"soap:Envelope": map[string]any{
+						"soap:Body": map[string]any{
+							"@attribute": map[string]any{
+								"testAttr": "exampleAttribute",
+							},
+						},
+					},
+				},
+			},
+			&action{
+				expected: &soapEnvelope{
 					Header: &soapHeader{},
 					Body: &soapBody{
+						Attrs: []xml.Attr{
+							{
+								Name:  xml.Name{Local: "testAttr"},
+								Value: "exampleAttribute",
+							},
+						},
+					},
+				},
+			},
+		),
+		gen(
+			"Attributes directly under the SOAPBody element",
+			nil,
+			nil,
+			&condition{
+				data: map[string]any{
+					"soap:Envelope": map[string]any{
+						"soap:Body": map[string]any{
+							"@attribute": map[string]any{
+								"testAttr": "exampleAttribute",
+							},
+							"#text": "testText",
+						},
+					},
+				},
+			},
+			&action{
+				expected: &soapEnvelope{
+					Header: &soapHeader{},
+					Body: &soapBody{
+						Attrs: []xml.Attr{
+							{
+								Name:  xml.Name{Local: "testAttr"},
+								Value: "exampleAttribute",
+							},
+						},
 						Content: []xmlElement{
 							{
-								XMLName: xml.Name{Local: "PartialResponse"},
-								children: []xmlElement{
-									{
-										XMLName: xml.Name{Local: "Value"},
-										isNil:   true,
-									},
-								},
+								Content: "testText",
 							},
 						},
 					},
@@ -1629,9 +1721,6 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 				}),
 				testutil.DeepAllowUnexported(
 					xmlElement{},
-					soapEnvelope{},
-					soapHeader{},
-					soapBody{},
 					namespaceManager{},
 				),
 				cmpopts.EquateEmpty(),
@@ -1814,6 +1903,27 @@ func TestSOAPREST_MapToXMLElements(t *testing.T) {
 					{
 						XMLName: xml.Name{Space: "ns", Local: "key"},
 						Content: "value",
+					},
+				},
+			},
+		),
+		gen(
+			"",
+			nil,
+			nil,
+			&condition{
+				data: map[string]any{
+					"data": map[string]any{
+						"_namespace": map[string]any{
+							"prefix": "uri",
+						},
+					},
+				},
+			},
+			&action{
+				expected: []xmlElement{
+					{
+						XMLName: xml.Name{Local: "data"},
 					},
 				},
 			},
@@ -3263,6 +3373,180 @@ func TestHasNullValue(t *testing.T) {
 		tt := tt
 		t.Run(tt.Name(), func(t *testing.T) {
 			testutil.Diff(t, tt.A().expect, hasNullValue(tt.C().data))
+		})
+	}
+}
+
+func TestMapToXMLAttrs(t *testing.T) {
+	type condition struct {
+		attrMap map[string]any
+	}
+	type action struct {
+		expect []xml.Attr
+	}
+
+	tb := testutil.NewTableBuilder[*condition, *action]()
+	tb.Name(t.Name())
+	table := tb.Build()
+
+	gen := testutil.NewCase[*condition, *action]
+	testCases := []*testutil.Case[*condition, *action]{
+		gen(
+			"empty map",
+			nil,
+			nil,
+			&condition{
+				attrMap: map[string]any{},
+			},
+			&action{
+				expect: []xml.Attr{},
+			},
+		),
+		gen(
+			"map with string value",
+			nil,
+			nil,
+			&condition{
+				attrMap: map[string]any{
+					"testKey": "testValue",
+				},
+			},
+			&action{
+				expect: []xml.Attr{
+					{
+						Name:  xml.Name{Local: "testKey"},
+						Value: "testValue",
+					},
+				},
+			},
+		),
+		gen(
+			"map with boolean value",
+			nil,
+			nil,
+			&condition{
+				attrMap: map[string]any{
+					"enabled": true,
+				},
+			},
+			&action{
+				expect: []xml.Attr{
+					{
+						Name:  xml.Name{Local: "enabled"},
+						Value: "true",
+					},
+				},
+			},
+		),
+		gen(
+			"map with integer value",
+			nil,
+			nil,
+			&condition{
+				attrMap: map[string]any{
+					"count": 42,
+				},
+			},
+			&action{
+				expect: []xml.Attr{
+					{
+						Name:  xml.Name{Local: "count"},
+						Value: "42",
+					},
+				},
+			},
+		),
+		gen(
+			"map with float value",
+			nil,
+			nil,
+			&condition{
+				attrMap: map[string]any{
+					"price": 19.99,
+				},
+			},
+			&action{
+				expect: []xml.Attr{
+					{
+						Name:  xml.Name{Local: "price"},
+						Value: "19.99",
+					},
+				},
+			},
+		),
+		gen(
+			"map with nil value",
+			nil,
+			nil,
+			&condition{
+				attrMap: map[string]any{
+					"data": nil,
+				},
+			},
+			&action{
+				expect: []xml.Attr{
+					{
+						Name:  xml.Name{Local: "data"},
+						Value: "<nil>",
+					},
+				},
+			},
+		),
+		gen(
+			"map with multiple values of different types",
+			nil,
+			nil,
+			&condition{
+				attrMap: map[string]any{
+					"id":      "abc123",
+					"count":   100,
+					"enabled": false,
+					"empty":   nil,
+				},
+			},
+			&action{
+				expect: []xml.Attr{
+					{
+						Name:  xml.Name{Local: "id"},
+						Value: "abc123",
+					},
+					{
+						Name:  xml.Name{Local: "count"},
+						Value: "100",
+					},
+					{
+						Name:  xml.Name{Local: "enabled"},
+						Value: "false",
+					},
+					{
+						Name:  xml.Name{Local: "empty"},
+						Value: "<nil>",
+					},
+				},
+			},
+		),
+	}
+
+	testutil.Register(table, testCases...)
+
+	for _, tt := range table.Entries() {
+		tt := tt
+		t.Run(tt.Name(), func(t *testing.T) {
+			result := mapToXMLAttrs(tt.C().attrMap)
+
+			opts := []gocmp.Option{
+				cmpopts.SortSlices(func(a, b xml.Attr) bool {
+					if a.Name.Local < b.Name.Local {
+						return true
+					}
+					if a.Name.Local > b.Name.Local {
+						return false
+					}
+					return a.Value < b.Value
+				}),
+			}
+
+			testutil.Diff(t, tt.A().expect, result, opts...)
 		})
 	}
 }
