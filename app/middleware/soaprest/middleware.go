@@ -506,11 +506,17 @@ func (s soapREST) mapToXMLElements(data map[string]any, nsManager *namespaceMana
 		}
 
 		// Split the key into a namespace prefix and a local name
+		startsWithSeparatorChar := strings.HasPrefix(key, separatorChar)
 		parts := strings.SplitN(key, separatorChar, 2)
 		var namespace string
 
 		if len(parts) == 2 {
 			namespace = parts[0]
+
+			// If the key starts with separatorChar, prepend separatorChar to elementName as well
+			if startsWithSeparatorChar {
+				parts[1] = separatorChar + parts[1]
+			}
 		}
 
 		// If the value is a map, process the namespace information within it.
@@ -531,19 +537,11 @@ func (s soapREST) mapToXMLElements(data map[string]any, nsManager *namespaceMana
 }
 
 func (s soapREST) mapToXMLElement(elementName string, value any, namespace string, parts []string) xmlElement {
-	// Check if the keys in the JSON start with separatorChar
-	startsWithSeparator := strings.HasPrefix(elementName, separatorChar)
-
 	// When the JSON data contains an array, the key does not include the separator character
 	// so the length of `parts` will not be 2
 	if len(parts) == 2 {
 		namespace = parts[0]
 		elementName = parts[1]
-
-		// If the key starts with separatorChar, prepend separatorChar to elementName as well
-		if startsWithSeparator {
-			elementName = separatorChar + elementName
-		}
 	}
 
 	// Create the basic structure of an xmlElement
@@ -590,6 +588,11 @@ func (s soapREST) mapToXMLElement(elementName string, value any, namespace strin
 			childParts := strings.SplitN(childKey, separatorChar, 2)
 			var childNamespace string
 			var childLocalName string
+
+			// If the key starts with separatorChar, prepend separatorChar to childLocalName as well
+			if strings.HasPrefix(childKey, separatorChar) {
+				childParts[1] = separatorChar + childParts[1]
+			}
 
 			if len(childParts) == 2 {
 				childNamespace = childParts[0]

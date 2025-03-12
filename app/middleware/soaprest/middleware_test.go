@@ -1823,6 +1823,34 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 				},
 			},
 		),
+		gen(
+			"KeyStartsWithSeparatorChar",
+			nil,
+			nil,
+			&condition{
+				data: map[string]any{
+					"soap_Envelope": map[string]any{
+						"soap_Body": map[string]any{
+							"_text_key": "testText",
+						},
+					},
+				},
+				namespaces: map[string]string{},
+			},
+			&action{
+				expected: &soapEnvelope{
+					Header: &soapHeader{},
+					Body: &soapBody{
+						Content: []xmlElement{
+							{
+								XMLName: xml.Name{Local: "_text_key"},
+								Content: "testText",
+							},
+						},
+					},
+				},
+			},
+		),
 	}
 
 	testutil.Register(table, testCases...)
@@ -2070,6 +2098,31 @@ func TestSOAPREST_MapToXMLElements(t *testing.T) {
 				expected: []xmlElement{
 					{
 						XMLName: xml.Name{Local: "data"},
+					},
+				},
+			},
+		),
+		gen(
+			"KeyStartsWithSeparatorChar",
+			nil,
+			nil,
+			&condition{
+				data: map[string]any{
+					"soap_Body": map[string]any{
+						"_test_key": "testValue",
+					},
+				},
+			},
+			&action{
+				expected: []xmlElement{
+					{
+						XMLName: xml.Name{Space: "soap", Local: "Body"},
+						children: []xmlElement{
+							{
+								XMLName: xml.Name{Local: "_test_key"},
+								Content: "testValue",
+							},
+						},
 					},
 				},
 			},
@@ -2378,7 +2431,7 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 			},
 			&action{
 				expected: xmlElement{
-					XMLName: xml.Name{Space: "_", Local: "_item"},
+					XMLName: xml.Name{Space: "_", Local: "item"},
 				},
 			},
 		),
