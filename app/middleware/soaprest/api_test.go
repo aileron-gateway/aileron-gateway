@@ -41,11 +41,10 @@ func TestCreate(t *testing.T) {
 			&action{
 				err: nil,
 				expect: &soapREST{
-					attributeKey:  "attrKey",
-					textKey:       "textKey",
-					namespaceKey:  "nsKey",
-					arrayKey:      "arrayKey",
-					separatorChar: "_",
+					attributeKey: "attrKey",
+					textKey:      "textKey",
+					namespaceKey: "nsKey",
+					arrayKey:     "arrayKey",
 				},
 			},
 		),

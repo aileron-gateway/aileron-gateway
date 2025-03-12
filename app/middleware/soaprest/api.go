@@ -35,11 +35,10 @@ func (o *API) Default() protoreflect.ProtoMessage {
 			Name:      "default",
 		},
 		Spec: &v1.SOAPRESTMiddlewareSpec{
-			AttributeKey:  "attrKey",
-			NamespaceKey:  "nsKey",
-			ArrayKey:      "arrayKey",
-			TextKey:       "textKey",
-			SeparatorChar: "_",
+			AttributeKey: "attrKey",
+			NamespaceKey: "nsKey",
+			ArrayKey:     "arrayKey",
+			TextKey:      "textKey",
 
 			Matcher: &kernel.MatcherSpec{Patterns: []string{"/"}, MatchType: kernel.MatchType_Contains},
 
@@ -71,11 +70,10 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.Prot
 		eh:    eh,
 		paths: m,
 
-		attributeKey:  c.Spec.AttributeKey,
-		namespaceKey:  c.Spec.NamespaceKey,
-		arrayKey:      c.Spec.ArrayKey,
-		textKey:       c.Spec.TextKey,
-		separatorChar: c.Spec.SeparatorChar,
+		attributeKey: c.Spec.AttributeKey,
+		namespaceKey: c.Spec.NamespaceKey,
+		arrayKey:     c.Spec.ArrayKey,
+		textKey:      c.Spec.TextKey,
 
 		extractStringElement:  c.Spec.ExtractStringElement,
 		extractBooleanElement: c.Spec.ExtractBooleanElement,
