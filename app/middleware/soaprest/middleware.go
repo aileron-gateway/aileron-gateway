@@ -22,6 +22,8 @@ const (
 	soapHeaderKey       = "Header"
 	soapBodyKey         = "Body"
 
+	separatorChar = "_"
+
 	soapNameSpaceKey = "soap"
 	xsiNameSpaceKey  = "xsi"
 	xmlNameSpaceKey  = "xmlns"
@@ -39,11 +41,10 @@ type soapREST struct {
 	// paths must not be nil.
 	paths txtutil.Matcher[string]
 
-	attributeKey  string
-	textKey       string
-	namespaceKey  string
-	arrayKey      string
-	separatorChar string
+	attributeKey string
+	textKey      string
+	namespaceKey string
+	arrayKey     string
 
 	extractStringElement  bool
 	extractBooleanElement bool
@@ -201,7 +202,7 @@ func (s soapREST) xmlToMap(node xmlNode, nsCtx *namespaceContext) any {
 				if len(childMap) == 1 {
 					for k, v := range childMap {
 						// Preserve namespace prefixes if they are included
-						if strings.Contains(k, s.separatorChar) {
+						if strings.Contains(k, separatorChar) {
 							childrenMap[k] = append(childrenMap[k], v)
 						} else {
 							childrenMap[childName] = append(childrenMap[childName], v)
@@ -227,7 +228,6 @@ func (s soapREST) xmlToMap(node xmlNode, nsCtx *namespaceContext) any {
 		if trimmed != "" {
 			resultMap[s.textKey] = s.parseValue(cleanedContent)
 		}
-
 	} else {
 		if content != "" {
 			if trimmed == "" {
@@ -254,7 +254,7 @@ func (s soapREST) xmlToMap(node xmlNode, nsCtx *namespaceContext) any {
 
 	// Only supports conversions for SOAP 1.1
 	if node.XMLName.Local == soapEnvelopeKey && node.XMLName.Space == soapNameSpaceURI {
-		return map[string]any{soapNameSpaceKey + s.separatorChar + soapEnvelopeKey: resultMap}
+		return map[string]any{soapNameSpaceKey + separatorChar + soapEnvelopeKey: resultMap}
 	}
 
 	// Retrieve element names that include namespace prefixes
@@ -267,17 +267,17 @@ func (s soapREST) getNodeName(node xmlNode, nsCtx *namespaceContext) string {
 
 	// Only supports conversions for SOAP 1.1
 	if nodeName == soapBodyKey && node.XMLName.Space == soapNameSpaceURI {
-		// return like "soap:body"
-		return soapNameSpaceKey + s.separatorChar + soapBodyKey
+		// return like "soap_body"
+		return soapNameSpaceKey + separatorChar + soapBodyKey
 	} else if nodeName == soapHeaderKey && node.XMLName.Space == soapNameSpaceURI {
-		// return like "soap:header"
-		return soapNameSpaceKey + s.separatorChar + soapHeaderKey
+		// return like "soap_header"
+		return soapNameSpaceKey + separatorChar + soapHeaderKey
 	}
 
 	if node.XMLName.Space != "" {
 		prefix := nsCtx.getPrefix(node.XMLName.Space)
 		if prefix != "" {
-			return prefix + s.separatorChar + nodeName
+			return prefix + separatorChar + nodeName
 		}
 	}
 
@@ -285,8 +285,11 @@ func (s soapREST) getNodeName(node xmlNode, nsCtx *namespaceContext) string {
 }
 
 func (s soapREST) convertRESTtoSOAPResponse(wrapper *wrappedWriter) ([]byte, error) {
+	decoder := json.NewDecoder(wrapper.body)
+	decoder.UseNumber()
+
 	var restData map[string]any
-	if err := json.NewDecoder(wrapper.body).Decode(&restData); err != nil {
+	if err := decoder.Decode(&restData); err != nil {
 		err = app.ErrAppMiddleSOAPRESTDecodeResponseBody.WithoutStack(err, map[string]any{"body": "failed to decode: " + wrapper.body.String()})
 		return nil, utilhttp.NewHTTPError(err, http.StatusInternalServerError)
 	}
@@ -326,11 +329,12 @@ type soapBody struct {
 
 // xmlElement is a struct used for marshaling into XML
 type xmlElement struct {
-	XMLName  xml.Name
-	Attrs    []xml.Attr `xml:",attr"`
-	Content  string     `xml:",chardata"`
-	children []xmlElement
-	isNil    bool
+	XMLName     xml.Name
+	Attrs       []xml.Attr `xml:",attr"`
+	Content     string     `xml:",chardata"`
+	children    []xmlElement
+	isNil       bool
+	hasSiblings bool
 }
 
 // xmlElement.MarshalXML is a custom marshaller for encoding an xmlElement struct to XML.
@@ -344,14 +348,24 @@ func (e xmlElement) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
 	if e.XMLName.Local == "" {
 		if e.Content != "" {
 			content := e.Content
-			if !strings.Contains(content, "\n") {
-				content = "\n    " + content + "\n  "
+
+			// Determine the format based on whether there are sibling elements
+			if e.hasSiblings {
+				if !strings.Contains(content, "\n") {
+					content = "\n    " + content
+				}
+				// If there are sibling elements, output the text without indentation
+				enc.EncodeToken(xml.CharData([]byte(content)))
+			} else {
+				// If there are no sibling elements, add indentation
+				if !strings.Contains(content, "\n") {
+					content = "\n    " + content + "\n  "
+				}
+				enc.EncodeToken(xml.CharData([]byte(content)))
 			}
-			enc.EncodeToken(xml.CharData([]byte(content)))
 		}
 		return nil
 	}
-
 	start.Attr = e.Attrs
 
 	if e.isNil {
@@ -384,7 +398,7 @@ func (s soapREST) createSOAPEnvelope(data map[string]any, nsManager *namespaceMa
 		Body:   &soapBody{},
 	}
 
-	if envelopeData, ok := data[soapNameSpaceKey+s.separatorChar+soapEnvelopeKey].(map[string]any); ok {
+	if envelopeData, ok := data[soapNameSpaceKey+separatorChar+soapEnvelopeKey].(map[string]any); ok {
 		if hasNullValue(envelopeData) {
 			nsManager.addNamespace(xsiNameSpaceKey, xsiNameSpaceURI)
 		}
@@ -403,8 +417,14 @@ func (s soapREST) createSOAPEnvelope(data map[string]any, nsManager *namespaceMa
 
 		var nsAttrs []xml.Attr
 		for prefix, uri := range nsManager.namespaces {
+			var attrName xml.Name
+			if prefix == "" {
+				attrName = xml.Name{Local: xmlNameSpaceKey}
+			} else {
+				attrName = xml.Name{Local: xmlNameSpaceKey + ":" + prefix}
+			}
 			nsAttrs = append(nsAttrs, xml.Attr{
-				Name:  xml.Name{Local: xmlNameSpaceKey + ":" + prefix},
+				Name:  attrName,
 				Value: uri,
 			})
 		}
@@ -415,7 +435,7 @@ func (s soapREST) createSOAPEnvelope(data map[string]any, nsManager *namespaceMa
 			if !ok {
 				continue
 			}
-			parts := strings.SplitN(key, s.separatorChar, 2)
+			parts := strings.SplitN(key, separatorChar, 2)
 			elementName := parts[len(parts)-1]
 
 			switch elementName {
@@ -425,9 +445,19 @@ func (s soapREST) createSOAPEnvelope(data map[string]any, nsManager *namespaceMa
 				}
 
 				if textContent, ok := valueMap[s.textKey].(string); ok {
+					// Check if there are any other child elements
+					hasOtherElements := false
+					for k := range valueMap {
+						if k != s.attributeKey && k != s.textKey && k != s.namespaceKey {
+							hasOtherElements = true
+							break
+						}
+					}
+
 					element := xmlElement{
-						XMLName: xml.Name{Local: ""},
-						Content: textContent,
+						XMLName:     xml.Name{Local: ""},
+						Content:     textContent,
+						hasSiblings: hasOtherElements,
 					}
 					envelope.Header.Content = append(envelope.Header.Content, element)
 				}
@@ -441,9 +471,19 @@ func (s soapREST) createSOAPEnvelope(data map[string]any, nsManager *namespaceMa
 				}
 
 				if textContent, ok := valueMap[s.textKey].(string); ok {
+					// Check if there are any other child elements
+					hasOtherElements := false
+					for k := range valueMap {
+						if k != s.attributeKey && k != s.textKey && k != s.namespaceKey {
+							hasOtherElements = true
+							break
+						}
+					}
+
 					element := xmlElement{
-						XMLName: xml.Name{Local: ""},
-						Content: textContent,
+						XMLName:     xml.Name{Local: ""},
+						Content:     textContent,
+						hasSiblings: hasOtherElements,
 					}
 					envelope.Body.Content = append(envelope.Body.Content, element)
 				}
@@ -466,7 +506,7 @@ func (s soapREST) mapToXMLElements(data map[string]any, nsManager *namespaceMana
 		}
 
 		// Split the key into a namespace prefix and a local name
-		parts := strings.SplitN(key, s.separatorChar, 2)
+		parts := strings.SplitN(key, separatorChar, 2)
 		var namespace string
 
 		if len(parts) == 2 {
@@ -491,14 +531,22 @@ func (s soapREST) mapToXMLElements(data map[string]any, nsManager *namespaceMana
 }
 
 func (s soapREST) mapToXMLElement(elementName string, value any, namespace string, parts []string) xmlElement {
-	// When the JSON data contains an array, the key does not include the separator character,
-	// so the length of `parts` will not be 2.
+	// Check if the keys in the JSON start with separatorChar
+	startsWithSeparator := strings.HasPrefix(elementName, separatorChar)
+
+	// When the JSON data contains an array, the key does not include the separator character
+	// so the length of `parts` will not be 2
 	if len(parts) == 2 {
 		namespace = parts[0]
 		elementName = parts[1]
+
+		// If the key starts with separatorChar, prepend separatorChar to elementName as well
+		if startsWithSeparator {
+			elementName = separatorChar + elementName
+		}
 	}
 
-	// Create the basic structure of an xmlElement.
+	// Create the basic structure of an xmlElement
 	element := xmlElement{
 		XMLName: xml.Name{
 			Space: namespace,
@@ -506,13 +554,13 @@ func (s soapREST) mapToXMLElement(elementName string, value any, namespace strin
 		},
 	}
 
-	// Perform appropriate processing based on the type of the value.
+	// Perform appropriate processing based on the type of the value
 	switch v := value.(type) {
 	case nil:
 		element.isNil = true
 
 	case map[string]any:
-		// When a value is not null but is empty.
+		// When a value is not null but is empty
 		if len(v) == 0 {
 			return element
 		}
@@ -538,9 +586,19 @@ func (s soapREST) mapToXMLElement(elementName string, value any, namespace strin
 				continue
 			}
 
-			// When processing child elements,
-			// parse the namespace information from the child element's own key
-			child := s.mapToXMLElement(childKey, childValue, "", nil)
+			// The keys of child elements are also divided into namespace and local name
+			childParts := strings.SplitN(childKey, separatorChar, 2)
+			var childNamespace string
+			var childLocalName string
+
+			if len(childParts) == 2 {
+				childNamespace = childParts[0]
+				childLocalName = childParts[1]
+			} else {
+				childLocalName = childKey
+			}
+
+			child := s.mapToXMLElement(childLocalName, childValue, childNamespace, childParts)
 			element.children = append(element.children, child)
 		}
 
