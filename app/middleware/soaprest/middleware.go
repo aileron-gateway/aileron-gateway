@@ -118,7 +118,7 @@ func (s *soapREST) Middleware(next http.Handler) http.Handler {
 		// Convert REST response to SOAP response
 		respBody, err := s.convertRESTtoSOAPResponse(ww)
 		if err != nil {
-			s.eh.ServeHTTPError(w, r, err)
+			s.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusInternalServerError))
 			return
 		}
 
@@ -505,6 +505,29 @@ func (s soapREST) mapToXMLElements(data map[string]any, nsManager *namespaceMana
 			continue
 		}
 
+		// If the value is an array, handle each element separately
+		if valueArray, isArray := value.([]any); isArray {
+			// In the case of arrays, add each element directly under the same name without creating a parent element
+			for _, item := range valueArray {
+				// Split the key into a namespace prefix and a local name
+				var namespace string
+				elementName := key
+
+				// Check if the key starts with `separatorChar` at the beginning
+				startsWithSeparator := strings.HasPrefix(key, separatorChar)
+
+				parts := strings.SplitN(key, separatorChar, 2)
+				if len(parts) == 2 && !startsWithSeparator {
+					namespace = parts[0]
+					elementName = parts[1]
+				}
+
+				element := s.createXMLElementFromValue(elementName, item, namespace)
+				elements = append(elements, element)
+			}
+			continue
+		}
+
 		// Split the key into a namespace prefix and a local name
 		startsWithSeparatorChar := strings.HasPrefix(key, separatorChar)
 		parts := strings.SplitN(key, separatorChar, 2)
@@ -534,6 +557,60 @@ func (s soapREST) mapToXMLElements(data map[string]any, nsManager *namespaceMana
 		elements = append(elements, element)
 	}
 	return elements
+}
+
+func (s soapREST) createXMLElementFromValue(elementName string, value any, namespace string) xmlElement {
+	element := xmlElement{
+		XMLName: xml.Name{
+			Space: namespace,
+			Local: elementName,
+		},
+	}
+
+	switch v := value.(type) {
+	case nil:
+		element.isNil = true
+	case map[string]any:
+		// Process attributes
+		if attrMap, ok := v[s.attributeKey].(map[string]any); ok {
+			element.Attrs = mapToXMLAttrs(attrMap)
+		}
+
+		// Process text content
+		if textContent, ok := v[s.textKey].(string); ok {
+			element.Content = sanitizeControlCharacters(textContent)
+		}
+
+		// Process child elements
+		for childKey, childValue := range v {
+			if childKey == s.attributeKey || childKey == s.textKey || childKey == s.namespaceKey {
+				continue
+			}
+
+			childParts := strings.SplitN(childKey, separatorChar, 2)
+			var childNamespace string
+			var childLocalName string
+
+			// If the key starts with separatorChar, prepend separatorChar to childLocalName as well
+			if strings.HasPrefix(childKey, separatorChar) {
+				childParts[1] = separatorChar + childParts[1]
+			}
+
+			if len(childParts) == 2 {
+				childNamespace = childParts[0]
+				childLocalName = childParts[1]
+			} else {
+				childLocalName = childKey
+			}
+
+			child := s.mapToXMLElement(childLocalName, childValue, childNamespace, childParts)
+			element.children = append(element.children, child)
+		}
+	default:
+		element.Content = sanitizeControlCharacters(fmt.Sprintf("%v", v))
+	}
+
+	return element
 }
 
 func (s soapREST) mapToXMLElement(elementName string, value any, namespace string, parts []string) xmlElement {
@@ -584,32 +661,39 @@ func (s soapREST) mapToXMLElement(elementName string, value any, namespace strin
 				continue
 			}
 
-			// The keys of child elements are also divided into namespace and local name
-			childParts := strings.SplitN(childKey, separatorChar, 2)
-			var childNamespace string
-			var childLocalName string
+			// Check whether it is an array
+			if childArray, isArray := childValue.([]any); isArray {
+				// In the case of an array, add each element as an independent child element
+				for _, item := range childArray {
+					childParts := strings.SplitN(childKey, separatorChar, 2)
+					var childNamespace string
+					var childLocalName string = childKey
 
-			// If the key starts with separatorChar, prepend separatorChar to childLocalName as well
-			if strings.HasPrefix(childKey, separatorChar) {
-				childParts[1] = separatorChar + childParts[1]
-			}
+					startsWithSeparator := strings.HasPrefix(childKey, separatorChar)
 
-			if len(childParts) == 2 {
-				childNamespace = childParts[0]
-				childLocalName = childParts[1]
+					if len(childParts) == 2 && !startsWithSeparator {
+						childNamespace = childParts[0]
+						childLocalName = childParts[1]
+					}
+
+					childElement := s.createXMLElementFromValue(childLocalName, item, childNamespace)
+					element.children = append(element.children, childElement)
+				}
 			} else {
-				childLocalName = childKey
+				childParts := strings.SplitN(childKey, separatorChar, 2)
+				var childNamespace string
+				var childLocalName string = childKey
+
+				startsWithSeparator := strings.HasPrefix(childKey, separatorChar)
+
+				if len(childParts) == 2 && !startsWithSeparator {
+					childNamespace = childParts[0]
+					childLocalName = childParts[1]
+				}
+
+				child := s.mapToXMLElement(childLocalName, childValue, childNamespace, childParts)
+				element.children = append(element.children, child)
 			}
-
-			child := s.mapToXMLElement(childLocalName, childValue, childNamespace, childParts)
-			element.children = append(element.children, child)
-		}
-
-	case []any:
-		// Process each element of the array as a child element
-		for _, item := range v {
-			child := s.mapToXMLElement(s.arrayKey, item, "", nil)
-			element.children = append(element.children, child)
 		}
 
 	default:
