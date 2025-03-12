@@ -20,7 +20,7 @@ const (
 )
 
 type soap11Fault struct {
-	XMLName     xml.Name           `xml:"Fault"`
+	XMLName     xml.Name           `xml:"soap:Fault"`
 	Faultcode   string             `xml:"faultcode"`
 	Faultstring string             `xml:"faultstring"`
 	Faultactor  string             `xml:"faultactor,omitempty"`
@@ -34,12 +34,13 @@ type soap11FaultDetail struct {
 }
 
 type soapFaultEnvelope struct {
-	XMLName xml.Name       `xml:"http://schemas.xmlsoap.org/soap/envelope/ Envelope"`
-	Body    *soapFaultBody `xml:"Body"`
+	XMLName xml.Name       `xml:"soap:Envelope"`
+	Xmlns   string         `xml:"xmlns:soap,attr"`
+	Body    *soapFaultBody `xml:"soap:Body"`
 }
 
 type soapFaultBody struct {
-	Fault *soap11Fault `xml:"Fault"`
+	Fault *soap11Fault `xml:"soap:Fault"`
 }
 
 // soapErrorHandler is a SOAP error handler that
@@ -104,6 +105,7 @@ func (h *soapErrorHandler) ServeHTTPError(w http.ResponseWriter, r *http.Request
 	}
 
 	envelope := &soapFaultEnvelope{
+		Xmlns: "http://schemas.xmlsoap.org/soap/envelope/",
 		Body: &soapFaultBody{
 			Fault: fault,
 		},
