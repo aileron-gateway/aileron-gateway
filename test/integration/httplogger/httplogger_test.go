@@ -462,7 +462,7 @@ func TestContentLengthNegativeOne_Tripperware(t *testing.T) {
 			body := []byte(`{"bar":"BAR","test":"response"}`)
 			return &http.Response{
 				StatusCode:       http.StatusOK,
-				ContentLength:    -1, // Content-Length: -1 に設定
+				ContentLength:    -1, // Content-Length: -1
 				TransferEncoding: []string{"chunked"},
 				Header: http.Header{
 					"Test":         {"ok"},
