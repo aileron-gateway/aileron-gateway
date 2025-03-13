@@ -1,0 +1,83 @@
+<mxfile host="65bd71144e">
+    <diagram id="nBJkx511C3LaVgAnyFTg" name="Page-1">
+        <mxGraphModel dx="620" dy="928" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="2" value="Gateway application" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;arcSize=9;" parent="1" vertex="1">
+                    <mxGeometry x="240" y="440" width="200" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="55" value="" style="group" parent="1" vertex="1" connectable="0">
+                    <mxGeometry x="80" y="640" width="280" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="55" vertex="1">
+                    <mxGeometry width="240" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="24" value="Log file directory" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="55" vertex="1">
+                    <mxGeometry x="30" width="180" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="59" value="application.log" style="sketch=0;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#434445;aspect=fixed;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.vvd.log_files;" parent="55" vertex="1">
+                    <mxGeometry x="90" y="35" width="40" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="69" value="Archived&lt;br&gt;(Size-based or time-based)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="55" vertex="1">
+                    <mxGeometry x="140" y="40" width="150" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="56" value="" style="group" parent="1" vertex="1" connectable="0">
+                    <mxGeometry x="380" y="640" width="280" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="57" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="56" vertex="1">
+                    <mxGeometry width="280" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="58" value="Backup directory" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="56" vertex="1">
+                    <mxGeometry x="35" width="205" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="64" value="application.&lt;br&gt;2024-06-27.0.log" style="sketch=0;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#434445;aspect=fixed;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.vvd.log_files;" parent="56" vertex="1">
+                    <mxGeometry x="43.75" y="30" width="35" height="43.75" as="geometry"/>
+                </mxCell>
+                <mxCell id="65" value="application.&lt;br&gt;2024-06-27.1.log" style="sketch=0;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#434445;aspect=fixed;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.vvd.log_files;" parent="56" vertex="1">
+                    <mxGeometry x="150" y="30" width="35" height="43.75" as="geometry"/>
+                </mxCell>
+                <mxCell id="74" value="......" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="56" vertex="1">
+                    <mxGeometry x="220" y="50" width="35" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="66" value="Logical file" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;size=14;" parent="1" vertex="1">
+                    <mxGeometry x="310" y="490" width="60" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="68" style="edgeStyle=orthogonalEdgeStyle;html=1;curved=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="59" target="57" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="280" y="860" as="sourcePoint"/>
+                        <mxPoint x="200.0000000000001" y="685" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="70" value="Gateway output logs to the logical file.&lt;br&gt;No need to care about log rotation and managing archived files. It is completely transparent to the logical file." style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+                    <mxGeometry x="440" y="480" width="230" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="71" value="" style="curved=1;endArrow=classic;html=1;entryX=0;entryY=0;entryDx=55;entryDy=37;entryPerimeter=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="1" source="72" target="66" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="390" y="500" as="sourcePoint"/>
+                        <mxPoint x="400" y="520" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="400" y="530"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="72" value="logs..." style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+                    <mxGeometry x="385" y="480" width="40" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="73" value="Output to physical file." style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+                    <mxGeometry x="240" y="580" width="70" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="67" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;curved=1;" parent="1" source="66" target="59" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="350" y="620" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="340" y="613"/>
+                            <mxPoint x="270" y="613"/>
+                            <mxPoint x="270" y="690"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

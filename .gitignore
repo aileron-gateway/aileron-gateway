@@ -20,7 +20,6 @@
 *.temp
 /*.env
 /*.html
-/*.txt
 
 # Ignore directories.
 proto/protovalidate/
