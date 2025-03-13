@@ -1,11 +1,11 @@
 site_name: AILERON Gateway Design Docs
-site_url: https://aileron-gateway.github.io/aileron-docs/
+site_url: https://aileron-gateway.github.io/aileron-gateway/
 site_description: AILERON Gateway design docs
 site_author: AILERON Gateway Community
-copyright: Copyright &copy; 2024 AILERON Gateway Community.
+copyright: Copyright &copy; 2025 AILERON Gateway Community.
 
-repo_name: aileron-gateway/aileron-docs
-repo_url: https://github.com/aileron-gateway/aileron-docs
+repo_name: aileron-gateway/aileron-gateway
+repo_url: https://github.com/aileron-gateway/aileron-gateway
 
 docs_dir: "./docs"
 

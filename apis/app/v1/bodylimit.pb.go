@@ -128,8 +128,9 @@ type BodyLimitMiddlewareSpec struct {
 	// MaxSize, bodies are load on memory or temp file and
 	// actual body sizes are checked.
 	// Use MemLimit and TempPath to set memory limits
-	// and  temporary file path to check the actual body sizes.
-	// If zero or negative, actual body sized are not checked for all requests
+	// and temporary file path to check the actual body sizes.
+	// If zero, default value is used.
+	// If negative, actual body sized are not checked for all requests
 	// which means the same as disabling this middleware.
 	// Default is [4194304], or 4 MiB.
 	MaxSize int64 `protobuf:"varint,2,opt,name=MaxSize,json=maxSize,proto3" json:"MaxSize,omitempty"`

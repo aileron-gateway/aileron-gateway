@@ -120,6 +120,8 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.Prot
 		passwd:      passwd,
 		decryptFunc: decryptFunc,
 		compareFunc: compareFunc,
+
+		preferError: c.Spec.PreferError,
 	}, nil
 }
 
