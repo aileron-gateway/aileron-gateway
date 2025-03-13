@@ -746,6 +746,10 @@ func (w *wrappedWriter) ContentLength() int64 {
 	return w.length
 }
 
+func (w *wrappedWriter) Flush() {
+	// no-op
+}
+
 // namespaceContext is a struct used for managing namespaces.
 type namespaceContext struct {
 	prefixToURI map[string]string
