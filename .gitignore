@@ -23,6 +23,7 @@
 
 # Ignore directories.
 proto/protovalidate/
+site/
 work/
 study/
 temp/
