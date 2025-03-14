@@ -16,16 +16,37 @@ permissions:
   packages: write
 
 jobs:
-  test-suite:
-    uses: ./.github/workflows/test-suite.yaml
+  checks:
+    needs: proto
+    uses: ./.github/workflows/checks.yaml
+    secrets: inherit
+
+  unit-test:
+    needs: checks
+    uses: ./.github/workflows/test-unit.yaml
+    secrets: inherit
+
+  integration-test:
+    needs: unit-test
+    uses: ./.github/workflows/test-integration.yaml
+    secrets: inherit
+
+  e2e-test:
+    needs: integration-test
+    uses: ./.github/workflows/test-e2e.yaml
+    secrets: inherit
+
+  example-test:
+    needs: e2e-test
+    uses: ./.github/workflows/test-example.yaml
     secrets: inherit
 
   release-binary:
-    needs: test-suite
+    needs: example-test
     uses: ./.github/workflows/release-binary.yaml
     secrets: inherit
 
   release-container:
-    needs: test-suite
+    needs: example-test
     uses: ./.github/workflows/release-container.yaml
     secrets: inherit
