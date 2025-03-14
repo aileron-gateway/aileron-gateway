@@ -4,7 +4,8 @@ goos: windows
 goarch: arm
 
 main: ./cmd/aileron/
-binary: _output/bin/{{ .Os }}-{{ .Arch }}7/aileron.exe
+dir: _output/bin/{{ .Os }}-{{ .Arch }}7/
+binary: aileron.exe
 
 env:
   - CGO_ENABLED=0

@@ -4,7 +4,8 @@ goos: freebsd
 goarch: 386
 
 main: ./cmd/aileron/
-binary: _output/bin/{{ .Os }}-{{ .Arch }}/aileron
+dir: _output/bin/{{ .Os }}-{{ .Arch }}/
+binary: aileron
 
 env:
   - CGO_ENABLED=0
