@@ -1,6 +1,7 @@
 name: Static Analysis
 
 on:
+  workflow_dispatch: {}
   push:
     branches: ["**"]
     tags: ["**"]

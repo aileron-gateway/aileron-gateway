@@ -1,0 +1,36 @@
+name: Test Suite
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+permissions:
+  contents: write
+
+jobs:
+  proto:
+    uses: ./.github/workflows/proto.yaml
+    secrets: inherit
+
+  unit-test:
+    needs: proto
+    uses: ./.github/workflows/test-unit.yaml
+    secrets: inherit
+
+  integration-test:
+    needs: unit-test
+    uses: ./.github/workflows/test-integration.yaml
+    secrets: inherit
+
+  e2e-test:
+    needs: integration-test
+    uses: ./.github/workflows/test-e2e.yaml
+    secrets: inherit
+
+  example-test:
+    needs: e2e-test
+    uses: ./.github/workflows/test-example.yaml
+    secrets: inherit

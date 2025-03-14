@@ -3,6 +3,9 @@ name: Proto
 on:
   workflow_call: {}
 
+permissions:
+  contents: write
+
 jobs:
   proto:
     runs-on: ubuntu-latest
