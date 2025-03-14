@@ -16,6 +16,10 @@ permissions:
   packages: write
 
 jobs:
+  proto:
+    uses: ./.github/workflows/proto.yaml
+    secrets: inherit
+
   checks:
     needs: proto
     uses: ./.github/workflows/checks.yaml
