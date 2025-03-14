@@ -60,6 +60,12 @@ QEMU_CMD_ppc64 := qemu-ppc64
 QEMU_CMD_ppc64le := qemu-ppc64le
 QEMU_CMD_riscv64 := qemu-riscv64
 QEMU_CMD_s390x := qemu-s390x
+QEMU_CMD_386 := qemu-i386
+QEMU_CMD_mips := qemu-mips
+QEMU_CMD_mips64 := qemu-mips64
+QEMU_CMD_mips64le := qemu-mips64el
+QEMU_CMD_mipsle := qemu-mipsel
+QEMU_CMD_sparc64 := qemu-sparc64
 
 
 ##### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ #####

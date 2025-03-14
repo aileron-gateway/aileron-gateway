@@ -66,6 +66,12 @@ jobs:
           - "ppc64le"
           - "riscv64"
           - "s390x"
+          - "386" # Can be removed.
+          - "mips" # Can be removed.
+          - "mips64" # Can be removed.
+          - "mips64le" # Can be removed.
+          - "mipsle" # Can be removed.
+          - "sparc64" # Can be removed.
     steps:
       - run: git config --global core.autocrlf false
       - uses: actions/checkout@v4
