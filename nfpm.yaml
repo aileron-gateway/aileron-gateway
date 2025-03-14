@@ -26,7 +26,7 @@ conflicts: []
 umask: 0o770
 
 contents:
-  - src: ./_output/aileron-linux-${ARCH}
+  - src: ./aileron-linux-${ARCH}
     dst: /usr/bin/aileron
     expand: true
   - src: ./packaging/config.yaml

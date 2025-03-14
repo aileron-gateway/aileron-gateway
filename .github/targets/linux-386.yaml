@@ -4,8 +4,7 @@ goos: linux
 goarch: 386
 
 main: cmd/aileron/
-# dir: _output/bin/
-binary: _output/aileron-{{ .Os }}-{{ .Arch }}
+binary: aileron-{{ .Os }}-{{ .Arch }}
 
 env:
   - CGO_ENABLED=0
