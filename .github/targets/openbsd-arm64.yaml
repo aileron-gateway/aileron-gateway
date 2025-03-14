@@ -3,7 +3,7 @@ version: 1
 goos: openbsd
 goarch: arm64
 
-main: ./cmd/aileron/
+main: ../../cmd/aileron/
 dir: _output/bin/
 binary: aileron-{{ .Os }}-{{ .Arch }}
 
