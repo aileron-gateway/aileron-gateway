@@ -33,7 +33,6 @@ jobs:
       - name: make test
         run: |
           set +o pipefail
-          mkdir -p _output/
           make test 2>&1 | tee _output/unit-test.log
       - uses: codecov/codecov-action@v4
         env:
