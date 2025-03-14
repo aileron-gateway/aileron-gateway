@@ -2,6 +2,8 @@
 #                      Global Configs                      #
 ############################################################
 
+include go-test.mk
+
 .DEFAULT_GOAL := help
 
 # Load .env file if exist.
