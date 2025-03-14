@@ -75,8 +75,8 @@ QEMU_CMD_sparc64 := qemu-sparc64
 #  Usage: `make go-test-help`                                                  #
 #  Description: Show help message.                                             #
 #                                                                              #
-.PHONY: go-test-help go-test.mk
-go-test-help go-test.mk:
+.PHONY: go-test-help
+go-test-help:
 	$(info $(go-test.mk))
 #______________________________________________________________________________#
 
