@@ -6,7 +6,6 @@ on:
 
 jobs:
   test:
-    needs: proto
     runs-on: ${{ matrix.os }}-latest
     timeout-minutes: 10
     strategy:
