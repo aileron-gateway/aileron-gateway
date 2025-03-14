@@ -1,13 +1,7 @@
-name: Container Release
+name: Release Container
 
 on:
-  push:
-    tags:
-      - "v[0-9]+.[0-9]+.[0-9]+-test.[0-9]+"
-      - "v[0-9]+.[0-9]+.[0-9]+-alpha.[0-9]+"
-      - "v[0-9]+.[0-9]+.[0-9]+-beta.[0-9]+"
-      - "v[0-9]+.[0-9]+.[0-9]+-rc.[0-9]+"
-      - "v[0-9]+.[0-9]+.[0-9]+"
+  workflow_call: {}
 
 permissions:
   contents: read

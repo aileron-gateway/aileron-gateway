@@ -1,12 +1,8 @@
-name: Static Analysis
+name: Checks
 
 on:
   workflow_dispatch: {}
-  push:
-    branches: ["**"]
-    tags: ["**"]
-  pull_request:
-    branches: ["**"]
+  workflow_call: {}
 
 jobs:
   analysis:

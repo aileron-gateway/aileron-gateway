@@ -1,16 +1,10 @@
-name: Binary Release
+name: Release Binary
 # References
 # https://github.com/slsa-framework/slsa-github-generator
 # https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/go/README.md
 
 on:
-  push:
-    tags:
-      - "v[0-9]+.[0-9]+.[0-9]+-test.[0-9]+"
-      - "v[0-9]+.[0-9]+.[0-9]+-alpha.[0-9]+"
-      - "v[0-9]+.[0-9]+.[0-9]+-beta.[0-9]+"
-      - "v[0-9]+.[0-9]+.[0-9]+-rc.[0-9]+"
-      - "v[0-9]+.[0-9]+.[0-9]+"
+  workflow_call: {}
 
 permissions:
   id-token: write
