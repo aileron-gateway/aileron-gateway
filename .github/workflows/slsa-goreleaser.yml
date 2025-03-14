@@ -19,7 +19,7 @@ permissions:
 jobs:
   args:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
@@ -64,7 +64,7 @@ jobs:
       # Check available go version at the link below.
       # https://github.com/actions/go-versions/blob/main/versions-manifest.json
       go-version: stable
-      config-file: .github/targets/${{matrix.target}}.yaml
+      config-file: .github/targets/${{matrix.os}}-${{matrix.arch}}.yaml
       evaluated-envs: "VERSION:${{needs.args.outputs.version}}"
       draft-release: true
       upload-assets: true
@@ -83,18 +83,18 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y nfpm
           export VERSION="${{needs.args.outputs.version}}"
-          make rpm
-          make deb
-          make apk
-          make archlinux
-          ls -la ./packaging/pkgs/
+          make nfpm-rpm NFPM_RPM_ARCH="386 amd64 arm7 arm64 ppc64le riscv64 s390x"
+          make nfpm-deb NFPM_RPM_ARCH="386 amd64 arm7 arm64 ppc64le riscv64 s390x"
+          make nfpm-apk NFPM_RPM_ARCH="386 amd64 arm7 arm64 ppc64le riscv64 s390x"
+          make nfpm-archlinux NFPM_RPM_ARCH="386 amd64 arm7 arm64 ppc64le riscv64 s390x"
+          ls -la ./_output/pkg/
       - run: |
-          cd ./packaging/pkgs/
+          cd ./_output/pkg/
           ls -la
           sha256sum aileron* >> ./SHA256SUMS
           sha1sum aileron* >> ./SHA1SUMS
           md5sum aileron* >> ./MD5SUMS
       - uses: softprops/action-gh-release@v2
         with:
-          files: ./packaging/pkgs/*
+          files: ./_output/pkg/*
           draft: true

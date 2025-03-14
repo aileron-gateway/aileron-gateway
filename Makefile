@@ -2,6 +2,7 @@
 #                      Global Configs                      #
 ############################################################
 
+include nfpm.mk
 include go-test.mk
 
 .DEFAULT_GOAL := help

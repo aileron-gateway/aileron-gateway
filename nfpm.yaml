@@ -1,7 +1,7 @@
 # nfpm configurations.
 # See https://nfpm.goreleaser.com/
 name: aileron
-arch: "${PKG_ARCH}"
+arch: "${ARCH}"
 platform: linux
 version: "${VERSION}"
 version_schema: semver
@@ -26,45 +26,45 @@ conflicts: []
 umask: 0o770
 
 contents:
-  - src: ../aileron-linux-${BIN_ARCH}/aileron-linux-${BIN_ARCH}
+  - src: ./_output/bin/linux-${ARCH}/aileron
     dst: /usr/bin/aileron
     expand: true
-  - src: ./config.yaml
+  - src: ./packaging/config.yaml
     dst: /etc/aileron/config.yaml
     type: config
 
-  - src: ./aileron.env
+  - src: ./packaging/aileron.env
     dst: /etc/sysconfig/aileron.env
     type: config
     packager: rpm
-  - src: ./rpm/aileron.service
+  - src: ./packaging/rpm/aileron.service
     dst: /usr/lib/systemd/system/aileron.service
     type: config
     packager: rpm
 
-  - src: ./aileron.env
+  - src: ./packaging/aileron.env
     dst: /etc/default/aileron.env
     type: config
     packager: deb
-  - src: ./deb/aileron.service
+  - src: ./packaging/deb/aileron.service
     dst: /usr/lib/systemd/system/aileron.service
     type: config
     packager: deb
 
-  - src: ./aileron.env
+  - src: ./packaging/aileron.env
     dst: /etc/default/aileron.env
     type: config
     packager: apk
-  - src: ./apk/aileron
+  - src: ./packaging/apk/aileron
     dst: /etc/init.d/aileron
     type: config
     packager: apk
 
-  - src: ./aileron.env
+  - src: ./packaging/aileron.env
     dst: /etc/default/aileron.env
     type: config
     packager: archlinux
-  - src: ./archlinux/aileron.service
+  - src: ./packaging/archlinux/aileron.service
     dst: /usr/lib/systemd/system/aileron.service
     type: config
     packager: archlinux
@@ -72,28 +72,28 @@ contents:
 overrides:
   rpm:
     scripts:
-      preinstall: ./rpm/preinst
-      postinstall: ./rpm/postinst
-      preremove: ./rpm/prerm
-      postremove: ./rpm/postrm
+      preinstall: ./packaging/rpm/preinst
+      postinstall: ./packaging/rpm/postinst
+      preremove: ./packaging/rpm/prerm
+      postremove: ./packaging/rpm/postrm
   deb:
     scripts:
-      preinstall: ./deb/preinst
-      postinstall: ./deb/postinst
-      preremove: ./deb/prerm
-      postremove: ./deb/postrm
+      preinstall: ./packaging/deb/preinst
+      postinstall: ./packaging/deb/postinst
+      preremove: ./packaging/deb/prerm
+      postremove: ./packaging/deb/postrm
   apk:
     scripts:
-      preinstall: ./apk/preinst
-      postinstall: ./apk/postinst
-      preremove: ./apk/prerm
-      postremove: ./apk/postrm
+      preinstall: ./packaging/apk/preinst
+      postinstall: ./packaging/apk/postinst
+      preremove: ./packaging/apk/prerm
+      postremove: ./packaging/apk/postrm
   archlinux:
     scripts:
-      preinstall: ./archlinux/preinst
-      postinstall: ./archlinux/postinst
-      preremove: ./archlinux/prerm
-      postremove: ./archlinux/postrm
+      preinstall: ./packaging/archlinux/preinst
+      postinstall: ./packaging/archlinux/postinst
+      preremove: ./packaging/archlinux/prerm
+      postremove: ./packaging/archlinux/postrm
 
 # TODO: Add signature.
 rpm:
