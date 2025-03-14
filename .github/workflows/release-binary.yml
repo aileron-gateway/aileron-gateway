@@ -18,7 +18,6 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
-      - run: git config --global core.autocrlf false
       - uses: actions/checkout@v4
       - id: version
         run: echo "version=$(git describe --tags --always --dirty | sed 's/-dirty//')" >> "$GITHUB_OUTPUT"

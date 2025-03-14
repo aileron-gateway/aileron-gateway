@@ -15,7 +15,6 @@ jobs:
           - windows
           - macos
     steps:
-      - run: git config --global core.autocrlf false
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
       - uses: actions/setup-go@v5
@@ -53,7 +52,6 @@ jobs:
           - "mipsle" # Can be removed.
           - "sparc64" # Can be removed.
     steps:
-      - run: git config --global core.autocrlf false
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
       - uses: actions/setup-go@v5
