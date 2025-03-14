@@ -4,8 +4,8 @@ goos: linux
 goarch: ppc64le
 
 main: ./cmd/aileron/
-dir: _output/bin/{{ .Os }}-{{ .Arch }}/
-binary: aileron
+dir: _output/bin/
+binary: aileron-{{ .Os }}-{{ .Arch }}
 
 env:
   - CGO_ENABLED=0
