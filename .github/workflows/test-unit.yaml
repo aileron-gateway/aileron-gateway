@@ -50,10 +50,10 @@ jobs:
           path: |
             _output/**
             api.html
-          retention-days: 1
+          retention-days: 7
 
   qemu:
-    needs: proto
+    needs: test
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:

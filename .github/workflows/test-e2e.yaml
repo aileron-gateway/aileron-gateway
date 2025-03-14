@@ -39,4 +39,4 @@ jobs:
         with:
           name: e2e-test-${{ matrix.os }}
           path: _output/**
-          retention-days: 1
+          retention-days: 7
