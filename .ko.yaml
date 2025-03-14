@@ -12,7 +12,7 @@
 #   - gcr.io/distroless/static:debug-nonroot
 # -------------------------------------------------------------- #
 
-defaultBaseImage: gcr.io/distroless/static:nonroot
+defaultBaseImage: gcr.io/distroless/static:debug
 
 defaultPlatforms:
   - linux/amd64
@@ -30,6 +30,7 @@ builds:
       - GOARM=7
     flags:
       - -trimpath
+      - -tags=netgo,osusergo
     ldflags:
       - -w
       - -s

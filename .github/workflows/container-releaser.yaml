@@ -27,7 +27,22 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: stable
-      - uses: ko-build/setup-ko@v0.7
+      - uses: ko-build/setup-ko@v0.8
       - run: |
           export VERSION=$(git describe --tags --always --dirty | sed 's/-dirty//')
           ko build -v -B --sbom=none --tags=latest --tags=${VERSION} ./cmd/aileron/
+      - name: Build on nonroot
+        run: |
+          export VERSION=$(git describe --tags --always --dirty | sed 's/-dirty//')
+          export KO_DEFAULTBASEIMAGE=gcr.io/distroless/static:nonroot
+          ko build -v -B --sbom=none --tags=latest --tags=${VERSION} ./cmd/aileron/
+      - name: Build on debug
+        run: |
+          export VERSION=$(git describe --tags --always --dirty | sed 's/-dirty//')
+          export KO_DEFAULTBASEIMAGE=gcr.io/distroless/static:debug
+          ko build -v -B --sbom=none --tags=${VERSION}-debug ./cmd/aileron/
+      - name: Build on debug-nonroot
+        run: |
+          export VERSION=$(git describe --tags --always --dirty | sed 's/-dirty//')
+          export KO_DEFAULTBASEIMAGE=gcr.io/distroless/static:debug-nonroot
+          ko build -v -B --sbom=none --tags=${VERSION}-debug-nonroot ./cmd/aileron/

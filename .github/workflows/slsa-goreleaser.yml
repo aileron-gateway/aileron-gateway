@@ -33,33 +33,33 @@ jobs:
     uses: slsa-framework/slsa-github-generator/.github/workflows/builder_go_slsa3.yml@v2.0.0
     strategy:
       matrix:
-        target:
-          - darwin-amd64
-          - darwin-arm64
-          - freebsd-386
-          - freebsd-amd64
-          - freebsd-arm
-          - freebsd-arm64
-          - linux-386
-          - linux-amd64
-          - linux-arm
-          - linux-arm64
-          - linux-ppc64
-          - linux-ppc64le
-          - linux-riscv64
-          - linux-s390x
-          - netbsd-386
-          - netbsd-amd64
-          - netbsd-arm
-          - netbsd-arm64
-          - openbsd-386
-          - openbsd-amd64
-          - openbsd-arm
-          - openbsd-arm64
-          - windows-386
-          - windows-amd64
-          - windows-arm
-          - windows-arm64
+        include:
+          - {os: "darwin", arch: "amd64"}
+          - {os: "darwin", arch: "arm64"}
+          - {os: "freebsd", arch: "386"}
+          - {os: "freebsd", arch: "amd64"}
+          - {os: "freebsd", arch: "arm7"}
+          - {os: "freebsd", arch: "arm64"}
+          - {os: "linux", arch: "386"}
+          - {os: "linux", arch: "amd64"}
+          - {os: "linux", arch: "arm7"}
+          - {os: "linux", arch: "arm64"}
+          - {os: "linux", arch: "ppc64"}
+          - {os: "linux", arch: "ppc64le"}
+          - {os: "linux", arch: "riscv64"}
+          - {os: "linux", arch: "s390x"}
+          - {os: "netbsd", arch: "386"}
+          - {os: "netbsd", arch: "amd64"}
+          - {os: "netbsd", arch: "arm7"}
+          - {os: "netbsd", arch: "arm64"}
+          - {os: "openbsd", arch: "386"}
+          - {os: "openbsd", arch: "amd64"}
+          - {os: "openbsd", arch: "arm7"}
+          - {os: "openbsd", arch: "arm64"}
+          - {os: "windows", arch: "386"}
+          - {os: "windows", arch: "amd64"}
+          - {os: "windows", arch: "arm7"}
+          - {os: "windows", arch: "arm64"}
     with:
       # Check available go version at the link below.
       # https://github.com/actions/go-versions/blob/main/versions-manifest.json

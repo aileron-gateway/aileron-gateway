@@ -1,10 +1,10 @@
 version: 1
 
-goos: linux
+goos: openbsd
 goarch: arm
 
 main: ./cmd/aileron/
-binary: aileron-{{ .Os }}-{{ .Arch }}
+binary: aileron-{{ .Os }}-{{ .Arch }}7
 
 env:
   - CGO_ENABLED=0
@@ -12,6 +12,7 @@ env:
 
 flags:
   - -trimpath
+  - -tags=netgo,osusergo
 
 ldflags:
   - "-w"

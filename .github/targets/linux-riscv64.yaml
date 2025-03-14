@@ -11,6 +11,7 @@ env:
 
 flags:
   - -trimpath
+  - -tags=netgo,osusergo
 
 ldflags:
   - "-w"
