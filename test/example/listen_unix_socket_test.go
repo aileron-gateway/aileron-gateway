@@ -1,5 +1,5 @@
-//go:build example
-// +build example
+//go:build example && !windows
+// +build example,!windows
 
 package example_test
 
