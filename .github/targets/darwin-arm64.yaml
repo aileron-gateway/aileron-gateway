@@ -3,7 +3,7 @@ version: 1
 goos: darwin
 goarch: arm64
 
-main: cmd/aileron/
+main: ./cmd/aileron/
 binary: aileron-{{ .Os }}-{{ .Arch }}
 
 env:

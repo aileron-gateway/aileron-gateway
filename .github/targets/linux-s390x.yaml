@@ -3,7 +3,7 @@ version: 1
 goos: linux
 goarch: s390x
 
-main: cmd/aileron/
+main: ./cmd/aileron/
 binary: aileron-{{ .Os }}-{{ .Arch }}
 
 env:

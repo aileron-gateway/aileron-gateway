@@ -3,7 +3,7 @@ version: 1
 goos: netbsd
 goarch: 386
 
-main: cmd/aileron/
+main: ./cmd/aileron/
 binary: aileron-{{ .Os }}-{{ .Arch }}
 
 env:
