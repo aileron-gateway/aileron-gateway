@@ -94,6 +94,9 @@ markdown_extensions:
       generic: true
 
 extra:
+  analytics:
+    provider: google
+    property: G-68J9W3Q5NX
   status:
     Proposed: "Status: Proposed</br> This proposal have actively been discussed."
     Deferred: "Status: Deferred</br> This proposal was suspended."
