@@ -21,8 +21,8 @@ jobs:
       matrix:
         os:
           - ubuntu
-          # - windows
-          # - macos
+          - windows
+          - macos
     steps:
       - run: git config --global core.autocrlf false
       - uses: actions/checkout@v4
