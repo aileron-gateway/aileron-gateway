@@ -4,8 +4,8 @@ goos: darwin
 goarch: amd64
 
 main: ../../cmd/aileron/
-dir: _output/bin/
-binary: aileron-{{ .Os }}-{{ .Arch }}
+# dir: _output/bin/
+binary: _output/aileron-{{ .Os }}-{{ .Arch }}
 
 env:
   - CGO_ENABLED=0
