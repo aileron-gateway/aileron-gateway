@@ -12,18 +12,7 @@ permissions:
   actions: read
 
 jobs:
-  args:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    outputs:
-      version: ${{ steps.version.outputs.version }}
-    steps:
-      - uses: actions/checkout@v4
-      - id: version
-        run: echo "version=$(git describe --tags --always --dirty | sed 's/-dirty//')" >> "$GITHUB_OUTPUT"
-
   release:
-    needs: args
     uses: slsa-framework/slsa-github-generator/.github/workflows/builder_go_slsa3.yml@v2.1.0
     strategy:
       matrix:
@@ -59,10 +48,10 @@ jobs:
       # https://github.com/actions/go-versions/blob/main/versions-manifest.json
       go-version: stable
       config-file: .github/targets/${{matrix.os}}-${{matrix.arch}}.yaml
-      evaluated-envs: "VERSION:${{needs.args.outputs.version}}"
+      evaluated-envs: "VERSION:${{github.ref_name}}"
       draft-release: true
       upload-assets: true
-      upload-tag-name: "${{needs.args.outputs.version}}"
+      upload-tag-name: "${{github.ref_name}}"
 
   package:
     needs: release
