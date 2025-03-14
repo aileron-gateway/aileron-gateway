@@ -12,8 +12,7 @@ env:
   IMAGE_NAME: aileron
 
 jobs:
-  publish:
-    name: Publish
+  release:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

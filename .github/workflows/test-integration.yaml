@@ -31,7 +31,6 @@ jobs:
           retention-days: 7
 
   qemu:
-    needs: test
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:

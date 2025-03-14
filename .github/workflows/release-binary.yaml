@@ -22,7 +22,7 @@ jobs:
       - id: version
         run: echo "version=$(git describe --tags --always --dirty | sed 's/-dirty//')" >> "$GITHUB_OUTPUT"
 
-  build:
+  release:
     needs: args
     uses: slsa-framework/slsa-github-generator/.github/workflows/builder_go_slsa3.yml@v2.1.0
     strategy:
@@ -64,8 +64,8 @@ jobs:
       upload-assets: true
       upload-tag-name: "${{needs.args.outputs.version}}"
 
-  nfpm:
-    needs: [build, args]
+  package:
+    needs: release
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
