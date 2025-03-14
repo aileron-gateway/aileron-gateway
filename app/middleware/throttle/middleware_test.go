@@ -89,7 +89,7 @@ func TestMiddleware(t *testing.T) {
 				throttle: throttle{
 					eh: nil,
 					throttlers: []*apiThrottler{
-						&apiThrottler{
+						{
 							throttler: &testThrottler{
 								acceptedAt: 0,
 								releaser:   noopReleaser,
@@ -111,7 +111,7 @@ func TestMiddleware(t *testing.T) {
 				throttle: throttle{
 					eh: nil,
 					throttlers: []*apiThrottler{
-						&apiThrottler{
+						{
 							throttler: &testThrottler{
 								acceptedAt: 0,
 								releaser:   noopReleaser,
@@ -134,7 +134,7 @@ func TestMiddleware(t *testing.T) {
 				throttle: throttle{
 					eh: nil,
 					throttlers: []*apiThrottler{
-						&apiThrottler{
+						{
 							throttler: &testThrottler{
 								acceptedAt: 999999999, // Never used.
 							},
@@ -156,7 +156,7 @@ func TestMiddleware(t *testing.T) {
 				throttle: throttle{
 					eh: nil,
 					throttlers: []*apiThrottler{
-						&apiThrottler{
+						{
 							throttler: &testThrottler{
 								acceptedAt: 999999999, // Never used.
 							},
@@ -186,7 +186,7 @@ func TestMiddleware(t *testing.T) {
 			&condition{
 				throttle: throttle{
 					throttlers: []*apiThrottler{
-						&apiThrottler{
+						{
 							throttler: &testThrottler{
 								acceptedAt: 1,
 								releaser:   noopReleaser,

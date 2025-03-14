@@ -94,7 +94,7 @@ func TestWrappedWriter_WriteHeader(t *testing.T) {
 				p:       &policy{add: map[string]string{"Test": "value"}},
 			},
 			&action{
-				header: map[string][]string{"Test": []string{"value"}},
+				header: map[string][]string{"Test": {"value"}},
 			},
 		),
 		gen(
@@ -157,7 +157,7 @@ func TestWrappedWriter_Write(t *testing.T) {
 				p:       &policy{add: map[string]string{"Test": "value"}},
 			},
 			&action{
-				header: map[string][]string{"Test": []string{"value"}},
+				header: map[string][]string{"Test": {"value"}},
 			},
 		),
 		gen(
