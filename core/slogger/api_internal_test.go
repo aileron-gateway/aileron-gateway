@@ -494,6 +494,7 @@ func TestNewFileWriter(t *testing.T) {
 				// Options for bufferef writer.
 				cmp.AllowUnexported(bufio.Writer{}),
 				// Options for file writer.
+				cmp.AllowUnexported(kio.LogicalFile{}),
 				cmpopts.IgnoreFields(kio.LogicalFile{}, "curFile", "mu"),
 				cmp.Comparer(testutil.ComparePointer[func() error]),              // manageFunc in LogicalFile.
 				cmp.Comparer(testutil.ComparePointer[func(string) string]),       // matchFunc in LogicalFile.
