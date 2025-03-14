@@ -264,6 +264,24 @@ func (l *baseLogger) bodyReadCloser(fileName, mimeType string, length int64, bod
 		return []byte("body-" + fileName), &teeReadCloser{r: body, w: f}, nil
 	}
 
+	// Handle length == -1 (unknown content length) case
+	// We treat this as a streaming body and log it directly into a buffer.
+	if length == -1 {
+		var buf bytes.Buffer
+		tr := io.TeeReader(body, &buf)
+		b, err := io.ReadAll(tr)
+		if err != nil {
+			return nil, body, err
+		}
+		logB := l.logBody(mimeType, b)
+		if l.base64 {
+			dst := make([]byte, 0, 8*len(logB)/6+4)
+			dst = base64.StdEncoding.AppendEncode(dst, logB)
+			return dst, io.NopCloser(bytes.NewReader(b)), err
+		}
+		// Return the buffer and the function for logging the body
+		return logB, io.NopCloser(bytes.NewReader(b)), nil
+	}
 	return nil, body, nil // No logging.
 }
 
@@ -306,6 +324,22 @@ func (l *baseLogger) bodyWriter(fileName, mimeType string, length int64) (func()
 		return bf, f, nil
 	}
 
+	// Handle length == -1 (unknown content length) case
+	// We treat this as a streaming body and log it directly into a buffer.
+	if length == -1 {
+		var buf bytes.Buffer
+		bf := func() []byte {
+			logBody := l.logBody(mimeType, buf.Bytes())
+			if l.base64 {
+				dst := make([]byte, 0, 8*len(logBody)/6+4)
+				return base64.StdEncoding.AppendEncode(dst, logBody)
+			}
+			return logBody
+		}
+
+		// Return the buffer and the function for logging the body
+		return bf, &buf, nil
+	}
 	return nil, nil, nil // No logging.
 }
 

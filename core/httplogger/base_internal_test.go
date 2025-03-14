@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"errors"
 	"io"
 	"log/slog"
 	"net/http"
@@ -756,6 +757,16 @@ func TestBaseLogger_logBody(t *testing.T) {
 	}
 }
 
+type errorReadCloser struct{}
+
+func (e *errorReadCloser) Read(p []byte) (n int, err error) {
+	return 0, errors.New("read error")
+}
+
+func (e *errorReadCloser) Close() error {
+	return nil
+}
+
 func TestBaseLogger_bodyReadCloser(t *testing.T) {
 	type condition struct {
 		bl       *baseLogger
@@ -894,6 +905,62 @@ func TestBaseLogger_bodyReadCloser(t *testing.T) {
 			&action{
 				b:    "",
 				read: "test-body",
+			},
+		),
+		gen(
+			"streaming body(length = -1) without base64",
+			[]string{},
+			[]string{},
+			&condition{
+				bl: &baseLogger{
+					mimes:   []string{"application/json"},
+					maxBody: 100,
+				},
+				mimeType: "application/json",
+				length:   -1, // Content-Length unknown
+				body:     io.NopCloser(bytes.NewBuffer([]byte("streaming-body"))),
+			},
+			&action{
+				b:    "streaming-body",
+				read: "streaming-body",
+			},
+		),
+		gen(
+			"streaming body(length = -1) with base64",
+			[]string{},
+			[]string{},
+			&condition{
+				bl: &baseLogger{
+					mimes:   []string{"application/json"},
+					maxBody: 100,
+					base64:  true,
+				},
+				mimeType: "application/json",
+				length:   -1, // Content-Length unknown
+				body:     io.NopCloser(bytes.NewBuffer([]byte("streaming-body"))),
+			},
+			&action{
+				b:    base64.StdEncoding.EncodeToString([]byte("streaming-body")),
+				read: "streaming-body",
+			},
+		),
+		gen(
+			"streaming body(length = -1) with read error",
+			[]string{},
+			[]string{},
+			&condition{
+				bl: &baseLogger{
+					mimes:   []string{"application/json"},
+					maxBody: 100,
+				},
+				mimeType: "application/json",
+				length:   -1, // Content-Length unknown
+				body:     &errorReadCloser{},
+			},
+			&action{
+				b:         "",
+				read:      "",
+				nonNilErr: true,
 			},
 		),
 	}
@@ -1053,6 +1120,41 @@ func TestBaseLogger_bodyWriter(t *testing.T) {
 			},
 			&action{
 				read: "",
+			},
+		),
+		gen(
+			"unknown length body(length = -1)",
+			[]string{},
+			[]string{},
+			&condition{
+				bl: &baseLogger{
+					mimes:   []string{"application/json"},
+					maxBody: 100,
+				},
+				mimeType: "application/json",
+				length:   -1, // Content-Length unknown
+			},
+			&action{
+				write: "test-body",
+				read:  "test-body",
+			},
+		),
+		gen(
+			"unknown length body(length = -1) with base64",
+			[]string{},
+			[]string{},
+			&condition{
+				bl: &baseLogger{
+					mimes:   []string{"application/json"},
+					maxBody: 100,
+					base64:  true,
+				},
+				mimeType: "application/json",
+				length:   -1, // Content-Length unknown
+			},
+			&action{
+				write: "test-body",
+				read:  base64.StdEncoding.EncodeToString([]byte("test-body")),
 			},
 		),
 	}
