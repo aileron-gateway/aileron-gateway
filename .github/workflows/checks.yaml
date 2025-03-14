@@ -37,3 +37,24 @@ jobs:
         with:
           go-version: stable
       - run: make lint
+
+  license:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - run: make go-licenses-run
+
+  copylight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
+      - run: make scanoss-run SCANOSS_OPTION_SCAN="-E drawio -E pb.go"

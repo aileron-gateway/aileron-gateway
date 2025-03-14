@@ -2,8 +2,10 @@
 #                      Global Configs                      #
 ############################################################
 
-include nfpm.mk
-include go-test.mk
+include _makefiles/nfpm.mk
+include _makefiles/go-test.mk
+include _makefiles/go-licenses.mk
+include _makefiles/scanoss.mk
 
 .DEFAULT_GOAL := help
 

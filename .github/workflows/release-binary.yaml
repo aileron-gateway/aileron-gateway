@@ -67,16 +67,16 @@ jobs:
           sudo apt-get install -y nfpm
           export VERSION="${{needs.args.outputs.version}}"
           make nfpm-rpm NFPM_RPM_ARCH="386 amd64 arm7 arm64 ppc64le riscv64 s390x"
-          make nfpm-deb NFPM_RPM_ARCH="386 amd64 arm7 arm64 ppc64le riscv64 s390x"
-          make nfpm-apk NFPM_RPM_ARCH="386 amd64 arm7 arm64 ppc64le riscv64 s390x"
-          make nfpm-archlinux NFPM_RPM_ARCH="386 amd64 arm7 arm64 ppc64le riscv64 s390x"
+          make nfpm-deb NFPM_DEB_ARCH="386 amd64 arm7 arm64 ppc64le riscv64 s390x"
+          make nfpm-apk NFPM_APK_ARCH="386 amd64 arm7 arm64 ppc64le riscv64 s390x"
+          make nfpm-arch NFPM_ARCH_ARCH="amd64 arm7 arm64 riscv64"
           ls -la ./_output/pkg/
       - run: |
           cd ./_output/pkg/
           ls -la
-          sha256sum aileron* >> ./SHA256SUMS
-          sha1sum aileron* >> ./SHA1SUMS
-          md5sum aileron* >> ./MD5SUMS
+          sha256sum aileron-* >> ./SHA256SUMS
+          sha1sum aileron-* >> ./SHA1SUMS
+          md5sum aileron-* >> ./MD5SUMS
       - uses: softprops/action-gh-release@v2
         with:
           files: ./_output/pkg/*
