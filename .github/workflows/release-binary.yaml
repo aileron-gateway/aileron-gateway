@@ -65,7 +65,7 @@ jobs:
           echo 'deb [trusted=yes] https://repo.fury.io/goreleaser/ /' | sudo tee /etc/apt/sources.list.d/goreleaser.list
           sudo apt-get update
           sudo apt-get install -y nfpm
-          export VERSION="${{needs.args.outputs.version}}"
+          export VERSION="${{github.ref_name}}"
           make nfpm-rpm NFPM_RPM_ARCH="386 amd64 arm7 arm64 ppc64le riscv64 s390x"
           make nfpm-deb NFPM_DEB_ARCH="386 amd64 arm7 arm64 ppc64le riscv64 s390x"
           make nfpm-apk NFPM_APK_ARCH="386 amd64 arm7 arm64 ppc64le riscv64 s390x"
