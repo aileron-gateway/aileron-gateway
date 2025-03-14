@@ -23,6 +23,7 @@ VARIABLES:
 REFERENCES:
   - https://pkg.go.dev/cmd/go
   - https://pkg.go.dev/cmd/go/internal/test
+	- https://pkg.go.dev/internal/platform
   - https://www.qemu.org/docs/master/user/main.html
 endef
 ################################################################################
@@ -53,18 +54,19 @@ GO_TEST_EXTRAS ?=
 GO_TEST_COVERAGE ?= _output/coverage.txt
 
 QEMU_TARGET := $(shell go list -f '{{.Dir}}' $(GO_TEST_TARGET))
+QEMU_CMD_386 := qemu-i386
 QEMU_CMD_amd64 := qemu-x86_64
 QEMU_CMD_arm := qemu-arm
 QEMU_CMD_arm64 := qemu-aarch64
-QEMU_CMD_ppc64 := qemu-ppc64
-QEMU_CMD_ppc64le := qemu-ppc64le
-QEMU_CMD_riscv64 := qemu-riscv64
-QEMU_CMD_s390x := qemu-s390x
-QEMU_CMD_386 := qemu-i386
+QEMU_CMD_loong64 := qemu-loong64
 QEMU_CMD_mips := qemu-mips
 QEMU_CMD_mips64 := qemu-mips64
 QEMU_CMD_mips64le := qemu-mips64el
 QEMU_CMD_mipsle := qemu-mipsel
+QEMU_CMD_ppc64 := qemu-ppc64
+QEMU_CMD_ppc64le := qemu-ppc64le
+QEMU_CMD_riscv64 := qemu-riscv64
+QEMU_CMD_s390x := qemu-s390x
 QEMU_CMD_sparc64 := qemu-sparc64
 
 
@@ -124,7 +126,7 @@ go-test-bin:
 	@for target in $(GO_TEST_TARGET); do \
 	echo ""; \
 	echo "INFO: Building $$target"; \
-	$(GO_TEST_CMD) -c -o $(GO_TEST_OUTPUT) $$target; \
+	$(GO_TEST_CMD) $(EXTRA_ARGS) -c -o $(GO_TEST_OUTPUT) $$target; \
 	done
 #______________________________________________________________________________#
 
@@ -144,7 +146,7 @@ go-test-qemu:
 	@for target in $(QEMU_TARGET); do \
 	echo ""; \
 	echo "INFO: Testing $$target"; \
-	$(GO_TEST_CMD) -c -o $$target $$target; \
+	$(GO_TEST_CMD) $(EXTRA_ARGS) -c -o $$target $$target; \
 	find $$target -name "*.test" | xargs -i bash -c "cd $$target && $(QEMU_CMD_$(GOARCH)) {}; rm -f {}"; \
 	done
 #______________________________________________________________________________#

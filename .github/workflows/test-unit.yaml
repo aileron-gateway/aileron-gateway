@@ -66,6 +66,7 @@ jobs:
           - "ppc64le"
           - "riscv64"
           - "s390x"
+          - "loong64" # Can be removed.
           - "386" # Can be removed.
           - "mips" # Can be removed.
           - "mips64" # Can be removed.

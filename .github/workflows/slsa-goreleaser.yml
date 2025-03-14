@@ -69,7 +69,6 @@ jobs:
       draft-release: true
       upload-assets: true
       upload-tag-name: "${{needs.args.outputs.version}}"
-      private-repository: true
 
   nfpm:
     needs: [build, args]
