@@ -10,6 +10,7 @@ Visit [our website](https://aileron-gateway.github.io/) to get more information.
 [![Go Report Card](https://goreportcard.com/badge/github.com/aileron-gateway/aileron-gateway)](https://goreportcard.com/report/github.com/aileron-gateway/aileron-gateway)
 [![OpenSourceInsight](https://badgen.net/badge/open%2Fsource%2F/insight/cyan)](https://deps.dev/go/github.com%2Faileron-gateway%2Faileron-gateway)
 [![OSS Insight](https://badgen.net/badge/OSS/Insight/orange)](https://ossinsight.io/analyze/aileron-gateway/aileron-gateway)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Faileron-gateway%2Faileron-gateway.svg?type=shield&issueType=license)](https://app.fossa.com/projects/git%2Bgithub.com%2Faileron-gateway%2Faileron-gateway?ref=badge_shield&issueType=license)
 
 [![Codecov](https://codecov.io/gh/aileron-gateway/aileron-gateway/branch/main/graph/badge.svg?token=L62XLZNFLE)](https://codecov.io/gh/aileron-gateway/aileron-gateway)
 [![Example Test](https://github.com/aileron-gateway/aileron-gateway/actions/workflows/test-example.yaml/badge.svg?branch=main)](https://github.com/aileron-gateway/aileron-gateway/actions/workflows/test-example.yaml?query=branch%3Amain)
