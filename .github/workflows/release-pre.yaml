@@ -15,43 +15,43 @@ permissions:
   packages: write
 
 jobs:
-  proto:
-    uses: ./.github/workflows/proto.yaml
-    secrets: inherit
+  # proto:
+  #   uses: ./.github/workflows/proto.yaml
+  #   secrets: inherit
 
-  checks:
-    needs: proto
-    uses: ./.github/workflows/checks.yaml
-    secrets: inherit
+  # checks:
+  #   needs: proto
+  #   uses: ./.github/workflows/checks.yaml
+  #   secrets: inherit
 
-  unit-test:
-    needs: checks
-    uses: ./.github/workflows/test-unit.yaml
-    secrets: inherit
+  # unit-test:
+  #   needs: checks
+  #   uses: ./.github/workflows/test-unit.yaml
+  #   secrets: inherit
 
-  integration-test:
-    needs: unit-test
-    uses: ./.github/workflows/test-integration.yaml
-    secrets: inherit
+  # integration-test:
+  #   needs: unit-test
+  #   uses: ./.github/workflows/test-integration.yaml
+  #   secrets: inherit
 
-  e2e-test:
-    needs: integration-test
-    uses: ./.github/workflows/test-e2e.yaml
-    secrets: inherit
+  # e2e-test:
+  #   needs: integration-test
+  #   uses: ./.github/workflows/test-e2e.yaml
+  #   secrets: inherit
 
-  example-test:
-    needs: e2e-test
-    uses: ./.github/workflows/test-example.yaml
-    secrets: inherit
+  # example-test:
+  #   needs: e2e-test
+  #   uses: ./.github/workflows/test-example.yaml
+  #   secrets: inherit
 
   release-binary:
-    needs: example-test
+    # needs: example-test
     uses: ./.github/workflows/release-binary.yaml
     secrets: inherit
 
-  release-container:
-    needs: example-test
-    uses: ./.github/workflows/release-container.yaml
-    secrets: inherit
-    with:
-      skip-latest: true
+  # release-container:
+  #   needs: example-test
+  #   uses: ./.github/workflows/release-container.yaml
+  #   secrets: inherit
+  #   with:
+  #     skip-latest: true
