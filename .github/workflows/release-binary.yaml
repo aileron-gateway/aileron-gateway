@@ -61,7 +61,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
-      - run: ls -la
+      - run: |
+          ls -la
+          mkdir -p _output/bin/
+          mv aileron-*/* _output/bin/
       - run: |
           echo 'deb [trusted=yes] https://repo.fury.io/goreleaser/ /' | sudo tee /etc/apt/sources.list.d/goreleaser.list
           sudo apt-get update
