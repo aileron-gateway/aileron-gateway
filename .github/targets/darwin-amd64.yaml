@@ -3,7 +3,7 @@ version: 1
 goos: darwin
 goarch: amd64
 
-main: ../__PROJECT_CHECKOUT_DIR__/cmd/aileron/
+main: ../cmd/aileron/
 binary: aileron-{{ .Os }}-{{ .Arch }}
 dir: _output/
 
