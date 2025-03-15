@@ -43,22 +43,22 @@ jobs:
           ${{ inputs.skip-latest }} && exit 0
           export VERSION=$(git describe --tags --always --dirty | sed 's/-dirty//')
           export KO_DEFAULTBASEIMAGE=gcr.io/distroless/static:latest
-          ko build -v -B --tags=latest ./cmd/aileron/
+          ko build -v -B --sbom=none --tag-only --tags=latest ./cmd/aileron/
       - name: Build on nonroot
         run: |
           ${{ inputs.skip-nonroot }} && exit 0
           export VERSION=$(git describe --tags --always --dirty | sed 's/-dirty//')
           export KO_DEFAULTBASEIMAGE=gcr.io/distroless/static:nonroot
-          ko build -v -B --tags=${VERSION}-nonroot ./cmd/aileron/
+          ko build -v -B --sbom=none --tag-only --tags=${VERSION}-nonroot ./cmd/aileron/
       - name: Build on debug
         run: |
           ${{ inputs.skip-debug }} && exit 0
           export VERSION=$(git describe --tags --always --dirty | sed 's/-dirty//')
           export KO_DEFAULTBASEIMAGE=gcr.io/distroless/static:debug
-          ko build -v -B --tags=${VERSION}-debug ./cmd/aileron/
+          ko build -v -B --sbom=none --tag-only --tags=${VERSION}-debug ./cmd/aileron/
       - name: Build on debug-nonroot
         run: |
           ${{ inputs.skip-debug-nonroot }} && exit 0
           export VERSION=$(git describe --tags --always --dirty | sed 's/-dirty//')
           export KO_DEFAULTBASEIMAGE=gcr.io/distroless/static:debug-nonroot
-          ko build -v -B --tags=${VERSION}-debug-nonroot ./cmd/aileron/
+          ko build -v -B --sbom=none --tag-only --tags=${VERSION}-debug-nonroot ./cmd/aileron/
