@@ -3,9 +3,9 @@ version: 1
 goos: darwin
 goarch: amd64
 
-main: ../cmd/aileron/
+main: /home/runner/work/aileron-gateway/aileron-gateway/cmd/aileron/
 binary: aileron-{{ .Os }}-{{ .Arch }}
-dir: ./_output/
+dir: /home/runner/work/aileron-gateway/aileron-gateway/_output/
 
 env:
   - CGO_ENABLED=0
