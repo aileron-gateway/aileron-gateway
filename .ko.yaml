@@ -1,18 +1,31 @@
-# -------------------------------------------------------------- #
+# --------------------------------------------------------------
 # ko config file
 # Official documents available at https://ko.build/reference/ko_build/
 #
 # EXAMPLE to locally build images.
-#   ko build -L -v -B --tag-only --tags 0.0.0 ./cmd/aileron/
+#   ko build -B -L --tags 0.0.0 ./cmd/aileron/
 #
+#   export KO_DEFAULTBASEIMAGE=gcr.io/distroless/static:latest
+#   ko build -B -L --tags=latest ./cmd/aileron/
+#
+#   export KO_DEFAULTBASEIMAGE=gcr.io/distroless/static:nonroot
+#   ko build -B -L --tags=v0.0.0-nonroot ./cmd/aileron/
+#
+#   export KO_DEFAULTBASEIMAGE=gcr.io/distroless/static:debug
+#   ko build -B -L --tags=v0.0.0-debug ./cmd/aileron/
+#
+#   export KO_DEFAULTBASEIMAGE=gcr.io/distroless/static:debug-nonroot
+#   ko build -B -L --tags=v0.0.0-debug-nonroot ./cmd/aileron/
+# 
 # Base image is https://github.com/GoogleContainerTools/distroless.
 #   - gcr.io/distroless/static:latest
 #   - gcr.io/distroless/static:nonroot
 #   - gcr.io/distroless/static:debug
 #   - gcr.io/distroless/static:debug-nonroot
-# -------------------------------------------------------------- #
+# --------------------------------------------------------------
 
-defaultBaseImage: gcr.io/distroless/static:debug
+defaultBaseImage: gcr.io/distroless/static:latest
+sbom: none
 
 defaultPlatforms:
   - linux/amd64
@@ -21,18 +34,24 @@ defaultPlatforms:
   - linux/ppc64le
   - linux/s390x
 
+defaultEnv:
+  - CGO_ENABLED=0
+  - GOARM=7
+
+defaultFlags:
+  - -trimpath
+  - -tags=netgo,osusergo
+
+defaultLdflags:
+  - -w
+  - -s
+  - -extldflags "-static"
+  - -X main.version={{ .Env.VERSION }}
+  
 builds:
-  - id: ko
-    dir: .
+  - id: aileron
+    dir: ./
     main: ./cmd/aileron
-    env:
-      - CGO_ENABLED=0
-      - GOARM=7
-    flags:
-      - -trimpath
-      - -tags=netgo,osusergo
-    ldflags:
-      - -w
-      - -s
-      - -extldflags "-static"
-      - -X main.version={{ .Env.VERSION }}
+    # env: []
+    # flags: []
+    # ldflags: []
