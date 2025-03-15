@@ -20,30 +20,30 @@ jobs:
         include:
           - {os: "darwin", arch: "amd64"}
           - {os: "darwin", arch: "arm64"}
-          # - {os: "freebsd", arch: "386"}
-          # - {os: "freebsd", arch: "amd64"}
-          # - {os: "freebsd", arch: "arm7"}
-          # - {os: "freebsd", arch: "arm64"}
-          # - {os: "linux", arch: "386"}
-          # - {os: "linux", arch: "amd64"}
-          # - {os: "linux", arch: "arm7"}
-          # - {os: "linux", arch: "arm64"}
-          # - {os: "linux", arch: "ppc64"}
-          # - {os: "linux", arch: "ppc64le"}
-          # - {os: "linux", arch: "riscv64"}
-          # - {os: "linux", arch: "s390x"}
-          # - {os: "netbsd", arch: "386"}
-          # - {os: "netbsd", arch: "amd64"}
-          # - {os: "netbsd", arch: "arm7"}
-          # - {os: "netbsd", arch: "arm64"}
-          # - {os: "openbsd", arch: "386"}
-          # - {os: "openbsd", arch: "amd64"}
-          # - {os: "openbsd", arch: "arm7"}
-          # - {os: "openbsd", arch: "arm64"}
-          # - {os: "windows", arch: "386"}
-          # - {os: "windows", arch: "amd64"}
-          # - {os: "windows", arch: "arm7"}
-          # - {os: "windows", arch: "arm64"}
+          - {os: "freebsd", arch: "386"}
+          - {os: "freebsd", arch: "amd64"}
+          - {os: "freebsd", arch: "arm7"}
+          - {os: "freebsd", arch: "arm64"}
+          - {os: "linux", arch: "386"}
+          - {os: "linux", arch: "amd64"}
+          - {os: "linux", arch: "arm7"}
+          - {os: "linux", arch: "arm64"}
+          - {os: "linux", arch: "ppc64"}
+          - {os: "linux", arch: "ppc64le"}
+          - {os: "linux", arch: "riscv64"}
+          - {os: "linux", arch: "s390x"}
+          - {os: "netbsd", arch: "386"}
+          - {os: "netbsd", arch: "amd64"}
+          - {os: "netbsd", arch: "arm7"}
+          - {os: "netbsd", arch: "arm64"}
+          - {os: "openbsd", arch: "386"}
+          - {os: "openbsd", arch: "amd64"}
+          - {os: "openbsd", arch: "arm7"}
+          - {os: "openbsd", arch: "arm64"}
+          - {os: "windows", arch: "386"}
+          - {os: "windows", arch: "amd64"}
+          - {os: "windows", arch: "arm7"}
+          - {os: "windows", arch: "arm64"}
     with:
       # Check available go version at the link below.
       # https://github.com/actions/go-versions/blob/main/versions-manifest.json
@@ -63,8 +63,10 @@ jobs:
       - uses: actions/download-artifact@v4
       - run: |
           ls -la
+          # Relocate binaries for nfpm input.
           mkdir -p _output/bin/
           mv aileron-*/* _output/bin/
+          ls -la _output/bin/
       - run: |
           echo 'deb [trusted=yes] https://repo.fury.io/goreleaser/ /' | sudo tee /etc/apt/sources.list.d/goreleaser.list
           sudo apt-get update
