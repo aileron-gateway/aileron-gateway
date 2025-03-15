@@ -74,9 +74,9 @@ jobs:
       - run: |
           cd ./_output/pkg/
           ls -la
-          sha256sum aileron-* >> ./SHA256SUMS
-          sha1sum aileron-* >> ./SHA1SUMS
-          md5sum aileron-* >> ./MD5SUMS
+          sha256sum aileron* > ./PKG_SHA256SUMS
+          sha1sum aileron* > ./PKG_SHA1SUMS
+          md5sum aileron* > ./PKG_MD5SUMS
       - uses: softprops/action-gh-release@v2
         with:
           files: ./_output/pkg/*
