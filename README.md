@@ -110,6 +110,15 @@ $ curl http://localhost:8080/get
 
 ## Contributing
 
+> [!IMPORTANT]
+> Thank you for being interested in contributing to our community!!
+>
+> We apologize, but we could not merge any PRs until we make all legal problems clear.
+> For example, preparing code of conduct, contributor license agreement and so on.
+> We are now actively working on this hard as we can merge PRs soon as possible.
+>
+> Thank you for your understanding. March 15th, 2025.
+
 See the [Contributing](https://aileron-gateway.github.io/community/contributing/) for full documentation.
 
 ## Support
@@ -118,7 +127,7 @@ See the [Support](https://aileron-gateway.github.io/community/support/) for full
 
 ## Governance
 
-We are now actively working with this topic.
+We are now actively working on this topic.
 
 ## License
 
