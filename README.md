@@ -30,7 +30,6 @@ Visit [our website](https://aileron-gateway.github.io/) to get more information.
 - Observability for cloud native environment.
   - Metrics: [Prometheus](https://prometheus.io/)
   - Tracing: [OpenTelemetry](https://opentelemetry.io/)
-  - Logging: [Jaeger](https://www.jaegertracing.io/)
   - Profiling: [Profiling](https://go.dev/blog/pprof) endpoint.
 
 ![features.svg](docs/features.svg)
@@ -124,6 +123,10 @@ See the [Contributing](https://aileron-gateway.github.io/community/contributing/
 ## Support
 
 See the [Support](https://aileron-gateway.github.io/community/support/) for full documentation.
+
+Need enterprise support?
+
+Contact us: `aileron-gateway@nri.co.jp`
 
 ## Governance
 

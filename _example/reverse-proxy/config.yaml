@@ -22,7 +22,6 @@ kind: ReverseProxyHandler
 spec:
   methods:
     - GET
-    # - POST # Don't allow POST.
     - DELETE
     - PUT
   loadBalancers:
