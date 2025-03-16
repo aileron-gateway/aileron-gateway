@@ -14,6 +14,7 @@ permissions:
 jobs:
   release:
     uses: slsa-framework/slsa-github-generator/.github/workflows/builder_go_slsa3.yml@v2.1.0
+    name: ${{matrix.os}}-${{matrix.arch}}
     strategy:
       matrix:
         include:
@@ -60,7 +61,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
-      - run: ls -la
+      - run: |
+          ls -la
+          # Relocate binaries for nfpm input.
+          mkdir -p _output/bin/
+          mv aileron-*/* _output/bin/
+          ls -la _output/bin/
       - run: |
           echo 'deb [trusted=yes] https://repo.fury.io/goreleaser/ /' | sudo tee /etc/apt/sources.list.d/goreleaser.list
           sudo apt-get update
@@ -74,9 +80,9 @@ jobs:
       - run: |
           cd ./_output/pkg/
           ls -la
-          sha256sum aileron* >> ./PKG_SHA256SUMS
-          sha1sum aileron* >> ./PKG_SHA1SUMS
-          md5sum aileron* >> ./PKG_MD5SUMS
+          sha256sum aileron* > ./PKG_SHA256SUMS
+          sha1sum aileron* > ./PKG_SHA1SUMS
+          md5sum aileron* > ./PKG_MD5SUMS
       - uses: softprops/action-gh-release@v2
         with:
           files: ./_output/pkg/*

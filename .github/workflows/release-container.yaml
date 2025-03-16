@@ -3,6 +3,10 @@ name: Release Container
 on:
   workflow_call:
     inputs:
+      no-version:
+        required: false
+        type: boolean
+        default: false
       skip-latest:
         required: false
         type: boolean
@@ -29,9 +33,10 @@ env:
   IMAGE_NAME: aileron
 
 jobs:
-  release:
+  latest:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    if: ${{ inputs.no-version }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -41,24 +46,53 @@ jobs:
       - name: Build on latest
         run: |
           ${{ inputs.skip-latest }} && exit 0
-          export VERSION=$(git describe --tags --always --dirty | sed 's/-dirty//')
           export KO_DEFAULTBASEIMAGE=gcr.io/distroless/static:latest
           ko build -v -B --sbom=none --tag-only --tags=latest ./cmd/aileron/
       - name: Build on nonroot
         run: |
           ${{ inputs.skip-nonroot }} && exit 0
-          export VERSION=$(git describe --tags --always --dirty | sed 's/-dirty//')
+          export KO_DEFAULTBASEIMAGE=gcr.io/distroless/static:nonroot
+          ko build -v -B --sbom=none --tag-only --tags=nonroot ./cmd/aileron/
+      - name: Build on debug
+        run: |
+          ${{ inputs.skip-debug }} && exit 0
+          export KO_DEFAULTBASEIMAGE=gcr.io/distroless/static:debug
+          ko build -v -B --sbom=none --tag-only --tags=debug ./cmd/aileron/
+      - name: Build on debug-nonroot
+        run: |
+          ${{ inputs.skip-debug-nonroot }} && exit 0
+          export KO_DEFAULTBASEIMAGE=gcr.io/distroless/static:debug-nonroot
+          ko build -v -B --sbom=none --tag-only --tags=debug-nonroot ./cmd/aileron/
+
+  versioned:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: ${{ !inputs.no-version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - uses: ko-build/setup-ko@v0.8
+      - name: Set version
+        run: echo "VERSION=$(git describe --tags --always --dirty | sed 's/-dirty//')" >> $GITHUB_ENV
+      - name: Build on latest
+        run: |
+          ${{ inputs.skip-latest }} && exit 0
+          export KO_DEFAULTBASEIMAGE=gcr.io/distroless/static:latest
+          ko build -v -B --sbom=none --tag-only --tags=${VERSION} ./cmd/aileron/
+      - name: Build on nonroot
+        run: |
+          ${{ inputs.skip-nonroot }} && exit 0
           export KO_DEFAULTBASEIMAGE=gcr.io/distroless/static:nonroot
           ko build -v -B --sbom=none --tag-only --tags=${VERSION}-nonroot ./cmd/aileron/
       - name: Build on debug
         run: |
           ${{ inputs.skip-debug }} && exit 0
-          export VERSION=$(git describe --tags --always --dirty | sed 's/-dirty//')
           export KO_DEFAULTBASEIMAGE=gcr.io/distroless/static:debug
           ko build -v -B --sbom=none --tag-only --tags=${VERSION}-debug ./cmd/aileron/
       - name: Build on debug-nonroot
         run: |
           ${{ inputs.skip-debug-nonroot }} && exit 0
-          export VERSION=$(git describe --tags --always --dirty | sed 's/-dirty//')
           export KO_DEFAULTBASEIMAGE=gcr.io/distroless/static:debug-nonroot
           ko build -v -B --sbom=none --tag-only --tags=${VERSION}-debug-nonroot ./cmd/aileron/
