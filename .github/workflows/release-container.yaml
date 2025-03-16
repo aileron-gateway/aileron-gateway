@@ -43,6 +43,8 @@ jobs:
         with:
           go-version: stable
       - uses: ko-build/setup-ko@v0.8
+      - name: Set version
+        run: echo "VERSION=$(git describe --tags --always --dirty | sed 's/-dirty//')" >> $GITHUB_ENV
       - name: Build on latest
         run: |
           ${{ inputs.skip-latest }} && exit 0
