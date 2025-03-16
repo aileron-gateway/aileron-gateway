@@ -47,7 +47,7 @@ jobs:
         run: |
           ${{ inputs.skip-latest }} && exit 0
           export KO_DEFAULTBASEIMAGE=gcr.io/distroless/static:latest
-          ko build -v -B --sbom=none --tag-only --tags=latest ./cmd/aileron/
+          ko build -v -B --sbom=none --tags=latest ./cmd/aileron/
       - name: Build on nonroot
         run: |
           ${{ inputs.skip-nonroot }} && exit 0
