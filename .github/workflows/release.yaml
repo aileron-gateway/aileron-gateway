@@ -46,7 +46,14 @@ jobs:
     uses: ./.github/workflows/release-binary.yaml
     secrets: inherit
 
-  release-container:
+  release-container-version:
     needs: example-test
     uses: ./.github/workflows/release-container.yaml
     secrets: inherit
+
+  release-container-latest:
+    needs: example-test
+    uses: ./.github/workflows/release-container.yaml
+    secrets: inherit
+    with:
+      skip-latest: true

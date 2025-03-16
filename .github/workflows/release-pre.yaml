@@ -53,5 +53,3 @@ jobs:
     needs: example-test
     uses: ./.github/workflows/release-container.yaml
     secrets: inherit
-    with:
-      skip-latest: true
