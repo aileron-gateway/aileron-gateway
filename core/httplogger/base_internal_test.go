@@ -103,7 +103,7 @@ func TestNewBaseLogger(t *testing.T) {
 					w:       os.Stderr,
 					queries: []stringReplFunc{},
 					headers: map[string][]stringReplFunc{
-						"Foo": []stringReplFunc{testStrRepl.Replace},
+						"Foo": {testStrRepl.Replace},
 					},
 					headerKeys: []string{"Foo"},
 					bodies:     map[string][]bytesReplFunc{},
@@ -169,7 +169,7 @@ func TestNewBaseLogger(t *testing.T) {
 					headers:    map[string][]stringReplFunc{},
 					headerKeys: []string{},
 					bodies: map[string][]bytesReplFunc{
-						"application/json": []bytesReplFunc{testByteRepl.Replace},
+						"application/json": {testByteRepl.Replace},
 					},
 				},
 			},
@@ -659,7 +659,7 @@ func TestBaseLogger_logHeaders(t *testing.T) {
 		tt := tt
 		t.Run(tt.Name(), func(t *testing.T) {
 			keys := []string{}
-			for k, _ := range tt.C().replacers {
+			for k := range tt.C().replacers {
 				keys = append(keys, k)
 			}
 			bl := &baseLogger{

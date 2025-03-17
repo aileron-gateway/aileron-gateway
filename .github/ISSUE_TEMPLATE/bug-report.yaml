@@ -26,27 +26,6 @@ body:
       required: true
 
   - type: textarea
-    id: version
-    attributes:
-      label: AILERON Gateway version
-      value: |
-        ```console
-         $ aileron --version
-        # paste output here
-        ```
-
-        <details>
-
-        ```console
-         $ aileron --info
-        # paste output here
-        ```
-
-        </details>
-    validations:
-      required: true
-
-  - type: textarea
     id: environment
     attributes:
       label: What is the environment you encountered to the problem (as precisely as possible)?

@@ -4,7 +4,7 @@
 ##### Stage 1
 # ----------*----------*----------
 # /
-# └─ work/
+# └─ work/ <--- WORKING DIR
 #    ├─ go.mod
 #    ├─ go.sum
 #    ├─ ...
@@ -23,15 +23,15 @@ RUN make build
 ##### Stage 2
 # ----------*----------*----------
 # /
-# └─ app/
+# └─ app/ <--- WORKING DIR
 #    ├─ _example/
 #    └─ aileron
 # ----------*----------*----------
 FROM busybox:glibc
 WORKDIR /app
 
-RUN echo "nonroot:x:65532:" >> /etc/group
-RUN echo "nonroot:x:65532:65532:nonroot:/home:/bin/false" >> /etc/passwd
+RUN echo "nonroot:x:65532:" >>/etc/group
+RUN echo "nonroot:x:65532:65532:nonroot:/home:/bin/false" >>/etc/passwd
 USER nonroot
 
 COPY --from=builder /work/aileron /app/aileron

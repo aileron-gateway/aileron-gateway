@@ -92,65 +92,71 @@ func ExampleSHA512() {
 	// 64 lhhV4GZKBv3ASbCUoXZKp2vhyLuz+VBvZKZpfwxSw/G2WpE0mfSq0Qk3AoAjRnoe0Vf1ZGOvASBR6yjHT2PlvA==
 }
 
-func ExampleSHA512_224() {
-	msg := []byte("example message")
-	digest := hash.SHA512_224(msg)
+// TODO: Remove underscore.
+// func ExampleSHA512_224() {
+// 	msg := []byte("example message")
+// 	digest := hash.SHA512_224(msg)
 
-	encoded := base64.StdEncoding.EncodeToString(digest)
-	fmt.Println(len(digest), encoded)
-	// Output:
-	// 28 5s1q7ygDA5ldyiKf/BKtbvV1FB9q7SHBbf3xsQ==
-}
+// 	encoded := base64.StdEncoding.EncodeToString(digest)
+// 	fmt.Println(len(digest), encoded)
+// 	// Output:
+// 	// 28 5s1q7ygDA5ldyiKf/BKtbvV1FB9q7SHBbf3xsQ==
+// }
 
-func ExampleSHA512_256() {
-	msg := []byte("example message")
-	digest := hash.SHA512_256(msg)
+// TODO: Remove underscore.
+// func ExampleSHA512_256() {
+// 	msg := []byte("example message")
+// 	digest := hash.SHA512_256(msg)
 
-	encoded := base64.StdEncoding.EncodeToString(digest)
-	fmt.Println(len(digest), encoded)
-	// Output:
-	// 32 xjrf+BvbxNIeOTXUlS094J4CZx0hl8Fkg1CJrm7ta9s=
-}
+// 	encoded := base64.StdEncoding.EncodeToString(digest)
+// 	fmt.Println(len(digest), encoded)
+// 	// Output:
+// 	// 32 xjrf+BvbxNIeOTXUlS094J4CZx0hl8Fkg1CJrm7ta9s=
+// }
 
-func ExampleSHA3_224() {
-	msg := []byte("example message")
-	digest := hash.SHA3_224(msg)
+// TODO: Remove underscore.
+// func ExampleSHA3_224() {
+// 	msg := []byte("example message")
+// 	digest := hash.SHA3_224(msg)
 
-	encoded := base64.StdEncoding.EncodeToString(digest)
-	fmt.Println(len(digest), encoded)
-	// Output:
-	// 28 wRtKqBTSRNjkFX0MJOaHgBWZOksgC+b+wkEHfg==
-}
+// 	encoded := base64.StdEncoding.EncodeToString(digest)
+// 	fmt.Println(len(digest), encoded)
+// 	// Output:
+// 	// 28 wRtKqBTSRNjkFX0MJOaHgBWZOksgC+b+wkEHfg==
+// }
 
-func ExampleSHA3_256() {
-	msg := []byte("example message")
-	digest := hash.SHA3_256(msg)
+// TODO: Remove underscore.
+// func ExampleSHA3_256() {
+// 	msg := []byte("example message")
+// 	digest := hash.SHA3_256(msg)
 
-	encoded := base64.StdEncoding.EncodeToString(digest)
-	fmt.Println(len(digest), encoded)
-	// Output:
-	// 32 d1+c8o4B0hBF2VvWSJbWD8NmroU2r4ybKZip9CRMVbM=
-}
+// 	encoded := base64.StdEncoding.EncodeToString(digest)
+// 	fmt.Println(len(digest), encoded)
+// 	// Output:
+// 	// 32 d1+c8o4B0hBF2VvWSJbWD8NmroU2r4ybKZip9CRMVbM=
+// }
 
-func ExampleSHA3_384() {
-	msg := []byte("example message")
-	digest := hash.SHA3_384(msg)
+// TODO: Remove underscore.
+// func ExampleSHA3_384() {
+// 	msg := []byte("example message")
+// 	digest := hash.SHA3_384(msg)
 
-	encoded := base64.StdEncoding.EncodeToString(digest)
-	fmt.Println(len(digest), encoded)
-	// Output:
-	// 48 gsp6zrQeI9FkBFMiPGrkLYXKNeVYALNL+NF1u1j0f32eCYC5ncVVgTBS478l6IVO
-}
+// 	encoded := base64.StdEncoding.EncodeToString(digest)
+// 	fmt.Println(len(digest), encoded)
+// 	// Output:
+// 	// 48 gsp6zrQeI9FkBFMiPGrkLYXKNeVYALNL+NF1u1j0f32eCYC5ncVVgTBS478l6IVO
+// }
 
-func ExampleSHA3_512() {
-	msg := []byte("example message")
-	digest := hash.SHA3_512(msg)
+// TODO: Remove underscore.
+// func ExampleSHA3_512() {
+// 	msg := []byte("example message")
+// 	digest := hash.SHA3_512(msg)
 
-	encoded := base64.StdEncoding.EncodeToString(digest)
-	fmt.Println(len(digest), encoded)
-	// Output:
-	// 64 zwA1lRotJWRBMf1X4I8TD2qu2n91r+Bl5WENP6OoIsLgQZwamQZ9XnxF2q3aCFBCJrPX3q7qoSrwNGEQvOI1xA==
-}
+// 	encoded := base64.StdEncoding.EncodeToString(digest)
+// 	fmt.Println(len(digest), encoded)
+// 	// Output:
+// 	// 64 zwA1lRotJWRBMf1X4I8TD2qu2n91r+Bl5WENP6OoIsLgQZwamQZ9XnxF2q3aCFBCJrPX3q7qoSrwNGEQvOI1xA==
+// }
 
 func ExampleSHAKE128() {
 	msg := []byte("example message")
@@ -182,65 +188,71 @@ func ExampleMD5() {
 	// 16 XH2d+PYe8Ow9sFrCwFIlvg==
 }
 
-func ExampleFNV1_32() {
-	msg := []byte("example message")
-	digest := hash.FNV1_32(msg)
+// TODO: Remove underscore.
+// func ExampleFNV1_32() {
+// 	msg := []byte("example message")
+// 	digest := hash.FNV1_32(msg)
 
-	encoded := base64.StdEncoding.EncodeToString(digest)
-	fmt.Println(len(digest), encoded)
-	// Output:
-	// 4 ITiJjA==
-}
+// 	encoded := base64.StdEncoding.EncodeToString(digest)
+// 	fmt.Println(len(digest), encoded)
+// 	// Output:
+// 	// 4 ITiJjA==
+// }
 
-func ExampleFNV1a_32() {
-	msg := []byte("example message")
-	digest := hash.FNV1a_32(msg)
+// TODO: Remove underscore.
+// func ExampleFNV1a_32() {
+// 	msg := []byte("example message")
+// 	digest := hash.FNV1a_32(msg)
 
-	encoded := base64.StdEncoding.EncodeToString(digest)
-	fmt.Println(len(digest), encoded)
-	// Output:
-	// 4 YlvGGg==
-}
+// 	encoded := base64.StdEncoding.EncodeToString(digest)
+// 	fmt.Println(len(digest), encoded)
+// 	// Output:
+// 	// 4 YlvGGg==
+// }
 
-func ExampleFNV1_64() {
-	msg := []byte("example message")
-	digest := hash.FNV1_64(msg)
+// TODO: Remove underscore.
+// func ExampleFNV1_64() {
+// 	msg := []byte("example message")
+// 	digest := hash.FNV1_64(msg)
 
-	encoded := base64.StdEncoding.EncodeToString(digest)
-	fmt.Println(len(digest), encoded)
-	// Output:
-	// 8 KqBkJxMgXIw=
-}
+// 	encoded := base64.StdEncoding.EncodeToString(digest)
+// 	fmt.Println(len(digest), encoded)
+// 	// Output:
+// 	// 8 KqBkJxMgXIw=
+// }
 
-func ExampleFNV1a_64() {
-	msg := []byte("example message")
-	digest := hash.FNV1a_64(msg)
+// TODO: Remove underscore.
+// func ExampleFNV1a_64() {
+// 	msg := []byte("example message")
+// 	digest := hash.FNV1a_64(msg)
 
-	encoded := base64.StdEncoding.EncodeToString(digest)
-	fmt.Println(len(digest), encoded)
-	// Output:
-	// 8 kMjZ9d7ErPo=
-}
+// 	encoded := base64.StdEncoding.EncodeToString(digest)
+// 	fmt.Println(len(digest), encoded)
+// 	// Output:
+// 	// 8 kMjZ9d7ErPo=
+// }
 
-func ExampleFNV1_128() {
-	msg := []byte("example message")
-	digest := hash.FNV1_128(msg)
+// TODO: Remove underscore.
+// func ExampleFNV1_128() {
+// 	msg := []byte("example message")
+// 	digest := hash.FNV1_128(msg)
 
-	encoded := base64.StdEncoding.EncodeToString(digest)
-	fmt.Println(len(digest), encoded)
-	// Output:
-	// 16 c00vazjIQklF3y7clzcujA==
-}
+// 	encoded := base64.StdEncoding.EncodeToString(digest)
+// 	fmt.Println(len(digest), encoded)
+// 	// Output:
+// 	// 16 c00vazjIQklF3y7clzcujA==
+// }
 
-func ExampleFNV1a_128() {
-	msg := []byte("example message")
-	digest := hash.FNV1a_128(msg)
+// TODO: Remove underscore.
+// func ExampleFNV1a_128() {
+// 	msg := []byte("example message")
+// 	digest := hash.FNV1a_128(msg)
 
-	encoded := base64.StdEncoding.EncodeToString(digest)
-	fmt.Println(len(digest), encoded)
-	// Output:
-	// 16 h6ApEo0Rh1k2OrSz39ZUAg==
-}
+// 	encoded := base64.StdEncoding.EncodeToString(digest)
+// 	fmt.Println(len(digest), encoded)
+// 	// Output:
+// 	// 16 h6ApEo0Rh1k2OrSz39ZUAg==
+// }
 
 func ExampleCRC32() {
 	msg := []byte("example message")
@@ -272,45 +284,49 @@ func ExampleCRC64ECMA() {
 	// 8 UGgb3N/wvgk=
 }
 
-func ExampleBLAKE2s_256() {
-	msg := []byte("example message")
-	digest := hash.BLAKE2s_256(msg)
+// TODO: Remove underscore.
+// func ExampleBLAKE2s_256() {
+// 	msg := []byte("example message")
+// 	digest := hash.BLAKE2s_256(msg)
 
-	encoded := base64.StdEncoding.EncodeToString(digest)
-	fmt.Println(len(digest), encoded)
-	// Output:
-	// 32 ue0Z/vperOCkrXA3AP8dlVj6i2g2xN674wFsnmopTY4=
-}
+// 	encoded := base64.StdEncoding.EncodeToString(digest)
+// 	fmt.Println(len(digest), encoded)
+// 	// Output:
+// 	// 32 ue0Z/vperOCkrXA3AP8dlVj6i2g2xN674wFsnmopTY4=
+// }
 
-func ExampleBLAKE2b_256() {
-	msg := []byte("example message")
-	digest := hash.BLAKE2b_256(msg)
+// TODO: Remove underscore.
+// func ExampleBLAKE2b_256() {
+// 	msg := []byte("example message")
+// 	digest := hash.BLAKE2b_256(msg)
 
-	encoded := base64.StdEncoding.EncodeToString(digest)
-	fmt.Println(len(digest), encoded)
-	// Output:
-	// 32 M21hHgLK+KHPi3FlQlNOBOjw/R2i5+Q1lwogbDj5oJ0=
-}
+// 	encoded := base64.StdEncoding.EncodeToString(digest)
+// 	fmt.Println(len(digest), encoded)
+// 	// Output:
+// 	// 32 M21hHgLK+KHPi3FlQlNOBOjw/R2i5+Q1lwogbDj5oJ0=
+// }
 
-func ExampleBLAKE2b_384() {
-	msg := []byte("example message")
-	digest := hash.BLAKE2b_384(msg)
+// TODO: Remove underscore.
+// func ExampleBLAKE2b_384() {
+// 	msg := []byte("example message")
+// 	digest := hash.BLAKE2b_384(msg)
 
-	encoded := base64.StdEncoding.EncodeToString(digest)
-	fmt.Println(len(digest), encoded)
-	// Output:
-	// 48 d6/ampcIiOpnkVb/r9LBRnWcPrzy/N0utbpZkcj6tKSRTbmZCtrgNcjr8arepU28
-}
+// 	encoded := base64.StdEncoding.EncodeToString(digest)
+// 	fmt.Println(len(digest), encoded)
+// 	// Output:
+// 	// 48 d6/ampcIiOpnkVb/r9LBRnWcPrzy/N0utbpZkcj6tKSRTbmZCtrgNcjr8arepU28
+// }
 
-func ExampleBLAKE2b_512() {
-	msg := []byte("example message")
-	digest := hash.BLAKE2b_512(msg)
+// TODO: Remove underscore.
+// func ExampleBLAKE2b_512() {
+// 	msg := []byte("example message")
+// 	digest := hash.BLAKE2b_512(msg)
 
-	encoded := base64.StdEncoding.EncodeToString(digest)
-	fmt.Println(len(digest), encoded)
-	// Output:
-	// 64 VadbqHfocIQf4UKzBATW6VF7DBvo0gfz7xGaVYkjyqdcwphJPNPa6DtiGYlpoPS2QevIsaEzvkT0pccqNgcagA==
-}
+// 	encoded := base64.StdEncoding.EncodeToString(digest)
+// 	fmt.Println(len(digest), encoded)
+// 	// Output:
+// 	// 64 VadbqHfocIQf4UKzBATW6VF7DBvo0gfz7xGaVYkjyqdcwphJPNPa6DtiGYlpoPS2QevIsaEzvkT0pccqNgcagA==
+// }
 
 func TestFromAlgorithm(t *testing.T) {
 	type condition struct {

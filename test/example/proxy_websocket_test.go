@@ -1,7 +1,5 @@
 //go:build example
 
-// + build example
-
 package example_test
 
 import (

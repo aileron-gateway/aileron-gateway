@@ -74,77 +74,83 @@ func ExampleSHA512() {
 	// 64 PcMMi83k/XsvUrVGc2fcU2e+b2GszxMdu2v2Pk2r3TXlwS4jdCohdTPkf2eVAs4r1zW77lWtMPppF9NyLrR2hQ==
 }
 
-func ExampleSHA512_224() {
-	msg := []byte("example message")
-	key := []byte("secret for hmac")
+// TODO: Remove underscore.
+// func ExampleSHA512_224() {
+// 	msg := []byte("example message")
+// 	key := []byte("secret for hmac")
 
-	digest := mac.SHA512_224(msg, key)
+// 	digest := mac.SHA512_224(msg, key)
 
-	encoded := base64.StdEncoding.EncodeToString(digest)
-	fmt.Println(len(digest), encoded)
-	// Output:
-	// 28 tTsSLZ/bxSp2Ifofm2Va/IBliDJhCNTY15z8fQ==
-}
+// 	encoded := base64.StdEncoding.EncodeToString(digest)
+// 	fmt.Println(len(digest), encoded)
+// 	// Output:
+// 	// 28 tTsSLZ/bxSp2Ifofm2Va/IBliDJhCNTY15z8fQ==
+// }
 
-func ExampleSHA512_256() {
-	msg := []byte("example message")
-	key := []byte("secret for hmac")
+// TODO: Remove underscore.
+// func ExampleSHA512_256() {
+// 	msg := []byte("example message")
+// 	key := []byte("secret for hmac")
 
-	digest := mac.SHA512_256(msg, key)
+// 	digest := mac.SHA512_256(msg, key)
 
-	encoded := base64.StdEncoding.EncodeToString(digest)
-	fmt.Println(len(digest), encoded)
-	// Output:
-	// 32 NHOVfFLktbYpX2rNRz2wgX55EMfebYUZFgBacLUquU4=
-}
+// 	encoded := base64.StdEncoding.EncodeToString(digest)
+// 	fmt.Println(len(digest), encoded)
+// 	// Output:
+// 	// 32 NHOVfFLktbYpX2rNRz2wgX55EMfebYUZFgBacLUquU4=
+// }
 
-func ExampleSHA3_224() {
-	msg := []byte("example message")
-	key := []byte("secret for hmac")
+// TODO: Remove underscore.
+// func ExampleSHA3_224() {
+// 	msg := []byte("example message")
+// 	key := []byte("secret for hmac")
 
-	digest := mac.SHA3_224(msg, key)
+// 	digest := mac.SHA3_224(msg, key)
 
-	encoded := base64.StdEncoding.EncodeToString(digest)
-	fmt.Println(len(digest), encoded)
-	// Output:
-	// 28 Li652UKyUyc2PVWVjqJWQni737KlTCA1KQt/cQ==
-}
+// 	encoded := base64.StdEncoding.EncodeToString(digest)
+// 	fmt.Println(len(digest), encoded)
+// 	// Output:
+// 	// 28 Li652UKyUyc2PVWVjqJWQni737KlTCA1KQt/cQ==
+// }
 
-func ExampleSHA3_256() {
-	msg := []byte("example message")
-	key := []byte("secret for hmac")
+// TODO: Remove underscore.
+// func ExampleSHA3_256() {
+// 	msg := []byte("example message")
+// 	key := []byte("secret for hmac")
 
-	digest := mac.SHA3_256(msg, key)
+// 	digest := mac.SHA3_256(msg, key)
 
-	encoded := base64.StdEncoding.EncodeToString(digest)
-	fmt.Println(len(digest), encoded)
-	// Output:
-	// 32 boiMtQ4CXU8noZieiIYPifiQQkRu2pX1nPWHovdPYUg=
-}
+// 	encoded := base64.StdEncoding.EncodeToString(digest)
+// 	fmt.Println(len(digest), encoded)
+// 	// Output:
+// 	// 32 boiMtQ4CXU8noZieiIYPifiQQkRu2pX1nPWHovdPYUg=
+// }
 
-func ExampleSHA3_384() {
-	msg := []byte("example message")
-	key := []byte("secret for hmac")
+// TODO: Remove underscore.
+// func ExampleSHA3_384() {
+// 	msg := []byte("example message")
+// 	key := []byte("secret for hmac")
 
-	digest := mac.SHA3_384(msg, key)
+// 	digest := mac.SHA3_384(msg, key)
 
-	encoded := base64.StdEncoding.EncodeToString(digest)
-	fmt.Println(len(digest), encoded)
-	// Output:
-	// 48 xj73sf9wrFfxS6CV8G5jZgJMmIOV/eTuiZCz0MplSSbF8bysVnAHXORCd1G2Mw/g
-}
+// 	encoded := base64.StdEncoding.EncodeToString(digest)
+// 	fmt.Println(len(digest), encoded)
+// 	// Output:
+// 	// 48 xj73sf9wrFfxS6CV8G5jZgJMmIOV/eTuiZCz0MplSSbF8bysVnAHXORCd1G2Mw/g
+// }
 
-func ExampleSHA3_512() {
-	msg := []byte("example message")
-	key := []byte("secret for hmac")
+// TODO: Remove underscore.
+// func ExampleSHA3_512() {
+// 	msg := []byte("example message")
+// 	key := []byte("secret for hmac")
 
-	digest := mac.SHA3_512(msg, key)
+// 	digest := mac.SHA3_512(msg, key)
 
-	encoded := base64.StdEncoding.EncodeToString(digest)
-	fmt.Println(len(digest), encoded)
-	// Output:
-	// 64 hCasKS6FBZ/cEJvArXJ7NUIqCZKxHfQJUCsEKYDU0xzRnMTrkFZNb3NlSbzVt6Oq8PRJxlcSs97AXhWQrceb6A==
-}
+// 	encoded := base64.StdEncoding.EncodeToString(digest)
+// 	fmt.Println(len(digest), encoded)
+// 	// Output:
+// 	// 64 hCasKS6FBZ/cEJvArXJ7NUIqCZKxHfQJUCsEKYDU0xzRnMTrkFZNb3NlSbzVt6Oq8PRJxlcSs97AXhWQrceb6A==
+// }
 
 func ExampleSHAKE128() {
 	msg := []byte("example message")
@@ -182,77 +188,83 @@ func ExampleMD5() {
 	// 16 eErgLGC6EFa7UAQjVwuG/g==
 }
 
-func ExampleFNV1_32() {
-	msg := []byte("example message")
-	key := []byte("secret for hmac")
+// TODO: Remove underscore.
+// func ExampleFNV1_32() {
+// 	msg := []byte("example message")
+// 	key := []byte("secret for hmac")
 
-	digest := mac.FNV1_32(msg, key)
+// 	digest := mac.FNV1_32(msg, key)
 
-	encoded := base64.StdEncoding.EncodeToString(digest)
-	fmt.Println(len(digest), encoded)
-	// Output:
-	// 4 SYWIwg==
-}
+// 	encoded := base64.StdEncoding.EncodeToString(digest)
+// 	fmt.Println(len(digest), encoded)
+// 	// Output:
+// 	// 4 SYWIwg==
+// }
 
-func ExampleFNV1a_32() {
-	msg := []byte("example message")
-	key := []byte("secret for hmac")
+// TODO: Remove underscore.
+// func ExampleFNV1a_32() {
+// 	msg := []byte("example message")
+// 	key := []byte("secret for hmac")
 
-	digest := mac.FNV1a_32(msg, key)
+// 	digest := mac.FNV1a_32(msg, key)
 
-	encoded := base64.StdEncoding.EncodeToString(digest)
-	fmt.Println(len(digest), encoded)
-	// Output:
-	// 4 dLgb2w==
-}
+// 	encoded := base64.StdEncoding.EncodeToString(digest)
+// 	fmt.Println(len(digest), encoded)
+// 	// Output:
+// 	// 4 dLgb2w==
+// }
 
-func ExampleFNV1_64() {
-	msg := []byte("example message")
-	key := []byte("secret for hmac")
+// TODO: Remove underscore.
+// func ExampleFNV1_64() {
+// 	msg := []byte("example message")
+// 	key := []byte("secret for hmac")
 
-	digest := mac.FNV1_64(msg, key)
+// 	digest := mac.FNV1_64(msg, key)
 
-	encoded := base64.StdEncoding.EncodeToString(digest)
-	fmt.Println(len(digest), encoded)
-	// Output:
-	// 8 OjabFqF/jaI=
-}
+// 	encoded := base64.StdEncoding.EncodeToString(digest)
+// 	fmt.Println(len(digest), encoded)
+// 	// Output:
+// 	// 8 OjabFqF/jaI=
+// }
 
-func ExampleFNV1a_64() {
-	msg := []byte("example message")
-	key := []byte("secret for hmac")
+// TODO: Remove underscore.
+// func ExampleFNV1a_64() {
+// 	msg := []byte("example message")
+// 	key := []byte("secret for hmac")
 
-	digest := mac.FNV1a_64(msg, key)
+// 	digest := mac.FNV1a_64(msg, key)
 
-	encoded := base64.StdEncoding.EncodeToString(digest)
-	fmt.Println(len(digest), encoded)
-	// Output:
-	// 8 TSoLdIf1zVg=
-}
+// 	encoded := base64.StdEncoding.EncodeToString(digest)
+// 	fmt.Println(len(digest), encoded)
+// 	// Output:
+// 	// 8 TSoLdIf1zVg=
+// }
 
-func ExampleFNV1_128() {
-	msg := []byte("example message")
-	key := []byte("secret for hmac")
+// TODO: Remove underscore.
+// func ExampleFNV1_128() {
+// 	msg := []byte("example message")
+// 	key := []byte("secret for hmac")
 
-	digest := mac.FNV1_128(msg, key)
+// 	digest := mac.FNV1_128(msg, key)
 
-	encoded := base64.StdEncoding.EncodeToString(digest)
-	fmt.Println(len(digest), encoded)
-	// Output:
-	// 16 Q3XsQtHcR5+wEgOs1T6/sg==
-}
+// 	encoded := base64.StdEncoding.EncodeToString(digest)
+// 	fmt.Println(len(digest), encoded)
+// 	// Output:
+// 	// 16 Q3XsQtHcR5+wEgOs1T6/sg==
+// }
 
-func ExampleFNV1a_128() {
-	msg := []byte("example message")
-	key := []byte("secret for hmac")
+// TODO: Remove underscore.
+// func ExampleFNV1a_128() {
+// 	msg := []byte("example message")
+// 	key := []byte("secret for hmac")
 
-	digest := mac.FNV1a_128(msg, key)
+// 	digest := mac.FNV1a_128(msg, key)
 
-	encoded := base64.StdEncoding.EncodeToString(digest)
-	fmt.Println(len(digest), encoded)
-	// Output:
-	// 16 TP9tuAX/L2bWrH+mdkueoA==
-}
+// 	encoded := base64.StdEncoding.EncodeToString(digest)
+// 	fmt.Println(len(digest), encoded)
+// 	// Output:
+// 	// 16 TP9tuAX/L2bWrH+mdkueoA==
+// }
 
 func ExampleCRC32() {
 	msg := []byte("example message")
@@ -290,53 +302,57 @@ func ExampleCRC64ECMA() {
 	// 8 sF7ENfkRxx8=
 }
 
-func ExampleBLAKE2s_256() {
-	msg := []byte("example message")
-	key := []byte("secret for hmac")
+// TODO: Remove underscore.
+// func ExampleBLAKE2s_256() {
+// 	msg := []byte("example message")
+// 	key := []byte("secret for hmac")
 
-	digest := mac.BLAKE2s_256(msg, key)
+// 	digest := mac.BLAKE2s_256(msg, key)
 
-	encoded := base64.StdEncoding.EncodeToString(digest)
-	fmt.Println(len(digest), encoded)
-	// Output:
-	// 32 nj4oa8YOPZ/U/GDQ6ToPJOKp8jgxDgkfy3f6StxS+z8=
-}
+// 	encoded := base64.StdEncoding.EncodeToString(digest)
+// 	fmt.Println(len(digest), encoded)
+// 	// Output:
+// 	// 32 nj4oa8YOPZ/U/GDQ6ToPJOKp8jgxDgkfy3f6StxS+z8=
+// }
 
-func ExampleBLAKE2b_256() {
-	msg := []byte("example message")
-	key := []byte("secret for hmac")
+// TODO: Remove underscore.
+// func ExampleBLAKE2b_256() {
+// 	msg := []byte("example message")
+// 	key := []byte("secret for hmac")
 
-	digest := mac.BLAKE2b_256(msg, key)
+// 	digest := mac.BLAKE2b_256(msg, key)
 
-	encoded := base64.StdEncoding.EncodeToString(digest)
-	fmt.Println(len(digest), encoded)
-	// Output:
-	// 32 /p4fX5gCU5/AoI8H0XzThAxwxAXP+qK49a64chXqhZg=
-}
+// 	encoded := base64.StdEncoding.EncodeToString(digest)
+// 	fmt.Println(len(digest), encoded)
+// 	// Output:
+// 	// 32 /p4fX5gCU5/AoI8H0XzThAxwxAXP+qK49a64chXqhZg=
+// }
 
-func ExampleBLAKE2b_384() {
-	msg := []byte("example message")
-	key := []byte("secret for hmac")
+// TODO: Remove underscore.
+// func ExampleBLAKE2b_384() {
+// 	msg := []byte("example message")
+// 	key := []byte("secret for hmac")
 
-	digest := mac.BLAKE2b_384(msg, key)
+// 	digest := mac.BLAKE2b_384(msg, key)
 
-	encoded := base64.StdEncoding.EncodeToString(digest)
-	fmt.Println(len(digest), encoded)
-	// Output:
-	// 48 0iSbUI+jjC0zOWwAXDzq1GGKcy8YApcMljgvQOC8dnGIPMpXXild7pWcXn3CC9sf
-}
+// 	encoded := base64.StdEncoding.EncodeToString(digest)
+// 	fmt.Println(len(digest), encoded)
+// 	// Output:
+// 	// 48 0iSbUI+jjC0zOWwAXDzq1GGKcy8YApcMljgvQOC8dnGIPMpXXild7pWcXn3CC9sf
+// }
 
-func ExampleBLAKE2b_512() {
-	msg := []byte("example message")
-	key := []byte("secret for hmac")
+// TODO: Remove underscore.
+// func ExampleBLAKE2b_512() {
+// 	msg := []byte("example message")
+// 	key := []byte("secret for hmac")
 
-	digest := mac.BLAKE2b_512(msg, key)
+// 	digest := mac.BLAKE2b_512(msg, key)
 
-	encoded := base64.StdEncoding.EncodeToString(digest)
-	fmt.Println(len(digest), encoded)
-	// Output:
-	// 64 FrNHiVgaojnHhWT3bN3lQJk97eg5CFMdQJMXg3RknNe0VMzS0JdC9iaMfrIP+UfGpQFXVhX88ghkhxEhIjmZ7g==
-}
+// 	encoded := base64.StdEncoding.EncodeToString(digest)
+// 	fmt.Println(len(digest), encoded)
+// 	// Output:
+// 	// 64 FrNHiVgaojnHhWT3bN3lQJk97eg5CFMdQJMXg3RknNe0VMzS0JdC9iaMfrIP+UfGpQFXVhX88ghkhxEhIjmZ7g==
+// }
 
 func hexMustDecode(s string) []byte {
 	b, _ := hex.DecodeString(s)

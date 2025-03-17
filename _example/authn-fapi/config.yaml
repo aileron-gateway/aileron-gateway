@@ -103,10 +103,10 @@ spec:
     - provider:
         issuer: ""
         # baseURL: "http://localhost:18080"
-        baseURL: "https://localhost:18443" # KeycloakとmTLSで通信する場合に設定する
+        baseURL: "https://localhost:18443" # Use when using mTLS.
         endpoints:
           discovery: "/realms/aileron/.well-known/openid-configuration"
-        roundTripper: # KeycloakとmTLSで通信する場合に設定する
+        roundTripper: # Use when using mTLS.
           apiVersion: core/v1
           kind: HTTPClient
           namespace: sampleNamespace
@@ -121,10 +121,10 @@ spec:
           - phone
         # jwtHandler:
         #   privateKeys:
-        #     - algorithm: HS256 # clientAuthMethod: JWTの場合指定
+        #     - algorithm: HS256 # clientAuthMethod: Specify when JWT
         #       keyType: COMMON
         #       keyString: "RnlqUDRxaHNjRGtpaUFPR2dCcDF0YVFFcmZST0VocWU="
-        # - keyID: "xFzm4BYgi-A0uzO9PpjgXmSS9HrsLZPhc0IrH8hedX4" # clientAuthMethod: PRIVATE_KEY_JWTの場合指定（kidは設定し直す必要あり）
+        # - keyID: "xFzm4BYgi-A0uzO9PpjgXmSS9HrsLZPhc0IrH8hedX4" # clientAuthMethod: specify when PRIVATE_KEY_JWT (set appropriate kid)
         #   algorithm: RS256
         #   keyType: PRIVATE
         #   keyFilePath: "./_example/authn-fapi/keys/client/client.key"
@@ -132,7 +132,7 @@ spec:
         # clientAuthMethod: BasicAuth
         # clientAuthMethod: JWT
         # clientAuthMethod: PRIVATE_KEY_JWT
-        clientAuthMethod: SelfSignedTLSClientAuth # クライアント認証方式をSELF_SIGNED_TLS_CLIENT_AUTHに設定する。
+        clientAuthMethod: SelfSignedTLSClientAuth # Use SELF_SIGNED_TLS_CLIENT_AUTH client authentication.
         roundTripper:
           apiVersion: core/v1
           kind: HTTPClient
@@ -140,10 +140,10 @@ spec:
           name: tokenRedeemerClient
       jwtHandler:
         publicKeys:
-          - keyID: "LO9dmmUtUOiV1P7OkzYW-CDbTJV94nADvDFhojxvSqk" # keycloakの「Realm settings」→「Keys」→「RS256」のKid
+          - keyID: "LO9dmmUtUOiV1P7OkzYW-CDbTJV94nADvDFhojxvSqk" # @keycloak [Realm settings > Keys > RS256 > kid]
             algorithm: RS256
             keyType: PUBLIC
-            keyFilePath: "./_example/authn-fapi/keys/server/public.key" # keycloakの「Realm settings」→「Keys」→「RS256」のPublic keyをダウンロード
+            keyFilePath: "./_example/authn-fapi/keys/server/public.key" # @keycloak [Realm settings > Keys > RS256] and download public key
   # authorizationCodeHandler:
   #   disableState: false
   #   disableNonce: false
@@ -170,17 +170,17 @@ spec:
     # jarm:
     #   jwtHandler:
     #     publicKeys:
-    #       - keyID: "LO9dmmUtUOiV1P7OkzYW-CDbTJV94nADvDFhojxvSqk" # keycloakの「Realm settings」→「Keys」→「RS256」のKid
+    #       - keyID: "LO9dmmUtUOiV1P7OkzYW-CDbTJV94nADvDFhojxvSqk" # @keycloak [Realm settings > Keys > RS256 > kid]
     #         algorithm: RS256
     #         keyType: PUBLIC
-    #         keyFilePath: "./_example/authn-fapi/keys/server/public.key" # keycloakの「Realm settings」→「Keys」→「RS256」のPublic keyをダウンロード
+    #         keyFilePath: "./_example/authn-fapi/keys/server/public.key" # @keycloak [Realm settings > Keys > RS256 ] and  download public key.
   ropcHandler:
     redeemTokenPath: "/redeem"
     usernameKey: "username"
     passwordKey: "password"
 
 ---
-# clientAuthMethod: SELF_SIGNED_TLS_CLIENT_AUTHの場合指定
+# clientAuthMethod: Specify when SELF_SIGNED_TLS_CLIENT_AUTH
 apiVersion: core/v1
 kind: HTTPClient
 metadata:

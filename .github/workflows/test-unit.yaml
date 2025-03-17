@@ -1,30 +1,20 @@
 name: Unit Test
 
 on:
-  push:
-    branches: ["**"]
-    tags: ["**"]
-  pull_request:
-    branches: ["**"]
+  workflow_dispatch: {}
+  workflow_call: {}
 
 jobs:
-  proto:
-    uses: ./.github/workflows/proto.yaml
-    permissions:
-      contents: write
-
   test:
-    needs: proto
     runs-on: ${{ matrix.os }}-latest
     timeout-minutes: 10
     strategy:
       matrix:
         os:
           - ubuntu
-          # - windows
-          # - macos
+          - windows
+          - macos
     steps:
-      - run: git config --global core.autocrlf false
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
       - uses: actions/setup-go@v5
@@ -33,7 +23,6 @@ jobs:
       - name: make test
         run: |
           set +o pipefail
-          mkdir -p _output/
           make test 2>&1 | tee _output/unit-test.log
       - uses: codecov/codecov-action@v4
         env:
@@ -51,41 +40,41 @@ jobs:
           path: |
             _output/**
             api.html
-          retention-days: 1
+          retention-days: 7
 
-  # qemu:
-  #   needs: proto
-  #   runs-on: ubuntu-latest
-  #   timeout-minutes: 15
-  #   strategy:
-  #     matrix:
-  #       arch:
-  #         - { go: "amd64", qemu: "x86_64" }
-  #         - { go: "arm", qemu: "arm" }
-  #         - { go: "arm64", qemu: "aarch64" }
-  #         - { go: "ppc64", qemu: "ppc64" }
-  #         - { go: "ppc64le", qemu: "ppc64le" }
-  #         - { go: "riscv64", qemu: "riscv64" }
-  #         - { go: "s390x", qemu: "s390x" }
-  #   steps:
-  #     - run: git config --global core.autocrlf false
-  #     - uses: actions/checkout@v4
-  #     - uses: actions/download-artifact@v4
-  #     - uses: actions/setup-go@v5
-  #       with:
-  #         go-version: stable
-  #     - run: |
-  #         sudo add-apt-repository -y ppa:canonical-server/server-backports
-  #         sudo apt -y update
-  #         sudo apt -y install qemu-user
-  #     - name: make test
-  #       run: |
-  #         mkdir -p test-bin/
-  #         GOARCH=${{ matrix.arch.go }}	go test -v -cover -c -o test-bin/cmd/ ./cmd/...
-  #         GOARCH=${{ matrix.arch.go }} go test -v -cover -c -o test-bin/kernel/ ./kernel/...
-  #         GOARCH=${{ matrix.arch.go }} go test -v -cover -c -o test-bin/core/ ./core/...
-  #         GOARCH=${{ matrix.arch.go }} go test -v -cover -c -o test-bin/app/ ./app/...
-  #         for target in ./test-bin/*; do
-  #           echo "RUNNING TEST: ${target}"
-  #           TEST_DIR=./test/ qemu-${{ matrix.arch.qemu }} ${target}
-  #         done
+  qemu:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        arch:
+          - "amd64"
+          - "arm"
+          - "arm64"
+          - "ppc64"
+          - "ppc64le"
+          - "riscv64"
+          - "s390x"
+          - "loong64" # Can be removed.
+          - "386" # Can be removed.
+          - "mips" # Can be removed.
+          - "mips64" # Can be removed.
+          - "mips64le" # Can be removed.
+          - "mipsle" # Can be removed.
+          - "sparc64" # Can be removed.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - run: |
+          sudo add-apt-repository -y ppa:canonical-server/server-backports
+          sudo apt -y update
+          sudo apt -y install qemu-user
+      - name: make test
+        run: |
+          make go-test-qemu GOARCH=${{ matrix.arch }}	GO_TEST_TARGET=./cmd/...
+          make go-test-qemu GOARCH=${{ matrix.arch }} GO_TEST_TARGET=./kernel/...
+          make go-test-qemu GOARCH=${{ matrix.arch }} GO_TEST_TARGET=./core/...
+          make go-test-qemu GOARCH=${{ matrix.arch }} GO_TEST_TARGET=./app/...

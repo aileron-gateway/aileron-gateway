@@ -1,5 +1,4 @@
 //go:build example
-// + build example
 
 package example_test
 
@@ -23,17 +22,17 @@ func TestReverseProxy(t *testing.T) {
 
 	var resp *http.Response
 	var err error
-	go func(){
+	go func() {
 		req, _ := http.NewRequest(http.MethodGet, "http://localhost:8080/", nil)
 		resp, err = http.DefaultTransport.RoundTrip(req)
 		timer.Stop()
 		cancel()
 	}()
 
-	if err:=entrypoint.Run(ctx); err!=nil{
+	if err := entrypoint.Run(ctx); err != nil {
 		t.Error(err)
 	}
-	
+
 	testutil.Diff(t, nil, err)
 	testutil.Diff(t, http.StatusOK, resp.StatusCode)
 }

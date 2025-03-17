@@ -1,0 +1,181 @@
+site_name: AILERON Gateway Design Docs
+site_url: https://aileron-gateway.github.io/aileron-gateway/
+site_description: AILERON Gateway design docs
+site_author: AILERON Gateway Community
+copyright: Copyright &copy; 2025 AILERON Gateway Community.
+
+repo_name: aileron-gateway/aileron-gateway
+repo_url: https://github.com/aileron-gateway/aileron-gateway
+
+docs_dir: "./docs"
+
+exclude_docs: |
+  *.drawio
+
+extra_css:
+  - ./mkdocs.css
+
+extra_javascript:
+  - ./mkdocs.js
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+theme:
+  name: material
+  locale: en
+  highlightjs: true
+  logo: ./logo-light.svg
+  favicon: ./logo-light.svg
+  icon:
+    repo: fontawesome/brands/github
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - search.highlight
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
+    - navigation.expand
+    # - navigation.sections
+    - navigation.path
+    - navigation.indexes
+    # - navigation.footer
+    - announce.dismiss
+    - content.action.edit
+    - content.action.view
+    - content.code.annotate
+    - content.code.copy
+
+plugins:
+  - search
+  - tags
+
+markdown_extensions:
+  - smarty
+  - admonition
+  - meta
+  - toc:
+      permalink: true
+      permalink_title: Anchor link to this section for reference
+  - tables
+  - def_list
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.arithmatex:
+      generic: true
+
+extra:
+  analytics:
+    provider: google
+    property: G-68J9W3Q5NX
+  status:
+    Proposed: "Status: Proposed</br> This proposal have actively been discussed."
+    Deferred: "Status: Deferred</br> This proposal was suspended."
+    Archived: "Status: Archived</br> This proposal was withdrawn or rejected."
+    Draft: "Status: Draft</br> This proposal have been available with non-GA status."
+    Experimental: "Status: Experimental</br> This proposal have been released as experimental."
+    Completed: "Status: Completed</br> This proposal have been available."
+    Historic: "Status: Historic</br> Related features are removed from releases."
+
+nav:
+  - Architecture:
+      - Architecture: ./architecture/README.md
+      - Concept: ./architecture/concept.md
+      - Architecture: ./architecture/architecture.md
+      - Application: ./architecture/application.md
+      - Networking: ./architecture/networking.md
+  - App:
+      - App: ./app/README.md
+      - Handler:
+          - Echo: ./app/handler/echo.md
+          - Health Check: ./app/handler/healthcheck.md
+      - Middleware:
+          - Compression: ./app/middleware/compression.md
+          - CORS: ./app/middleware/cors.md
+          - CSRF: ./app/middleware/csrf.md
+          - Header Policy: ./app/middleware/header.md
+          - Recover: ./app/middleware/recover.md
+          - Session: ./app/middleware/session.md
+          - Throttle: ./app/middleware/throttle.md
+          - Timeout: ./app/middleware/timeout.md
+          - Tracking: ./app/middleware/tracking.md
+      - Authn:
+          - Basic Auth: ./app/authn/basic.md
+          - OAuth Auth: ./app/authn/oauth.md
+          - Proxy Claims: ./app/authn/proxyclaims.md
+      - Authz:
+          - Casbin: ./app/authz/casbin.md
+          - OPA: ./app/authz/opa.md
+      - Tripperware: []
+      - Storage:
+          - Cookie: ./app/storage/cookie.md
+          - Memory: ./app/storage/memory.md
+          - Redis: ./app/storage/redis.md
+      - Tracer:
+          - Jaeger: ./app/tracer/jaeger.md
+          - OpenTelemetry: ./app/tracer/otel.md
+          - Zipkin: ./app/tracer/zipkin.md
+      - Meter:
+          - Prometheus: ./app/meter/prommeter.md
+  - Core:
+      - Core: ./core/README.md
+      - Entrypoint: ./core/entrypoint.md
+      - HTTP Client: ./core/httpclient.md
+      - Log Creator: ./core/log.md
+      - Logger: ./core/logger.md
+      - Error Handler: ./core/errhandler.md
+      - HTTP Handler: ./core/httphandler.md
+      - HTTP Logger: ./core/httplogger.md
+      - HTTP Server: ./core/httpserver.md
+      - HTTP Proxy: ./core/httpproxy.md
+      - Static Server: ./core/static.md
+      - Template Handler: ./core/template.md
+      # - Util:
+      #     - HTTP Util: ./core/util/http.md
+      #     - Log Util: ./core/util/log.md
+      #     - IO Util: ./core/util/io.md
+  - Kernel:
+      - Kernel: ./kernel/README.md
+      - api: ./kernel/api.md
+      - cron: ./kernel/cron.md
+      - encoder: ./kernel/encoder.md
+      - encrypt: ./kernel/encrypt.md
+      - error util: ./kernel/errorutil.md
+      - hash: ./kernel/hash.md
+      - io: ./kernel/io.md
+      - key-value store: ./kernel/kvs.md
+      - log: ./kernel/log.md
+      - logger: ./kernel/logger.md
+      - mac: ./kernel/mac.md
+      - network: ./kernel/network.md
+      - text util: ./kernel/txtutil.md
+      - unique ID: ./kernel/uid.md

@@ -129,7 +129,7 @@ func TestCreate(t *testing.T) {
 					Metadata: &k.Metadata{},
 					Spec: &v1.CasbinAuthzMiddlewareSpec{
 						Enforcers: []*v1.EnforcerSpec{
-							&v1.EnforcerSpec{
+							{
 								ModelPath: rootPath + "abac_model.conf",
 								Policies: &v1.EnforcerSpec_PolicyPath{
 									PolicyPath: rootPath + "abac_policy.csv",

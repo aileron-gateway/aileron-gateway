@@ -1,14 +1,17 @@
 name: Proto
 
 on:
+  workflow_dispatch: {}
   workflow_call: {}
+
+permissions:
+  contents: write
 
 jobs:
   proto:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - run: git config --global core.autocrlf false
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:

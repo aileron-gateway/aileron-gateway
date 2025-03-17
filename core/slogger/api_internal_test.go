@@ -381,8 +381,9 @@ func TestNewFileWriter(t *testing.T) {
 	table := tb.Build()
 
 	testConfig := &kio.LogicalFileConfig{
-		SrcDir: os.TempDir(),
-		DstDir: os.TempDir(),
+		SrcDir:   os.TempDir(),
+		DstDir:   os.TempDir(),
+		FileName: "TestNewFileWriter.log",
 	}
 	testFW, _ := testConfig.New()
 
@@ -394,8 +395,9 @@ func TestNewFileWriter(t *testing.T) {
 			[]string{},
 			&condition{
 				spec: &v1.LogOutputSpec{
-					LogDir:    os.TempDir(),
-					BackupDir: os.TempDir(),
+					LogDir:      os.TempDir(),
+					BackupDir:   os.TempDir(),
+					LogFileName: "TestNewFileWriter.log",
 				},
 			},
 			&action{
@@ -409,9 +411,10 @@ func TestNewFileWriter(t *testing.T) {
 			[]string{},
 			&condition{
 				spec: &v1.LogOutputSpec{
-					LogDir:    os.TempDir(),
-					BackupDir: os.TempDir(),
-					Cron:      "* * * * *",
+					LogDir:      os.TempDir(),
+					BackupDir:   os.TempDir(),
+					LogFileName: "TestNewFileWriter.log",
+					Cron:        "* * * * *",
 				},
 			},
 			&action{
@@ -495,7 +498,7 @@ func TestNewFileWriter(t *testing.T) {
 				cmp.AllowUnexported(bufio.Writer{}),
 				// Options for file writer.
 				cmp.AllowUnexported(kio.LogicalFile{}),
-				cmpopts.IgnoreFields(kio.LogicalFile{}, "curFile"),
+				cmpopts.IgnoreFields(kio.LogicalFile{}, "curFile", "mu"),
 				cmp.Comparer(testutil.ComparePointer[func() error]),              // manageFunc in LogicalFile.
 				cmp.Comparer(testutil.ComparePointer[func(string) string]),       // matchFunc in LogicalFile.
 				cmp.Comparer(testutil.ComparePointer[func(string) (int64, int)]), // parseFunc in LogicalFile.
