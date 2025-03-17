@@ -1,0 +1,21 @@
+version: 1
+
+goos: linux
+goarch: arm
+
+main: ./cmd/aileron/
+binary: aileron-{{ .Os }}-{{ .Arch }}7
+
+env:
+  - CGO_ENABLED=0
+  - GOARM=7
+
+flags:
+  - -trimpath
+  - -tags=netgo,osusergo
+
+ldflags:
+  - "-w"
+  - "-s"
+  - '-extldflags "-static"'
+  - "-X main.version={{ .Env.VERSION }}"

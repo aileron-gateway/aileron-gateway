@@ -1,0 +1,70 @@
+<mxfile host="65bd71144e">
+    <diagram id="pbClgvISly6ZTAEot4hW" name="Page-1">
+        <mxGraphModel dx="892" dy="659" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="4" value="ReverseProxy&lt;br&gt;Handler" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="200" y="560" width="120" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" value="Upstream&lt;br&gt;service" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="480" y="560" width="120" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="15" value="" style="shape=flexArrow;endArrow=classic;html=1;width=6.857142857142857;endSize=3.902857142857143;endWidth=10.938775510204081;fillColor=#f5f5f5;strokeColor=#666666;" parent="1" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="330" y="590" as="sourcePoint"/>
+                        <mxPoint x="470" y="590" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="22" value="" style="shape=flexArrow;endArrow=classic;html=1;width=6.857142857142857;endSize=3.902857142857143;endWidth=10.938775510204081;fillColor=#f5f5f5;strokeColor=#666666;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="470" y="610" as="sourcePoint"/>
+                        <mxPoint x="330" y="610" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="23" value="ReverseProxy&lt;br&gt;Handler" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1" vertex="1" parent="1">
+                    <mxGeometry x="200" y="760" width="120" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="24" value="Upstream&lt;br&gt;service" style="rounded=1;whiteSpace=wrap;html=1;fontSize=14;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1" vertex="1" parent="1">
+                    <mxGeometry x="480" y="760" width="120" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="25" value="" style="shape=flexArrow;endArrow=classic;html=1;width=6.857142857142857;endSize=3.902857142857143;endWidth=10.938775510204081;fillColor=#f5f5f5;strokeColor=#666666;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="330" y="790" as="sourcePoint"/>
+                        <mxPoint x="470" y="790" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="26" value="" style="shape=flexArrow;endArrow=classic;html=1;width=6.857142857142857;endSize=3.902857142857143;endWidth=10.938775510204081;fillColor=#f5f5f5;strokeColor=#666666;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="470" y="810" as="sourcePoint"/>
+                        <mxPoint x="330" y="810" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="27" value="Passive health check" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1" vertex="1" parent="1">
+                    <mxGeometry x="200" y="530" width="140" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="28" value="Active health check" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1" vertex="1" parent="1">
+                    <mxGeometry x="200" y="730" width="140" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="29" value="Health check request." style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="330" y="560" width="130" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="30" value="Response" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="330" y="620" width="130" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="31" value="Actual (Proxy) request." style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="330" y="760" width="140" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="32" value="Response" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="330" y="820" width="140" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="33" value="Check health&lt;br&gt;check response" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+                    <mxGeometry x="220" y="620" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="34" value="Check actual&lt;br&gt;API response" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+                    <mxGeometry x="220" y="820" width="120" height="60" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

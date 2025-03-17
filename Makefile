@@ -2,6 +2,11 @@
 #                      Global Configs                      #
 ############################################################
 
+include _makefiles/nfpm.mk
+include _makefiles/go-test.mk
+include _makefiles/go-licenses.mk
+include _makefiles/scanoss.mk
+
 .DEFAULT_GOAL := help
 
 # Load .env file if exist.
@@ -145,36 +150,3 @@ export HELP_MESSAGE
 .PHONY: help
 help: 
 	@echo "$${HELP_MESSAGE}"
-
-############################################################
-#            Multi Architecture Test Using QEMU            #
-############################################################
-
-qemu_arch_amd64 := x86_64
-qemu_arch_arm := arm
-qemu_arch_arm64 := aarch64
-qemu_arch_ppc64 := ppc64
-qemu_arch_ppc64le := ppc64le
-qemu_arch_riscv64 := riscv64
-qemu_arch_s390x := s390x
-
-TEST_BIN=_output/test-bin/
-
-# GOARCH=arm64 make qemu-test
-.PHONY: qemu-test
-qemu-test:
-	mkdir -p $(TEST_BIN)
-	rm -f $(TEST_BIN)*.test
-	go test -v -cover -c -o $(TEST_BIN)cmd/ ./cmd/...
-	go test -v -cover -c -o $(TEST_BIN)kernel/ ./kernel/...
-	go test -v -cover -c -o $(TEST_BIN)core/ ./core/...
-	go test -v -cover -c -o $(TEST_BIN)app/ ./app/...
-	find $(TEST_BIN) -name "*.test" | xargs -i bash -c "TEST_DIR=./test/ qemu-$(qemu_arch_$(GOARCH)) {}"
-
-# GOARCH=arm64 make qemu-integration
-.PHONY: qemu-integration
-qemu-integration:
-	mkdir -p $(TEST_BIN)
-	rm -f $(TEST_BIN)*.test
-	go test -v -cover -c -o $(TEST_BIN) -tags=integration ./test/integration/...
-	find $(TEST_BIN) -name "*.test" | xargs -i bash -c "TEST_DIR=./test/ qemu-$(qemu_arch_$(GOARCH)) {}"

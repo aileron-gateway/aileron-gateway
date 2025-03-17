@@ -1,0 +1,89 @@
+name: Release Binary
+# References
+# https://github.com/slsa-framework/slsa-github-generator
+# https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/go/README.md
+
+on:
+  workflow_call: {}
+
+permissions:
+  id-token: write
+  contents: write
+  actions: read
+
+jobs:
+  release:
+    uses: slsa-framework/slsa-github-generator/.github/workflows/builder_go_slsa3.yml@v2.1.0
+    name: ${{matrix.os}}-${{matrix.arch}}
+    strategy:
+      matrix:
+        include:
+          - {os: "darwin", arch: "amd64"}
+          - {os: "darwin", arch: "arm64"}
+          - {os: "freebsd", arch: "386"}
+          - {os: "freebsd", arch: "amd64"}
+          - {os: "freebsd", arch: "arm7"}
+          - {os: "freebsd", arch: "arm64"}
+          - {os: "linux", arch: "386"}
+          - {os: "linux", arch: "amd64"}
+          - {os: "linux", arch: "arm7"}
+          - {os: "linux", arch: "arm64"}
+          - {os: "linux", arch: "ppc64"}
+          - {os: "linux", arch: "ppc64le"}
+          - {os: "linux", arch: "riscv64"}
+          - {os: "linux", arch: "s390x"}
+          - {os: "netbsd", arch: "386"}
+          - {os: "netbsd", arch: "amd64"}
+          - {os: "netbsd", arch: "arm7"}
+          - {os: "netbsd", arch: "arm64"}
+          - {os: "openbsd", arch: "386"}
+          - {os: "openbsd", arch: "amd64"}
+          - {os: "openbsd", arch: "arm7"}
+          - {os: "openbsd", arch: "arm64"}
+          - {os: "windows", arch: "386"}
+          - {os: "windows", arch: "amd64"}
+          - {os: "windows", arch: "arm7"}
+          - {os: "windows", arch: "arm64"}
+    with:
+      # Check available go version at the link below.
+      # https://github.com/actions/go-versions/blob/main/versions-manifest.json
+      go-version: stable
+      config-file: .github/targets/${{matrix.os}}-${{matrix.arch}}.yaml
+      evaluated-envs: "VERSION:${{github.ref_name}}"
+      draft-release: true
+      upload-assets: true
+      upload-tag-name: "${{github.ref_name}}"
+
+  package:
+    needs: release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+      - run: |
+          ls -la
+          # Relocate binaries for nfpm input.
+          mkdir -p _output/bin/
+          mv aileron-*/* _output/bin/
+          ls -la _output/bin/
+      - run: |
+          echo 'deb [trusted=yes] https://repo.fury.io/goreleaser/ /' | sudo tee /etc/apt/sources.list.d/goreleaser.list
+          sudo apt-get update
+          sudo apt-get install -y nfpm
+          export VERSION="${{github.ref_name}}"
+          make nfpm-rpm NFPM_RPM_ARCH="386 amd64 arm7 arm64 ppc64le riscv64 s390x"
+          make nfpm-deb NFPM_DEB_ARCH="386 amd64 arm7 arm64 ppc64le riscv64 s390x"
+          make nfpm-apk NFPM_APK_ARCH="386 amd64 arm7 arm64 ppc64le riscv64 s390x"
+          make nfpm-arch NFPM_ARCH_ARCH="amd64 arm7 arm64 riscv64"
+          ls -la ./_output/pkg/
+      - run: |
+          cd ./_output/pkg/
+          ls -la
+          sha256sum aileron* > ./PKG_SHA256SUMS
+          sha1sum aileron* > ./PKG_SHA1SUMS
+          md5sum aileron* > ./PKG_MD5SUMS
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: ./_output/pkg/*
+          draft: true

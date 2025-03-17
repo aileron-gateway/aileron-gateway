@@ -1,14 +1,8 @@
 # Debian packaging assets
 
-This folder contains assets for debian packages `.deb`.
+This folder contains assets for `.deb` packages.
 
-Packages are built with [fpm](https://fpm.readthedocs.io/).
-
-To know the details about `.dep` packages, check the following references.
-
-- [6. Package maintainer scripts and installation procedure](https://www.debian.org/doc/debian-policy/ch-maintainerscripts.html)
-- [9. Maintainer script flowcharts](https://www.debian.org/doc/debian-policy/ap-flowcharts.html)
-- [Manpages of dpkg-dev in Debian testing](https://manpages.debian.org/testing/dpkg-dev/)
+Packages are built with [nfpm](https://github.com/goreleaser/nfpm).
 
 ## Installed files
 
@@ -29,4 +23,36 @@ To know the details about `.dep` packages, check the following references.
 └── var/
     └── lib/
         └── aileron/
+```
+
+## Install and remove with apt
+
+**Install.**
+
+```bash
+ARCH=amd64
+VERSION=v1.0.0
+sudo apt install ./aileron_${VERSION}-1_${ARCH}.deb
+```
+
+**Remove.**
+
+```bash
+sudo apt remove --purge aileron
+```
+
+## Install and remove with dpkg
+
+**Install.**
+
+```bash
+ARCH=amd64
+VERSION=v1.0.0
+sudo dpkg --install ./aileron_${VERSION}-1_${ARCH}.deb
+```
+
+**Remove.**
+
+```bash
+sudo dpkg --purge aileron
 ```

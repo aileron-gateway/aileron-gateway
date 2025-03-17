@@ -1,30 +1,20 @@
 name: Example Test
 
 on:
-  push:
-    branches: ["**"]
-    tags: ["**"]
-  pull_request:
-    branches: ["**"]
+  workflow_dispatch: {}
+  workflow_call: {}
 
 jobs:
-  proto:
-    uses: ./.github/workflows/proto.yaml
-    permissions:
-      contents: write
-
   test:
-    needs: proto
     runs-on: ${{ matrix.os }}-latest
     timeout-minutes: 10
     strategy:
       matrix:
         os:
           - ubuntu
-          # - windows
-          # - macos
+          - windows
+          - macos
     steps:
-      - run: git config --global core.autocrlf false
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
       - uses: actions/setup-go@v5
@@ -33,10 +23,9 @@ jobs:
       - name: make example
         run: |
           set +o pipefail
-          mkdir -p _output/
           make example 2>&1 | tee _output/example-test.log
       - uses: actions/upload-artifact@v4
         with:
           name: example-test-${{ matrix.os }}
           path: _output/**
-          retention-days: 1
+          retention-days: 7
