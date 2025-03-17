@@ -4,6 +4,9 @@ spec:
   defaultLogger:
     apiVersion: core/v1
     kind: SLogger
+  defaultErrorHandler:
+    apiVersion: core/v1
+    kind: ErrorHandler
   runners:
     - apiVersion: core/v1
       kind: HTTPServer
@@ -42,6 +45,29 @@ apiVersion: core/v1
 kind: SLogger
 spec:
   level: Debug
+
+---
+apiVersion: core/v1
+kind: ErrorHandler
+spec:
+  errorMessages:
+    - codes: ["E3214"]
+      mimeContents:
+        - mimeType: text/xml
+          statusCode: 403
+          templateFile: ./_example/soap-rest/error-messages/soapfault_versionmismatch.txt
+
+    - codes: ["E3215", "E3216", "E3217"]
+      mimeContents:
+        - mimeType: text/xml
+          statusCode: 400
+          templateFile: ./_example/soap-rest/error-messages/soapfault_client.txt
+          
+    - codes: ["E3218", "E3219", "E3220"]
+      mimeContents:
+        - mimeType: text/xml
+          statusCode: 500
+          templateFile: ./_example/soap-rest/error-messages/soapfault_server.txt
 
 ---
 apiVersion: app/v1
