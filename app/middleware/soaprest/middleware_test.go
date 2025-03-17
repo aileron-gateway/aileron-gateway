@@ -775,12 +775,10 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
                                     <ns:Value>123</ns:Value>
                                 </ns:Test>
                                 <ns:Array>
-									<item>
-										<arrayKey>100</arrayKey>
-										<arrayKey>3.14</arrayKey>
-										<arrayKey>true</arrayKey>
-										<arrayKey>someText</arrayKey>
-									</item>
+									<item>100</item>
+									<item>3.14</item>
+									<item>true</item>
+									<item>someText</item>
                                 </ns:Array>
                             </soap:Body>
                         </soap:Envelope>`,
@@ -2127,6 +2125,36 @@ func TestSOAPREST_MapToXMLElements(t *testing.T) {
 				},
 			},
 		),
+		gen(
+			"ArrayData",
+			nil,
+			nil,
+			&condition{
+				data: map[string]any{
+					"soap_Body": []any{
+						"value1",
+						"value2",
+						"value3",
+					},
+				},
+			},
+			&action{
+				expected: []xmlElement{
+					{
+						XMLName: xml.Name{Space: "soap", Local: "Body"},
+						Content: "value1",
+					},
+					{
+						XMLName: xml.Name{Space: "soap", Local: "Body"},
+						Content: "value2",
+					},
+					{
+						XMLName: xml.Name{Space: "soap", Local: "Body"},
+						Content: "value3",
+					},
+				},
+			},
+		),
 	}
 
 	testutil.Register(table, testCases...)
@@ -2172,6 +2200,202 @@ func TestSOAPREST_MapToXMLElements(t *testing.T) {
 			}
 
 			testutil.Diff(t, tt.A().expected, result, opts...)
+		})
+	}
+}
+
+func TestSOAPREST_CreateXMLElementFromValue(t *testing.T) {
+	type condition struct {
+		elementName string
+		value       any
+		namespace   string
+
+		attributeKey string
+		textKey      string
+		namespaceKey string
+	}
+
+	type action struct {
+		expected xmlElement
+	}
+
+	tb := testutil.NewTableBuilder[*condition, *action]()
+	tb.Name(t.Name())
+	table := tb.Build()
+	gen := testutil.NewCase[*condition, *action]
+
+	testCases := []*testutil.Case[*condition, *action]{
+		gen(
+			"NilElement",
+			nil,
+			nil,
+			&condition{},
+			&action{
+				expected: xmlElement{
+					isNil: true,
+				},
+			},
+		),
+		gen(
+			"ElementWithAttribute",
+			nil,
+			nil,
+			&condition{
+				value: map[string]any{
+					"attrKey": map[string]any{
+						"testAttr": "exampleAttribute",
+					},
+				},
+			},
+			&action{
+				expected: xmlElement{
+					Attrs: []xml.Attr{
+						{
+							Name:  xml.Name{Local: "testAttr"},
+							Value: "exampleAttribute",
+						},
+					},
+				},
+			},
+		),
+		gen(
+			"ElementWithNilText",
+			nil,
+			nil,
+			&condition{
+				value: map[string]any{
+					"textKey": nil,
+				},
+			},
+			&action{
+				expected: xmlElement{
+					isNil: true,
+				},
+			},
+		),
+		gen(
+			"ElementWithText",
+			nil,
+			nil,
+			&condition{
+				value: map[string]any{
+					"textKey": "textElement",
+				},
+			},
+			&action{
+				expected: xmlElement{
+					Content: "textElement",
+				},
+			},
+		),
+		gen(
+			"ElementWithChildContent",
+			nil,
+			nil,
+			&condition{
+				value: map[string]any{
+					"elementNode": map[string]any{
+						"childElementNode": map[string]any{
+							"childKey": "childValue",
+						},
+					},
+				},
+			},
+			&action{
+				expected: xmlElement{
+					children: []xmlElement{
+						{
+							XMLName: xml.Name{Local: "elementNode"},
+							children: []xmlElement{
+								{
+									XMLName: xml.Name{Local: "childElementNode"},
+									children: []xmlElement{
+										{
+											XMLName: xml.Name{Local: "childKey"},
+											Content: "childValue",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		),
+		gen(
+			"ElementWithSeparatocrChildKey",
+			nil,
+			nil,
+			&condition{
+				value: map[string]any{
+					"_test_Key": map[string]any{
+						"testKey": "testValue",
+					},
+				},
+			},
+			&action{
+				expected: xmlElement{
+					children: []xmlElement{
+						{
+							XMLName: xml.Name{Local: "_test_Key"},
+							children: []xmlElement{
+								{
+									XMLName: xml.Name{Local: "testKey"},
+									Content: "testValue",
+								},
+							},
+						},
+					},
+				},
+			},
+		),
+		gen(
+			"DefaultContent",
+			nil,
+			nil,
+			&condition{
+				value: "default",
+			},
+			&action{
+				expected: xmlElement{
+					Content: "default",
+				},
+			},
+		),
+		gen(
+			"SanitizeContent",
+			nil,
+			nil,
+			&condition{
+				value: "\b\f\\b\\f",
+			},
+			&action{
+				expected: xmlElement{
+					Content: "",
+				},
+			},
+		),
+	}
+
+	testutil.Register(table, testCases...)
+
+	for _, tt := range table.Entries() {
+		tt := tt
+		t.Run(tt.Name(), func(t *testing.T) {
+			s := soapREST{
+				attributeKey: cmp.Or(tt.C().attributeKey, "attrKey"),
+				namespaceKey: cmp.Or(tt.C().namespaceKey, "nsKey"),
+				textKey:      cmp.Or(tt.C().textKey, "textKey"),
+				arrayKey:     "arrayKey",
+
+				extractStringElement:  true,
+				extractBooleanElement: true,
+				extractIntegerElement: true,
+				extractFloatElement:   true,
+			}
+
+			result := s.createXMLElementFromValue(tt.C().elementName, tt.C().value, tt.C().namespace)
+			testutil.Diff(t, tt.A().expected, result, testutil.DeepAllowUnexported(xmlElement{}))
 		})
 	}
 }
@@ -2345,6 +2569,23 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 			},
 		),
 		gen(
+			"NilTextContent",
+			nil,
+			nil,
+			&condition{
+				elementName: "test",
+				value: map[string]any{
+					"textKey": nil,
+				},
+			},
+			&action{
+				expected: xmlElement{
+					XMLName: xml.Name{Local: "test"},
+					isNil:   true,
+				},
+			},
+		),
+		gen(
 			"MapValueWithChildElements",
 			nil,
 			nil,
@@ -2379,6 +2620,47 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 			},
 		),
 		gen(
+			"SeparatorCharKey",
+			nil,
+			nil,
+			&condition{
+				elementName: "test",
+				value: map[string]any{
+					"childElements": map[string]any{
+						"_test_Key": []any{
+							1,
+							2,
+							3,
+						},
+					},
+				},
+			},
+			&action{
+				expected: xmlElement{
+					XMLName: xml.Name{Local: "test"},
+					children: []xmlElement{
+						{
+							XMLName: xml.Name{Local: "childElements"},
+							children: []xmlElement{
+								{
+									XMLName: xml.Name{Local: "_test_Key"},
+									Content: "1",
+								},
+								{
+									XMLName: xml.Name{Local: "_test_Key"},
+									Content: "2",
+								},
+								{
+									XMLName: xml.Name{Local: "_test_Key"},
+									Content: "3",
+								},
+							},
+						},
+					},
+				},
+			},
+		),
+		gen(
 			"ArrayValue",
 			nil,
 			nil,
@@ -2389,20 +2671,7 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 			&action{
 				expected: xmlElement{
 					XMLName: xml.Name{Local: "item"},
-					children: []xmlElement{
-						{
-							XMLName: xml.Name{Local: "arrayKey"},
-							Content: "item1",
-						},
-						{
-							XMLName: xml.Name{Local: "arrayKey"},
-							Content: "item2",
-						},
-						{
-							XMLName: xml.Name{Local: "arrayKey"},
-							Content: "item3",
-						},
-					},
+					Content: "[item1 item2 item3]",
 				},
 			},
 		),
@@ -2417,6 +2686,7 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 			&action{
 				expected: xmlElement{
 					XMLName: xml.Name{Local: "item"},
+					Content: "[]",
 				},
 			},
 		),
@@ -2432,10 +2702,10 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 			&action{
 				expected: xmlElement{
 					XMLName: xml.Name{Space: "_", Local: "item"},
+					Content: "[]",
 				},
 			},
 		),
-		//<TODO> Implement test cases with different config values.
 	}
 
 	testutil.Register(table, testCases...)
@@ -2831,6 +3101,36 @@ func TestWrappedWriter_StatusCode(t *testing.T) {
 		t.Run(tt.Name(), func(t *testing.T) {
 			tt.C().ww.WriteHeader(tt.C().code)
 			testutil.Diff(t, tt.A().code, tt.C().ww.StatusCode())
+		})
+	}
+}
+
+func TestWrappedWriter_Flush(t *testing.T) {
+	type condition struct{}
+	type action struct{}
+
+	tb := testutil.NewTableBuilder[*condition, *action]()
+	tb.Name(t.Name())
+	table := tb.Build()
+
+	gen := testutil.NewCase[*condition, *action]
+	testCases := []*testutil.Case[*condition, *action]{
+		gen(
+			"no-op test",
+			nil,
+			nil,
+			&condition{},
+			&action{},
+		),
+	}
+
+	testutil.Register(table, testCases...)
+
+	for _, tt := range table.Entries() {
+		tt := tt
+		t.Run(tt.Name(), func(t *testing.T) {
+			ww := wrappedWriter{}
+			ww.Flush()
 		})
 	}
 }

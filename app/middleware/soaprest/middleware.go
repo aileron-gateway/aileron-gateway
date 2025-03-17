@@ -577,8 +577,12 @@ func (s soapREST) createXMLElementFromValue(elementName string, value any, names
 		}
 
 		// Process text content
-		if textContent, ok := v[s.textKey].(string); ok {
-			element.Content = sanitizeControlCharacters(textContent)
+		if textValue, ok := v[s.textKey]; ok {
+			if textValue == nil {
+				element.isNil = true
+			} else if textContent, isStr := textValue.(string); isStr {
+				element.Content = sanitizeControlCharacters(textContent)
+			}
 		}
 
 		// Process child elements
@@ -651,8 +655,12 @@ func (s soapREST) mapToXMLElement(elementName string, value any, namespace strin
 		}
 
 		// Processing text content
-		if textContent, ok := v[s.textKey].(string); ok {
-			element.Content = sanitizeControlCharacters(textContent)
+		if textValue, ok := v[s.textKey]; ok {
+			if textValue == nil {
+				element.isNil = true
+			} else if textContent, isStr := textValue.(string); isStr {
+				element.Content = sanitizeControlCharacters(textContent)
+			}
 		}
 
 		// Processing child elements
@@ -671,9 +679,14 @@ func (s soapREST) mapToXMLElement(elementName string, value any, namespace strin
 
 					startsWithSeparator := strings.HasPrefix(childKey, separatorChar)
 
-					if len(childParts) == 2 && !startsWithSeparator {
+					if len(childParts) == 2 {
 						childNamespace = childParts[0]
+						if startsWithSeparator {
+							childParts[1] = separatorChar + childParts[1]
+						}
 						childLocalName = childParts[1]
+					} else {
+						childLocalName = childKey
 					}
 
 					childElement := s.createXMLElementFromValue(childLocalName, item, childNamespace)
@@ -686,9 +699,14 @@ func (s soapREST) mapToXMLElement(elementName string, value any, namespace strin
 
 				startsWithSeparator := strings.HasPrefix(childKey, separatorChar)
 
-				if len(childParts) == 2 && !startsWithSeparator {
+				if len(childParts) == 2 {
 					childNamespace = childParts[0]
+					if startsWithSeparator {
+						childParts[1] = separatorChar + childParts[1]
+					}
 					childLocalName = childParts[1]
+				} else {
+					childLocalName = childKey
 				}
 
 				child := s.mapToXMLElement(childLocalName, childValue, childNamespace, childParts)
