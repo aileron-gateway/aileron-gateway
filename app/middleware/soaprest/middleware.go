@@ -118,6 +118,7 @@ func (s *soapREST) Middleware(next http.Handler) http.Handler {
 		// Convert REST response to SOAP response
 		respBody, err := s.convertRESTtoSOAPResponse(ww)
 		if err != nil {
+			err = app.ErrAppMiddleSOAPRESTDecodeResponseBody.WithoutStack(err, map[string]any{"body": "failed to decode: " + ww.body.String()})
 			s.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusInternalServerError))
 			return
 		}
@@ -290,8 +291,7 @@ func (s soapREST) convertRESTtoSOAPResponse(wrapper *wrappedWriter) ([]byte, err
 
 	var restData map[string]any
 	if err := decoder.Decode(&restData); err != nil {
-		err = app.ErrAppMiddleSOAPRESTDecodeResponseBody.WithoutStack(err, map[string]any{"body": "failed to decode: " + wrapper.body.String()})
-		return nil, utilhttp.NewHTTPError(err, http.StatusInternalServerError)
+		return nil, err
 	}
 
 	nsManager := &namespaceManager{
