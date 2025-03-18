@@ -751,7 +751,7 @@ func (s soapREST) mapToXMLElement(elementName string, value any, namespace strin
 				for _, item := range childArray {
 					childParts := strings.SplitN(childKey, separatorChar, 2)
 					var childNamespace string
-					var childLocalName string = childKey
+					var childLocalName string
 
 					startsWithSeparator := strings.HasPrefix(childKey, separatorChar)
 
@@ -771,7 +771,7 @@ func (s soapREST) mapToXMLElement(elementName string, value any, namespace strin
 			} else {
 				childParts := strings.SplitN(childKey, separatorChar, 2)
 				var childNamespace string
-				var childLocalName string = childKey
+				var childLocalName string
 
 				startsWithSeparator := strings.HasPrefix(childKey, separatorChar)
 
