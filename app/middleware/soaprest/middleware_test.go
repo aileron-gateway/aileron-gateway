@@ -2471,7 +2471,7 @@ func TestSOAPREST_CreateXMLElementFromValue(t *testing.T) {
 			nil,
 			nil,
 			&condition{
-				value: "\b\f\\b\\f",
+				value: "\b\f\x01\x00",
 			},
 			&action{
 				expected: xmlElement{
@@ -2662,7 +2662,7 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 			&condition{
 				elementName: "test",
 				value: map[string]any{
-					"textKey": "\b\f\\b\\f",
+					"textKey": "\b\f",
 				},
 			},
 			&action{

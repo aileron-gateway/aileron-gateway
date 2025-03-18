@@ -116,6 +116,9 @@ func (s *soapREST) Middleware(next http.Handler) http.Handler {
 		// Call the next handler with the modified request
 		next.ServeHTTP(ww, newReq)
 
+		// Delete Content-Length because the body will be modified
+		ww.ResponseWriter.Header().Del("Content-Length")
+
 		// Convert REST response to SOAP response
 		respBody, err := s.convertRESTtoSOAPResponse(ww)
 		if err != nil {
@@ -125,8 +128,6 @@ func (s *soapREST) Middleware(next http.Handler) http.Handler {
 		}
 
 		ww.ResponseWriter.Header().Set("Content-Type", soap11MIMEType+"; charset=utf-8")
-		ww.ResponseWriter.Header().Set("Content-Length", strconv.Itoa(len(respBody)))
-
 		w.WriteHeader(ww.StatusCode())
 		_, err = ww.ResponseWriter.Write(respBody)
 		if err != nil {
@@ -917,15 +918,26 @@ func (s soapREST) parseValue(content string) any {
 	return content
 }
 
-// sanitizeControlCharacters sanitizes characters that are not allowed in XML.
+// sanitizeXMLCharacters removes invalid XML 1.0 characters from the input string.
 func sanitizeControlCharacters(input string) string {
-	replacer := strings.NewReplacer(
-		"\b", "", // backspace
-		"\f", "", // form feed
-		"\\b", "", // escaped backspace
-		"\\f", "", // escaped form feed
-	)
-	return replacer.Replace(input)
+	var sanitized strings.Builder
+
+	for _, r := range input {
+		if isValidXMLChar(r) {
+			sanitized.WriteRune(r)
+		}
+	}
+
+	return sanitized.String()
+}
+
+// isValidXMLChar checks if a rune is valid according to XML 1.0.
+func isValidXMLChar(r rune) bool {
+	// Valid XML characters (according to XML 1.0 spec)
+	return (r == 0x09 || r == 0x0A || r == 0x0D || // Tab, Line Feed, Carriage Return
+		(r >= 0x20 && r <= 0xD7FF) || // Basic characters
+		(r >= 0xE000 && r <= 0xFFFD) || // Valid non-supplementary characters
+		(r >= 0x10000 && r <= 0x10FFFF)) // Supplementary characters
 }
 
 // Recursively check if the JSON contains null.
