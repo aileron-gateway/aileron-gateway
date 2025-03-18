@@ -82,6 +82,8 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 		namespaceKey string
 		arrayKey     string
 
+		soapNamespacePrefix string
+
 		extractStringElement  bool
 		extractBooleanElement bool
 		extractIntegerElement bool
@@ -533,6 +535,8 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 				namespaceKey: cmp.Or(tt.C().namespaceKey, "_namespace"),
 				arrayKey:     cmp.Or(tt.C().arrayKey, "item"),
 
+				soapNamespacePrefix: cmp.Or(tt.C().soapNamespacePrefix, "soap"),
+
 				extractStringElement:  tt.C().extractStringElement,
 				extractBooleanElement: tt.C().extractBooleanElement,
 				extractIntegerElement: tt.C().extractIntegerElement,
@@ -836,6 +840,8 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 				arrayKey:     "arrayKey",
 
 				paths: tt.C().paths,
+
+				soapNamespacePrefix: "soap",
 
 				extractStringElement:  true,
 				extractBooleanElement: true,
@@ -1230,6 +1236,8 @@ func TestSOAPREST_XmlToMap(t *testing.T) {
 				namespaceKey: "nsKey",
 				arrayKey:     "arrayKey",
 
+				soapNamespacePrefix: "soap",
+
 				extractStringElement:  false,
 				extractBooleanElement: true,
 				extractIntegerElement: true,
@@ -1274,7 +1282,14 @@ func TestSOAPREST_ConvertRESTtoSOAPResponse(t *testing.T) {
 			nil,
 			nil,
 			&condition{
-				restData: []byte(`{"soap_Envelope": {"soap_Body": {"Response": {"Result": "Success"}}}}`),
+				restData: []byte(`{
+									"soap_Envelope": {
+										"soap_Body": {
+											"Response": {
+												"Result": "Success"
+											}
+										}
+									}}`),
 			},
 			&action{
 				xml: []byte(`<?xml version="1.0" encoding="UTF-8"?>
@@ -1285,6 +1300,39 @@ func TestSOAPREST_ConvertRESTtoSOAPResponse(t *testing.T) {
 											<Result>Success</Result>
 										</Response>
 									</soap:Body>
+								</soap:Envelope>`),
+			},
+		),
+		gen(
+			"MultipleAttributes",
+			nil,
+			nil,
+			&condition{
+				restData: []byte(`{
+									"soap_Envelope": {
+										"nsKey": {
+											"soap": "http://schemas.xmlsoap.org/soap/envelope/"
+										},
+										"attrKey": {
+											"testKey": "testValue"
+										},
+										"soap_Body": {
+											"attrKey": {
+												"testBodyKey": "testBodyValue"
+											}
+										},
+										"soap_Header": {
+											"attrKey": {
+												"testHeaderKey": "testHeaderValue"
+											}
+										}
+									}}`),
+			},
+			&action{
+				xml: []byte(`<?xml version="1.0" encoding="UTF-8"?>
+								<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" testKey="testValue">
+									<soap:Header testHeaderKey="testHeaderValue"></soap:Header>
+									<soap:Body testBodyKey="testBodyValue"></soap:Body>
 								</soap:Envelope>`),
 			},
 		),
@@ -1312,6 +1360,8 @@ func TestSOAPREST_ConvertRESTtoSOAPResponse(t *testing.T) {
 				textKey:      "textKey",
 				namespaceKey: "nsKey",
 				arrayKey:     "arrayKey",
+
+				soapNamespacePrefix: "soap",
 			}
 
 			wrapper := &wrappedWriter{
@@ -1476,7 +1526,10 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 			},
 			&action{
 				expected: &soapEnvelope{
-					Header: &soapHeader{},
+					prefix: "soap",
+					Header: &soapHeader{
+						prefix: "soap",
+					},
 					Body: &soapBody{
 						Content: []xmlElement{
 							{
@@ -1484,6 +1537,7 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 								Content: "textNode",
 							},
 						},
+						prefix: "soap",
 					},
 				},
 			},
@@ -1500,8 +1554,13 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 			},
 			&action{
 				expected: &soapEnvelope{
-					Header: &soapHeader{},
-					Body:   &soapBody{},
+					prefix: "soap",
+					Header: &soapHeader{
+						prefix: "soap",
+					},
+					Body: &soapBody{
+						prefix: "soap",
+					},
 				},
 			},
 		),
@@ -1523,12 +1582,17 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 			},
 			&action{
 				expected: &soapEnvelope{
+					prefix: "soap",
 					ExtraNS: []xml.Attr{
 						{Name: xml.Name{Local: "xmlns:soap"}, Value: "http://schemas.xmlsoap.org/soap/envelope/"},
 						{Name: xml.Name{Local: "xmlns:xsi"}, Value: "http://www.w3.org/2001/XMLSchema-instance"},
 					},
-					Header: &soapHeader{},
-					Body:   &soapBody{},
+					Header: &soapHeader{
+						prefix: "soap",
+					},
+					Body: &soapBody{
+						prefix: "soap",
+					},
 				},
 			},
 		),
@@ -1552,6 +1616,7 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 			},
 			&action{
 				expected: &soapEnvelope{
+					prefix: "soap",
 					Header: &soapHeader{
 						Content: []xmlElement{
 							{
@@ -1562,8 +1627,11 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 								},
 							},
 						},
+						prefix: "soap",
 					},
-					Body: &soapBody{},
+					Body: &soapBody{
+						prefix: "soap",
+					},
 				},
 			},
 		),
@@ -1589,11 +1657,14 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 			},
 			&action{
 				expected: &soapEnvelope{
+					prefix: "soap",
 					ExtraNS: []xml.Attr{
 						{Name: xml.Name{Local: "xmlns:xsi"}, Value: "http://www.w3.org/2001/XMLSchema-instance"},
 						{Name: xml.Name{Local: "xmlns:soap"}, Value: "http://schemas.xmlsoap.org/soap/envelope/"},
 					},
-					Header: &soapHeader{},
+					Header: &soapHeader{
+						prefix: "soap",
+					},
 					Body: &soapBody{
 						Content: []xmlElement{
 							{
@@ -1606,6 +1677,7 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 								},
 							},
 						},
+						prefix: "soap",
 					},
 				},
 			},
@@ -1629,6 +1701,7 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 			},
 			&action{
 				expected: &soapEnvelope{
+					prefix: "soap",
 					ExtraNS: []xml.Attr{
 						{Name: xml.Name{Local: "xmlns:soap"}, Value: "http://schemas.xmlsoap.org/soap/envelope/"},
 					},
@@ -1638,8 +1711,12 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 							Value: "exampleAttribute",
 						},
 					},
-					Header: &soapHeader{},
-					Body:   &soapBody{},
+					Header: &soapHeader{
+						prefix: "soap",
+					},
+					Body: &soapBody{
+						prefix: "soap",
+					},
 				},
 			},
 		),
@@ -1657,8 +1734,13 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 			},
 			&action{
 				expected: &soapEnvelope{
-					Header: &soapHeader{},
-					Body:   &soapBody{},
+					prefix: "soap",
+					Header: &soapHeader{
+						prefix: "soap",
+					},
+					Body: &soapBody{
+						prefix: "soap",
+					},
 				},
 			},
 		),
@@ -1680,7 +1762,9 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 			},
 			&action{
 				expected: &soapEnvelope{
+					prefix: "soap",
 					Header: &soapHeader{
+						prefix: "soap",
 						Attrs: []xml.Attr{
 							{
 								Name:  xml.Name{Local: "testAttr"},
@@ -1688,7 +1772,9 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 							},
 						},
 					},
-					Body: &soapBody{},
+					Body: &soapBody{
+						prefix: "soap",
+					},
 				},
 			},
 		),
@@ -1711,7 +1797,10 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 			},
 			&action{
 				expected: &soapEnvelope{
-					Header: &soapHeader{},
+					prefix: "soap",
+					Header: &soapHeader{
+						prefix: "soap",
+					},
 					Body: &soapBody{
 						Attrs: []xml.Attr{
 							{
@@ -1724,6 +1813,7 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 								Content: "testText",
 							},
 						},
+						prefix: "soap",
 					},
 				},
 			},
@@ -1748,7 +1838,10 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 			},
 			&action{
 				expected: &soapEnvelope{
-					Header: &soapHeader{},
+					prefix: "soap",
+					Header: &soapHeader{
+						prefix: "soap",
+					},
 					Body: &soapBody{
 						Attrs: []xml.Attr{
 							{
@@ -1756,6 +1849,7 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 								Value: "http://example.com/",
 							},
 						},
+						prefix: "soap",
 					},
 					ExtraNS: []xml.Attr{
 						{
@@ -1790,7 +1884,10 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 			},
 			&action{
 				expected: &soapEnvelope{
-					Header: &soapHeader{},
+					prefix: "soap",
+					Header: &soapHeader{
+						prefix: "soap",
+					},
 					Body: &soapBody{
 						Attrs: []xml.Attr{
 							{
@@ -1814,6 +1911,7 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 								},
 							},
 						},
+						prefix: "soap",
 					},
 				},
 			},
@@ -1834,7 +1932,10 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 			},
 			&action{
 				expected: &soapEnvelope{
-					Header: &soapHeader{},
+					prefix: "soap",
+					Header: &soapHeader{
+						prefix: "soap",
+					},
 					Body: &soapBody{
 						Content: []xmlElement{
 							{
@@ -1842,6 +1943,7 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 								Content: "testText",
 							},
 						},
+						prefix: "soap",
 					},
 				},
 			},
@@ -1857,6 +1959,8 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 				textKey:      "textKey",
 				namespaceKey: "nsKey",
 				arrayKey:     "arrayKey",
+
+				soapNamespacePrefix: "soap",
 
 				extractStringElement:  true,
 				extractBooleanElement: true,
@@ -1892,6 +1996,9 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 				testutil.DeepAllowUnexported(
 					xmlElement{},
 					namespaceManager{},
+					soapEnvelope{},
+					soapHeader{},
+					soapBody{},
 				),
 				cmpopts.EquateEmpty(),
 			}

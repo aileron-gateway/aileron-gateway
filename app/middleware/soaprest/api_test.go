@@ -45,6 +45,13 @@ func TestCreate(t *testing.T) {
 					textKey:      "textKey",
 					namespaceKey: "nsKey",
 					arrayKey:     "arrayKey",
+
+					soapNamespacePrefix: "soap",
+
+					extractStringElement:  false,
+					extractBooleanElement: false,
+					extractIntegerElement: false,
+					extractFloatElement:   false,
 				},
 			},
 		),

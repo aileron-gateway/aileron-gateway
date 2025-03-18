@@ -70,6 +70,12 @@ message SOAPRESTMiddlewareSpec {
     string ArrayKey = 6 [json_name = "arrayKey", (buf.validate.field).string.pattern = "^[a-zA-Z:.\\_|/#@][a-zA-Z0-9_.-]*$"];
 
     // [OPTIONAL]
+    // SOAPNamespacePrefix specifies the namespace prefix for defining "http://schemas.xmlsoap.org/soap/envelope/"
+    // during the conversion between SOAP and REST, as well as REST to SOAP.
+    // Default value is "soap".
+    string SOAPNamespacePrefix = 7 [json_name = "soapNamespacePrefix", (buf.validate.field).string.pattern = "^[a-zA-Z:.\\_|/#@][a-zA-Z0-9_.-]*$"];
+
+    // [OPTIONAL]
     // ExtractStringElement is a boolean value used to extract elements enclosed in double quotes within XML.
     // When this option is set to false, double quotes will be escaped.
     // Specifically, the processing occurs as follows:

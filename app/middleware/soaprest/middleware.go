@@ -24,12 +24,11 @@ const (
 
 	separatorChar = "_"
 
-	soapNameSpaceKey = "soap"
-	xsiNameSpaceKey  = "xsi"
-	xmlNameSpaceKey  = "xmlns"
+	xsiNamespaceKey = "xsi"
+	xmlNamespaceKey = "xmlns"
 
-	soapNameSpaceURI = "http://schemas.xmlsoap.org/soap/envelope/"
-	xsiNameSpaceURI  = "http://www.w3.org/2001/XMLSchema-instance"
+	soapNamespaceURI = "http://schemas.xmlsoap.org/soap/envelope/"
+	xsiNamespaceURI  = "http://www.w3.org/2001/XMLSchema-instance"
 
 	soap11MIMEType = "text/xml"
 )
@@ -45,6 +44,8 @@ type soapREST struct {
 	textKey      string
 	namespaceKey string
 	arrayKey     string
+
+	soapNamespacePrefix string
 
 	extractStringElement  bool
 	extractBooleanElement bool
@@ -156,7 +157,7 @@ func removeNewlinesAndTabs(content string) string {
 func (s soapREST) xmlToMap(node xmlNode, nsCtx *namespaceContext) any {
 	// Check whether the XML contains `xsi:nil`.
 	for _, attr := range node.Attrs {
-		if (attr.Name.Space == xsiNameSpaceURI || attr.Name.Space == xsiNameSpaceKey) &&
+		if (attr.Name.Space == xsiNamespaceURI || attr.Name.Space == xsiNamespaceKey) &&
 			attr.Name.Local == "nil" && strings.ToLower(attr.Value) == "true" {
 			return nil
 		}
@@ -167,14 +168,19 @@ func (s soapREST) xmlToMap(node xmlNode, nsCtx *namespaceContext) any {
 
 	// Checks whether the namespace URI is included.
 	for _, attr := range node.Attrs {
-		if attr.Name.Space == xmlNameSpaceKey || attr.Name.Local == xmlNameSpaceKey {
+		if attr.Name.Space == xmlNamespaceKey || attr.Name.Local == xmlNamespaceKey {
 			prefix := attr.Name.Local
-			if attr.Name.Space == xmlNameSpaceKey {
+			if attr.Name.Space == xmlNamespaceKey {
 				prefix = attr.Name.Local
 			}
-			namespaces[prefix] = attr.Value
-			nsCtx.addNamespace(prefix, attr.Value)
-		} else if !strings.HasPrefix(attr.Name.Space, xmlNameSpaceKey) {
+			if attr.Value == soapNamespaceURI {
+				namespaces[s.soapNamespacePrefix] = attr.Value
+				nsCtx.addNamespace(s.soapNamespacePrefix, attr.Value)
+			} else {
+				namespaces[prefix] = attr.Value
+				nsCtx.addNamespace(prefix, attr.Value)
+			}
+		} else if !strings.HasPrefix(attr.Name.Space, xmlNamespaceKey) {
 			attributes[attr.Name.Local] = attr.Value
 		}
 	}
@@ -254,8 +260,8 @@ func (s soapREST) xmlToMap(node xmlNode, nsCtx *namespaceContext) any {
 	}
 
 	// Only supports conversions for SOAP 1.1
-	if node.XMLName.Local == soapEnvelopeKey && node.XMLName.Space == soapNameSpaceURI {
-		return map[string]any{soapNameSpaceKey + separatorChar + soapEnvelopeKey: resultMap}
+	if node.XMLName.Local == soapEnvelopeKey && node.XMLName.Space == soapNamespaceURI {
+		return map[string]any{s.soapNamespacePrefix + separatorChar + soapEnvelopeKey: resultMap}
 	}
 
 	// Retrieve element names that include namespace prefixes
@@ -267,12 +273,12 @@ func (s soapREST) getNodeName(node xmlNode, nsCtx *namespaceContext) string {
 	nodeName := node.XMLName.Local
 
 	// Only supports conversions for SOAP 1.1
-	if nodeName == soapBodyKey && node.XMLName.Space == soapNameSpaceURI {
+	if nodeName == soapBodyKey && node.XMLName.Space == soapNamespaceURI {
 		// return like "soap_body"
-		return soapNameSpaceKey + separatorChar + soapBodyKey
-	} else if nodeName == soapHeaderKey && node.XMLName.Space == soapNameSpaceURI {
+		return s.soapNamespacePrefix + separatorChar + soapBodyKey
+	} else if nodeName == soapHeaderKey && node.XMLName.Space == soapNamespaceURI {
 		// return like "soap_header"
-		return soapNameSpaceKey + separatorChar + soapHeaderKey
+		return s.soapNamespacePrefix + separatorChar + soapHeaderKey
 	}
 
 	if node.XMLName.Space != "" {
@@ -306,25 +312,89 @@ func (s soapREST) convertRESTtoSOAPResponse(wrapper *wrappedWriter) ([]byte, err
 
 // soapEnvelope is a struct representing a SOAPEnvelope.
 type soapEnvelope struct {
-	XMLName xml.Name    `xml:"soap:Envelope"`
+	XMLName xml.Name    `xml:"Envelope"`
 	ExtraNS []xml.Attr  `xml:",attr"`
 	Attrs   []xml.Attr  `xml:",any,attr,omitempty"`
-	Header  *soapHeader `xml:"soap:Header,omitempty"`
-	Body    *soapBody   `xml:"soap:Body"`
+	Header  *soapHeader `xml:",omitempty"`
+	Body    *soapBody
+
+	prefix string
 }
 
 // soapHeader is a struct representing a SOAPHeader.
 type soapHeader struct {
-	XMLName xml.Name   `xml:"soap:Header"`
+	XMLName xml.Name   `xml:"Header"`
 	Attrs   []xml.Attr `xml:",any,attr,omitempty"`
 	Content []xmlElement
+
+	prefix string
 }
 
 // soapBody is a struct representing a SOAPBody.
 type soapBody struct {
-	XMLName xml.Name   `xml:"soap:Body"`
+	XMLName xml.Name   `xml:"Body"`
 	Attrs   []xml.Attr `xml:",any,attr,omitempty"`
 	Content []xmlElement
+
+	prefix string
+}
+
+func (e soapEnvelope) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
+	start.Name.Local = fmt.Sprintf("%s:%s", e.prefix, "Envelope")
+	start.Attr = append(start.Attr, e.ExtraNS...)
+
+	if len(e.Attrs) > 0 {
+		start.Attr = append(start.Attr, e.Attrs...)
+	}
+
+	enc.EncodeToken(start)
+
+	if e.Header != nil {
+		e.Header.prefix = e.prefix
+		enc.Encode(e.Header)
+	}
+
+	if e.Body != nil {
+		e.Body.prefix = e.prefix
+		enc.Encode(e.Body)
+	}
+
+	enc.EncodeToken(xml.EndElement{Name: start.Name})
+	return nil
+}
+
+func (h soapHeader) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
+	start.Name.Local = fmt.Sprintf("%s:%s", h.prefix, "Header")
+
+	if len(h.Attrs) > 0 {
+		start.Attr = append(start.Attr, h.Attrs...)
+	}
+
+	enc.EncodeToken(start)
+
+	for _, element := range h.Content {
+		enc.Encode(element)
+	}
+
+	enc.EncodeToken(xml.EndElement{Name: start.Name})
+	return nil
+}
+
+func (b soapBody) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
+	start.Name.Local = fmt.Sprintf("%s:%s", b.prefix, "Body")
+
+	if len(b.Attrs) > 0 {
+		start.Attr = append(start.Attr, b.Attrs...)
+	}
+
+	enc.EncodeToken(start)
+
+	for _, element := range b.Content {
+		enc.Encode(element)
+	}
+
+	enc.EncodeToken(xml.EndElement{Name: start.Name})
+	return nil
 }
 
 // xmlElement is a struct used for marshaling into XML
@@ -394,13 +464,18 @@ func (e xmlElement) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
 
 func (s soapREST) createSOAPEnvelope(data map[string]any, nsManager *namespaceManager) *soapEnvelope {
 	envelope := &soapEnvelope{
-		Header: &soapHeader{},
-		Body:   &soapBody{},
+		prefix: s.soapNamespacePrefix,
+		Header: &soapHeader{
+			prefix: s.soapNamespacePrefix,
+		},
+		Body: &soapBody{
+			prefix: s.soapNamespacePrefix,
+		},
 	}
 
-	if envelopeData, ok := data[soapNameSpaceKey+separatorChar+soapEnvelopeKey].(map[string]any); ok {
+	if envelopeData, ok := data[s.soapNamespacePrefix+separatorChar+soapEnvelopeKey].(map[string]any); ok {
 		if hasNullValue(envelopeData) {
-			nsManager.addNamespace(xsiNameSpaceKey, xsiNameSpaceURI)
+			nsManager.addNamespace(xsiNamespaceKey, xsiNamespaceURI)
 		}
 
 		if attrMap, ok := envelopeData[s.attributeKey].(map[string]any); ok {
@@ -419,9 +494,9 @@ func (s soapREST) createSOAPEnvelope(data map[string]any, nsManager *namespaceMa
 		for prefix, uri := range nsManager.namespaces {
 			var attrName xml.Name
 			if prefix == "" {
-				attrName = xml.Name{Local: xmlNameSpaceKey}
+				attrName = xml.Name{Local: xmlNamespaceKey}
 			} else {
-				attrName = xml.Name{Local: xmlNameSpaceKey + ":" + prefix}
+				attrName = xml.Name{Local: xmlNamespaceKey + ":" + prefix}
 			}
 			nsAttrs = append(nsAttrs, xml.Attr{
 				Name:  attrName,
