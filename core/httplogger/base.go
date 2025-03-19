@@ -233,7 +233,7 @@ func (l *baseLogger) logBody(mimeType string, body []byte) []byte {
 	return body
 }
 
-func (l *baseLogger) bodyReadCloser(fileName, mimeType string, length int64, body io.ReadCloser) ([]byte, io.ReadCloser, error) {
+func (l *baseLogger) bodyReadCloser(fileName, mimeType string, length int64, body io.ReadCloser, isCompressed bool) ([]byte, io.ReadCloser, error) {
 	if !slices.Contains(l.mimes, mimeType) {
 		return nil, body, nil
 	}
@@ -274,7 +274,7 @@ func (l *baseLogger) bodyReadCloser(fileName, mimeType string, length int64, bod
 			return nil, body, err
 		}
 		logB := l.logBody(mimeType, b)
-		if l.base64 {
+		if l.base64 || isCompressed {
 			dst := make([]byte, 0, 8*len(logB)/6+4)
 			dst = base64.StdEncoding.AppendEncode(dst, logB)
 			return dst, io.NopCloser(bytes.NewReader(b)), err
@@ -286,7 +286,7 @@ func (l *baseLogger) bodyReadCloser(fileName, mimeType string, length int64, bod
 }
 
 // bodyWriter returns writer that should be used for writing log bodies.
-func (l *baseLogger) bodyWriter(fileName, mimeType string, length int64) (func() []byte, io.Writer, error) {
+func (l *baseLogger) bodyWriter(fileName, mimeType string, length int64, isCompressed bool) (func() []byte, io.Writer, error) {
 	if !slices.Contains(l.mimes, mimeType) {
 		return nil, nil, nil
 	}
@@ -330,7 +330,7 @@ func (l *baseLogger) bodyWriter(fileName, mimeType string, length int64) (func()
 		var buf bytes.Buffer
 		bf := func() []byte {
 			logBody := l.logBody(mimeType, buf.Bytes())
-			if l.base64 {
+			if l.base64 || isCompressed {
 				dst := make([]byte, 0, 8*len(logBody)/6+4)
 				return base64.StdEncoding.AppendEncode(dst, logBody)
 			}
