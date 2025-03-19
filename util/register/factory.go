@@ -18,6 +18,7 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/app/middleware/cors"
 	"github.com/aileron-gateway/aileron-gateway/app/middleware/csrf"
 	"github.com/aileron-gateway/aileron-gateway/app/middleware/header"
+	"github.com/aileron-gateway/aileron-gateway/app/middleware/headercert"
 	"github.com/aileron-gateway/aileron-gateway/app/middleware/session"
 	"github.com/aileron-gateway/aileron-gateway/app/middleware/throttle"
 	"github.com/aileron-gateway/aileron-gateway/app/middleware/timeout"
@@ -67,6 +68,7 @@ func RegisterAll(r Registerer) {
 	_ = r.Register(digest.Key, digest.Resource)
 	_ = r.Register(echo.Key, echo.Resource)
 	_ = r.Register(header.Key, header.Resource)
+	_ = r.Register(headercert.Key, headercert.Resource)
 	_ = r.Register(healthcheck.Key, healthcheck.Resource)
 	_ = r.Register(idkey.Key, idkey.Resource)
 	_ = r.Register(jaegertracer.Key, jaegertracer.Resource)

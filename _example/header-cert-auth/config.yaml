@@ -1,0 +1,52 @@
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  runners:
+    - apiVersion: core/v1
+      kind: HTTPServer
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+spec:
+  addr: ":8080"
+  virtualHosts:
+    - middleware:
+        - apiVersion: core/v1
+          kind : HTTPLogger
+        - apiVersion: app/v1
+          kind: HeaderCertAuthMiddleware
+      handlers:
+        - handler:
+            apiVersion: core/v1
+            kind: ReverseProxyHandler
+
+---
+apiVersion: core/v1
+kind: ReverseProxyHandler
+spec:
+  loadBalancers:
+    - pathMatcher:
+        match: ".*"
+        matchType: Regex
+      upstreams:
+        - url: http://httpbin.org
+
+---
+apiVersion: app/v1
+kind: HeaderCertAuthMiddleware
+spec:
+  tlsConfig:
+    RootCAs:
+        - rootCA.crt
+
+---
+apiVersion: core/v1
+kind: HTTPLogger
+spec:
+  request:
+    headers:
+      - name: "*" # Log all headers.
+  response:
+    headers:
+      - name: "*" # Log all headers.
