@@ -34,19 +34,12 @@ func (o *API) Default() protoreflect.ProtoMessage {
 			Name:      "default",
 		},
 		Spec: &v1.SOAPRESTMiddlewareSpec{
-			Matcher: &kernel.MatcherSpec{Patterns: []string{"/"}, MatchType: kernel.MatchType_Contains},
-
 			AttributeKey: "attrKey",
 			NamespaceKey: "nsKey",
 			ArrayKey:     "arrayKey",
 			TextKey:      "textKey",
 
 			SOAPNamespacePrefix: "soap",
-
-			ExtractStringElement:  false,
-			ExtractBooleanElement: false,
-			ExtractIntegerElement: false,
-			ExtractFloatElement:   false,
 		},
 	}
 }
