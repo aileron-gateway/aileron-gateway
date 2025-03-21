@@ -43,7 +43,6 @@ type soapREST struct {
 	attributeKey string
 	textKey      string
 	namespaceKey string
-	arrayKey     string
 
 	soapNamespacePrefix string
 
@@ -480,7 +479,7 @@ func (s soapREST) createSOAPEnvelope(data map[string]any, nsManager *namespaceMa
 		}
 
 		if attrMap, ok := envelopeData[s.attributeKey].(map[string]any); ok {
-			envelope.Attrs = mapToXMLAttrs(attrMap)
+			envelope.Attrs = mapToXMLAttrs(attrMap, nsManager)
 		}
 
 		if nsMap, ok := envelopeData[s.namespaceKey].(map[string]any); ok {
@@ -517,7 +516,7 @@ func (s soapREST) createSOAPEnvelope(data map[string]any, nsManager *namespaceMa
 			switch elementName {
 			case soapHeaderKey:
 				if headerAttrMap, ok := valueMap[s.attributeKey].(map[string]any); ok {
-					envelope.Header.Attrs = mapToXMLAttrs(headerAttrMap)
+					envelope.Header.Attrs = mapToXMLAttrs(headerAttrMap, nsManager)
 				}
 
 				if textContent, ok := valueMap[s.textKey].(string); ok {
@@ -543,7 +542,7 @@ func (s soapREST) createSOAPEnvelope(data map[string]any, nsManager *namespaceMa
 
 			case soapBodyKey:
 				if bodyAttrMap, ok := valueMap[s.attributeKey].(map[string]any); ok {
-					envelope.Body.Attrs = mapToXMLAttrs(bodyAttrMap)
+					envelope.Body.Attrs = mapToXMLAttrs(bodyAttrMap, nsManager)
 				}
 
 				if textContent, ok := valueMap[s.textKey].(string); ok {
@@ -598,7 +597,7 @@ func (s soapREST) mapToXMLElements(data map[string]any, nsManager *namespaceMana
 					elementName = parts[1]
 				}
 
-				element := s.createXMLElementFromValue(elementName, item, namespace)
+				element := s.createXMLElementFromValue(elementName, item, namespace, nsManager)
 				elements = append(elements, element)
 			}
 			continue
@@ -629,13 +628,13 @@ func (s soapREST) mapToXMLElements(data map[string]any, nsManager *namespaceMana
 			}
 		}
 
-		element := s.mapToXMLElement(key, value, namespace, parts)
+		element := s.mapToXMLElement(key, value, namespace, parts, nsManager)
 		elements = append(elements, element)
 	}
 	return elements
 }
 
-func (s soapREST) createXMLElementFromValue(elementName string, value any, namespace string) xmlElement {
+func (s soapREST) createXMLElementFromValue(elementName string, value any, namespace string, nsManager *namespaceManager) xmlElement {
 	element := xmlElement{
 		XMLName: xml.Name{
 			Space: namespace,
@@ -649,7 +648,7 @@ func (s soapREST) createXMLElementFromValue(elementName string, value any, names
 	case map[string]any:
 		// Process attributes
 		if attrMap, ok := v[s.attributeKey].(map[string]any); ok {
-			element.Attrs = mapToXMLAttrs(attrMap)
+			element.Attrs = mapToXMLAttrs(attrMap, nsManager)
 		}
 
 		// Process text content
@@ -683,7 +682,7 @@ func (s soapREST) createXMLElementFromValue(elementName string, value any, names
 				childLocalName = childKey
 			}
 
-			child := s.mapToXMLElement(childLocalName, childValue, childNamespace, childParts)
+			child := s.mapToXMLElement(childLocalName, childValue, childNamespace, childParts, nsManager)
 			element.children = append(element.children, child)
 		}
 	default:
@@ -693,7 +692,7 @@ func (s soapREST) createXMLElementFromValue(elementName string, value any, names
 	return element
 }
 
-func (s soapREST) mapToXMLElement(elementName string, value any, namespace string, parts []string) xmlElement {
+func (s soapREST) mapToXMLElement(elementName string, value any, namespace string, parts []string, nsManager *namespaceManager) xmlElement {
 	// When the JSON data contains an array, the key does not include the separator character
 	// so the length of `parts` will not be 2
 	if len(parts) == 2 {
@@ -722,12 +721,7 @@ func (s soapREST) mapToXMLElement(elementName string, value any, namespace strin
 
 		// Processing attributes
 		if attrMap, ok := v[s.attributeKey].(map[string]any); ok {
-			for attrKey, attrValue := range attrMap {
-				element.Attrs = append(element.Attrs, xml.Attr{
-					Name:  xml.Name{Local: attrKey},
-					Value: fmt.Sprintf("%v", attrValue),
-				})
-			}
+			element.Attrs = mapToXMLAttrs(attrMap, nsManager)
 		}
 
 		// Processing text content
@@ -765,7 +759,7 @@ func (s soapREST) mapToXMLElement(elementName string, value any, namespace strin
 						childLocalName = childKey
 					}
 
-					childElement := s.createXMLElementFromValue(childLocalName, item, childNamespace)
+					childElement := s.createXMLElementFromValue(childLocalName, item, childNamespace, nsManager)
 					element.children = append(element.children, childElement)
 				}
 			} else {
@@ -785,7 +779,7 @@ func (s soapREST) mapToXMLElement(elementName string, value any, namespace strin
 					childLocalName = childKey
 				}
 
-				child := s.mapToXMLElement(childLocalName, childValue, childNamespace, childParts)
+				child := s.mapToXMLElement(childLocalName, childValue, childNamespace, childParts, nsManager)
 				element.children = append(element.children, child)
 			}
 		}
@@ -963,13 +957,21 @@ func hasNullValue(data any) bool {
 }
 
 // mapToXMLAttrs is a helper function that converts attributes (key-value pairs) in JSON to `xml.Attr`
-func mapToXMLAttrs(attrMap map[string]any) []xml.Attr {
+func mapToXMLAttrs(attrMap map[string]any, nsManager *namespaceManager) []xml.Attr {
 	attrs := make([]xml.Attr, 0, len(attrMap))
 	for k, v := range attrMap {
-		attrs = append(attrs, xml.Attr{
-			Name:  xml.Name{Local: k},
-			Value: fmt.Sprintf("%v", v),
-		})
+		parts := strings.SplitN(k, separatorChar, 2)
+		if len(parts) == 2 && nsManager.namespaces[parts[0]] != "" {
+			attrs = append(attrs, xml.Attr{
+				Name:  xml.Name{Local: parts[0] + ":" + parts[1]},
+				Value: fmt.Sprintf("%v", v),
+			})
+		} else {
+			attrs = append(attrs, xml.Attr{
+				Name:  xml.Name{Local: k},
+				Value: fmt.Sprintf("%v", v),
+			})
+		}
 	}
 	return attrs
 }

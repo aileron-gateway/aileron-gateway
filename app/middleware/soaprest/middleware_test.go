@@ -533,7 +533,6 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 				attributeKey: cmp.Or(tt.C().attributeKey, "@attribute"),
 				textKey:      cmp.Or(tt.C().textKey, "#text"),
 				namespaceKey: cmp.Or(tt.C().namespaceKey, "_namespace"),
-				arrayKey:     cmp.Or(tt.C().arrayKey, "item"),
 
 				soapNamespacePrefix: cmp.Or(tt.C().soapNamespacePrefix, "soap"),
 
@@ -837,7 +836,6 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 				attributeKey: "attrKey",
 				textKey:      "textKey",
 				namespaceKey: "nsKey",
-				arrayKey:     "arrayKey",
 
 				paths: tt.C().paths,
 
@@ -1234,7 +1232,6 @@ func TestSOAPREST_XmlToMap(t *testing.T) {
 				attributeKey: "attrKey",
 				textKey:      "textKey",
 				namespaceKey: "nsKey",
-				arrayKey:     "arrayKey",
 
 				soapNamespacePrefix: "soap",
 
@@ -1359,7 +1356,6 @@ func TestSOAPREST_ConvertRESTtoSOAPResponse(t *testing.T) {
 				attributeKey: "attrKey",
 				textKey:      "textKey",
 				namespaceKey: "nsKey",
-				arrayKey:     "arrayKey",
 
 				soapNamespacePrefix: "soap",
 			}
@@ -1958,7 +1954,6 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 				attributeKey: "attrKey",
 				textKey:      "textKey",
 				namespaceKey: "nsKey",
-				arrayKey:     "arrayKey",
 
 				soapNamespacePrefix: "soap",
 
@@ -2274,7 +2269,6 @@ func TestSOAPREST_MapToXMLElements(t *testing.T) {
 				attributeKey: cmp.Or(tt.C().attributeKey, "attrKey"),
 				namespaceKey: cmp.Or(tt.C().namespaceKey, "nsKey"),
 				textKey:      "textKey",
-				arrayKey:     "arrayKey",
 
 				extractStringElement:  true,
 				extractBooleanElement: true,
@@ -2490,7 +2484,6 @@ func TestSOAPREST_CreateXMLElementFromValue(t *testing.T) {
 				attributeKey: cmp.Or(tt.C().attributeKey, "attrKey"),
 				namespaceKey: cmp.Or(tt.C().namespaceKey, "nsKey"),
 				textKey:      cmp.Or(tt.C().textKey, "textKey"),
-				arrayKey:     "arrayKey",
 
 				extractStringElement:  true,
 				extractBooleanElement: true,
@@ -2498,7 +2491,7 @@ func TestSOAPREST_CreateXMLElementFromValue(t *testing.T) {
 				extractFloatElement:   true,
 			}
 
-			result := s.createXMLElementFromValue(tt.C().elementName, tt.C().value, tt.C().namespace)
+			result := s.createXMLElementFromValue(tt.C().elementName, tt.C().value, tt.C().namespace, &namespaceManager{})
 			testutil.Diff(t, tt.A().expected, result, testutil.DeepAllowUnexported(xmlElement{}))
 		})
 	}
@@ -2821,7 +2814,6 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 				attributeKey: cmp.Or(tt.C().attributeKey, "attrKey"),
 				textKey:      cmp.Or(tt.C().textKey, "textKey"),
 				namespaceKey: "nsKey",
-				arrayKey:     cmp.Or(tt.C().arrayKey, "arrayKey"),
 
 				extractStringElement:  true,
 				extractBooleanElement: true,
@@ -2829,7 +2821,7 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 				extractFloatElement:   true,
 			}
 
-			got := s.mapToXMLElement(tt.C().elementName, tt.C().value, tt.C().namespace, tt.C().parts)
+			got := s.mapToXMLElement(tt.C().elementName, tt.C().value, tt.C().namespace, tt.C().parts, &namespaceManager{})
 
 			opts := []gocmp.Option{
 				testutil.DeepAllowUnexported(xmlElement{}),
@@ -4150,7 +4142,7 @@ func TestMapToXMLAttrs(t *testing.T) {
 	for _, tt := range table.Entries() {
 		tt := tt
 		t.Run(tt.Name(), func(t *testing.T) {
-			result := mapToXMLAttrs(tt.C().attrMap)
+			result := mapToXMLAttrs(tt.C().attrMap, &namespaceManager{})
 
 			opts := []gocmp.Option{
 				cmpopts.SortSlices(func(a, b xml.Attr) bool {
