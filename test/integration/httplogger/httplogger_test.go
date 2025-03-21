@@ -4,6 +4,7 @@ package httplogger_test
 
 import (
 	"bytes"
+	"compress/gzip"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -549,4 +550,137 @@ func TestMaskBodies_Middleware_ContentLengthMinusOne(t *testing.T) {
 	testutil.Diff(t, true, strings.Contains(str, `\"test\":\"request\"`))
 	testutil.Diff(t, true, strings.Contains(str, `\"test\":\"response\"`))
 
+}
+
+func TestGzipCompression_Middleware(t *testing.T) {
+	configs := []string{
+		testDataDir + "config-mask-bodies.yaml",
+	}
+
+	server := common.NewAPI()
+	err := app.LoadConfigFiles(server, configs)
+	testutil.DiffError(t, nil, nil, err)
+
+	ref := &kernel.Reference{
+		APIVersion: "core/v1",
+		Kind:       "HTTPLogger",
+		Name:       "default",
+		Namespace:  "",
+	}
+	m, err := api.ReferTypedObject[core.Middleware](server, ref)
+	testutil.DiffError(t, nil, nil, err)
+	testHTTPLoggerMiddleware(t, m)
+
+	// Create the middleware handler
+	h := m.Middleware(http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			body := []byte(`{"bar":"BAR","test":"response"}`)
+			w.Header().Set("test", "ok")
+			w.Header().Set("Content-Type", "application/json")
+			w.Header().Set("Transfer-Encoding", "chunked")
+			w.Header().Set("Content-Encoding", "gzip") // Gzip compression
+			// Send the response with Gzip compression
+			gz := gzip.NewWriter(w)
+			defer gz.Close()
+			w.WriteHeader(http.StatusOK)
+			gz.Write(body)
+		}),
+	)
+
+	// Specify Gzip compression in the request
+	body := bytes.NewReader([]byte(`{"foo":"FOO","test":"request"}`))
+	req := httptest.NewRequest(http.MethodGet, "/test", body)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Encoding", "gzip") // Gzip compressed request
+	res := httptest.NewRecorder()
+	h.ServeHTTP(res, req)
+
+	// Check the response status code and header
+	b, _ := io.ReadAll(res.Body)
+
+	// Check that the Content-Encoding header in the response is gzip
+	testutil.Diff(t, http.StatusOK, res.Result().StatusCode)
+	testutil.Diff(t, "ok", res.Header().Get("test"))
+	testutil.Diff(t, "gzip", res.Header().Get("Content-Encoding")) // Verify it's compressed
+
+	// Decompress the compressed response
+	gzReader, err := gzip.NewReader(bytes.NewReader(b))
+	testutil.Diff(t, nil, err)
+
+	var uncompressedBody []byte
+	uncompressedBody, err = io.ReadAll(gzReader)
+	testutil.Diff(t, nil, err)
+
+	// Check the decompressed response body
+	testutil.Diff(t, `{"bar":"BAR","test":"response"}`, string(uncompressedBody))
+}
+
+func TestGzipCompression_Tripperware(t *testing.T) {
+	configs := []string{
+		testDataDir + "config-mask-bodies.yaml",
+	}
+
+	server := common.NewAPI()
+	err := app.LoadConfigFiles(server, configs)
+	testutil.DiffError(t, nil, nil, err)
+
+	ref := &kernel.Reference{
+		APIVersion: "core/v1",
+		Kind:       "HTTPLogger",
+		Name:       "default",
+		Namespace:  "",
+	}
+	tr, err := api.ReferTypedObject[core.Tripperware](server, ref)
+	testutil.DiffError(t, nil, nil, err)
+	testHTTPLoggerTripperware(t, tr)
+
+	// Create the Tripperware handler
+	rt := tr.Tripperware(core.RoundTripperFunc(
+		func(r *http.Request) (*http.Response, error) {
+			body := []byte(`{"bar":"BAR","test":"response"}`)
+			// Return the Gzip compressed response
+			var buf bytes.Buffer
+			gz := gzip.NewWriter(&buf)
+			gz.Write(body)
+			gz.Close()
+
+			return &http.Response{
+				StatusCode:       http.StatusOK,
+				ContentLength:    int64(buf.Len()), // Set the correct Content-Length
+				TransferEncoding: []string{"chunked"},
+				Header: http.Header{
+					"Test":             {"ok"},
+					"Content-Type":     {"application/json"},
+					"Content-Encoding": {"gzip"}, // Specify Gzip compression
+				},
+				Body: io.NopCloser(&buf), // Gzip compressed response body
+			}, nil
+		},
+	))
+
+	// Specify Gzip compression in the request
+	body := bytes.NewReader([]byte(`{"foo":"FOO","test":"request"}`))
+	req := httptest.NewRequest(http.MethodGet, "/test", body)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Encoding", "gzip") // Gzip compressed request
+
+	// Send the request via Tripperware
+	res, _ := rt.RoundTrip(req)
+	b, _ := io.ReadAll(res.Body)
+
+	// Check the response status code and header
+	testutil.Diff(t, http.StatusOK, res.StatusCode)
+	testutil.Diff(t, "ok", res.Header.Get("test"))
+	testutil.Diff(t, "gzip", res.Header.Get("Content-Encoding")) // Verify it's compressed
+
+	// Decompress the compressed response
+	gzReader, err := gzip.NewReader(bytes.NewReader(b))
+	testutil.Diff(t, nil, err)
+
+	var uncompressedBody []byte
+	uncompressedBody, err = io.ReadAll(gzReader)
+	testutil.Diff(t, nil, err)
+
+	// Check the decompressed response body
+	testutil.Diff(t, `{"bar":"BAR","test":"response"}`, string(uncompressedBody))
 }
