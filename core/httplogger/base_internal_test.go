@@ -946,7 +946,7 @@ func TestBaseLogger_bodyReadCloser(t *testing.T) {
 			},
 		),
 		gen(
-			"streaming body(length = -1) with Compression Request",
+			"Compressed request with streaming body(length = -1)",
 			[]string{},
 			[]string{},
 			&condition{
@@ -1180,14 +1180,13 @@ func TestBaseLogger_bodyWriter(t *testing.T) {
 			},
 		),
 		gen(
-			"unknown length body(length = -1) with Compression Request",
+			"Compressed request with unknown body length (-1)",
 			[]string{},
 			[]string{},
 			&condition{
 				bl: &baseLogger{
 					mimes:   []string{"application/json"},
 					maxBody: 100,
-					base64:  true,
 				},
 				mimeType:     "application/json",
 				length:       -1, // Content-Length unknown
