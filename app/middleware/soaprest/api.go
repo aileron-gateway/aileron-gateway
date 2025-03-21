@@ -34,6 +34,8 @@ func (o *API) Default() protoreflect.ProtoMessage {
 			Name:      "default",
 		},
 		Spec: &v1.SOAPRESTMiddlewareSpec{
+			Matcher: &kernel.MatcherSpec{Patterns: nil, MatchType: kernel.MatchType_Exact},
+
 			AttributeKey: "attrKey",
 			NamespaceKey: "nsKey",
 			ArrayKey:     "arrayKey",
