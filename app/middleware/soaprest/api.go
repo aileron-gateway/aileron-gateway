@@ -38,7 +38,6 @@ func (o *API) Default() protoreflect.ProtoMessage {
 
 			AttributeKey: "attrKey",
 			NamespaceKey: "nsKey",
-			ArrayKey:     "arrayKey",
 			TextKey:      "textKey",
 
 			SOAPNamespacePrefix: "soap",
@@ -65,7 +64,6 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.Prot
 
 		attributeKey: c.Spec.AttributeKey,
 		namespaceKey: c.Spec.NamespaceKey,
-		arrayKey:     c.Spec.ArrayKey,
 		textKey:      c.Spec.TextKey,
 
 		soapNamespacePrefix: c.Spec.SOAPNamespacePrefix,

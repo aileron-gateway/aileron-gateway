@@ -44,7 +44,6 @@ func TestCreate(t *testing.T) {
 					attributeKey: "attrKey",
 					textKey:      "textKey",
 					namespaceKey: "nsKey",
-					arrayKey:     "arrayKey",
 
 					soapNamespacePrefix: "soap",
 

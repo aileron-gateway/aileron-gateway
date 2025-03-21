@@ -65,15 +65,10 @@ message SOAPRESTMiddlewareSpec {
     string NamespaceKey = 5 [json_name = "namespaceKey", (buf.validate.field).string.pattern = "^[a-zA-Z:.\\_|/#@][a-zA-Z0-9_.-]*$"];
 
     // [OPTIONAL]
-    // ArrayKey is the key used to represent array elements during the conversion from JSON to XML.
-    // Default value is "item".
-    string ArrayKey = 6 [json_name = "arrayKey", (buf.validate.field).string.pattern = "^[a-zA-Z:.\\_|/#@][a-zA-Z0-9_.-]*$"];
-
-    // [OPTIONAL]
     // SOAPNamespacePrefix specifies the namespace prefix for defining "http://schemas.xmlsoap.org/soap/envelope/"
     // during the conversion between SOAP and REST, as well as REST to SOAP.
     // Default value is "soap".
-    string SOAPNamespacePrefix = 7 [json_name = "soapNamespacePrefix", (buf.validate.field).string.pattern = "^[a-zA-Z:.\\_|/#@][a-zA-Z0-9_.-]*$"];
+    string SOAPNamespacePrefix = 6 [json_name = "soapNamespacePrefix", (buf.validate.field).string.pattern = "^[a-zA-Z:.\\_|/#@][a-zA-Z0-9_.-]*$"];
 
     // [OPTIONAL]
     // ExtractStringElement is a boolean value used to extract elements enclosed in double quotes within XML.
@@ -89,7 +84,7 @@ message SOAPRESTMiddlewareSpec {
     //  "true" → "true"
     //
     // Default value is "false".
-    bool ExtractStringElement = 8 [json_name = "extractStringElement"];
+    bool ExtractStringElement = 7 [json_name = "extractStringElement"];
 
     // [OPTIONAL]
     // ExtractBooleanElement is a boolean value used to extract elements enclosed in boolean tags within XML.
@@ -102,7 +97,7 @@ message SOAPRESTMiddlewareSpec {
     //  "false" → false
     //
     // Default value is "false".
-    bool ExtractBooleanElement = 9 [json_name = "extractBooleanElement"];
+    bool ExtractBooleanElement = 8 [json_name = "extractBooleanElement"];
 
     // [OPTIONAL]
     // ExtractIntegerElement is a boolean value used to extract integer elements within XML.
@@ -116,7 +111,7 @@ message SOAPRESTMiddlewareSpec {
     //
     // The precision is based on the 64-bit integer type.
     // Default value is "false".
-    bool ExtractIntegerElement = 10 [json_name = "extractIntegerElement"];
+    bool ExtractIntegerElement = 9 [json_name = "extractIntegerElement"];
 
     // [OPTIONAL]
     // ExtractFloatElement is a value used to extract float elements within XML.
@@ -130,5 +125,5 @@ message SOAPRESTMiddlewareSpec {
     //
     // The precision is based on the 64-bit float type.
     // Default value is "false".
-    bool ExtractFloatElement = 11 [json_name = "extractFloatElement"];
+    bool ExtractFloatElement = 10 [json_name = "extractFloatElement"];
 }
