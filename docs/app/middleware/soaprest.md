@@ -1230,6 +1230,50 @@ The use of default namespace declarations is also possible, in REST/SOAP convers
 </soap:Envelope>
 ```
 
+Attributes that are not namespaces but need to be specified, such as EncodingStyle, can be reflected in the XML by designating them with `attributeKey`.
+
+```json
+{
+  "soap_Envelope": {
+    "attributeKey": {
+      "soap:encodingStyle": "http://schemas.xmlsoap.org/soap/encoding/"
+    },
+    "namespaceKey": {
+      "ns": "http://example.com/",
+      "soap": "http://schemas.xmlsoap.org/soap/envelope/",
+      "xsd": "http://www.w3.org/2001/XMLSchema",
+      "xsi": "http://www.w3.org/2001/XMLSchema-instance"
+    },
+    "soap_Body": {
+      "attributeKey": {
+        "soap_encodingStyle": "http://schemas.xmlsoap.org/soap/encoding/"
+      },
+      "ns_Item": {
+        "Quantity": {
+          "attributeKey": {
+            "xsi_type": "xsd:int"
+          },
+          "textKey": "10"
+        }
+      }
+    },
+    "soap_Header": {}
+  }
+}
+```
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ns="http://example.com/" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" soap:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+  <soap:Header></soap:Header>
+  <soap:Body soap:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+    <ns:Item>
+      <Quantity xsi:type="xsd:int">10</Quantity>
+    </ns:Item>
+  </soap:Body>
+</soap:Envelope>
+```
+
 ##### Error Handling
 
 If an error occurs during the process of converting REST/JSON to SOAP/XML, an error related to `AppMiddleSOAPRESTDecodeResponseBody` will be returned.
