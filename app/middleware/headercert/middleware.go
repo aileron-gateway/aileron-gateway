@@ -10,9 +10,9 @@ import (
 	"net/http"
 	"os"
 	"time"
+
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
-
 )
 
 type HeaderCertAuth struct {
@@ -25,13 +25,13 @@ func (h *HeaderCertAuth) loadRootCert() (*x509.CertPool, error) {
 
 	roots := x509.NewCertPool()
 
-	// ローカルからルート証明書を読み込み
+	// Read the root certificate specified in the local file
 	for _, c := range h.rootCAs {
 		rootCertPEM, err := os.ReadFile(c)
 		if err != nil {
 			return nil, err
 		}
-		// ルート証明書をCertPoolに追加
+		// Add the root certificate to CertPool
 		if !roots.AppendCertsFromPEM(rootCertPEM) {
 			return nil, fmt.Errorf("failed to add root certificate to CertPool")
 		}
@@ -41,19 +41,19 @@ func (h *HeaderCertAuth) loadRootCert() (*x509.CertPool, error) {
 }
 
 func (h *HeaderCertAuth) convertCert(certHeader string) (*x509.Certificate, error) {
-	// base64でエンコードされている文字列のクライアント証明書をデコードし、バイト列に変換
+	// Decode a Base64-encoded client certificate and convert it to a byte array
 	decodedCertHeader, err := base64.StdEncoding.DecodeString(certHeader)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode certificate")
 	}
 
-	// バイト列に変換したクライアント証明書をPEMブロックに変換
+	// Convert the client certificate into a PEM block
 	certBlock, _ := pem.Decode(decodedCertHeader)
 	if certBlock == nil {
 		return nil, fmt.Errorf("failed to decode certificate")
 	}
 
-	// PEMブロックを解析
+	// Analyze the PEM block
 	cert, err := x509.ParseCertificate(certBlock.Bytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse certificate")
@@ -79,7 +79,7 @@ func (h *HeaderCertAuth) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(r.Header)
 
-		// 証明書の抽出
+		// Extract a client certificate from the header
 		certHeader := r.Header.Get("X-SSL-Client-Cert")
 		fmt.Printf("certificate: %s\n", certHeader)
 		if certHeader == "" {
@@ -87,7 +87,7 @@ func (h *HeaderCertAuth) Middleware(next http.Handler) http.Handler {
 			return
 		}
 
-		// フィンガープリントの抽出
+		// Extract a fingerprint from the header
 		fingerprintHeader := r.Header.Get("X-SSL-Client-Fingerprint")
 		fmt.Printf("fingerprint: %s\n", fingerprintHeader)
 		if certHeader == "" {
@@ -113,19 +113,19 @@ func (h *HeaderCertAuth) Middleware(next http.Handler) http.Handler {
 			Roots: roots,
 		}
 
-		// クライアント証明書の検証
+		// Verify the client certificate 
 		if _, err := cert.Verify(opts); err != nil {
 			http.Error(w, "Fail to verify certificate", http.StatusUnauthorized)
 			return
 		}
 
-		// フィンガープリントの検証
+		// Verify the fingerprint
 		if !h.isFingerprintMatched(cert, fingerprintHeader) {
 			http.Error(w, "Fail to verify fingerprint", http.StatusUnauthorized)
 			return
 		}
 
-		// 有効期限の確認
+		// Check the expiration date
 		if isCertExpired(cert) {
 			http.Error(w, "Certificate has expired", http.StatusUnauthorized)
 			return
