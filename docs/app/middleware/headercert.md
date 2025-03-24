@@ -90,7 +90,6 @@ curl -v --cert pki/client.crt --key pki/client.key \
      http://localhost:8080/
 ```
 
-
 ## Test Plan
 
 ### Unit Tests
