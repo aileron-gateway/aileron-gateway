@@ -7,7 +7,7 @@ This is the design document of core/headercert package which provides `HeaderCer
 
 ## Motivation
 
-This Middleware is useful when TLS traffic is terminated by an external Load Balancer before entering AILERON Gateway. 
+This Middleware is useful when TLS traffic is terminated by an external Load Balancer before entering AILERON Gateway.
 The client certificate is passed along in HTTP headers for subsequent validation.
 
 ### Goals
