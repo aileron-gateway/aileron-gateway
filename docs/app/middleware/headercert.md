@@ -63,8 +63,8 @@ HeaderCertAuthMiddleware performs the following validations on the client certif
 
    Hashes the client certificate using SHA256 and compares it with the fingerprint sent from the proxy via the HTTP header. If the fingerprint does not match the hashed value, it returns a 401 Unauthorized error.
 
-To achieve this, the middleware requires the proxy to add the client certificate and fingerprint to the request headers. 
-**The client certificate should be in PEM format and Base64 encoded, while the fingerprint should be a SHA256 hash of the client certificate.** 
+To achieve this, the middleware requires the proxy to add the client certificate and fingerprint to the request headers.
+**The client certificate should be in PEM format and Base64 encoded, while the fingerprint should be a SHA256 hash of the client certificate.**
 These should be stored in the `X-SSL-Client-Cert` and `X-SSL-Client-Fingerprint` headers, respectively.
      
 
