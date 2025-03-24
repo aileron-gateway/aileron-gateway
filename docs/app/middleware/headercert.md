@@ -66,7 +66,6 @@ HeaderCertAuthMiddleware performs the following validations on the client certif
 To achieve this, the middleware requires the proxy to add the client certificate and fingerprint to the request headers.
 **The client certificate should be in PEM format and Base64 encoded, while the fingerprint should be a SHA256 hash of the client certificate.**
 These should be stored in the `X-SSL-Client-Cert` and `X-SSL-Client-Fingerprint` headers, respectively.
-     
 
 ### Error Handling
 
