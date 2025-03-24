@@ -6,11 +6,11 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
 	"time"
-	"errors"
 
 	"github.com/aileron-gateway/aileron-gateway/app"
 	"github.com/aileron-gateway/aileron-gateway/core"
@@ -84,46 +84,46 @@ func (m *HeaderCert) Middleware(next http.Handler) http.Handler {
 			m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusBadRequest))
 			return
 		}
-		
+
 		fingerprintHeader := r.Header.Get("X-SSL-Client-Fingerprint")
 		if certHeader == "" {
 			err := app.ErrAppMiddleHeaderPolicy.WithoutStack(nil, map[string]any{"reason": "fingerprint is not found"})
 			m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusBadRequest))
 			return
 		}
-		
+
 		cert, err := m.convertCert(certHeader)
 		if err != nil {
 			err := app.ErrAppMiddleHeaderPolicy.WithoutStack(nil, map[string]any{"reason": err.Error()})
 			m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusBadRequest))
 			return
 		}
-		
+
 		roots, err := m.loadRootCert()
 		if err != nil {
 			err := app.ErrAppMiddleHeaderPolicy.WithoutStack(nil, map[string]any{"reason": err.Error()})
 			m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusInternalServerError))
 			return
 		}
-		
+
 		opts := x509.VerifyOptions{
 			Roots: roots,
 		}
-		
+
 		// Verify the client certificate
 		if _, err := cert.Verify(opts); err != nil {
 			err := app.ErrAppMiddleHeaderPolicy.WithoutStack(nil, map[string]any{"reason": "fail to verify certificate"})
 			m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusUnauthorized))
 			return
 		}
-		
+
 		// Verify the fingerprint
 		if !m.isFingerprintMatched(cert, fingerprintHeader) {
 			err := app.ErrAppMiddleHeaderPolicy.WithoutStack(nil, map[string]any{"reason": "fail to verify fingerprint"})
 			m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusUnauthorized))
 			return
 		}
-		
+
 		// Check the expiration date
 		if isCertExpired(cert) {
 			err := app.ErrAppMiddleHeaderPolicy.WithoutStack(nil, map[string]any{"reason": "certificate has expired"})
