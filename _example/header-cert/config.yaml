@@ -38,7 +38,7 @@ kind: HeaderCertAuthMiddleware
 spec:
   tlsConfig:
     RootCAs:
-        - rootCA.crt
+        - ./_example/header-cert/pki/rootCA.crt
 
 ---
 apiVersion: core/v1

@@ -64,14 +64,10 @@ func (h *HeaderCertAuth) convertCert(certHeader string) (*x509.Certificate, erro
 
 func (h *HeaderCertAuth) isFingerprintMatched(cert *x509.Certificate, fingerprintHeader string) bool {
 	fingerprint := sha256.Sum256(cert.Raw)
-	fmt.Println(":::fingerprint:::")
-	fmt.Println(hex.EncodeToString(fingerprint[:]))
 	return hex.EncodeToString(fingerprint[:]) == fingerprintHeader
 }
 
 func isCertExpired(cert *x509.Certificate) bool {
-	fmt.Println(":::expiration date:::")
-	fmt.Println(cert.NotAfter)
 	return time.Now().After(cert.NotAfter)
 }
 
@@ -79,17 +75,13 @@ func (h *HeaderCertAuth) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(r.Header)
 
-		// Extract a client certificate from the header
 		certHeader := r.Header.Get("X-SSL-Client-Cert")
-		fmt.Printf("certificate: %s\n", certHeader)
 		if certHeader == "" {
 			http.Error(w, "Client certificate not found", http.StatusBadRequest)
 			return
 		}
 
-		// Extract a fingerprint from the header
 		fingerprintHeader := r.Header.Get("X-SSL-Client-Fingerprint")
-		fmt.Printf("fingerprint: %s\n", fingerprintHeader)
 		if certHeader == "" {
 			http.Error(w, "Fingerprint is not found", http.StatusBadRequest)
 			return
@@ -101,9 +93,6 @@ func (h *HeaderCertAuth) Middleware(next http.Handler) http.Handler {
 			return
 		}
 
-		fmt.Println(":::certificate:::")
-		fmt.Println(cert)
-
 		roots, err := h.loadRootCert()
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -113,7 +102,7 @@ func (h *HeaderCertAuth) Middleware(next http.Handler) http.Handler {
 			Roots: roots,
 		}
 
-		// Verify the client certificate 
+		// Verify the client certificate
 		if _, err := cert.Verify(opts); err != nil {
 			http.Error(w, "Fail to verify certificate", http.StatusUnauthorized)
 			return
