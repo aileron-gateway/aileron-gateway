@@ -15,7 +15,7 @@ spec:
         - apiVersion: core/v1
           kind : HTTPLogger
         - apiVersion: app/v1
-          kind: HeaderCertAuthMiddleware
+          kind: HeaderCertMiddleware
       handlers:
         - handler:
             apiVersion: core/v1
@@ -34,7 +34,7 @@ spec:
 
 ---
 apiVersion: app/v1
-kind: HeaderCertAuthMiddleware
+kind: HeaderCertMiddleware
 spec:
   tlsConfig:
     RootCAs:

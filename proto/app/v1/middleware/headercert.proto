@@ -6,15 +6,15 @@ import "kernel/network.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
 
-message HeaderCertAuthMiddleware {
+message HeaderCertMiddleware {
     string                          APIVersion = 1 [json_name = "apiVersion"];
     string                          Kind       = 2 [json_name = "kind"];
     kernel.Metadata                 Metadata   = 3 [json_name = "metadata"];
     kernel.Status                   Status     = 4 [json_name = "status"];
-    HeaderCertAuthMiddlewareSpec    Spec       = 5 [json_name = "spec"];
+    HeaderCertMiddlewareSpec        Spec       = 5 [json_name = "spec"];
 }
 
-message HeaderCertAuthMiddlewareSpec {
+message HeaderCertMiddlewareSpec {
     kernel.Reference ErrorHandler   = 1 [json_name = "errorHandler"];
     kernel.TLSConfig TLSConfig      = 2 [json_name = "tlsConfig"];
 }

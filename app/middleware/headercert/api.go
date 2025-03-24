@@ -12,21 +12,21 @@ import (
 
 const (
 	apiVersion = "app/v1"
-	kind       = "HeaderCertAuthMiddleware"
+	kind       = "HeaderCertMiddleware"
 	Key        = apiVersion + "/" + kind
 )
 
 var (
 	Resource api.Resource = &API{
 		BaseResource: &api.BaseResource{
-			DefaultProto: &v1.HeaderCertAuthMiddleware{
+			DefaultProto: &v1.HeaderCertMiddleware{
 				APIVersion: apiVersion,
 				Kind:       kind,
 				Metadata: &kernel.Metadata{
 					Namespace: "default",
 					Name:      "default",
 				},
-				Spec: &v1.HeaderCertAuthMiddlewareSpec{
+				Spec: &v1.HeaderCertMiddlewareSpec{
 					TLSConfig: &kernel.TLSConfig{},
 				},
 			},
@@ -39,14 +39,14 @@ type API struct {
 }
 
 func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.ProtoMessage) (any, error) {
-	c := msg.(*v1.HeaderCertAuthMiddleware)
+	c := msg.(*v1.HeaderCertMiddleware)
 
 	eh, err := utilhttp.ErrorHandler(a, c.Spec.ErrorHandler)
 	if err != nil {
 		return nil, core.ErrCoreGenCreateObject.WithoutStack(err, map[string]any{"kind": kind})
 	}
 
-	return &HeaderCertAuth{
+	return &HeaderCert{
 		lg:      log.GlobalLogger(log.DefaultLoggerName),
 		eh:      eh,
 		rootCAs: c.Spec.TLSConfig.RootCAs,
