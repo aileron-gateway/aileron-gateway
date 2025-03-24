@@ -3989,7 +3989,8 @@ func TestHasNullValue(t *testing.T) {
 
 func TestMapToXMLAttrs(t *testing.T) {
 	type condition struct {
-		attrMap map[string]any
+		attrMap   map[string]any
+		nsManager namespaceManager
 	}
 	type action struct {
 		expect []xml.Attr
@@ -4135,6 +4136,63 @@ func TestMapToXMLAttrs(t *testing.T) {
 				},
 			},
 		),
+		gen(
+			"attribute begins with xmlns_",
+			nil,
+			nil,
+			&condition{
+				attrMap: map[string]any{
+					"xmlns_t": "http://example.com/",
+				},
+			},
+			&action{
+				expect: []xml.Attr{
+					{
+						Name:  xml.Name{Local: "xmlns:t"},
+						Value: "http://example.com/",
+					},
+				},
+			},
+		),
+		gen(
+			"attribute begins with xsi_",
+			nil,
+			nil,
+			&condition{
+				attrMap: map[string]any{
+					"xsi_t": "exampleType",
+				},
+			},
+			&action{
+				expect: []xml.Attr{
+					{
+						Name:  xml.Name{Local: "xsi:t"},
+						Value: "exampleType",
+					},
+				},
+			},
+		),
+		gen(
+			"Attributes that do not begin with xmlns_ or xsi_",
+			nil,
+			nil,
+			&condition{
+				attrMap: map[string]any{
+					"example_attribute": "exampleValue",
+				},
+				nsManager: namespaceManager{map[string]string{
+					"example": "http://example.com/",
+				}},
+			},
+			&action{
+				expect: []xml.Attr{
+					{
+						Name:  xml.Name{Local: "example:attribute"},
+						Value: "exampleValue",
+					},
+				},
+			},
+		),
 	}
 
 	testutil.Register(table, testCases...)
@@ -4142,7 +4200,9 @@ func TestMapToXMLAttrs(t *testing.T) {
 	for _, tt := range table.Entries() {
 		tt := tt
 		t.Run(tt.Name(), func(t *testing.T) {
-			result := mapToXMLAttrs(tt.C().attrMap, &namespaceManager{})
+			result := mapToXMLAttrs(tt.C().attrMap, &namespaceManager{
+				tt.C().nsManager.namespaces,
+			})
 
 			opts := []gocmp.Option{
 				cmpopts.SortSlices(func(a, b xml.Attr) bool {

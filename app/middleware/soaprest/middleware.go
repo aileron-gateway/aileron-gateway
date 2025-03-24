@@ -202,8 +202,8 @@ func (s soapREST) xmlToMap(node xmlNode, nsCtx *namespaceContext) any {
 		childrenMap := make(map[string][]any)
 
 		for _, child := range node.Children {
-			childName := s.getNodeName(child, nsCtx)
 			childValue := s.xmlToMap(child, nsCtx)
+			childName := s.getNodeName(child, nsCtx)
 
 			if childMap, ok := childValue.(map[string]any); ok {
 				if len(childMap) == 1 {
@@ -957,10 +957,32 @@ func hasNullValue(data any) bool {
 }
 
 // mapToXMLAttrs is a helper function that converts attributes (key-value pairs) in JSON to `xml.Attr`
-func mapToXMLAttrs(attrMap map[string]any, nsManager *namespaceManager) []xml.Attr {
+func mapToXMLAttrs(attrMap map[string]interface{}, nsManager *namespaceManager) []xml.Attr {
 	attrs := make([]xml.Attr, 0, len(attrMap))
 	for k, v := range attrMap {
-		parts := strings.SplitN(k, separatorChar, 2)
+		// Handling of attributes that begin with "xmlns_"
+		if strings.HasPrefix(k, "xmlns_") {
+			localName := strings.TrimPrefix(k, "xmlns_")
+			attrs = append(attrs, xml.Attr{
+				Name:  xml.Name{Local: "xmlns:" + localName},
+				Value: fmt.Sprintf("%v", v),
+			})
+			continue
+		}
+
+		// Handling of attributes that begin with "xsi_"
+		if strings.HasPrefix(k, "xsi_") {
+			// "xsi_type" → "xsi:type"
+			localName := strings.TrimPrefix(k, "xsi_")
+			attrs = append(attrs, xml.Attr{
+				Name:  xml.Name{Local: "xsi:" + localName},
+				Value: fmt.Sprintf("%v", v),
+			})
+			continue
+		}
+
+		// 3) Handling attributes with common prefixes using separatorChar
+		parts := strings.SplitN(k, "_", 2)
 		if len(parts) == 2 && nsManager.namespaces[parts[0]] != "" {
 			attrs = append(attrs, xml.Attr{
 				Name:  xml.Name{Local: parts[0] + ":" + parts[1]},
