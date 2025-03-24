@@ -25,7 +25,6 @@ type HeaderCert struct {
 }
 
 func (m *HeaderCert) loadRootCert() (*x509.CertPool, error) {
-
 	roots := x509.NewCertPool()
 
 	// Read the root certificate specified in the local file
