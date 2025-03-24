@@ -2506,7 +2506,6 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 
 		attributeKey string
 		textKey      string
-		arrayKey     string
 	}
 
 	type action struct {

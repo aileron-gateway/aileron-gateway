@@ -915,13 +915,11 @@ func (s soapREST) parseValue(content string) any {
 // sanitizeXMLCharacters removes invalid XML 1.0 characters from the input string.
 func sanitizeControlCharacters(input string) string {
 	var sanitized strings.Builder
-
 	for _, r := range input {
 		if isValidXMLChar(r) {
 			sanitized.WriteRune(r)
 		}
 	}
-
 	return sanitized.String()
 }
 
