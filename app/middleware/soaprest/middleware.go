@@ -181,7 +181,13 @@ func (s soapREST) xmlToMap(node xmlNode, nsCtx *namespaceContext) any {
 				nsCtx.addNamespace(prefix, attr.Value)
 			}
 		} else if !strings.HasPrefix(attr.Name.Space, xmlNamespaceKey) {
-			attributes[attr.Name.Local] = attr.Value
+			// Obtain the prefix corresponding to the namespace and construct the key
+			prefix := nsCtx.getPrefix(attr.Name.Space)
+			if prefix != "" {
+				attributes[prefix+separatorChar+attr.Name.Local] = attr.Value
+			} else {
+				attributes[attr.Name.Local] = attr.Value
+			}
 		}
 	}
 
@@ -979,7 +985,7 @@ func mapToXMLAttrs(attrMap map[string]interface{}, nsManager *namespaceManager) 
 			continue
 		}
 
-		// 3) Handling attributes with common prefixes using separatorChar
+		// Handling attributes with common prefixes using separatorChar
 		parts := strings.SplitN(k, "_", 2)
 		if len(parts) == 2 && nsManager.namespaces[parts[0]] != "" {
 			attrs = append(attrs, xml.Attr{
