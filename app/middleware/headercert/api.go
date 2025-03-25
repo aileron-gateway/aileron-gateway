@@ -46,7 +46,7 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.Prot
 		return nil, core.ErrCoreGenCreateObject.WithoutStack(err, map[string]any{"kind": kind})
 	}
 
-	return &HeaderCert{
+	return &headerCert{
 		lg:      log.GlobalLogger(log.DefaultLoggerName),
 		eh:      eh,
 		rootCAs: c.Spec.TLSConfig.RootCAs,

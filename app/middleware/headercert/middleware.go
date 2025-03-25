@@ -18,13 +18,13 @@ import (
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 )
 
-type HeaderCert struct {
+type headerCert struct {
 	lg      log.Logger
 	eh      core.ErrorHandler
 	rootCAs []string
 }
 
-func (m *HeaderCert) loadRootCert() (*x509.CertPool, error) {
+func (m *headerCert) loadRootCert() (*x509.CertPool, error) {
 	roots := x509.NewCertPool()
 
 	// Read the root certificate specified in the local file
@@ -42,7 +42,7 @@ func (m *HeaderCert) loadRootCert() (*x509.CertPool, error) {
 	return roots, nil
 }
 
-func (m *HeaderCert) convertCert(certHeader string) (*x509.Certificate, error) {
+func (m *headerCert) convertCert(certHeader string) (*x509.Certificate, error) {
 	// Decode a Base64-encoded client certificate and convert it to a byte array
 	decodedCertHeader, err := base64.StdEncoding.DecodeString(certHeader)
 	if err != nil {
@@ -64,16 +64,16 @@ func (m *HeaderCert) convertCert(certHeader string) (*x509.Certificate, error) {
 	return cert, nil
 }
 
-func (m *HeaderCert) isFingerprintMatched(cert *x509.Certificate, fingerprintHeader string) bool {
+func (m *headerCert) isFingerprintMatched(cert *x509.Certificate, fingerprintHeader string) bool {
 	fingerprint := sha256.Sum256(cert.Raw)
 	return hex.EncodeToString(fingerprint[:]) == fingerprintHeader
 }
 
-func isCertExpired(cert *x509.Certificate) bool {
+func (m *headerCert) isCertExpired(cert *x509.Certificate) bool {
 	return time.Now().After(cert.NotAfter)
 }
 
-func (m *HeaderCert) Middleware(next http.Handler) http.Handler {
+func (m *headerCert) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(r.Header)
 
@@ -124,11 +124,20 @@ func (m *HeaderCert) Middleware(next http.Handler) http.Handler {
 		}
 
 		// Check the expiration date
-		if isCertExpired(cert) {
+		if m.isCertExpired(cert) {
 			err := app.ErrAppMiddleHeaderPolicy.WithoutStack(nil, map[string]any{"reason": "certificate has expired"})
 			m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusUnauthorized))
 			return
 		}
+
+		// ctx := r.Context()
+		// h := utilhttp.ProxyHeaderFromContext(ctx)
+		// if h == nil {
+		// 	h = make(http.Header)
+		// }
+		// h.Set("info", "this info is added in header-cert-middleware")
+		// ctx = utilhttp.ContextWithProxyHeader(ctx, h)
+		// r = r.WithContext(ctx)
 
 		next.ServeHTTP(w, r)
 	})
