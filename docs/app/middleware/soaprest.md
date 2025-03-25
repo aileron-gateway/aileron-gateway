@@ -108,6 +108,7 @@ During this conversion:
    - Proper SOAP namespace declarations
    - Optional SOAP Header section if present in the original data
    - SOAP Body containing the response data
+   - Invalid characters in XML will be sanitized
 3. **XML Marshalling**: The SOAP envelope structure is marshaled to XML
 4. **Response Preparation**: The XML content is sent back with:
    - Content-Type set to "text/xml; charset=utf-8"
@@ -852,6 +853,46 @@ It is also possible to declare the namespace under the SOAPEnvelope element, and
 }
 ```
 
+When a prefix defined in the namespace is used as the key for an attribute, it will automatically be converted during JSON transformation, changing the colon to an underscore as the `separatorChar`.
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <soap:Header></soap:Header>
+  <soap:Body>
+    <ns:example xmlns:ns="http://example.com/stockquote">
+      <exampleKey xsi:type="xsd:string">exampleValue</exampleKey>
+    </ns:example>
+  </soap:Body>
+</soap:Envelope>
+```
+
+```json
+{
+  "soap_Envelope": {
+    "namespaceKey": {
+      "soap": "http://schemas.xmlsoap.org/soap/envelope/",
+      "xsd": "http://www.w3.org/2001/XMLSchema",
+      "xsi": "http://www.w3.org/2001/XMLSchema-instance"
+    },
+    "soap_Body": {
+      "ns_example": {
+        "exampleKey": {
+          "attributeKey": {
+            "xsi_type": "xsd:string"
+          },
+          "textKey": "exampleValue"
+        },
+        "namespaceKey": {
+          "ns": "http://example.com/stockquote"
+        }
+      }
+    },
+    "soap_Header": {}
+  }
+}
+```
+
 ##### Error Handling
 
 If a request that is not compliant with SOAP 1.1 is sent, an error related to `AppMiddleSOAPRESTVersionMismatch` will be returned.
@@ -905,8 +946,6 @@ If an error occurs during the conversion process from SOAP/XML to REST/JSON, an 
     }
 }
 ```
-
-
 
 ##### Request Header
 
@@ -1072,6 +1111,18 @@ Additionally, even if the `xsi` namespace is not defined in the JSON's SOAPEnvel
 </soap:Envelope>
 ```
 
+If the JSON contains characters that are not valid in XML, those characters will be sanitized and output accordingly. The invalid characters will be handled according to the XML 1.0 specification.
+
+```json
+{
+  "StringElement": "Hello\u0000World\u0001"
+}
+```
+
+```xml
+<StringElement>HelloWorld</StringElement>
+```
+
 ##### Arrays
 
 In the conversion from REST/JSON to SOAP/XML, array elements are converted into XML based on the keys used in the JSON.
@@ -1235,9 +1286,6 @@ Attributes that are not namespaces but need to be specified, such as EncodingSty
 ```json
 {
   "soap_Envelope": {
-    "attributeKey": {
-      "soap:encodingStyle": "http://schemas.xmlsoap.org/soap/encoding/"
-    },
     "namespaceKey": {
       "ns": "http://example.com/",
       "soap": "http://schemas.xmlsoap.org/soap/envelope/",
@@ -1264,12 +1312,118 @@ Attributes that are not namespaces but need to be specified, such as EncodingSty
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<soap:Envelope xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ns="http://example.com/" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" soap:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+<soap:Envelope xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ns="http://example.com/" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
   <soap:Header></soap:Header>
   <soap:Body soap:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
     <ns:Item>
       <Quantity xsi:type="xsd:int">10</Quantity>
     </ns:Item>
+  </soap:Body>
+</soap:Envelope>
+```
+
+If the key name of the element specified by `attributeKey` contains the prefixes `xmlns_` or `xsi_`, SOAPRESTMiddleware will automatically convert underscore `_` to colon `:` even if namespace definitions are not present in the SOAP Envelope.
+
+```json
+{
+  "soap_Envelope": {
+    "attributeKey": {
+      "encodingStyle": "http://schemas.xmlsoap.org/soap/encoding/"
+    },
+    "namespaceKey": {
+      "soap": "http://schemas.xmlsoap.org/soap/envelope/"
+    },
+    "soap_Body": {
+      "e_SomeNode": {
+        "attributeKey": {
+          "xmlns_e": "http://example.com/"
+        },
+        "testKey": "testValue"
+      }
+    }
+  }
+}
+```
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+  <soap:Header></soap:Header>
+  <soap:Body>
+    <e:SomeNode xmlns:e="http://example.com/">
+      <testKey>testValue</testKey>
+    </e:SomeNode>
+  </soap:Body>
+</soap:Envelope>
+```
+
+For key names that have prefixes other than `xmlns_` and `xsi_`, if namespace definitions are not provided in the SOAP Envelope, SOAPRESTMiddleware will not automatically convert underscore to colon.
+
+```json
+{
+  "soap_Envelope": {
+    "attributeKey": {
+      "encodingStyle": "http://schemas.xmlsoap.org/soap/encoding/"
+    },
+    "namespaceKey": {
+      "soap": "http://schemas.xmlsoap.org/soap/envelope/"
+    },
+    "soap_Body": {
+      "e_SomeNode": {
+        "attributeKey": {
+          "prefix_attrkey": "attrValue"
+        },
+        "testKey": "testValue"
+      }
+    }
+  }
+}
+```
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+  <soap:Header></soap:Header>
+  <soap:Body>
+    <e:SomeNode prefix_attrkey="attrValue">
+      <testKey>testValue</testKey>
+    </e:SomeNode>
+  </soap:Body>
+</soap:Envelope>
+```
+
+When namespace definitions are present in the SOAP Envelope, underscores will be automatically converted to colons.
+
+```json
+{
+  "soap_Envelope": {
+    "attributeKey": {
+      "encodingStyle": "http://schemas.xmlsoap.org/soap/encoding/"
+    },
+    "namespaceKey": {
+      "prefix": "http://example.com/",
+      "soap": "http://schemas.xmlsoap.org/soap/envelope/"
+    },
+    "soap_Body": {
+      "e_SomeNode": {
+        "attributeKey": {
+          "prefix_attrkey": "attrValue"
+        },
+        "testKey": "testValue"
+      }
+    }
+  }
+}
+```
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope xmlns:prefix="http://example.com/" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+  <soap:Header></soap:Header>
+  <soap:Body>
+    <e:SomeNode prefix:attrkey="attrValue">
+      <testKey>testValue</testKey>
+    </e:SomeNode>
   </soap:Body>
 </soap:Envelope>
 ```
@@ -1326,6 +1480,8 @@ Additionally, status codes and headers are inherited as they are sent by the ser
   }
 }
 ```
+
+However, for errors that occur after the request has been transformed by the SOAPRESTMiddleware, it is necessary to pass a JSON format that can be converted by the SOAPRESTMiddleware, as the conversion from REST to SOAP will take place before sending the response to the client. If a response body in a non-convertible format is provided, an error `AppMiddleSOAPRESTDecodeResponseBody` will be triggered in the SOAPRESTMiddleware, and this error will overwrite the previous one, sending the response to the client. To prevent this, it is necessary to configure the `ErrorHandler` in `core/v1` to convert specific error codes into a defined JSON format.
 
 ##### Response Header
 
