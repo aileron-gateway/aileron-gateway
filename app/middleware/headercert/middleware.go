@@ -85,7 +85,7 @@ func (m *headerCert) Middleware(next http.Handler) http.Handler {
 		}
 
 		fingerprintHeader := r.Header.Get("X-SSL-Client-Fingerprint")
-		if certHeader == "" {
+		if fingerprintHeader == "" {
 			err := app.ErrAppMiddleHeaderPolicy.WithoutStack(nil, map[string]any{"reason": "fingerprint is not found"})
 			m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusBadRequest))
 			return
