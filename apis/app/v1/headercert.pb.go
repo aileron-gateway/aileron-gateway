@@ -100,7 +100,14 @@ func (x *HeaderCertMiddleware) GetSpec() *HeaderCertMiddlewareSpec {
 
 type HeaderCertMiddlewareSpec struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	// [OPTIONAL]
+	// ErrorHandler is the reference to a ErrorHandler object.
+	// Referred object must implement ErrorHandler interface.
+	// Default error handler is used when not set.
 	ErrorHandler  *kernel.Reference      `protobuf:"bytes,1,opt,name=ErrorHandler,json=errorHandler,proto3" json:"ErrorHandler,omitempty"`
+	// [OPTIONAL]
+	// TLSConfig is the configuration for TLS connections.
+	// Default values are used when this field is not specified.
 	TLSConfig     *kernel.TLSConfig      `protobuf:"bytes,2,opt,name=TLSConfig,json=tlsConfig,proto3" json:"TLSConfig,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache

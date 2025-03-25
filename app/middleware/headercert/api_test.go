@@ -4,6 +4,8 @@ import (
 	"regexp"
 	"testing"
 
+	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
+	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
@@ -47,6 +49,54 @@ func TestCreate(t *testing.T) {
 				},
 			},
 		),
+		gen(
+			"fail to get errorhandler",
+			[]string{},
+			[]string{},
+			&condition{
+				manifest: &v1.HeaderCertMiddleware{
+					APIVersion: apiVersion,
+					Kind:       kind,
+					Metadata: &kernel.Metadata{
+						Namespace: "defalut",
+						Name:      "default",
+					},
+					Spec: &v1.HeaderCertMiddlewareSpec{
+						ErrorHandler: &kernel.Reference{
+							APIVersion: "wrong",
+						},
+					},
+				},
+			},
+			&action{
+				err:        core.ErrCoreGenCreateObject,
+				errPattern: regexp.MustCompile(core.ErrPrefix + `failed to create HeaderCertMiddleware`),
+			},
+		),
+		// gen(
+		// 	"invalid root certificate",
+		// 	[]string{},
+		// 	[]string{},
+		// 	&condition{
+		// 		manifest: &v1.HeaderCertMiddleware{
+		// 			APIVersion: apiVersion,
+		// 			Kind: kind,
+		// 			Metadata: &kernel.Metadata{
+		// 				Namespace: "default",
+		// 				Name: "default",
+		// 			},
+		// 			Spec: &v1.HeaderCertMiddlewareSpec{
+		// 				TLSConfig: &kernel.TLSConfig{
+		// 					RootCAs: []string{"wrong"},
+		// 				},
+		// 			},
+		// 		},
+		// 	},
+		// 	&action{
+		// 		err: core.ErrCoreGenCreateObject,
+		// 		errPattern: regexp.MustCompile(core.ErrPrefix + `failed to create HeaderCertMiddlerware`),
+		// 	},
+		// ),
 	}
 
 	testutil.Register(table, testCases...)
