@@ -11,6 +11,9 @@ import (
 )
 
 // NoValue means no value in the session.
+//
+//nolint:staticcheck // ST1012: error var Nil should have name of the form ErrFoo
+//lint:ignore ST1012 // error var Nil should have name of the form ErrFoo
 var NoValue = errors.New("util/session: no value")
 
 // SerializeMethod is a session data serialization method.

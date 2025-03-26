@@ -188,13 +188,14 @@ func (cb *circuitBreakerController) countFailure() {
 	cb.mu.Lock()
 	defer cb.mu.Unlock()
 
-	if cb.status == closed {
+	switch cb.status {
+	case closed:
 		// failure() have to be called only when the status is closed.
 		failureRate := cb.counter.failure()
 		if failureRate >= cb.failureThreshold {
 			cb.changeStatus(opened) // closed -> opened
 		}
-	} else if cb.status == halfOpened {
+	case halfOpened:
 		cb.changeStatus(opened) // halfOpened -> opened
 	}
 

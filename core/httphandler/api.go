@@ -69,14 +69,14 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.Prot
 		for i, p := range p.Patterns() {
 			paths[i] = path.Clean("/" + c.Spec.Pattern + p)
 		}
-		handler.HandlerBase.AcceptPatterns = paths
+		handler.AcceptPatterns = paths
 	}
 
 	// Inherit methods from child handler.
 	if m, ok := obj.(interface{ Methods() []string }); ok {
 		ms := m.Methods()
-		slices.Sort(ms)                                                     // slices.Compact requires sorted slice.
-		handler.HandlerBase.AcceptMethods = slices.Clip(slices.Compact(ms)) // Remove duplicates.
+		slices.Sort(ms)                                         // slices.Compact requires sorted slice.
+		handler.AcceptMethods = slices.Clip(slices.Compact(ms)) // Remove duplicates.
 	}
 
 	return handler, nil

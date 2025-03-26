@@ -6,14 +6,12 @@ import (
 
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	app "github.com/aileron-gateway/aileron-gateway/util/register"
-	core "github.com/aileron-gateway/aileron-gateway/util/register"
+	"github.com/aileron-gateway/aileron-gateway/util/register"
 )
 
 func NewAPI() api.API[*api.Request, *api.Response] {
 	f := api.NewFactoryAPI()
-	core.RegisterAll(f)
-	app.RegisterAll(f)
+	register.RegisterAll(f)
 
 	server := api.NewDefaultServeMux()
 	_ = server.Handle("core/", f)
