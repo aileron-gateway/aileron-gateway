@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/aileron-gateway/aileron-gateway/app"
 	"github.com/aileron-gateway/aileron-gateway/core"
@@ -69,10 +68,6 @@ func (m *headerCert) isFingerprintMatched(cert *x509.Certificate, fingerprintHea
 	return hex.EncodeToString(fingerprint[:]) == fingerprintHeader
 }
 
-func (m *headerCert) isCertExpired(cert *x509.Certificate) bool {
-	return time.Now().After(cert.NotAfter)
-}
-
 func (m *headerCert) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(r.Header)
@@ -112,6 +107,7 @@ func (m *headerCert) Middleware(next http.Handler) http.Handler {
 		// Verify the client certificate
 		if _, err := cert.Verify(opts); err != nil {
 			err := app.ErrAppMiddleHeaderPolicy.WithoutStack(nil, map[string]any{"reason": "fail to verify certificate"})
+			fmt.Println("fail to verify certificate")
 			m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusUnauthorized))
 			return
 		}
@@ -119,13 +115,7 @@ func (m *headerCert) Middleware(next http.Handler) http.Handler {
 		// Verify the fingerprint
 		if !m.isFingerprintMatched(cert, fingerprintHeader) {
 			err := app.ErrAppMiddleHeaderPolicy.WithoutStack(nil, map[string]any{"reason": "fail to verify fingerprint"})
-			m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusUnauthorized))
-			return
-		}
-
-		// Check the expiration date
-		if m.isCertExpired(cert) {
-			err := app.ErrAppMiddleHeaderPolicy.WithoutStack(nil, map[string]any{"reason": "certificate has expired"})
+			fmt.Println("fail to verify fingerprint")
 			m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusUnauthorized))
 			return
 		}
