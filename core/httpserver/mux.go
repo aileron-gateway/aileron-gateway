@@ -47,7 +47,7 @@ type Mux interface {
 
 // registerHandlers register virtual host handlers to the given mux..
 // The function panics if the mux is nil.
-func registerHandlers(a api.API[*api.Request, *api.Response], mux Mux, specs []*v1.VirtualHostSpec) (handlers map[string]http.Handler, err error) {
+func registerHandlers(a api.API[*api.Request, *api.Response], mux Mux, specs []*v1.VirtualHostSpec, notFound http.Handler) (handlers map[string]http.Handler, err error) {
 	defer func() {
 		if err != nil {
 			return
@@ -91,6 +91,14 @@ func registerHandlers(a api.API[*api.Request, *api.Response], mux Mux, specs []*
 				h := utilhttp.MiddlewareChain(middleware, handler)
 				mux.Handle(pattern, h)
 				handlers[pattern] = h
+			}
+
+			// Do not allow HEAD automatically routed to GET.  https://github.com/aileron-gateway/aileron-gateway/issues/33
+			if slices.Contains(methods, http.MethodGet) && !slices.Contains(methods, http.MethodHead) {
+				for _, pattern := range generatePatterns([]string{http.MethodHead}, vhSpec.Hosts, paths) {
+					mux.Handle(pattern, notFound)
+					handlers[pattern] = notFound
+				}
 			}
 		}
 	}

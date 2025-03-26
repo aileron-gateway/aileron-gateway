@@ -142,6 +142,7 @@ func TestRegisterHandlers(t *testing.T) {
 	postTestResource(testAPI, "handler3", h3)
 	postTestResource(testAPI, "handler4", h4)
 	postTestResource(testAPI, "middleware", m)
+	notFound := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
@@ -347,7 +348,7 @@ func TestRegisterHandlers(t *testing.T) {
 			},
 			&action{
 				handlers: map[string]http.Handler{
-					"GET /": h1, "DELETE /": h1,
+					"GET /": h1, "DELETE /": h1, "HEAD /": notFound,
 				},
 				err: nil,
 			},
@@ -368,8 +369,8 @@ func TestRegisterHandlers(t *testing.T) {
 			},
 			&action{
 				handlers: map[string]http.Handler{
-					"GET /test1": h2, "DELETE /test1": h2,
-					"GET /test2/": h2, "DELETE /test2/": h2,
+					"GET /test1": h2, "DELETE /test1": h2, "HEAD /test1": notFound,
+					"GET /test2/": h2, "DELETE /test2/": h2, "HEAD /test2/": notFound,
 				},
 				err: nil,
 			},
@@ -390,7 +391,8 @@ func TestRegisterHandlers(t *testing.T) {
 			},
 			&action{
 				handlers: map[string]http.Handler{
-					"GET /": h3,
+					"GET /":  h3,
+					"HEAD /": notFound,
 				},
 				err: nil,
 			},
@@ -411,8 +413,8 @@ func TestRegisterHandlers(t *testing.T) {
 			},
 			&action{
 				handlers: map[string]http.Handler{
-					"GET /test1":  h4,
-					"GET /test2/": h4,
+					"GET /test1": h4, "HEAD /test1": notFound,
+					"GET /test2/": h4, "HEAD /test2/": notFound,
 				},
 				err: nil,
 			},
@@ -436,6 +438,7 @@ func TestRegisterHandlers(t *testing.T) {
 			&action{
 				handlers: map[string]http.Handler{
 					"GET example.com/pattern": h1, "DELETE example.com/pattern": h1,
+					"HEAD example.com/pattern": notFound,
 				},
 				err: nil,
 			},
@@ -458,8 +461,8 @@ func TestRegisterHandlers(t *testing.T) {
 			},
 			&action{
 				handlers: map[string]http.Handler{
-					"GET example.com/pattern/test1": h2, "DELETE example.com/pattern/test1": h2,
-					"GET example.com/pattern/test2/": h2, "DELETE example.com/pattern/test2/": h2,
+					"GET example.com/pattern/test1": h2, "DELETE example.com/pattern/test1": h2, "HEAD example.com/pattern/test1": notFound,
+					"GET example.com/pattern/test2/": h2, "DELETE example.com/pattern/test2/": h2, "HEAD example.com/pattern/test2/": notFound,
 				},
 				err: nil,
 			},
@@ -482,7 +485,7 @@ func TestRegisterHandlers(t *testing.T) {
 			},
 			&action{
 				handlers: map[string]http.Handler{
-					"GET example.com/pattern": h3,
+					"GET example.com/pattern": h3, "HEAD example.com/pattern": notFound,
 				},
 				err: nil,
 			},
@@ -505,8 +508,8 @@ func TestRegisterHandlers(t *testing.T) {
 			},
 			&action{
 				handlers: map[string]http.Handler{
-					"GET example.com/pattern/test1":  h4,
-					"GET example.com/pattern/test2/": h4,
+					"GET example.com/pattern/test1": h4, "HEAD example.com/pattern/test1": notFound,
+					"GET example.com/pattern/test2/": h4, "HEAD example.com/pattern/test2/": notFound,
 				},
 				err: nil,
 			},
@@ -532,8 +535,8 @@ func TestRegisterHandlers(t *testing.T) {
 			},
 			&action{
 				handlers: map[string]http.Handler{
-					"GET example.com/pattern/test1":  m.Middleware(h4),
-					"GET example.com/pattern/test2/": m.Middleware(h4),
+					"GET example.com/pattern/test1": m.Middleware(h4), "HEAD example.com/pattern/test1": notFound,
+					"GET example.com/pattern/test2/": m.Middleware(h4), "HEAD example.com/pattern/test2/": notFound,
 				},
 				err: nil,
 			},
@@ -607,7 +610,7 @@ func TestRegisterHandlers(t *testing.T) {
 				Mux: &http.ServeMux{},
 				hs:  make(map[string]http.Handler),
 			}
-			handlers, err := registerHandlers(testAPI, mux, tt.C().specs)
+			handlers, err := registerHandlers(testAPI, mux, tt.C().specs, notFound)
 			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
 
 			opts := []cmp.Option{
