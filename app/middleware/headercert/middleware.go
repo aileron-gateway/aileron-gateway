@@ -45,18 +45,21 @@ func (m *headerCert) convertCert(certHeader string) (*x509.Certificate, error) {
 	// Decode a Base64-encoded client certificate and convert it to a byte array
 	decodedCertHeader, err := base64.StdEncoding.DecodeString(certHeader)
 	if err != nil {
+		fmt.Println("fail base64")
 		return nil, errors.New("failed to decode certificate")
 	}
 
 	// Convert the client certificate into a PEM block
 	certBlock, _ := pem.Decode(decodedCertHeader)
 	if certBlock == nil {
+		fmt.Println("fail PEM")
 		return nil, errors.New("failed to decode certificate")
 	}
 
 	// Analyze the PEM block
 	cert, err := x509.ParseCertificate(certBlock.Bytes)
 	if err != nil {
+		fmt.Println("fail x509")
 		return nil, errors.New("failed to parse certificate")
 	}
 
@@ -121,6 +124,8 @@ func (m *headerCert) Middleware(next http.Handler) http.Handler {
 		}
 
 		// ctx := r.Context()
+		// ctx = context.WithValue(ctx, "info", "this info is added in header-cert-middleware")
+
 		// h := utilhttp.ProxyHeaderFromContext(ctx)
 		// if h == nil {
 		// 	h = make(http.Header)

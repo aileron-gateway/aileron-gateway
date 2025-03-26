@@ -14,12 +14,13 @@ import (
 )
 
 const (
-	certPath = "../../../_example/header-cert/pki/client.crt"
-	fpPath = "../../../_example/header-cert/pki/fingerprint.txt"
-	failCertPath = "../../../_example/header-cert/pki/fail-client.crt"
-	failFpPath = "../../../_example/header-cert/pki/fail-fingerprint.txt"
+	certPath        = "../../../_example/header-cert/pki/client.crt"
+	fpPath          = "../../../_example/header-cert/pki/fingerprint.txt"
+	failCertPath    = "../../../_example/header-cert/pki/fail-client.crt"
+	failFpPath      = "../../../_example/header-cert/pki/fail-fingerprint.txt"
 	expiredCertPath = "../../../_example/header-cert/pki/expired-client.crt"
-	expiredFpPath = "../../../_example/header-cert/pki/expired-fingerprint.txt"
+	expiredFpPath   = "../../../_example/header-cert/pki/expired-fingerprint.txt"
+	incompleteCertPath = "../../../_example/header-cert/pki/incomplete-client.crt"
 	rootCAPath      = "../../../_example/header-cert/pki/rootCA.crt"
 )
 
@@ -65,7 +66,7 @@ func TestMiddleware(t *testing.T) {
 
 	expiredCert, err := os.ReadFile(expiredCertPath)
 	if err != nil {
-		t.Fatalf("expired to read client certificate: %v", err)
+		t.Fatalf("fail to read client certificate: %v", err)
 	}
 	encodedExpiredCert := base64.StdEncoding.EncodeToString(expiredCert)
 
@@ -156,8 +157,8 @@ func TestMiddleware(t *testing.T) {
 			&condition{
 				method: http.MethodGet,
 				headers: map[string]string{
-					"X-SSL-Client-Cert":        encodedFailCert,
-					"X-SSL-Client-Fingerprint": failFingerprint, 
+					"X-SSL-Client-Cert":        encodedFailCert, // This certificate was created by another rootCA.
+					"X-SSL-Client-Fingerprint": failFingerprint,
 				},
 				tls: &kernel.TLSConfig{
 					RootCAs: []string{rootCAPath},
@@ -175,7 +176,7 @@ func TestMiddleware(t *testing.T) {
 				method: http.MethodGet,
 				headers: map[string]string{
 					"X-SSL-Client-Cert":        encodedCert,
-					"X-SSL-Client-Fingerprint": "invalid fingerprint", 
+					"X-SSL-Client-Fingerprint": "invalid fingerprint",
 				},
 				tls: &kernel.TLSConfig{
 					RootCAs: []string{rootCAPath},
@@ -192,8 +193,8 @@ func TestMiddleware(t *testing.T) {
 			&condition{
 				method: http.MethodGet,
 				headers: map[string]string{
-					"X-SSL-Client-Cert":        encodedExpiredCert,
-					"X-SSL-Client-Fingerprint": expiredFingerprint, 
+					"X-SSL-Client-Cert":        encodedExpiredCert, // This certificate has expired.
+					"X-SSL-Client-Fingerprint": expiredFingerprint,
 				},
 				tls: &kernel.TLSConfig{
 					RootCAs: []string{rootCAPath},
@@ -236,4 +237,31 @@ func TestMiddleware(t *testing.T) {
 			testutil.Diff(t, tt.A().status, resp.Code)
 		})
 	}
+}
+
+func TestConvertCert(t *testing.T) {
+
+	m := &headerCert{}
+
+	t.Run("invalid pem", func(t *testing.T) {
+		invalidPEM := base64.StdEncoding.EncodeToString([]byte("-----BEGIN CERTIFICATE-----\nInvalid certificate content"))
+		_, err := m.convertCert(invalidPEM)
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+	})
+
+	
+	invalidCert, err := os.ReadFile(incompleteCertPath)
+	if err != nil {
+		t.Fatalf("fail to read client certificate: %v", err)
+	}
+	t.Run("invalid x509 certificate", func(t *testing.T) {
+
+		invalidX509 := base64.StdEncoding.EncodeToString([]byte(invalidCert)) // This certificate has a negative serial number that causes an error in x509.ParseCertificate().
+		_, err := m.convertCert(invalidX509)
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+	})
 }
