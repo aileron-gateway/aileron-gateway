@@ -1378,3 +1378,49 @@ func TestJournalLogger_Tripperware(t *testing.T) {
 		})
 	}
 }
+
+func TestLogger_isCompressed(t *testing.T) {
+	tests := []struct {
+		name    string
+		headers http.Header
+		expect  bool
+	}{
+		{
+			name:    "No Content-Encoding header",
+			headers: http.Header{},
+			expect:  false,
+		},
+		{
+			name:    "Gzip encoding",
+			headers: http.Header{"Content-Encoding": []string{"gzip"}},
+			expect:  true,
+		},
+		{
+			name:    "Brotli encoding",
+			headers: http.Header{"Content-Encoding": []string{"br"}},
+			expect:  true,
+		},
+		{
+			name:    "Multiple encodings including gzip",
+			headers: http.Header{"Content-Encoding": []string{"gzip, deflate"}},
+			expect:  true,
+		},
+		{
+			name:    "Unrelated encoding",
+			headers: http.Header{"Content-Encoding": []string{"identity"}},
+			expect:  false,
+		},
+		{
+			name:    "Zstd encoding",
+			headers: http.Header{"Content-Encoding": []string{"zstd"}},
+			expect:  true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := isCompressed(tt.headers)
+			testutil.Diff(t, tt.expect, result)
+		})
+	}
+}
