@@ -2,7 +2,6 @@ syntax = "proto3";
 package app.v1;
 
 import "kernel/resource.proto";
-import "kernel/network.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
 
@@ -15,7 +14,7 @@ message HeaderCertMiddleware {
 }
 
 message HeaderCertMiddlewareSpec {
-    kernel.Reference ErrorHandler   = 1 [json_name = "errorHandler"];
-    kernel.TLSConfig TLSConfig      = 2 [json_name = "tlsConfig"];
+    kernel.Reference    ErrorHandler    = 1 [json_name = "errorHandler"];
+    repeated string     rootCAs         = 2 [json_name = "rootCAs"];
 }
 

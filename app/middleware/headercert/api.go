@@ -1,6 +1,10 @@
 package headercert
 
 import (
+	"crypto/x509"
+	"errors"
+	"os"
+
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/core"
@@ -27,7 +31,7 @@ var (
 					Name:      "default",
 				},
 				Spec: &v1.HeaderCertMiddlewareSpec{
-					TLSConfig: &kernel.TLSConfig{},
+					RootCAs: []string{},
 				},
 			},
 		},
@@ -41,14 +45,43 @@ type API struct {
 func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.ProtoMessage) (any, error) {
 	c := msg.(*v1.HeaderCertMiddleware)
 
+	// TODO: Output debug logs in the headercert middleware.
+	_ = log.DefaultOr(c.Metadata.Logger)
+
 	eh, err := utilhttp.ErrorHandler(a, c.Spec.ErrorHandler)
 	if err != nil {
 		return nil, core.ErrCoreGenCreateObject.WithoutStack(err, map[string]any{"kind": kind})
 	}
 
+	pool, err := loadRootCert(c.Spec.RootCAs)
+	if err != nil {
+		return nil, core.ErrCoreGenCreateObject.WithoutStack(err, map[string]any{"kind": kind}) // TODO:check if the implementation is true エラーは自分で実装する
+	}
+
+	opts := x509.VerifyOptions{
+		Roots: pool,
+	}
+
 	return &headerCert{
-		lg:      log.GlobalLogger(log.DefaultLoggerName),
-		eh:      eh,
-		rootCAs: c.Spec.TLSConfig.RootCAs,
+		eh:   eh,
+		opts: opts,
 	}, nil
+}
+
+func loadRootCert(rootCAs []string) (*x509.CertPool, error) {
+	pool := x509.NewCertPool()
+
+	// Read the root certificate specified in the local file
+	for _, c := range rootCAs {
+		pem, err := os.ReadFile(c)
+		if err != nil {
+			return nil, err
+		}
+		// Add the root certificate to CertPool
+		if !pool.AppendCertsFromPEM(pem) {
+			return nil, errors.New("failed to add root certificate to CertPool")
+		}
+	}
+
+	return pool, nil
 }

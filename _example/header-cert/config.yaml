@@ -36,9 +36,8 @@ spec:
 apiVersion: app/v1
 kind: HeaderCertMiddleware
 spec:
-  tlsConfig:
-    RootCAs:
-        - ./_example/header-cert/pki/rootCA.crt
+  rootCAs:
+      - ./_example/header-cert/pki/rootCA.crt
 
 ---
 apiVersion: core/v1
