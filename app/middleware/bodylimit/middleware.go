@@ -81,11 +81,6 @@ func (m *bodyLimit) Middleware(next http.Handler) http.Handler {
 			m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusRequestEntityTooLarge))
 			return
 		}
-		// if r.ContentLength < 0 { // We do not allow unknown size body.
-		// 	err := app.ErrAppMiddleInvalidLength.WithoutStack(nil, nil)
-		// 	m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusLengthRequired))
-		// 	return
-		// }
 
 		// This case, do not load the body in this middleware.
 		// Wrap the body with limitReadCloser and panic(http.ErrAbortHandler)
