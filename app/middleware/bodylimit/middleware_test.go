@@ -223,7 +223,7 @@ func TestBodyLimit(t *testing.T) {
 			},
 		),
 		gen(
-			"length required",
+			"length not exists",
 			[]string{},
 			[]string{},
 			&condition{
@@ -237,7 +237,7 @@ func TestBodyLimit(t *testing.T) {
 				length: -1,
 			},
 			&action{
-				status: http.StatusLengthRequired,
+				status: http.StatusOK,
 				rec:    nil,
 				body:   "1234567890",
 			},

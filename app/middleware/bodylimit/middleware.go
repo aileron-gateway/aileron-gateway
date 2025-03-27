@@ -76,20 +76,21 @@ func (m *bodyLimit) Middleware(next http.Handler) http.Handler {
 		// First, we trust and check the Content-Length.
 		// Serve error if it exceeds the maxSize.
 		if r.ContentLength > m.maxSize {
+			_, _ = io.Copy(io.Discard, r.Body)
 			err := app.ErrAppMiddleBodyTooLarge.WithoutStack(nil, nil)
 			m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusRequestEntityTooLarge))
 			return
 		}
-		if r.ContentLength < 0 {
-			err := app.ErrAppMiddleInvalidLength.WithoutStack(nil, nil)
-			m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusLengthRequired))
-			return
-		}
+		// if r.ContentLength < 0 { // We do not allow unknown size body.
+		// 	err := app.ErrAppMiddleInvalidLength.WithoutStack(nil, nil)
+		// 	m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusLengthRequired))
+		// 	return
+		// }
 
 		// This case, do not load the body in this middleware.
 		// Wrap the body with limitReadCloser and panic(http.ErrAbortHandler)
 		// when total read bytes exceeded the maxSize.
-		if m.memLimit <= 0 {
+		if r.ContentLength < 0 || m.memLimit <= 0 {
 			ww := utilhttp.WrapWriter(w)
 			w = ww
 			r.Body = &limitReadCloser{
@@ -111,6 +112,7 @@ func (m *bodyLimit) Middleware(next http.Handler) http.Handler {
 			// up to r.ContentLength length.
 			body := make([]byte, r.ContentLength)
 			n, err := io.ReadFull(r.Body, body)
+			_, _ = io.Copy(io.Discard, r.Body) // Just in case.
 			if err != nil && err != io.EOF {
 				err = app.ErrAppMiddleInvalidLength.WithoutStack(err, nil)
 				m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusBadRequest))
