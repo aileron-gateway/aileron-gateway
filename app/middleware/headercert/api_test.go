@@ -1,6 +1,7 @@
 package headercert
 
 import (
+	"crypto/x509"
 	"regexp"
 	"testing"
 
@@ -31,6 +32,22 @@ func TestCreate(t *testing.T) {
 	tb.Name(t.Name())
 	table := tb.Build()
 
+	defaultRoots, err := loadRootCert([]string{})
+	if err != nil {
+		t.Fatalf("fail to load default RootCA: %v", err)
+	}
+	defaultOpts := x509.VerifyOptions{
+		Roots: defaultRoots,
+	}
+
+	roots, err := loadRootCert([]string{rootCAPath})
+	if err != nil {
+		t.Fatalf("fail to load RootCA: %v", err)
+	}
+	opts := x509.VerifyOptions{
+		Roots: roots,
+	}
+
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
@@ -43,9 +60,8 @@ func TestCreate(t *testing.T) {
 			&action{
 				err: nil,
 				expect: &headerCert{
-					lg:      log.GlobalLogger(log.DefaultLoggerName),
-					eh:      utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
-					rootCAs: nil,
+					eh:   utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
+					opts: defaultOpts,
 				},
 			},
 		),
@@ -73,30 +89,53 @@ func TestCreate(t *testing.T) {
 				errPattern: regexp.MustCompile(core.ErrPrefix + `failed to create HeaderCertMiddleware`),
 			},
 		),
-		// gen(
-		// 	"invalid root certificate",
-		// 	[]string{},
-		// 	[]string{},
-		// 	&condition{
-		// 		manifest: &v1.HeaderCertMiddleware{
-		// 			APIVersion: apiVersion,
-		// 			Kind: kind,
-		// 			Metadata: &kernel.Metadata{
-		// 				Namespace: "default",
-		// 				Name: "default",
-		// 			},
-		// 			Spec: &v1.HeaderCertMiddlewareSpec{
-		// 				TLSConfig: &kernel.TLSConfig{
-		// 					RootCAs: []string{"wrong"},
-		// 				},
-		// 			},
-		// 		},
-		// 	},
-		// 	&action{
-		// 		err: core.ErrCoreGenCreateObject,
-		// 		errPattern: regexp.MustCompile(core.ErrPrefix + `failed to create HeaderCertMiddlerware`),
-		// 	},
-		// ),
+		gen(
+			"valid root cert path",
+			[]string{},
+			[]string{},
+			&condition{
+				manifest: &v1.HeaderCertMiddleware{
+					APIVersion: apiVersion,
+					Kind:       kind,
+					Metadata: &kernel.Metadata{
+						Namespace: "default",
+						Name:      "default",
+					},
+					Spec: &v1.HeaderCertMiddlewareSpec{
+						RootCAs: []string{rootCAPath},
+					},
+				},
+			},
+			&action{
+				err: nil,
+				expect: &headerCert{
+					eh:   utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
+					opts: opts,
+				},
+			},
+		),
+		gen(
+			"invalid root cert path",
+			[]string{},
+			[]string{},
+			&condition{
+				manifest: &v1.HeaderCertMiddleware{
+					APIVersion: apiVersion,
+					Kind:       kind,
+					Metadata: &kernel.Metadata{
+						Namespace: "default",
+						Name:      "default",
+					},
+					Spec: &v1.HeaderCertMiddlewareSpec{
+						RootCAs: []string{"wrong"},
+					},
+				},
+			},
+			&action{
+				err:        core.ErrCoreGenCreateObject,
+				errPattern: regexp.MustCompile(core.ErrPrefix + `failed to create HeaderCertMiddleware`),
+			},
+		),
 	}
 
 	testutil.Register(table, testCases...)
@@ -120,3 +159,18 @@ func TestCreate(t *testing.T) {
 	}
 }
 
+func TestLoadRootCert(t *testing.T) {
+
+	t.Run("no root cert", func(t *testing.T) {
+		_, err := loadRootCert([]string{"wrong"})
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+	})
+	t.Run("invalid root cert", func(t *testing.T) {
+		_, err := loadRootCert([]string{incompleteCertPath})
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+	})
+}

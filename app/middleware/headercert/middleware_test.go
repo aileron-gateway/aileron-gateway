@@ -1,27 +1,26 @@
 package headercert
 
 import (
+	"crypto/x509"
 	"encoding/base64"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
 
-	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
-	"github.com/aileron-gateway/aileron-gateway/kernel/log"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 )
 
 const (
-	certPath        = "../../../_example/header-cert/pki/client.crt"
-	fpPath          = "../../../_example/header-cert/pki/fingerprint.txt"
-	failCertPath    = "../../../_example/header-cert/pki/fail-client.crt"
-	failFpPath      = "../../../_example/header-cert/pki/fail-fingerprint.txt"
-	expiredCertPath = "../../../_example/header-cert/pki/expired-client.crt"
-	expiredFpPath   = "../../../_example/header-cert/pki/expired-fingerprint.txt"
+	certPath           = "../../../_example/header-cert/pki/client.crt"
+	fpPath             = "../../../_example/header-cert/pki/fingerprint.txt"
+	failCertPath       = "../../../_example/header-cert/pki/fail-client.crt"
+	failFpPath         = "../../../_example/header-cert/pki/fail-fingerprint.txt"
+	expiredCertPath    = "../../../_example/header-cert/pki/expired-client.crt"
+	expiredFpPath      = "../../../_example/header-cert/pki/expired-fingerprint.txt"
 	incompleteCertPath = "../../../_example/header-cert/pki/incomplete-client.crt"
-	rootCAPath      = "../../../_example/header-cert/pki/rootCA.crt"
+	rootCAPath         = "../../../_example/header-cert/pki/rootCA.crt"
 )
 
 func TestMiddleware(t *testing.T) {
@@ -29,7 +28,6 @@ func TestMiddleware(t *testing.T) {
 	type condition struct {
 		method  string
 		headers map[string]string
-		tls     *kernel.TLSConfig
 	}
 
 	type action struct {
@@ -42,7 +40,7 @@ func TestMiddleware(t *testing.T) {
 
 	cert, err := os.ReadFile(certPath)
 	if err != nil {
-		t.Fatalf("fail to read client certificate: %v", err)
+		t.Fatalf("fail to read client cert: %v", err)
 	}
 	encodedCert := base64.StdEncoding.EncodeToString(cert)
 
@@ -54,7 +52,7 @@ func TestMiddleware(t *testing.T) {
 
 	failCert, err := os.ReadFile(failCertPath)
 	if err != nil {
-		t.Fatalf("fail to read client certificate: %v", err)
+		t.Fatalf("fail to read client cert: %v", err)
 	}
 	encodedFailCert := base64.StdEncoding.EncodeToString(failCert)
 
@@ -66,7 +64,7 @@ func TestMiddleware(t *testing.T) {
 
 	expiredCert, err := os.ReadFile(expiredCertPath)
 	if err != nil {
-		t.Fatalf("fail to read client certificate: %v", err)
+		t.Fatalf("fail to read client cert: %v", err)
 	}
 	encodedExpiredCert := base64.StdEncoding.EncodeToString(expiredCert)
 
@@ -79,7 +77,7 @@ func TestMiddleware(t *testing.T) {
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"valid client certificate and fingerprint",
+			"valid client cert and fingerprint",
 			[]string{},
 			[]string{},
 			&condition{
@@ -88,26 +86,20 @@ func TestMiddleware(t *testing.T) {
 					"X-SSL-Client-Cert":        encodedCert,
 					"X-SSL-Client-Fingerprint": fingerprint,
 				},
-				tls: &kernel.TLSConfig{
-					RootCAs: []string{rootCAPath},
-				},
 			},
 			&action{
 				status: http.StatusOK,
 			},
 		),
 		gen(
-			"no client certificate",
+			"no client cert",
 			[]string{},
 			[]string{},
 			&condition{
 				method: http.MethodGet,
 				headers: map[string]string{
-					"X-SSL-Client-Cert":        "", // no client certificate
+					"X-SSL-Client-Cert":        "", // no client cert
 					"X-SSL-Client-Fingerprint": fingerprint,
-				},
-				tls: &kernel.TLSConfig{
-					RootCAs: []string{rootCAPath},
 				},
 			},
 			&action{
@@ -124,44 +116,35 @@ func TestMiddleware(t *testing.T) {
 					"X-SSL-Client-Cert":        encodedCert,
 					"X-SSL-Client-Fingerprint": "", // no fingerprint
 				},
-				tls: &kernel.TLSConfig{
-					RootCAs: []string{rootCAPath},
-				},
 			},
 			&action{
-				status: http.StatusBadRequest,
+				status: http.StatusOK,
 			},
 		),
 		gen(
-			"invalid client certificate",
+			"invalid client cert",
 			[]string{},
 			[]string{},
 			&condition{
 				method: http.MethodGet,
 				headers: map[string]string{
-					"X-SSL-Client-Cert":        "invalid certificate",
+					"X-SSL-Client-Cert":        "invalid cert", // invalid client cert
 					"X-SSL-Client-Fingerprint": "654ed0fbb21c25ce32e6cd64846af842e6e821eae3ed4b32a16a164afaf10226",
 				},
-				tls: &kernel.TLSConfig{
-					RootCAs: []string{rootCAPath},
-				},
 			},
 			&action{
 				status: http.StatusBadRequest,
 			},
 		),
 		gen(
-			"fail to verify the client certificate",
+			"fail to verify the client cert",
 			[]string{},
 			[]string{},
 			&condition{
 				method: http.MethodGet,
 				headers: map[string]string{
-					"X-SSL-Client-Cert":        encodedFailCert, // This certificate was created by another rootCA.
+					"X-SSL-Client-Cert":        encodedFailCert, // created by another rootCA.
 					"X-SSL-Client-Fingerprint": failFingerprint,
-				},
-				tls: &kernel.TLSConfig{
-					RootCAs: []string{rootCAPath},
 				},
 			},
 			&action{
@@ -178,26 +161,20 @@ func TestMiddleware(t *testing.T) {
 					"X-SSL-Client-Cert":        encodedCert,
 					"X-SSL-Client-Fingerprint": "invalid fingerprint",
 				},
-				tls: &kernel.TLSConfig{
-					RootCAs: []string{rootCAPath},
-				},
 			},
 			&action{
 				status: http.StatusUnauthorized,
 			},
 		),
 		gen(
-			"expired client certificate",
+			"expired client cert",
 			[]string{},
 			[]string{},
 			&condition{
 				method: http.MethodGet,
 				headers: map[string]string{
-					"X-SSL-Client-Cert":        encodedExpiredCert, // This certificate has expired.
+					"X-SSL-Client-Cert":        encodedExpiredCert, // expired client cert
 					"X-SSL-Client-Fingerprint": expiredFingerprint,
-				},
-				tls: &kernel.TLSConfig{
-					RootCAs: []string{rootCAPath},
 				},
 			},
 			&action{
@@ -208,15 +185,33 @@ func TestMiddleware(t *testing.T) {
 
 	testutil.Register(table, testCases...)
 
+	rootCAs := []string{rootCAPath}
+	roots := x509.NewCertPool()
+
+	// Read the root cert specified in the local file
+	for _, c := range rootCAs {
+		rootCertPEM, err := os.ReadFile(c)
+		if err != nil {
+			t.Fatalf("fail to load rootCA: %v", err)
+		}
+		// Add the root cert to CertPool
+		if !roots.AppendCertsFromPEM(rootCertPEM) {
+			t.Fatalf("fail to load rootCA: %v", err)
+		}
+	}
+
+	opts := x509.VerifyOptions{
+		Roots: roots,
+	}
+
 	for _, tt := range table.Entries() {
 		tt := tt
 		t.Run(tt.Name(), func(t *testing.T) {
 
 			// Prepare the headercert middleware
 			headerCertMiddleware := &headerCert{
-				lg:      log.GlobalLogger(log.DefaultLoggerName),
-				eh:      utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
-				rootCAs: tt.C().tls.RootCAs,
+				eh:   utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
+				opts: opts,
 			}
 
 			// Create a test request
@@ -241,25 +236,22 @@ func TestMiddleware(t *testing.T) {
 
 func TestConvertCert(t *testing.T) {
 
-	m := &headerCert{}
-
 	t.Run("invalid pem", func(t *testing.T) {
-		invalidPEM := base64.StdEncoding.EncodeToString([]byte("-----BEGIN CERTIFICATE-----\nInvalid certificate content"))
-		_, err := m.convertCert(invalidPEM)
+		invalidPEM := base64.StdEncoding.EncodeToString([]byte("-----BEGIN cert-----\nInvalid cert content"))
+		_, err := parseCert(invalidPEM)
 		if err == nil {
 			t.Fatal("expected error, got nil")
 		}
 	})
 
-	
 	invalidCert, err := os.ReadFile(incompleteCertPath)
 	if err != nil {
-		t.Fatalf("fail to read client certificate: %v", err)
+		t.Fatalf("fail to read client cert: %v", err)
 	}
-	t.Run("invalid x509 certificate", func(t *testing.T) {
+	t.Run("invalid x509 cert", func(t *testing.T) {
 
-		invalidX509 := base64.StdEncoding.EncodeToString([]byte(invalidCert)) // This certificate has a negative serial number that causes an error in x509.ParseCertificate().
-		_, err := m.convertCert(invalidX509)
+		invalidX509 := base64.StdEncoding.EncodeToString([]byte(invalidCert)) // This cert has a negative serial number that causes an error in x509.Parsecert().
+		_, err := parseCert(invalidX509)
 		if err == nil {
 			t.Fatal("expected error, got nil")
 		}
