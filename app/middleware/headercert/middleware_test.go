@@ -42,37 +42,31 @@ func TestMiddleware(t *testing.T) {
 	if err != nil {
 		t.Fatalf("fail to read client cert: %v", err)
 	}
-	encodedCert := base64.StdEncoding.EncodeToString(cert)
 
 	fp, err := os.ReadFile(fpPath)
 	if err != nil {
 		t.Fatalf("fail to read client fingerprint: %v", err)
 	}
-	fingerprint := string(fp)
 
 	failCert, err := os.ReadFile(failCertPath)
 	if err != nil {
 		t.Fatalf("fail to read client cert: %v", err)
 	}
-	encodedFailCert := base64.StdEncoding.EncodeToString(failCert)
 
 	failFp, err := os.ReadFile(failFpPath)
 	if err != nil {
 		t.Fatalf("fail to read client fingerprint: %v", err)
 	}
-	failFingerprint := string(failFp)
 
 	expiredCert, err := os.ReadFile(expiredCertPath)
 	if err != nil {
 		t.Fatalf("fail to read client cert: %v", err)
 	}
-	encodedExpiredCert := base64.StdEncoding.EncodeToString(expiredCert)
 
 	expiredFp, err := os.ReadFile(expiredFpPath)
 	if err != nil {
 		t.Fatalf("fail to read client fingerprint: %v", err)
 	}
-	expiredFingerprint := string(expiredFp)
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
@@ -83,8 +77,8 @@ func TestMiddleware(t *testing.T) {
 			&condition{
 				method: http.MethodGet,
 				headers: map[string]string{
-					"X-SSL-Client-Cert":        encodedCert,
-					"X-SSL-Client-Fingerprint": fingerprint,
+					"X-SSL-Client-Cert":        base64.StdEncoding.EncodeToString(cert),
+					"X-SSL-Client-Fingerprint": string(fp),
 				},
 			},
 			&action{
@@ -99,7 +93,7 @@ func TestMiddleware(t *testing.T) {
 				method: http.MethodGet,
 				headers: map[string]string{
 					"X-SSL-Client-Cert":        "", // no client cert
-					"X-SSL-Client-Fingerprint": fingerprint,
+					"X-SSL-Client-Fingerprint": string(fp),
 				},
 			},
 			&action{
@@ -113,7 +107,7 @@ func TestMiddleware(t *testing.T) {
 			&condition{
 				method: http.MethodGet,
 				headers: map[string]string{
-					"X-SSL-Client-Cert":        encodedCert,
+					"X-SSL-Client-Cert":        base64.StdEncoding.EncodeToString(cert),
 					"X-SSL-Client-Fingerprint": "", // no fingerprint
 				},
 			},
@@ -143,8 +137,8 @@ func TestMiddleware(t *testing.T) {
 			&condition{
 				method: http.MethodGet,
 				headers: map[string]string{
-					"X-SSL-Client-Cert":        encodedFailCert, // created by another rootCA.
-					"X-SSL-Client-Fingerprint": failFingerprint,
+					"X-SSL-Client-Cert":        base64.StdEncoding.EncodeToString(failCert), // created by another rootCA.
+					"X-SSL-Client-Fingerprint": string(failFp),
 				},
 			},
 			&action{
@@ -158,7 +152,7 @@ func TestMiddleware(t *testing.T) {
 			&condition{
 				method: http.MethodGet,
 				headers: map[string]string{
-					"X-SSL-Client-Cert":        encodedCert,
+					"X-SSL-Client-Cert":        base64.StdEncoding.EncodeToString(cert),
 					"X-SSL-Client-Fingerprint": "invalid fingerprint",
 				},
 			},
@@ -173,8 +167,8 @@ func TestMiddleware(t *testing.T) {
 			&condition{
 				method: http.MethodGet,
 				headers: map[string]string{
-					"X-SSL-Client-Cert":        encodedExpiredCert, // expired client cert
-					"X-SSL-Client-Fingerprint": expiredFingerprint,
+					"X-SSL-Client-Cert":        base64.StdEncoding.EncodeToString(expiredCert), // expired client cert
+					"X-SSL-Client-Fingerprint": string(expiredFp),
 				},
 			},
 			&action{
