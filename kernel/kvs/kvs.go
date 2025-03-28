@@ -8,6 +8,9 @@ import (
 // Nil is the sentinel error returned by the operation methods against the key-value store.
 // This error should not be wrapped by other error
 // without implementing `Unwrap() error` interface.
+//
+//nolint:staticcheck // ST1012: error var Nil should have name of the form ErrFoo
+//lint:ignore ST1012 // error var Nil should have name of the form ErrFoo
 var Nil = errors.New("nil")
 
 // OpenCloser opens and closes a key-value store.

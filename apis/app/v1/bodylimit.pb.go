@@ -149,7 +149,7 @@ type BodyLimitMiddlewareSpec struct {
 	// [OPTIONAL]
 	// TempPath is the temporary file path used for checking
 	// actual body sizes.
-	// If a request has Cntent-Length less than MaxSize and grather than
+	// If a request has Content-Length less than MaxSize and grater than
 	// memLimit, its body is loaded into a newly created temporary file under TempPath.
 	// Temp files are removed after finished proceeding requests.
 	// Make sure there is enough space in the tempPath to save request bodies.

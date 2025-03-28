@@ -192,11 +192,11 @@ func (c *hostConns) newClientConn(ctx context.Context, addr string) (*http2.Clie
 
 func (c *hostConns) getClientConn(ctx context.Context) (*http2.ClientConn, error) {
 	// Available ip addresses may be zero.
-	num := c.dnsResolver.length()
+	num := c.length()
 
 	var errs []error
 	for i := 0; i < num; i++ {
-		ip := c.dnsResolver.next()
+		ip := c.next()
 
 		c.mu.RLock()
 		conns := c.conns[ip]
@@ -293,7 +293,7 @@ func (p *http2ConnPool) GetClientConn(req *http.Request, addr string) (conn *htt
 		t:        p.t,
 	}
 
-	if err := conns.dnsResolver.resolve(req.Context()); err != nil {
+	if err := conns.resolve(req.Context()); err != nil {
 		return nil, err
 	}
 
@@ -305,7 +305,7 @@ func (p *http2ConnPool) GetClientConn(req *http.Request, addr string) (conn *htt
 	// Start resolve loon in a new goroutine.
 	// This goroutine will be stopped when MarkDead was called.
 	//nolint:contextcheck // Non-inherited new context, use function like `context.WithXXX` or `r.Context` instead
-	go conns.dnsResolver.resolveEveryInterval(context.Background(), p.resolveInterval)
+	go conns.resolveEveryInterval(context.Background(), p.resolveInterval)
 
 	p.mu.Lock()
 	p.conns[addr] = conns
@@ -330,7 +330,7 @@ func (p *http2ConnPool) MarkDead(conn *http2.ClientConn) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	if active == 0 {
-		conns.dnsResolver.stopResolveLoop() // Must stop lookup goroutine to avoid leak.
+		conns.stopResolveLoop() // Must stop lookup goroutine to avoid leak.
 		delete(p.conns, conns.addr)
 	}
 	delete(p.connMap, conn)

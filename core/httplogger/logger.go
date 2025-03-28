@@ -7,6 +7,7 @@ import (
 	"mime"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/aileron-gateway/aileron-gateway/core"
@@ -225,7 +226,7 @@ func (lg *journalLogger) Middleware(next http.Handler) http.Handler {
 		var body []byte
 		if r.Body != nil && r.Body != http.NoBody {
 			mt, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
-			b, rc, err := lg.req.bodyReadCloser(id+".svr.req.bin", mt, r.ContentLength, r.Body)
+			b, rc, err := lg.req.bodyReadCloser(id+".svr.req.bin", mt, r.ContentLength, r.Body, false)
 			if err != nil {
 				err = core.ErrCoreLogger.WithStack(err, nil)
 				lg.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusInternalServerError))
@@ -265,7 +266,7 @@ func (lg *journalLogger) Middleware(next http.Handler) http.Handler {
 				size, _ = strconv.ParseInt(cl[0], 10, 64)
 			}
 			mt, _, _ := mime.ParseMediaType(w.Header().Get("Content-Type"))
-			bf, bw, err := lg.res.bodyWriter(id+".svr.res.bin", mt, size)
+			bf, bw, err := lg.res.bodyWriter(id+".svr.res.bin", mt, size, isCompressed(ww.Header()))
 			if err != nil {
 				err := core.ErrCoreLogger.WithStack(err, nil)
 				lg.lg.Error(r.Context(), err.Name(), err.Map()) // Logging only.
@@ -310,7 +311,7 @@ func (lg *journalLogger) Tripperware(next http.RoundTripper) http.RoundTripper {
 		var body []byte
 		if r.Body != nil && r.Body != http.NoBody {
 			mt, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
-			b, rc, err := lg.req.bodyReadCloser(id+".cli.req.bin", mt, r.ContentLength, r.Body)
+			b, rc, err := lg.req.bodyReadCloser(id+".cli.req.bin", mt, r.ContentLength, r.Body, false)
 			if err != nil {
 				return nil, core.ErrCoreLogger.WithStack(err, nil)
 			}
@@ -348,7 +349,7 @@ func (lg *journalLogger) Tripperware(next http.RoundTripper) http.RoundTripper {
 				attr.size = w.ContentLength
 				attr.header = lg.res.logHeaders(w.Header)
 				mt, _, _ := mime.ParseMediaType(w.Header.Get("Content-Type"))
-				body, rc, err := lg.res.bodyReadCloser(id+".cli.res.bin", mt, w.ContentLength, w.Body)
+				body, rc, err := lg.res.bodyReadCloser(id+".cli.res.bin", mt, w.ContentLength, w.Body, isCompressed(w.Header))
 				if err != nil {
 					err := core.ErrCoreLogger.WithStack(err, nil)
 					lg.lg.Error(ctx, err.Name(), err.Map()) // Logging only because the upstream already returned response.
@@ -361,4 +362,18 @@ func (lg *journalLogger) Tripperware(next http.RoundTripper) http.RoundTripper {
 
 		return next.RoundTrip(r)
 	})
+}
+
+// isCompressed checks whether the given HTTP headers indicate
+// that the response is already compressed.
+func isCompressed(h http.Header) bool {
+	ce := h.Get("Content-Encoding")
+	if ce != "" {
+		// Skip if already compressed.
+		if strings.Contains(ce, "gzip") || strings.Contains(ce, "br") ||
+			strings.Contains(ce, "deflate") || strings.Contains(ce, "compress") || strings.Contains(ce, "zstd") {
+			return true
+		}
+	}
+	return false
 }

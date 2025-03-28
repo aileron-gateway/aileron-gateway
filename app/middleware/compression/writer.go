@@ -86,7 +86,7 @@ type compressionWriter struct {
 // initialize initializes this writer and wrapped HTTP response.
 func (w *compressionWriter) initialize() {
 	w.initialized = true
-	wh := w.ResponseWriter.Header()
+	wh := w.Header()
 
 	length := wh.Get("Content-Length")
 	if length == "" {

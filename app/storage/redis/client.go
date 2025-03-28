@@ -78,7 +78,7 @@ func (c *client) SetWithTTL(ctx context.Context, key string, value []byte, exp t
 	ctx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
 
-	cmd := c.UniversalClient.SetEx(ctx, key, value, exp)
+	cmd := c.SetEx(ctx, key, value, exp)
 	if err := cmd.Err(); err != nil {
 		return app.ErrAppStorageKVS.WithStack(err, nil)
 	}
@@ -92,7 +92,7 @@ func (c *client) Delete(ctx context.Context, key string) error {
 	ctx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
 
-	cmd := c.UniversalClient.Del(ctx, key)
+	cmd := c.Del(ctx, key)
 	if err := cmd.Err(); err != nil {
 		return app.ErrAppStorageKVS.WithStack(err, nil)
 	}
