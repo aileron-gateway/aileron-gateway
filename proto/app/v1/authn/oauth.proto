@@ -68,7 +68,7 @@ message OAuthAuthenticationHandlerSpec {
     // [REQUIRED]
     // Handlers are the options of OAuth authentication handlers.
     oneof Handlers {
-        option(buf.validate.oneof).required               = true;
+        option (buf.validate.oneof).required              = true;
         AuthorizationCodeHandler AuthorizationCodeHandler = 10 [json_name = "authorizationCodeHandler"];
         ClientCredentialsHandler ClientCredentialsHandler = 11 [json_name = "clientCredentialsHandler"];
         ResourceServerHandler    ResourceServerHandler    = 12 [json_name = "resourceServerHandler"];
@@ -298,21 +298,26 @@ message AuthorizationCodeHandler {
     // Default is not set.
     repeated string URLParams = 13 [json_name = "urlParams"];
 
+    // [Optional]
+    // UserInfoPath is the URL path to access the UserInfo endpoint of the OpenID provider.
+    // If not set, AILERON's downstream applications cannot access the UserInfo endpoint.
+    string UserInfoPath = 14 [json_name = "userInfoPath"];
+
     // [OPTIONAL]
     // EnabledFAPI ensures client security by following the
     // Financial-grade API specifications.
     // Default is [false].
-    bool EnabledFAPI = 14 [json_name = "enabledFAPI"];
+    bool EnabledFAPI = 15 [json_name = "enabledFAPI"];
 
     // [OPTIONAL]
     // RequestObject specifies whether the request object method
     // is used for OpenID Connect authorization requests.
-    AuthorizationRequestObject RequestObject = 15 [json_name = "requestObject"];
+    AuthorizationRequestObject RequestObject = 16 [json_name = "requestObject"];
 
     // [OPTIONAL]
     // JARM specifies whether the response mode method
     // is used for authorization responses.
-    AuthorizationResponseJARM JARM = 16 [json_name = "jarm"];
+    AuthorizationResponseJARM JARM = 17 [json_name = "jarm"];
 }
 
 // ClientCredentialsHandler is the specification of ClientCredentialsHandler object.
@@ -366,7 +371,7 @@ message TokenValidation {
     // if the token is not expired.
     // This flag works only when the exp claim is
     // available in the tokens and the tokens are
-    // resored from session objects.
+    // restored from session objects.
     // That means the authentication flow that do not use
     // session cannot use this flag.
     // Default is [false].

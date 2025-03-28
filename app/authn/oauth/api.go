@@ -213,6 +213,12 @@ func newOAuthContext(a api.API[*api.Request, *api.Response], spec *v1.Context, l
 		lg:       lg,
 		provider: provider,
 	}
+	
+	userInfoRequestor := &userInfoClient{
+		lg:       lg,
+		rt:       http.DefaultTransport,
+		provider: provider,
+	}
 
 	var atParseOpts []jwt.ParserOption
 	atParseOpts = appendWithIssuer(atParseOpts, cmp.Or(spec.ATValidation.Iss, provider.issuer))
@@ -232,6 +238,7 @@ func newOAuthContext(a api.API[*api.Request, *api.Response], spec *v1.Context, l
 	return &oauthContext{
 		tokenRedeemer:     tokenRedeemer,
 		tokenIntrospector: tokenIntrospector,
+		userInfoRequestor: userInfoRequestor,
 
 		lg: lg,
 

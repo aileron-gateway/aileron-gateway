@@ -31,6 +31,8 @@ var (
 	ErrAppAuthnGenerateClientAssertion = errorutil.NewKind("E3061", "AppAuthnGenerateClientAssertion", "failed to generate client assertion. {{reason}}")
 	ErrAppAuthnGenerateTokenWithClaims = errorutil.NewKind("E3062", "AppAuthnGenerateTokenWithClaims", "failed to generate JWT claims.")
 	ErrAppAuthnSignToken               = errorutil.NewKind("E3063", "AppAuthnSignToken", "failed to sign JWT claims.")
+	ErrAppAuthnUserInfo                = errorutil.NewKind("E3064", "AppAuthnUserInfo", "failed to userinfo request. {{info}}")
+	ErrAppAuthnInvalidUserInfo         = errorutil.NewKind("E3065", "AppAuthnInvalidUserInfo", "invalid userinfo. {{reason}}")
 	// ---------------------------------------------------------
 
 	// ---------------------------------------------------------

@@ -3,6 +3,7 @@ package oauth
 import (
 	"cmp"
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"time"
@@ -87,6 +88,7 @@ func (h *baseHandler) oauthContext(r *http.Request) (*oauthContext, error) {
 type oauthContext struct {
 	tokenRedeemer
 	tokenIntrospector
+	userInfoRequestor
 
 	lg log.Logger
 
@@ -324,6 +326,40 @@ func (h *oauthContext) contextWithToken(ctx context.Context, tokens *OAuthTokens
 	}
 
 	return ctx
+}
+
+func (c *oauthContext) validateUserInfo(ui []byte, idt string) core.HTTPError {
+	info := map[string]any{}
+	err := json.Unmarshal(ui, &info)
+	if err != nil {
+		err := app.ErrAppGenUnmarshal.WithoutStack(err, map[string]any{"from": "json", "to": "map[string]any{}", "content": string(ui)})
+		return utilhttp.NewHTTPError(app.ErrAppAuthnInvalidUserInfo.WithoutStack(err, nil), http.StatusUnauthorized)
+	}
+
+	uiSub, ok := info["sub"].(string)
+	if !ok {
+		err := app.ErrAppAuthnInvalidUserInfo.WithoutStack(err, map[string]any{"reason": "sub in UserInfo response isn't string type."})
+		return utilhttp.NewHTTPError(err, http.StatusUnauthorized)
+	}
+
+	claims, err := c.jh.ValidMapClaims(idt, c.idtParseOpts...)
+	if err != nil {
+		err := app.ErrAppAuthnInvalidToken.WithoutStack(err, map[string]any{"name": "id token", "reason": "token validation failed.", "token": idt})
+		return utilhttp.NewHTTPError(app.ErrAppAuthnInvalidUserInfo.WithoutStack(err, nil), http.StatusUnauthorized)
+	}
+
+	idtSud, _ := claims.GetSubject()
+	if idtSud == "" {
+		err := app.ErrAppAuthnInvalidToken.WithoutStack(err, map[string]any{"name": "id token", "reason": "sub in ID token does not exist.", "token": idt})
+		return utilhttp.NewHTTPError(app.ErrAppAuthnInvalidUserInfo.WithoutStack(err, nil), http.StatusUnauthorized)
+	}
+
+	if uiSub != idtSud {
+		err := app.ErrAppAuthnInvalidUserInfo.WithoutStack(err, map[string]any{"reason": "sub in UserInfo does not match sub in ID token."})
+		return utilhttp.NewHTTPError(err, http.StatusUnauthorized)
+	}
+
+	return nil
 }
 
 // mapValue returns a value by searching with the given key.
