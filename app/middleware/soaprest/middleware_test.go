@@ -80,7 +80,6 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 		attributeKey string
 		textKey      string
 		namespaceKey string
-		arrayKey     string
 
 		soapNamespacePrefix string
 
@@ -106,7 +105,7 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"GetSOAPRequest",
+			"get SOAP request",
 			nil,
 			nil,
 			&condition{
@@ -174,7 +173,7 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 			},
 		),
 		gen(
-			"PostSOAPRequest",
+			"post SOAP request",
 			nil,
 			nil,
 			&condition{
@@ -241,7 +240,7 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 			},
 		),
 		gen(
-			"NonSOAPRequest",
+			"non SOAP request",
 			nil,
 			nil,
 			&condition{
@@ -256,7 +255,7 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 			},
 		),
 		gen(
-			"ReadBodyError",
+			"read body error",
 			nil,
 			nil,
 			&condition{
@@ -273,7 +272,7 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 			},
 		),
 		gen(
-			"UnmarshalError",
+			"unmarshal error",
 			nil,
 			nil,
 			&condition{
@@ -290,7 +289,7 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 			},
 		),
 		gen(
-			"MarshalErrorNaN",
+			"marshal error NaN",
 			nil,
 			nil,
 			&condition{
@@ -312,7 +311,7 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 			},
 		),
 		gen(
-			"PostSOAPRequestWithModifiedKeys",
+			"post SOAP request with modified keys",
 			nil,
 			nil,
 			&condition{
@@ -345,7 +344,6 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 				attributeKey: "@attr!",
 				textKey:      "#textKey",
 				namespaceKey: "_ns",
-				arrayKey:     "element",
 
 				extractStringElement:  true,
 				extractBooleanElement: true,
@@ -385,7 +383,7 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 			},
 		),
 		gen(
-			"ExtractConfigsAreAllFalse",
+			"extract configs are all false",
 			nil,
 			nil,
 			&condition{
@@ -453,7 +451,7 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 			},
 		),
 		gen(
-			"WrongURLPath",
+			"wrong URL path",
 			nil,
 			nil,
 			&condition{
@@ -474,7 +472,7 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 			},
 		),
 		gen(
-			"DefaultNamespaceDeclaration",
+			"default namespace declaration",
 			nil,
 			nil,
 			&condition{
@@ -515,6 +513,249 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 							},
 							"soap_Header": {}
 				}}`,
+				err:  app.ErrAppMiddleSOAPRESTDecodeResponseBody,
+				code: 500,
+			},
+		),
+		gen(
+			"convert separatorChar",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "text/xml",
+				body: `<?xml version="1.0" encoding="UTF-8"?>
+						<soap:Envelope
+							xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+							xmlns:some="http://example.com/ns">
+							<soap:Header/>
+							<soap:Body>
+								<some:User some:id="456" unreg:role="viewer">
+									<some:Name>Alice</some:Name>
+								</some:User>
+							</soap:Body>
+						</soap:Envelope>`,
+
+				paths: &testMatcher{match: true},
+
+				extractStringElement:  false,
+				extractBooleanElement: false,
+				extractIntegerElement: false,
+				extractFloatElement:   false,
+			},
+			&action{
+				body: `{"soap_Envelope": {
+							"namespaceKey": {
+								"soap": "http://schemas.xmlsoap.org/soap/envelope/",
+								"some": "http://example.com/ns"
+							},
+							"soap_Body": {
+								"some_User": {
+									"attributeKey": {
+										"some_id": "456",
+										"role": "viewer"
+									},
+									"some_Name": "Alice"
+									}
+								},
+							"soap_Header": {}
+						}}`,
+				err:  app.ErrAppMiddleSOAPRESTDecodeResponseBody,
+				code: 500,
+			},
+		),
+		gen(
+			"body contains child map",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "text/xml",
+				body: `<?xml version="1.0" encoding="UTF-8"?>
+						<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+							<soap:Header/>
+							<soap:Body>
+								<User>
+									<Number>1</Number>
+								</User>
+							</soap:Body>
+						</soap:Envelope>`,
+
+				paths: &testMatcher{match: true},
+
+				extractStringElement:  false,
+				extractBooleanElement: false,
+				extractIntegerElement: false,
+				extractFloatElement:   false,
+			},
+			&action{
+				body: `{"soap_Envelope": {
+							"namespaceKey": {
+								"soap": "http://schemas.xmlsoap.org/soap/envelope/"
+							},
+							"soap_Body": {
+								"User": {
+									"Number": "1"
+								}
+							},
+							"soap_Header": {}
+						}}`,
+				err:  app.ErrAppMiddleSOAPRESTDecodeResponseBody,
+				code: 500,
+			},
+		),
+		gen(
+			"space content",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "text/xml",
+				body: `<?xml version="1.0" encoding="UTF-8"?>
+						<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+							<soap:Header/>
+							<soap:Body>
+								<User> </User>
+							</soap:Body>
+						</soap:Envelope>`,
+
+				paths: &testMatcher{match: true},
+
+				extractStringElement:  false,
+				extractBooleanElement: false,
+				extractIntegerElement: false,
+				extractFloatElement:   false,
+			},
+			&action{
+				body: `{"soap_Envelope": {
+							"namespaceKey": {
+								"soap": "http://schemas.xmlsoap.org/soap/envelope/"
+							},
+							"soap_Body": {
+								"User": " "
+							},
+							"soap_Header": {}
+						}}`,
+				err:  app.ErrAppMiddleSOAPRESTDecodeResponseBody,
+				code: 500,
+			},
+		),
+		gen(
+			"space content with namespace declaration",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "text/xml",
+				body: `<?xml version="1.0" encoding="UTF-8"?>
+						<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+							<soap:Header/>
+							<soap:Body>
+								<ns:User xmlns:ns="http://example.com/"> </ns:User>
+							</soap:Body>
+						</soap:Envelope>`,
+
+				paths: &testMatcher{match: true},
+
+				extractStringElement:  false,
+				extractBooleanElement: false,
+				extractIntegerElement: false,
+				extractFloatElement:   false,
+			},
+			&action{
+				body: `{"soap_Envelope": {
+							"namespaceKey": {
+								"soap": "http://schemas.xmlsoap.org/soap/envelope/"
+							},
+							"soap_Body": {
+								"ns_User": {
+									"namespaceKey": {
+										"ns": "http://example.com/"
+									},
+									"textKey": " "
+								}
+							},
+							"soap_Header": {}
+						}}`,
+				err:  app.ErrAppMiddleSOAPRESTDecodeResponseBody,
+				code: 500,
+			},
+		),
+		gen(
+			"xsi:nil pattern",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "text/xml",
+				body: `<?xml version="1.0" encoding="UTF-8"?>
+						<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+							<soap:Header/>
+							<soap:Body>
+								<User xsi:nil="true"></User>
+							</soap:Body>
+						</soap:Envelope>`,
+
+				paths: &testMatcher{match: true},
+
+				extractStringElement:  false,
+				extractBooleanElement: false,
+				extractIntegerElement: false,
+				extractFloatElement:   false,
+			},
+			&action{
+				body: `{"soap_Envelope": {
+							"namespaceKey": {
+								"soap": "http://schemas.xmlsoap.org/soap/envelope/"
+							},
+							"soap_Body": {
+								"User": null
+							},
+							"soap_Header": {}
+						}}`,
+				err:  app.ErrAppMiddleSOAPRESTDecodeResponseBody,
+				code: 500,
+			},
+		),
+		gen(
+			"empty content",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "text/xml",
+				body: `<?xml version="1.0" encoding="UTF-8"?>
+						<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+							<soap:Header/>
+							<soap:Body>
+								<SomeNode xmlns:ns="http://example.com/" customAttr="123"/>
+							</soap:Body>
+						</soap:Envelope>`,
+
+				paths: &testMatcher{match: true},
+
+				extractStringElement:  false,
+				extractBooleanElement: false,
+				extractIntegerElement: false,
+				extractFloatElement:   false,
+			},
+			&action{
+				body: `{"soap_Envelope": {
+							"namespaceKey": {
+								"soap": "http://schemas.xmlsoap.org/soap/envelope/"
+							},
+							"soap_Body": {
+								"SomeNode": {
+									"attributeKey": {
+										"customAttr": "123"
+									},
+									"namespaceKey": {
+										"ns": "http://example.com/"
+									}
+								}
+							},
+							"soap_Header": {}
+						}}`,
 				err:  app.ErrAppMiddleSOAPRESTDecodeResponseBody,
 				code: 500,
 			},
@@ -729,68 +970,68 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"SimpleSOAPResponse",
+			"simple SOAP response",
 			nil,
 			nil,
 			&condition{
 				method:      http.MethodPost,
 				contentType: "application/json",
 				body: `{
-                    "soap_Envelope": {
-                        "namespaceKey": {
-                            "soap": "http://schemas.xmlsoap.org/soap/envelope/",
+					"soap_Envelope": {
+						"namespaceKey": {
+							"soap": "http://schemas.xmlsoap.org/soap/envelope/",
 							"ns": "http://example.com/"
-                        },
-                        "soap_Body": {
-                            "ns_Test": {
-                                "attributeKey": {
-                                    "testAttributeKey": "someValue"
-                                },
-                                "ns_Value": 123
-                            },
-                            "ns_Array": {
-                                "item": [100, 3.14, true, "someText"]
-                            }
-                        },
-                        "soap_Header": {
-                            "textKey": "double quoted text",
-                            "ns_Auth": {
-                                "ns_Username": "TestUser",
-                                "ns_Password": "password"
-                            }
-                        }
-                    }
-                }`,
+						},
+						"soap_Body": {
+							"ns_Test": {
+								"attributeKey": {
+									"testAttributeKey": "someValue"
+								},
+								"ns_Value": 123
+							},
+							"ns_Array": {
+								"item": [100, 3.14, true, "someText"]
+							}
+						},
+						"soap_Header": {
+							"textKey": "double quoted text",
+							"ns_Auth": {
+								"ns_Username": "TestUser",
+								"ns_Password": "password"
+							}
+						}
+					}
+				}`,
 				paths: &testMatcher{match: true},
 			},
 			&action{
 				body: `<?xml version="1.0" encoding="utf-8"?>
-                        <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns="http://example.com/">
-                            <soap:Header>
-                                double quoted text
-                                <ns:Auth>
-                                    <ns:Username>TestUser</ns:Username>
-                                    <ns:Password>password</ns:Password>
-                                </ns:Auth>
-                            </soap:Header>
-                            <soap:Body>
-                                <ns:Test testAttributeKey="someValue">
-                                    <ns:Value>123</ns:Value>
-                                </ns:Test>
-                                <ns:Array>
+						<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns="http://example.com/">
+							<soap:Header>
+								double quoted text
+								<ns:Auth>
+									<ns:Username>TestUser</ns:Username>
+									<ns:Password>password</ns:Password>
+								</ns:Auth>
+							</soap:Header>
+							<soap:Body>
+								<ns:Test testAttributeKey="someValue">
+									<ns:Value>123</ns:Value>
+								</ns:Test>
+								<ns:Array>
 									<item>100</item>
 									<item>3.14</item>
 									<item>true</item>
 									<item>someText</item>
-                                </ns:Array>
-                            </soap:Body>
-                        </soap:Envelope>`,
+								</ns:Array>
+							</soap:Body>
+						</soap:Envelope>`,
 				err:  nil,
 				code: 0,
 			},
 		),
 		gen(
-			"NextHandlerError",
+			"next handler error",
 			nil,
 			nil,
 			&condition{
@@ -807,7 +1048,7 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 			},
 		),
 		gen(
-			"ResponseWriterWriteError",
+			"responseWriter write error",
 			nil,
 			nil,
 			&condition{
@@ -815,8 +1056,18 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 
 				method:      http.MethodPost,
 				contentType: "text/xml",
-				body:        `{"soap:Envelope":{"_namespace":{"ns":"http://example.com/","soap":"http://schemas.xmlsoap.org/soap/envelope/"},"soap:Body":{"ns:Test":{}},"soap:Header":{}}}`,
-				paths:       &testMatcher{match: true},
+				body: `{
+					"soap:Envelope":{
+						"_namespace":{
+							"ns":"http://example.com/",
+							"soap":"http://schemas.xmlsoap.org/soap/envelope/"
+						},
+						"soap:Body":{
+							"ns:Test":{}
+						},
+						"soap:Header":{}
+					}}`,
+				paths: &testMatcher{match: true},
 			},
 			&action{
 				err:  app.ErrAppMiddleSOAPRESTWriteResponseBody,
@@ -824,7 +1075,7 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 			},
 		),
 		gen(
-			"Null Element",
+			"null element",
 			nil,
 			nil,
 			&condition{
@@ -855,7 +1106,7 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 			},
 		),
 		gen(
-			"Multiple Array Element",
+			"multiple array element",
 			nil,
 			nil,
 			&condition{
@@ -904,7 +1155,7 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 			},
 		),
 		gen(
-			"Omit Child Element Namespace",
+			"omit child element namespace",
 			nil,
 			nil,
 			&condition{
@@ -948,7 +1199,7 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 			},
 		),
 		gen(
-			"Attribute's key includes a namespace definition",
+			"attribute's key includes namespace definition",
 			nil,
 			nil,
 			&condition{
@@ -988,7 +1239,7 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 			},
 		),
 		gen(
-			"Default Namespace Pattern",
+			"default namespace pattern",
 			nil,
 			nil,
 			&condition{
@@ -1029,7 +1280,7 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 			},
 		),
 		gen(
-			"Describe EncodingStyle",
+			"describe encoding style",
 			nil,
 			nil,
 			&condition{
@@ -1068,6 +1319,673 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 								<ns:Item>
 									<Quantity xsi:type="xsd:int">10</Quantity>
 								</ns:Item>
+							</soap:Body>
+						</soap:Envelope>`,
+				err:  nil,
+				code: 0,
+			},
+		),
+		gen(
+			"default namespace declaration",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "application/json",
+				body: `{
+					"soap_Envelope": {
+						"namespaceKey": {
+							"soap": "http://schemas.xmlsoap.org/soap/envelope/",
+							"": "http://example.com/"
+						},
+						"soap_Body": {},
+						"soap_Header": {}
+					}}`,
+				paths: &testMatcher{match: true},
+			},
+			&action{
+				body: `<?xml version="1.0" encoding="UTF-8"?>
+						<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns="http://example.com/">
+							<soap:Header></soap:Header>
+							<soap:Body></soap:Body>
+						</soap:Envelope>`,
+				err:  nil,
+				code: 0,
+			},
+		),
+		gen(
+			"multiple attributes",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "application/json",
+				body: `{
+					"soap_Envelope": {
+						"attributeKey": {
+							"attrKey1": "attrValue1",
+							"attrKey2": "attrValue2"
+						},
+						"namespaceKey": {
+							"soap": "http://schemas.xmlsoap.org/soap/envelope/"
+						},
+						"soap_Body": {},
+						"soap_Header": {}
+					}}`,
+				paths: &testMatcher{match: true},
+			},
+			&action{
+				body: `<?xml version="1.0" encoding="UTF-8"?>
+						<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" attrKey1="attrValue1" attrKey2="attrValue2">
+							<soap:Header></soap:Header>
+							<soap:Body></soap:Body>
+						</soap:Envelope>`,
+				err:  nil,
+				code: 0,
+			},
+		),
+		gen(
+			"envelope contains non transform content",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "application/json",
+				body: `{
+					"soap_Envelope": {
+						"namespaceKey": {
+							"soap": "http://schemas.xmlsoap.org/soap/envelope/"
+						},
+						"testKey": "testValue",
+						"soap_Header": {},
+						"soap_Body": {}
+					}}`,
+				paths: &testMatcher{match: true},
+			},
+			&action{
+				body: `<?xml version="1.0" encoding="UTF-8"?>
+						<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+							<soap:Header></soap:Header>
+							<soap:Body></soap:Body>
+						</soap:Envelope>`,
+				err:  nil,
+				code: 0,
+			},
+		),
+		gen(
+			"SOAPHeader contains attributeKey",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "application/json",
+				body: `{
+					"soap_Envelope": {
+						"namespaceKey": {
+							"soap": "http://schemas.xmlsoap.org/soap/envelope/"
+						},
+						"soap_Header": {
+							"attributeKey": {
+								"testHeaderAttr": "testHeaderValue"
+							}
+						},
+						"soap_Body": {}
+					}}`,
+				paths: &testMatcher{match: true},
+			},
+			&action{
+				body: `<?xml version="1.0" encoding="UTF-8"?>
+						<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+							<soap:Header testHeaderAttr="testHeaderValue"></soap:Header>
+							<soap:Body></soap:Body>
+						</soap:Envelope>`,
+				err:  nil,
+				code: 0,
+			},
+		),
+		gen(
+			"SOAPBody contains textKey",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "application/json",
+				body: `{
+					"soap_Envelope": {
+						"namespaceKey": {
+							"soap": "http://schemas.xmlsoap.org/soap/envelope/"
+						},
+						"soap_Header": {},
+						"soap_Body": {
+							"textKey": "exampleText"
+						}
+					}}`,
+				paths: &testMatcher{match: true},
+			},
+			&action{
+				body: `<?xml version="1.0" encoding="UTF-8"?>
+						<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+							<soap:Header></soap:Header>
+							<soap:Body>
+								exampleText
+							</soap:Body>
+						</soap:Envelope>`,
+				err:  nil,
+				code: 0,
+			},
+		),
+		gen(
+			"SOAPBody contains textKey and other elements",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "application/json",
+				body: `{
+					"soap_Envelope": {
+						"namespaceKey": {
+							"soap": "http://schemas.xmlsoap.org/soap/envelope/"
+						},
+						"soap_Header": {},
+						"soap_Body": {
+							"textKey": "exampleText",
+							"otherElement": "otherValue"
+						}
+					}}`,
+				paths: &testMatcher{match: true},
+			},
+			&action{
+				body: `<?xml version="1.0" encoding="UTF-8"?>
+						<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+							<soap:Header></soap:Header>
+							<soap:Body>
+								exampleText
+								<otherElement>otherValue</otherElement>
+							</soap:Body>
+						</soap:Envelope>`,
+				err:  nil,
+				code: 0,
+			},
+		),
+		gen(
+			"array contents",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "application/json",
+				body: `{
+					"soap_Envelope": {
+						"namespaceKey": {
+							"soap": "http://schemas.xmlsoap.org/soap/envelope/"
+						},
+						"soap_Header": {},
+						"soap_Body": {
+							"exArray": [
+								"exValue1",
+								"exValue2",
+								"exValue3"
+							]
+						}
+					}}`,
+				paths: &testMatcher{match: true},
+			},
+			&action{
+				body: `<?xml version="1.0" encoding="UTF-8"?>
+						<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+							<soap:Header></soap:Header>
+							<soap:Body>
+								<exArray>exValue1</exArray>
+								<exArray>exValue2</exArray>
+								<exArray>exValue3</exArray>
+							</soap:Body>
+						</soap:Envelope>`,
+				err:  nil,
+				code: 0,
+			},
+		),
+		gen(
+			"array contents and the key contains separatorChar",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "application/json",
+				body: `{
+					"soap_Envelope": {
+						"namespaceKey": {
+							"soap": "http://schemas.xmlsoap.org/soap/envelope/",
+							"ex": "http://example.com/"
+						},
+						"soap_Header": {},
+						"soap_Body": {
+							"ex_Array": [
+								"exValue1",
+								"exValue2",
+								"exValue3"
+							]
+						}
+					}}`,
+				paths: &testMatcher{match: true},
+			},
+			&action{
+				body: `<?xml version="1.0" encoding="UTF-8"?>
+						<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ex="http://example.com/">
+							<soap:Header></soap:Header>
+							<soap:Body>
+								<ex:Array>exValue1</ex:Array>
+								<ex:Array>exValue2</ex:Array>
+								<ex:Array>exValue3</ex:Array>
+							</soap:Body>
+						</soap:Envelope>`,
+				err:  nil,
+				code: 0,
+			},
+		),
+		gen(
+			"key starts with separatorChar",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "application/json",
+				body: `{
+					"soap_Envelope": {
+						"namespaceKey": {
+							"soap": "http://schemas.xmlsoap.org/soap/envelope/"
+						},
+						"soap_Header": {},
+						"soap_Body": {
+							"_starts_with_separatorChar": "exValue"
+						}
+					}}`,
+				paths: &testMatcher{match: true},
+			},
+			&action{
+				body: `<?xml version="1.0" encoding="UTF-8"?>
+						<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+							<soap:Header></soap:Header>
+							<soap:Body>
+								<_starts_with_separatorChar>exValue</_starts_with_separatorChar>
+							</soap:Body>
+						</soap:Envelope>`,
+				err:  nil,
+				code: 0,
+			},
+		),
+		gen(
+			"array element contains null value",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "application/json",
+				body: `{
+					"soap_Envelope": {
+						"namespaceKey": {
+							"soap": "http://schemas.xmlsoap.org/soap/envelope/"
+						},
+						"soap_Header": {},
+						"soap_Body": {
+							"array": [
+								null,
+								1,
+								2
+							]
+						}
+					}}`,
+				paths: &testMatcher{match: true},
+			},
+			&action{
+				body: `<?xml version="1.0" encoding="UTF-8"?>
+						<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+							<soap:Header></soap:Header>
+							<soap:Body>
+								<array xsi:nil="true"></array>
+								<array>1</array>
+								<array>2</array>
+							</soap:Body>
+						</soap:Envelope>`,
+				err:  nil,
+				code: 0,
+			},
+		),
+		gen(
+			"array element contains multiple elements",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "application/json",
+				body: `{
+					"soap_Envelope": {
+						"namespaceKey": {
+							"soap": "http://schemas.xmlsoap.org/soap/envelope/"
+						},
+						"soap_Header": {},
+						"soap_Body": {
+							"Items": [
+								{
+									"Name": "Apple",
+									"Price": 100
+								},
+								{
+									"Name": "Orange",
+									"Price": 50
+								}
+							]
+						}
+					}}`,
+				paths: &testMatcher{match: true},
+			},
+			&action{
+				body: `<?xml version="1.0" encoding="UTF-8"?>
+						<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+							<soap:Header></soap:Header>
+							<soap:Body>
+								<Items>
+									<Name>Apple</Name>
+									<Price>100</Price>
+								</Items>
+								<Items>
+									<Name>Orange</Name>
+									<Price>50</Price>
+								</Items>
+							</soap:Body>
+						</soap:Envelope>`,
+				err:  nil,
+				code: 0,
+			},
+		),
+		gen(
+			"array element contains attributeKey",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "application/json",
+				body: `{
+					"soap_Envelope": {
+						"namespaceKey": {
+							"soap": "http://schemas.xmlsoap.org/soap/envelope/"
+						},
+						"soap_Header": {},
+						"soap_Body": {
+							"Items": [
+								{
+									"attributeKey": {
+										"attrKey": "attrValue"
+									},
+									"testKey": "testValue"
+								}
+							]
+						}
+					}}`,
+				paths: &testMatcher{match: true},
+			},
+			&action{
+				body: `<?xml version="1.0" encoding="UTF-8"?>
+						<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+							<soap:Header></soap:Header>
+							<soap:Body>
+								<Items attrKey="attrValue">
+									<testKey>testValue</testKey>
+								</Items>
+							</soap:Body>
+						</soap:Envelope>`,
+				err:  nil,
+				code: 0,
+			},
+		),
+		gen(
+			"array element contains textKey and the value is null",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "application/json",
+				body: `{
+					"soap_Envelope": {
+						"namespaceKey": {
+							"soap": "http://schemas.xmlsoap.org/soap/envelope/"
+						},
+						"soap_Header": {},
+						"soap_Body": {
+							"Items": [
+								{
+									"attributeKey": {
+										"attrKey": "attrValue"
+									},
+									"textKey": null
+								}
+							]
+						}
+					}}`,
+				paths: &testMatcher{match: true},
+			},
+			&action{
+				body: `<?xml version="1.0" encoding="UTF-8"?>
+						<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+							<soap:Header></soap:Header>
+							<soap:Body>
+								<Items attrKey="attrValue" xsi:nil="true"></Items>
+							</soap:Body>
+						</soap:Envelope>`,
+				err:  nil,
+				code: 0,
+			},
+		),
+		gen(
+			"array element contains textKey and the value is not null",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "application/json",
+				body: `{
+					"soap_Envelope": {
+						"namespaceKey": {
+							"soap": "http://schemas.xmlsoap.org/soap/envelope/"
+						},
+						"soap_Header": {},
+						"soap_Body": {
+							"Items": [
+								{
+									"attributeKey": {
+										"attrKey": "attrValue"
+									},
+									"textKey": "textValue"
+								}
+							]
+						}
+					}}`,
+				paths: &testMatcher{match: true},
+			},
+			&action{
+				body: `<?xml version="1.0" encoding="UTF-8"?>
+						<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+							<soap:Header></soap:Header>
+							<soap:Body>
+								<Items attrKey="attrValue">textValue</Items>
+							</soap:Body>
+						</soap:Envelope>`,
+				err:  nil,
+				code: 0,
+			},
+		),
+		gen(
+			"array element contains the key starts with separatorChar",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "application/json",
+				body: `{
+					"soap_Envelope": {
+						"namespaceKey": {
+							"soap": "http://schemas.xmlsoap.org/soap/envelope/"
+						},
+						"soap_Header": {},
+						"soap_Body": {
+							"Items": [
+								{
+									"_starts_with_separatorChar": "testValue"
+								}
+							]
+						}
+					}}`,
+				paths: &testMatcher{match: true},
+			},
+			&action{
+				body: `<?xml version="1.0" encoding="UTF-8"?>
+						<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+							<soap:Header></soap:Header>
+							<soap:Body>
+								<Items>
+									<_starts_with_separatorChar>testValue</_starts_with_separatorChar>
+								</Items>
+							</soap:Body>
+						</soap:Envelope>`,
+				err:  nil,
+				code: 0,
+			},
+		),
+		gen(
+			"SOAPBody contains non null but empty child element",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "application/json",
+				body: `{
+					"soap_Envelope": {
+						"namespaceKey": {
+							"soap": "http://schemas.xmlsoap.org/soap/envelope/"
+						},
+						"soap_Header": {},
+						"soap_Body": {
+							"testKey": {
+								"emptyKey": {}
+							}
+						}
+					}}`,
+				paths: &testMatcher{match: true},
+			},
+			&action{
+				body: `<?xml version="1.0" encoding="UTF-8"?>
+						<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+							<soap:Header></soap:Header>
+							<soap:Body>
+								<testKey>
+									<emptyKey></emptyKey>
+								</testKey>
+							</soap:Body>
+						</soap:Envelope>`,
+				err:  nil,
+				code: 0,
+			},
+		),
+		gen(
+			"SOAPBody contains textKey and the value is null",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "application/json",
+				body: `{
+					"soap_Envelope": {
+						"namespaceKey": {
+							"soap": "http://schemas.xmlsoap.org/soap/envelope/"
+						},
+						"soap_Header": {},
+						"soap_Body": {
+							"testKey": {
+								"textKey": null
+							}
+						}
+					}}`,
+				paths: &testMatcher{match: true},
+			},
+			&action{
+				body: `<?xml version="1.0" encoding="UTF-8"?>
+						<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+							<soap:Header></soap:Header>
+							<soap:Body>
+								<testKey xsi:nil="true"></testKey>
+							</soap:Body>
+						</soap:Envelope>`,
+				err:  nil,
+				code: 0,
+			},
+		),
+		gen(
+			"array key starts with separatorChar",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "application/json",
+				body: `{
+					"soap_Envelope": {
+						"namespaceKey": {
+							"soap": "http://schemas.xmlsoap.org/soap/envelope/"
+						},
+						"soap_Header": {},
+						"soap_Body": {
+							"testKey": {
+								"_starts_with_separatorChar": [
+									"arrayValue1",
+									"arrayValue2"
+								]
+							}
+						} 
+					}}`,
+				paths: &testMatcher{match: true},
+			},
+			&action{
+				body: `<?xml version="1.0" encoding="UTF-8"?>
+						<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+							<soap:Header></soap:Header>
+							<soap:Body>
+								<testKey>
+									<_starts_with_separatorChar>arrayValue1</_starts_with_separatorChar>      
+									<_starts_with_separatorChar>arrayValue2</_starts_with_separatorChar>      
+								</testKey>
+							</soap:Body>
+						</soap:Envelope>`,
+				err:  nil,
+				code: 0,
+			},
+		),
+		gen(
+			"child element key starts with separatorChar",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "application/json",
+				body: `{
+							"soap_Envelope": {
+								"namespaceKey": {
+									"soap": "http://schemas.xmlsoap.org/soap/envelope/"
+								},
+								"soap_Header": {},
+								"soap_Body": {
+									"testKey": {
+										"_starts_with_separatorChar": "testValue"
+									}
+								}
+							}}`,
+				paths: &testMatcher{match: true},
+			},
+			&action{
+				body: `<?xml version="1.0" encoding="UTF-8"?>
+						<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+							<soap:Header></soap:Header>
+							<soap:Body>
+								<testKey>
+									<_starts_with_separatorChar>testValue</_starts_with_separatorChar>
+								</testKey>
 							</soap:Body>
 						</soap:Envelope>`,
 				err:  nil,
@@ -1162,7 +2080,7 @@ func TestSOAPREST_XmlToMap(t *testing.T) {
 
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"SimpleTextNode",
+			"simple text node",
 			nil,
 			nil,
 			&condition{
@@ -1177,7 +2095,7 @@ func TestSOAPREST_XmlToMap(t *testing.T) {
 			},
 		),
 		gen(
-			"MapChildNodeWithMapTypeChildren",
+			"map child node with map type children",
 			nil,
 			nil,
 			&condition{
@@ -1202,7 +2120,7 @@ func TestSOAPREST_XmlToMap(t *testing.T) {
 			},
 		),
 		gen(
-			"NodeWithAttributes",
+			"node with attributes",
 			nil,
 			nil,
 			&condition{
@@ -1239,7 +2157,7 @@ func TestSOAPREST_XmlToMap(t *testing.T) {
 			},
 		),
 		gen(
-			"NodeWithNamespaces",
+			"node with namespaces",
 			nil,
 			nil,
 			&condition{
@@ -1276,7 +2194,7 @@ func TestSOAPREST_XmlToMap(t *testing.T) {
 			},
 		),
 		gen(
-			"NodeWithXsiNilAttribute",
+			"node with xsi:nil attribute",
 			nil,
 			nil,
 			&condition{
@@ -1296,7 +2214,7 @@ func TestSOAPREST_XmlToMap(t *testing.T) {
 			},
 		),
 		gen(
-			"NestedNodes",
+			"nested nodes",
 			nil,
 			nil,
 			&condition{
@@ -1363,7 +2281,7 @@ func TestSOAPREST_XmlToMap(t *testing.T) {
 			},
 		),
 		gen(
-			"ContentWithSpace",
+			"content with space",
 			nil,
 			nil,
 			&condition{
@@ -1374,11 +2292,11 @@ func TestSOAPREST_XmlToMap(t *testing.T) {
 				nsCtx: &namespaceContext{},
 			},
 			&action{
-				expected: map[string]any{},
+				expected: " ",
 			},
 		),
 		gen(
-			"ContentWithSpaceAndChildContent",
+			"content with space and child content",
 			nil,
 			nil,
 			&condition{
@@ -1415,7 +2333,7 @@ func TestSOAPREST_XmlToMap(t *testing.T) {
 			},
 		),
 		gen(
-			"DefaultNamespaceDeclaration",
+			"default namespace declaration",
 			nil,
 			nil,
 			&condition{
@@ -1499,7 +2417,7 @@ func TestSOAPREST_XmlToMap(t *testing.T) {
 			},
 		),
 		gen(
-			"AttributeKeyContainsNamespacePrefix",
+			"attribute key contains namespace prefix",
 			nil,
 			nil,
 			&condition{
@@ -1540,6 +2458,42 @@ func TestSOAPREST_XmlToMap(t *testing.T) {
 							},
 							"textKey": "testValue",
 						},
+					},
+				},
+			},
+		),
+		gen(
+			"node with prefixed and unregistered attributes",
+			nil,
+			nil,
+			&condition{
+				xmlInput: xmlNode{
+					XMLName: xml.Name{Local: "User"},
+					Attrs: []xml.Attr{
+						{
+							Name:  xml.Name{Space: "http://example.com/ns", Local: "id"},
+							Value: "456",
+						},
+						{
+							Name:  xml.Name{Space: "http://unregistered.com/", Local: "role"},
+							Value: "viewer",
+						},
+					},
+				},
+				nsCtx: &namespaceContext{
+					prefixToURI: map[string]string{
+						"ex": "http://example.com/ns",
+					},
+					uriToPrefix: map[string]string{
+						"http://example.com/ns": "ex",
+					},
+				},
+			},
+			&action{
+				expected: map[string]any{
+					"attributeKey": map[string]string{
+						"ex_id": "456",
+						"role":  "viewer",
 					},
 				},
 			},
@@ -1587,7 +2541,7 @@ func TestSOAPREST_ConvertRESTtoSOAPResponse(t *testing.T) {
 
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"ValidSOAPResponse",
+			"valid SOAP response",
 			nil,
 			nil,
 			&condition{
@@ -1613,7 +2567,7 @@ func TestSOAPREST_ConvertRESTtoSOAPResponse(t *testing.T) {
 			},
 		),
 		gen(
-			"MultipleAttributes",
+			"multiple attributes",
 			nil,
 			nil,
 			&condition{
@@ -1646,7 +2600,7 @@ func TestSOAPREST_ConvertRESTtoSOAPResponse(t *testing.T) {
 			},
 		),
 		gen(
-			"DecodeError",
+			"decode error",
 			nil,
 			nil,
 			&condition{
@@ -1710,7 +2664,7 @@ func TestXmlElement_MarshalXML(t *testing.T) {
 
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"DebugCase",
+			"debug case",
 			nil,
 			nil,
 			&condition{
@@ -1724,7 +2678,7 @@ func TestXmlElement_MarshalXML(t *testing.T) {
 			},
 		),
 		gen(
-			"SimpleElement",
+			"simple element",
 			nil,
 			nil,
 			&condition{
@@ -1738,7 +2692,7 @@ func TestXmlElement_MarshalXML(t *testing.T) {
 			},
 		),
 		gen(
-			"NotEmptySpace",
+			"not empty space",
 			nil,
 			nil,
 			&condition{
@@ -1752,7 +2706,7 @@ func TestXmlElement_MarshalXML(t *testing.T) {
 			},
 		),
 		gen(
-			"NilElement",
+			"nil element",
 			nil,
 			nil,
 			&condition{
@@ -1767,7 +2721,7 @@ func TestXmlElement_MarshalXML(t *testing.T) {
 			},
 		),
 		gen(
-			"TextNodeDirectlyUnderHeaderOrBody",
+			"text node directly under header or body",
 			nil,
 			nil,
 			&condition{
@@ -1779,6 +2733,41 @@ func TestXmlElement_MarshalXML(t *testing.T) {
 			},
 			&action{
 				xmlOutput: "\n    TextNode\n  ",
+			},
+		),
+		gen(
+			"text content with other element",
+			nil,
+			nil,
+			&condition{
+				element: xmlElement{
+					XMLName:     xml.Name{Local: ""},
+					Content:     "sibling",
+					hasSiblings: true,
+				},
+			},
+			&action{
+				xmlOutput: "\n    sibling",
+			},
+		),
+		gen(
+			"encode child content",
+			nil,
+			nil,
+			&condition{
+				element: xmlElement{
+					XMLName: xml.Name{Local: "parentElement"},
+					Content: "parentContent",
+					children: []xmlElement{
+						{
+							XMLName: xml.Name{Local: "childElement"},
+							Content: "childContent",
+						},
+					},
+				},
+			},
+			&action{
+				xmlOutput: "<parentElement>parentContent<childElement>childContent</childElement></parentElement>",
 			},
 		),
 	}
@@ -1816,7 +2805,7 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"TextNodeInBody",
+			"text node in body",
 			nil,
 			nil,
 			&condition{
@@ -1851,7 +2840,7 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 			},
 		),
 		gen(
-			"EmptyEnvelope",
+			"empty envelope",
 			nil,
 			nil,
 			&condition{
@@ -1873,7 +2862,7 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 			},
 		),
 		gen(
-			"EnvelopeWithNamespaces",
+			"envelope with namespaces",
 			nil,
 			nil,
 			&condition{
@@ -1905,7 +2894,7 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 			},
 		),
 		gen(
-			"EnvelopeWithHeader",
+			"envelope with header",
 			nil,
 			nil,
 			&condition{
@@ -1944,7 +2933,7 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 			},
 		),
 		gen(
-			"EnvelopeWithNamespacesAndNullValue",
+			"envelope with namespaces and null value",
 			nil,
 			nil,
 			&condition{
@@ -1991,7 +2980,7 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 			},
 		),
 		gen(
-			"AttributesDirectlyUnderTheSOAPEnvelope",
+			"attributes directly under the SOAPEnvelope",
 			nil,
 			nil,
 			&condition{
@@ -2029,7 +3018,7 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 			},
 		),
 		gen(
-			"ChildElementsUnderTheSOAPEnvelopeThatDoNotHave`map[string]any`",
+			"child elements under the SOAPEnvelope do not have map[string]any",
 			nil,
 			nil,
 			&condition{
@@ -2053,7 +3042,7 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 			},
 		),
 		gen(
-			"AttributesDirectlyUnderTheSOAPHeader",
+			"attributes directly under the SOAPHeader",
 			nil,
 			nil,
 			&condition{
@@ -2087,7 +3076,7 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 			},
 		),
 		gen(
-			"AttributesDirectlyUnderTheSOAPBody",
+			"attributes directly under the SOAPBody",
 			nil,
 			nil,
 			&condition{
@@ -2127,7 +3116,7 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 			},
 		),
 		gen(
-			"DefaultNamespaceDeclaration(EmptyPrefix)",
+			"default namespace declaration (empty prefix)",
 			nil,
 			nil,
 			&condition{
@@ -2171,7 +3160,7 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 			},
 		),
 		gen(
-			"TextContentWithOtherElement",
+			"text content with other element",
 			nil,
 			nil,
 			&condition{
@@ -2225,7 +3214,7 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 			},
 		),
 		gen(
-			"KeyStartsWithSeparatorChar",
+			"key starts with separatorChar",
 			nil,
 			nil,
 			&condition{
@@ -2251,6 +3240,76 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 								Content: "testText",
 							},
 						},
+						prefix: "soap",
+					},
+				},
+			},
+		),
+		gen(
+			"header contains textKey",
+			nil,
+			nil,
+			&condition{
+				data: map[string]any{
+					"soap_Envelope": map[string]any{
+						"soap_Header": map[string]any{
+							"textKey": "testValue",
+						},
+						"soap_Body": map[string]any{},
+					},
+				},
+				namespaces: map[string]string{},
+			},
+			&action{
+				expected: &soapEnvelope{
+					prefix: "soap",
+					Header: &soapHeader{
+						prefix: "soap",
+						Content: []xmlElement{
+							{
+								Content: "testValue",
+							},
+						},
+					},
+					Body: &soapBody{
+						prefix: "soap",
+					},
+				},
+			},
+		),
+		gen(
+			"header contains textKey and otherKey",
+			nil,
+			nil,
+			&condition{
+				data: map[string]any{
+					"soap_Envelope": map[string]any{
+						"soap_Header": map[string]any{
+							"textKey":  "testValue",
+							"otherKey": "otherValue",
+						},
+						"soap_Body": map[string]any{},
+					},
+				},
+				namespaces: map[string]string{},
+			},
+			&action{
+				expected: &soapEnvelope{
+					prefix: "soap",
+					Header: &soapHeader{
+						prefix: "soap",
+						Content: []xmlElement{
+							{
+								Content:     "testValue",
+								hasSiblings: true,
+							},
+							{
+								XMLName: xml.Name{Local: "otherKey"},
+								Content: "otherValue",
+							},
+						},
+					},
+					Body: &soapBody{
 						prefix: "soap",
 					},
 				},
@@ -2314,6 +3373,7 @@ func TestSOAPREST_CreateSOAPEnvelope(t *testing.T) {
 		})
 	}
 }
+
 func TestSOAPREST_MapToXMLElements(t *testing.T) {
 	type condition struct {
 		data map[string]any
@@ -2333,7 +3393,7 @@ func TestSOAPREST_MapToXMLElements(t *testing.T) {
 
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"EmptyMap",
+			"empty map",
 			nil,
 			nil,
 			&condition{
@@ -2344,7 +3404,7 @@ func TestSOAPREST_MapToXMLElements(t *testing.T) {
 			},
 		),
 		gen(
-			"SingleElement",
+			"single element",
 			nil,
 			nil,
 			&condition{
@@ -2362,7 +3422,7 @@ func TestSOAPREST_MapToXMLElements(t *testing.T) {
 			},
 		),
 		gen(
-			"MultipleElements",
+			"multiple elements",
 			nil,
 			nil,
 			&condition{
@@ -2385,7 +3445,7 @@ func TestSOAPREST_MapToXMLElements(t *testing.T) {
 			},
 		),
 		gen(
-			"NestedElements",
+			"nested elements",
 			nil,
 			nil,
 			&condition{
@@ -2427,7 +3487,7 @@ func TestSOAPREST_MapToXMLElements(t *testing.T) {
 			},
 		),
 		gen(
-			"ElementsWithNilValue",
+			"elements with nil value",
 			nil,
 			nil,
 			&condition{
@@ -2445,7 +3505,7 @@ func TestSOAPREST_MapToXMLElements(t *testing.T) {
 			},
 		),
 		gen(
-			"SpecificAttributeKey",
+			"specific attribute key",
 			nil,
 			nil,
 			&condition{
@@ -2459,7 +3519,7 @@ func TestSOAPREST_MapToXMLElements(t *testing.T) {
 			},
 		),
 		gen(
-			"SpecificNamespaceKey",
+			"specific namespace key",
 			nil,
 			nil,
 			&condition{
@@ -2473,7 +3533,7 @@ func TestSOAPREST_MapToXMLElements(t *testing.T) {
 			},
 		),
 		gen(
-			"ContainsSeparatorChar",
+			"contains separatorChar",
 			nil,
 			nil,
 			&condition{
@@ -2491,7 +3551,7 @@ func TestSOAPREST_MapToXMLElements(t *testing.T) {
 			},
 		),
 		gen(
-			"ContainsXMLNSprefix",
+			"contains xmlns prefix",
 			nil,
 			nil,
 			&condition{
@@ -2509,7 +3569,7 @@ func TestSOAPREST_MapToXMLElements(t *testing.T) {
 			},
 		),
 		gen(
-			"MultipleNamespaceElements",
+			"multiple namespace elements",
 			nil,
 			nil,
 			&condition{
@@ -2530,7 +3590,7 @@ func TestSOAPREST_MapToXMLElements(t *testing.T) {
 			},
 		),
 		gen(
-			"KeyStartsWithSeparatorChar",
+			"key starts with separatorChar and any content",
 			nil,
 			nil,
 			&condition{
@@ -2555,7 +3615,7 @@ func TestSOAPREST_MapToXMLElements(t *testing.T) {
 			},
 		),
 		gen(
-			"ArrayData",
+			"array data",
 			nil,
 			nil,
 			&condition{
@@ -2580,6 +3640,24 @@ func TestSOAPREST_MapToXMLElements(t *testing.T) {
 					{
 						XMLName: xml.Name{Space: "soap", Local: "Body"},
 						Content: "value3",
+					},
+				},
+			},
+		),
+		gen(
+			"key starts with separatorChar with single content",
+			nil,
+			nil,
+			&condition{
+				data: map[string]any{
+					"_starts_with_separatorChar": "testValue",
+				},
+			},
+			&action{
+				expected: []xmlElement{
+					{
+						XMLName: xml.Name{Local: "_starts_with_separatorChar"},
+						Content: "testValue",
 					},
 				},
 			},
@@ -2654,7 +3732,7 @@ func TestSOAPREST_CreateXMLElementFromValue(t *testing.T) {
 
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"NilElement",
+			"nil element",
 			nil,
 			nil,
 			&condition{},
@@ -2665,7 +3743,7 @@ func TestSOAPREST_CreateXMLElementFromValue(t *testing.T) {
 			},
 		),
 		gen(
-			"ElementWithAttribute",
+			"element with attribute",
 			nil,
 			nil,
 			&condition{
@@ -2687,7 +3765,7 @@ func TestSOAPREST_CreateXMLElementFromValue(t *testing.T) {
 			},
 		),
 		gen(
-			"ElementWithNilText",
+			"element with nil text",
 			nil,
 			nil,
 			&condition{
@@ -2702,7 +3780,7 @@ func TestSOAPREST_CreateXMLElementFromValue(t *testing.T) {
 			},
 		),
 		gen(
-			"ElementWithText",
+			"element with text",
 			nil,
 			nil,
 			&condition{
@@ -2717,7 +3795,7 @@ func TestSOAPREST_CreateXMLElementFromValue(t *testing.T) {
 			},
 		),
 		gen(
-			"ElementWithChildContent",
+			"element with child content",
 			nil,
 			nil,
 			&condition{
@@ -2751,7 +3829,7 @@ func TestSOAPREST_CreateXMLElementFromValue(t *testing.T) {
 			},
 		),
 		gen(
-			"ElementWithSeparatocrChildKey",
+			"element with separator child key",
 			nil,
 			nil,
 			&condition{
@@ -2778,7 +3856,7 @@ func TestSOAPREST_CreateXMLElementFromValue(t *testing.T) {
 			},
 		),
 		gen(
-			"DefaultContent",
+			"default content",
 			nil,
 			nil,
 			&condition{
@@ -2791,7 +3869,7 @@ func TestSOAPREST_CreateXMLElementFromValue(t *testing.T) {
 			},
 		),
 		gen(
-			"SanitizeContent",
+			"sanitize content",
 			nil,
 			nil,
 			&condition{
@@ -2849,7 +3927,7 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"StringValue",
+			"string value",
 			nil,
 			nil,
 			&condition{
@@ -2864,7 +3942,7 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 			},
 		),
 		gen(
-			"IntegerValue",
+			"integer value",
 			nil,
 			nil,
 			&condition{
@@ -2879,7 +3957,7 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 			},
 		),
 		gen(
-			"FloatValue",
+			"float value",
 			nil,
 			nil,
 			&condition{
@@ -2894,7 +3972,7 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 			},
 		),
 		gen(
-			"FloatValueWithTrailingZero",
+			"float value with trailing zero",
 			nil,
 			nil,
 			&condition{
@@ -2909,7 +3987,7 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 			},
 		),
 		gen(
-			"NilValue",
+			"nil value",
 			nil,
 			nil,
 			&condition{
@@ -2924,7 +4002,7 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 			},
 		),
 		gen(
-			"EmptyValue",
+			"empty value",
 			nil,
 			nil,
 			&condition{
@@ -2938,7 +4016,7 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 			},
 		),
 		gen(
-			"MapValueWithAttributes",
+			"map value with attributes",
 			nil,
 			nil,
 			&condition{
@@ -2961,7 +4039,7 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 			},
 		),
 		gen(
-			"ContainsTextContent",
+			"contains text content",
 			nil,
 			nil,
 			&condition{
@@ -2978,7 +4056,7 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 			},
 		),
 		gen(
-			"ContainsBackspaceAndFormFeedInTextContent",
+			"contains backspace and formFeed in text content",
 			nil,
 			nil,
 			&condition{
@@ -2995,7 +4073,7 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 			},
 		),
 		gen(
-			"NilTextContent",
+			"nil text content",
 			nil,
 			nil,
 			&condition{
@@ -3012,7 +4090,7 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 			},
 		),
 		gen(
-			"MapValueWithChildElements",
+			"mapValue with childElements",
 			nil,
 			nil,
 			&condition{
@@ -3046,7 +4124,7 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 			},
 		),
 		gen(
-			"SeparatorCharKey",
+			"separatorChar key",
 			nil,
 			nil,
 			&condition{
@@ -3087,7 +4165,7 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 			},
 		),
 		gen(
-			"ArrayValue",
+			"array value",
 			nil,
 			nil,
 			&condition{
@@ -3102,7 +4180,7 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 			},
 		),
 		gen(
-			"EmptyArrayValue",
+			"empty array value",
 			nil,
 			nil,
 			&condition{
@@ -3117,7 +4195,7 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 			},
 		),
 		gen(
-			"StartsWithSeparatorChar",
+			"starts with separatorChar",
 			nil,
 			nil,
 			&condition{
@@ -3129,6 +4207,54 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 				expected: xmlElement{
 					XMLName: xml.Name{Space: "_", Local: "item"},
 					Content: "[]",
+				},
+			},
+		),
+		gen(
+			"value contains []any but the key doesn't contain separatorChar",
+			nil,
+			nil,
+			&condition{
+				elementName: "test",
+				value: map[string]any{
+					"testKey": []any{
+						"childValue",
+					},
+				},
+			},
+			&action{
+				expected: xmlElement{
+					XMLName: xml.Name{Local: "test"},
+					Content: "",
+					children: []xmlElement{
+						{
+							XMLName: xml.Name{Local: "testKey"},
+							Content: "childValue",
+						},
+					},
+				},
+			},
+		),
+		gen(
+			"value doesn't contain []any and the key contains separatorChar",
+			nil,
+			nil,
+			&condition{
+				elementName: "test",
+				value: map[string]any{
+					"_contains_separatorChar_key": "testValue",
+				},
+			},
+			&action{
+				expected: xmlElement{
+					XMLName: xml.Name{Local: "test"},
+					Content: "",
+					children: []xmlElement{
+						{
+							XMLName: xml.Name{Local: "_contains_separatorChar_key"},
+							Content: "testValue",
+						},
+					},
 				},
 			},
 		),
@@ -3578,7 +4704,7 @@ func TestNamespaceContext_AddNamespace(t *testing.T) {
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"Prefix exists in namespaceContext",
+			"prefix exists in namespaceContext",
 			nil,
 			nil,
 			&condition{
@@ -3629,7 +4755,7 @@ func TestNamespaceContext_GetPrefix(t *testing.T) {
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"Prefix exists in namespaceContext",
+			"prefix exists in namespaceContext",
 			nil,
 			nil,
 			&condition{
@@ -3643,7 +4769,7 @@ func TestNamespaceContext_GetPrefix(t *testing.T) {
 			},
 		),
 		gen(
-			"Prefix does not exist in namespaceContext",
+			"prefix does not exist in namespaceContext",
 			nil,
 			nil,
 			&condition{
@@ -4195,6 +5321,65 @@ func TestSOAPREST_ParseValue(t *testing.T) {
 	}
 }
 
+func TestSanitizeControlCharacters(t *testing.T) {
+	type condition struct {
+		input string
+	}
+	type action struct {
+		expect string
+	}
+
+	tb := testutil.NewTableBuilder[*condition, *action]()
+	tb.Name(t.Name())
+	table := tb.Build()
+
+	gen := testutil.NewCase[*condition, *action]
+	testCases := []*testutil.Case[*condition, *action]{
+		gen(
+			"empty string",
+			nil,
+			nil,
+			&condition{
+				input: "",
+			},
+			&action{
+				expect: "",
+			},
+		),
+		gen(
+			"valid basic character",
+			nil,
+			nil,
+			&condition{
+				input: "Hello\u0009\u000A\u000D World",
+			},
+			&action{
+				expect: "Hello\t\n\r World",
+			},
+		),
+		gen(
+			"edge case",
+			nil,
+			nil,
+			&condition{
+				input: "\u0020\uD7FF\uE000\uFFFD\U00010000\U0010FFFF",
+			},
+			&action{
+				expect: " \ud7ff\ue000�𐀀\U0010FFFF",
+			},
+		),
+	}
+
+	testutil.Register(table, testCases...)
+
+	for _, tt := range table.Entries() {
+		tt := tt
+		t.Run(tt.Name(), func(t *testing.T) {
+			testutil.Diff(t, tt.A().expect, sanitizeControlCharacters(tt.C().input))
+		})
+	}
+}
+
 func TestHasNullValue(t *testing.T) {
 	type condition struct {
 		data any
@@ -4502,7 +5687,7 @@ func TestMapToXMLAttrs(t *testing.T) {
 			},
 		),
 		gen(
-			"Attributes that do not begin with xmlns_ or xsi_",
+			"attributes that do not begin with xmlns_ or xsi_",
 			nil,
 			nil,
 			&condition{

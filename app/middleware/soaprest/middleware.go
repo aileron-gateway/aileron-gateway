@@ -28,6 +28,7 @@ const (
 	xmlNamespaceKey = "xmlns"
 
 	soapNamespaceURI = "http://schemas.xmlsoap.org/soap/envelope/"
+	xmlNamespaceURI  = "http://www.w3.org/2000/xmlns/"
 	xsiNamespaceURI  = "http://www.w3.org/2001/XMLSchema-instance"
 
 	soap11MIMEType = "text/xml"
@@ -155,6 +156,9 @@ func removeNewlinesAndTabs(content string) string {
 }
 
 func (s soapREST) xmlToMap(node xmlNode, nsCtx *namespaceContext) any {
+	namespaces := map[string]string{}
+	attributes := map[string]string{}
+
 	// Check whether the XML contains `xsi:nil`.
 	for _, attr := range node.Attrs {
 		if (attr.Name.Space == xsiNamespaceURI || attr.Name.Space == xsiNamespaceKey) &&
@@ -163,22 +167,19 @@ func (s soapREST) xmlToMap(node xmlNode, nsCtx *namespaceContext) any {
 		}
 	}
 
-	namespaces := map[string]string{}
-	attributes := map[string]string{}
-
 	// Checks whether the namespace URI is included.
 	for _, attr := range node.Attrs {
-		if attr.Name.Space == xmlNamespaceKey || attr.Name.Local == xmlNamespaceKey {
-			prefix := attr.Name.Local
-			if attr.Name.Space == xmlNamespaceKey {
-				prefix = attr.Name.Local
-			}
+		isXMLNS := (attr.Name.Space == xmlNamespaceKey ||
+			attr.Name.Space == xmlNamespaceURI ||
+			attr.Name.Local == xmlNamespaceKey)
+
+		if isXMLNS {
 			if attr.Value == soapNamespaceURI {
 				namespaces[s.soapNamespacePrefix] = attr.Value
 				nsCtx.addNamespace(s.soapNamespacePrefix, attr.Value)
 			} else {
-				namespaces[prefix] = attr.Value
-				nsCtx.addNamespace(prefix, attr.Value)
+				namespaces[attr.Name.Local] = attr.Value
+				nsCtx.addNamespace(attr.Name.Local, attr.Value)
 			}
 		} else if !strings.HasPrefix(attr.Name.Space, xmlNamespaceKey) {
 			// Obtain the prefix corresponding to the namespace and construct the key
@@ -242,26 +243,17 @@ func (s soapREST) xmlToMap(node xmlNode, nsCtx *namespaceContext) any {
 			resultMap[s.textKey] = s.parseValue(cleanedContent)
 		}
 	} else {
-		if content != "" {
-			if trimmed == "" {
-				// Even if the content consists only of whitespace, retain it if attributes are present
-				if len(resultMap) > 0 {
-					return resultMap
-				}
-				return map[string]any{}
+		if content == "" {
+			if len(resultMap) > 0 {
+				return resultMap
 			}
-
-			// If attribute information is already stored, retain it
+			return map[string]any{}
+		} else {
 			if len(resultMap) > 0 {
 				resultMap[s.textKey] = s.parseValue(cleanedContent)
 				return resultMap
 			}
-
 			return s.parseValue(cleanedContent)
-		} else {
-			if len(resultMap) == 0 {
-				return map[string]any{}
-			}
 		}
 	}
 
@@ -620,17 +612,6 @@ func (s soapREST) mapToXMLElements(data map[string]any, nsManager *namespaceMana
 			// If the key starts with separatorChar, prepend separatorChar to elementName as well
 			if startsWithSeparatorChar {
 				parts[1] = separatorChar + parts[1]
-			}
-		}
-
-		// If the value is a map, process the namespace information within it.
-		if valueMap, ok := value.(map[string]any); ok {
-			if nsMap, nsOk := valueMap[s.namespaceKey].(map[string]any); nsOk {
-				for prefix, uri := range nsMap {
-					if uriStr, isStr := uri.(string); isStr {
-						nsManager.addNamespace(prefix, uriStr)
-					}
-				}
 			}
 		}
 
