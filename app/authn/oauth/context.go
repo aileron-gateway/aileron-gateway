@@ -146,7 +146,7 @@ func (c *oauthContext) validOauthClaims(ctx context.Context, tokens *OAuthTokens
 
 	// Validate the access token if exists.
 	// Skip validation when the access token has not expired yet.
-	if tokens.AT != "" && !(c.skipUnexpiredAT && (now < tokens.ATExp)) {
+	if tokens.AT != "" && !(c.skipUnexpiredAT && (now < tokens.ATExp)) && !skipATValidation {
 		claims, err := c.validateAT(ctx, tokens.AT)
 		if err != nil && err != reAuthenticationRequired {
 			return err
@@ -204,7 +204,7 @@ func (c *oauthContext) validOauthClaims(ctx context.Context, tokens *OAuthTokens
 
 	// Validate the ID token if exists.
 	// Skip validation when the ID token has not expired yet.
-	if tokens.IDT != "" && !(c.skipUnexpiredIDT && (now < tokens.IDTExp)) {
+	if tokens.IDT != "" && !(c.skipUnexpiredIDT && (now < tokens.IDTExp)) && !skipIDTValidation {
 		claims, err := c.validateIDT(tokens.IDT, opts)
 		if err != nil {
 			// Unauthorize for invalid ID token or require re-authentication if expired.

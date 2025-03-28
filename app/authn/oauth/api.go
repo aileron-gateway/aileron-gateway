@@ -3,6 +3,8 @@ package oauth
 import (
 	"cmp"
 	"net/http"
+	"os"
+	"strconv"
 	"time"
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
@@ -22,6 +24,11 @@ const (
 	apiVersion = "app/v1"
 	kind       = "OAuthAuthenticationHandler"
 	Key        = apiVersion + "/" + kind
+)
+
+var (
+	skipATValidation  = false
+	skipIDTValidation = false
 )
 
 var Resource api.Resource = &API{
@@ -82,6 +89,18 @@ func (*API) Mutate(msg protoreflect.ProtoMessage) protoreflect.ProtoMessage {
 }
 
 func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.ProtoMessage) (any, error) {
+	var err error
+
+	skipATValidation, err = getEnvAsBool("AILERON_SKIP_AT_VALIDATION", false)
+	if err != nil {
+		return nil, core.ErrCoreGenCreateObject.WithStack(err, map[string]any{"kind": kind})
+	}
+
+	skipIDTValidation, err = getEnvAsBool("AILERON_SKIP_IDT_VALIDATION", false)
+	if err != nil {
+		return nil, core.ErrCoreGenCreateObject.WithStack(err, map[string]any{"kind": kind})
+	}
+
 	c := msg.(*v1.OAuthAuthenticationHandler)
 
 	lg := log.DefaultOr(c.Metadata.Logger)
@@ -283,4 +302,16 @@ func appendWithValidMethods(opts []jwt.ParserOption, methods []string) []jwt.Par
 		return opts
 	}
 	return append(opts, jwt.WithValidMethods(methods))
+}
+
+func getEnvAsBool(envName string, defaultValue bool) (bool, error) {
+	value := os.Getenv(envName)
+	if value == "" {
+		return defaultValue, nil
+	}
+	parsedValue, err := strconv.ParseBool(value)
+	if err != nil {
+		return defaultValue, err
+	}
+	return parsedValue, nil
 }
