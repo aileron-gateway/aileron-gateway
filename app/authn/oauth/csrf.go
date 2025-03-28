@@ -25,10 +25,10 @@ const (
 
 	// nonceLength is the byte length of "nonce" parameter
 	// described in OpenID Connect Core 1.0 incorporating errata set 2.
-	// 84 bytes are encoded into 112 (=84*8/6) ascii characters
+	// 32 bytes are encoded into 43 (=32*8/6) ascii characters
 	// by Base64 URL encoding.
 	//	- https://openid.net/specs/openid-connect-core-1_0.html
-	nonceLength = 84
+	nonceLength = 32
 
 	// codeVerifierLength is the byte length of code verifier
 	// described in RFC 7636 Proof Key for Code Exchange by OAuth Public Clients.
