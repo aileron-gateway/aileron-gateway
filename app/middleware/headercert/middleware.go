@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/pem"
-	"errors"
 	"fmt"
 	"net/http"
 
@@ -26,7 +25,7 @@ func (m *headerCert) Middleware(next http.Handler) http.Handler {
 
 		ch := r.Header.Get("X-SSL-Client-Cert")
 		if ch == "" {
-			err := app.ErrAppMiddleHeaderPolicy.WithoutStack(nil, map[string]any{"reason": "client certificate is not found"}) // TODO:エラーも自分で定義する（errors.goに）
+			err := app.ErrAppMiddleInvalidCert.WithoutStack(nil, map[string]any{"reason": "cert not found"})
 			m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusBadRequest))
 			return
 		}
@@ -39,8 +38,6 @@ func (m *headerCert) Middleware(next http.Handler) http.Handler {
 
 		// Verify the client certificate
 		if _, err := cert.Verify(m.opts); err != nil {
-			err := app.ErrAppMiddleHeaderPolicy.WithoutStack(nil, map[string]any{"reason": "fail to verify certificate"}) // TODO:エラーも自分で定義する（errors.goに）
-			fmt.Println("fail to verify certificate")
 			m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusUnauthorized))
 			return
 		}
@@ -51,8 +48,7 @@ func (m *headerCert) Middleware(next http.Handler) http.Handler {
 		if fh != "" {
 			f := sha256.Sum256(cert.Raw)
 			if hex.EncodeToString(f[:]) != fh {
-				err := app.ErrAppMiddleHeaderPolicy.WithoutStack(nil, map[string]any{"reason": "fail to verify fingerprint"}) // TODO:エラーも自分で定義する（errors.goに）
-				fmt.Println("fail to verify fingerprint")
+				err := app.ErrAppMiddleInvalidFingerprint.WithoutStack(nil, nil)
 				m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusUnauthorized))
 				return
 			}
@@ -62,26 +58,23 @@ func (m *headerCert) Middleware(next http.Handler) http.Handler {
 	})
 }
 
-func parseCert(ch string) (*x509.Certificate, error) { 
+func parseCert(ch string) (*x509.Certificate, error) {
 	// Decode a Base64-encoded client certificate and convert it to a byte array
-	decoded, err := base64.URLEncoding.DecodeString(ch) // TODO:StdEncodingで問題ないか確認する
+	decoded, err := base64.URLEncoding.DecodeString(ch)
 	if err != nil {
-		fmt.Println("fail base64")
-		return nil, app.ErrAppGenCreateRequest.WithoutStack(err, map[string]any{}) // TODO:第二引数はエラーのパラメータのマップを与える
+		return nil, app.ErrAppMiddleInvalidCert.WithoutStack(err, map[string]any{"reason": "fail base64 decode"})
 	}
 
 	// Convert the client certificate into a PEM block
 	block, _ := pem.Decode(decoded)
 	if block == nil {
-		fmt.Println("fail PEM")
-		return nil, errors.New("failed to decode certificate")
+		return nil, app.ErrAppMiddleInvalidCert.WithoutStack(nil, map[string]any{"reason": "fail PEM decode"})
 	}
 
 	// Analyze the PEM block
 	cert, err := x509.ParseCertificate(block.Bytes)
 	if err != nil {
-		fmt.Println("fail x509")
-		return nil, errors.New("failed to parse certificate")
+		return nil, app.ErrAppMiddleInvalidCert.WithoutStack(err, map[string]any{"reason": "fail x509 parse"})
 	}
 
 	return cert, nil
