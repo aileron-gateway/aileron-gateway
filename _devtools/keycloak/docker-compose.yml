@@ -8,7 +8,6 @@ services:
     ports:
       - "18080:8080"
       - "18443:8443"
-    restart: always
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: password
