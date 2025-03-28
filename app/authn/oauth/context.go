@@ -245,6 +245,12 @@ func (c *oauthContext) validateAT(ctx context.Context, at string) (jwt.MapClaims
 			return claims, nil
 		}
 
+		sud, _ := claims.GetSubject()
+		if sud == "" {
+			err := app.ErrAppAuthnInvalidToken.WithoutStack(err, map[string]any{"name": "access token", "reason": "sub in access token does not exist.", "token": at})
+			return nil, utilhttp.NewHTTPError(err, http.StatusUnauthorized)
+		}
+
 		if c.lg.Enabled(log.LvDebug) {
 			err := app.ErrAppAuthnParseWithClaims.WithoutStack(err, map[string]any{"jwt": at})
 			c.lg.Debug(ctx, "failed to parse claims", err.Name(), err.Map())
@@ -263,6 +269,18 @@ func (c *oauthContext) validateIDT(idt string, opts []validateOption) (jwt.MapCl
 	claims, err := c.jh.ValidMapClaims(idt, c.idtParseOpts...)
 	if err != nil {
 		err := app.ErrAppAuthnInvalidToken.WithoutStack(err, map[string]any{"name": "id token", "reason": "token validation failed.", "token": idt})
+		return nil, utilhttp.NewHTTPError(err, http.StatusUnauthorized)
+	}
+
+	sud, _ := claims.GetSubject()
+	if sud == "" {
+		err := app.ErrAppAuthnInvalidToken.WithoutStack(err, map[string]any{"name": "id token", "reason": "sub in ID token does not exist.", "token": idt})
+		return nil, utilhttp.NewHTTPError(err, http.StatusUnauthorized)
+	}
+
+	iat, _ := claims.GetIssuedAt()
+	if iat == nil {
+		err := app.ErrAppAuthnInvalidToken.WithoutStack(err, map[string]any{"name": "id token", "reason": "iat in ID token does not exist.", "token": idt})
 		return nil, utilhttp.NewHTTPError(err, http.StatusUnauthorized)
 	}
 
