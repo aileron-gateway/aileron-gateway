@@ -1,0 +1,20 @@
+syntax = "proto3";
+package app.v1;
+
+import "kernel/resource.proto";
+
+option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
+
+message HeaderCertMiddleware {
+    string                          APIVersion = 1 [json_name = "apiVersion"];
+    string                          Kind       = 2 [json_name = "kind"];
+    kernel.Metadata                 Metadata   = 3 [json_name = "metadata"];
+    kernel.Status                   Status     = 4 [json_name = "status"];
+    HeaderCertMiddlewareSpec        Spec       = 5 [json_name = "spec"];
+}
+
+message HeaderCertMiddlewareSpec {
+    kernel.Reference    ErrorHandler    = 1 [json_name = "errorHandler"];
+    repeated string     rootCAs         = 2 [json_name = "rootCAs"];
+}
+
