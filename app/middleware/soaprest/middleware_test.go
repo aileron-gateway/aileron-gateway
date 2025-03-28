@@ -954,6 +954,12 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 		paths       *testMatcher
 
 		responseWriteError bool
+
+		attributeKey string
+		namespaceKey string
+		textKey      string
+
+		namespacePrefix string
 	}
 
 	type action struct {
@@ -1965,17 +1971,17 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 				method:      http.MethodPost,
 				contentType: "application/json",
 				body: `{
-							"soap_Envelope": {
-								"namespaceKey": {
-									"soap": "http://schemas.xmlsoap.org/soap/envelope/"
-								},
-								"soap_Header": {},
-								"soap_Body": {
-									"testKey": {
-										"_starts_with_separatorChar": "testValue"
-									}
+						"soap_Envelope": {
+							"namespaceKey": {
+								"soap": "http://schemas.xmlsoap.org/soap/envelope/"
+							},
+							"soap_Header": {},
+							"soap_Body": {
+								"testKey": {
+									"_starts_with_separatorChar": "testValue"
 								}
-							}}`,
+							}
+						}}`,
 				paths: &testMatcher{match: true},
 			},
 			&action{
@@ -1992,6 +1998,153 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 				code: 0,
 			},
 		),
+		gen(
+			"configured keys",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "application/json",
+				body: `{
+					"SOAP-ENV_Envelope": {
+						"nsKey": {
+							"soap": "http://schemas.xmlsoap.org/soap/envelope/",
+							"ns": "http://example.com/"
+						},
+						"SOAP-ENV_Body": {
+							"ns_Test": {
+								"@attr": {
+									"testAttributeKey": "someValue"
+								},
+								"ns_Value": 123
+							},
+							"ns_Array": {
+								"item": [100, 3.14, true, "someText"]
+							}
+						},
+						"SOAP-ENV_Header": {
+							"#text": "double quoted text",
+							"ns_Auth": {
+								"ns_Username": "TestUser",
+								"ns_Password": "password"
+							}
+						}
+					}
+				}`,
+				paths: &testMatcher{match: true},
+
+				attributeKey:    "@attr",
+				textKey:         "#text",
+				namespaceKey:    "nsKey",
+				namespacePrefix: "SOAP-ENV",
+			},
+			&action{
+				body: `<?xml version="1.0" encoding="UTF-8"?>
+						<SOAP-ENV:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns="http://example.com/">
+							<SOAP-ENV:Header>
+								double quoted text
+								<ns:Auth>
+									<ns:Password>password</ns:Password>
+									<ns:Username>TestUser</ns:Username>
+								</ns:Auth>
+							</SOAP-ENV:Header>
+							<SOAP-ENV:Body>
+								<ns:Test testAttributeKey="someValue">
+									<ns:Value>123</ns:Value>
+								</ns:Test>
+								<ns:Array>
+									<item>100</item>
+									<item>3.14</item>
+									<item>true</item>
+									<item>someText</item>
+								</ns:Array>
+							</SOAP-ENV:Body>
+						</SOAP-ENV:Envelope>`,
+				err:  nil,
+				code: 0,
+			},
+		),
+		gen(
+			"convert attributeKey separatorChar",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "application/json",
+				body: `{
+						"soap_Envelope": {
+							"attributeKey": {
+								"encodingStyle": "http://schemas.xmlsoap.org/soap/encoding/"
+							},
+							"namespaceKey": {
+								"prefix": "http://example.com/",
+								"soap": "http://schemas.xmlsoap.org/soap/envelope/"
+							},
+							"soap_Body": {
+								"e_SomeNode": {
+									"attributeKey": {
+										"prefix_attrkey": "attrValue"
+									},
+									"testKey": "testValue"
+								}
+							}
+						}}`,
+				paths: &testMatcher{match: true},
+			},
+			&action{
+				body: `<?xml version="1.0" encoding="UTF-8"?>
+						<soap:Envelope xmlns:prefix="http://example.com/" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+							<soap:Header></soap:Header>
+							<soap:Body>
+								<e:SomeNode prefix:attrkey="attrValue">
+									<testKey>testValue</testKey>
+								</e:SomeNode>
+							</soap:Body>
+						</soap:Envelope>`,
+				err:  nil,
+				code: 0,
+			},
+		),
+		gen(
+			"do not convert attributeKey separatorChar",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "application/json",
+				body: `{
+						"soap_Envelope": {
+							"attributeKey": {
+								"encodingStyle": "http://schemas.xmlsoap.org/soap/encoding/"
+							},
+							"namespaceKey": {
+								"soap": "http://schemas.xmlsoap.org/soap/envelope/"
+							},
+							"soap_Body": {
+								"e_SomeNode": {
+									"attributeKey": {
+										"prefix_attrkey": "attrValue"
+									},
+									"testKey": "testValue"
+								}
+							}
+						}}`,
+				paths: &testMatcher{match: true},
+			},
+			&action{
+				body: `<?xml version="1.0" encoding="UTF-8"?>
+						<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+							<soap:Header></soap:Header>
+							<soap:Body>
+								<e:SomeNode prefix_attrkey="attrValue">
+									<testKey>testValue</testKey>
+								</e:SomeNode>
+							</soap:Body>
+						</soap:Envelope>`,
+				err:  nil,
+				code: 0,
+			},
+		),
 	}
 
 	testutil.Register(table, testCases...)
@@ -2002,13 +2155,13 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 			meh := &mockErrorHandler{}
 			m := &soapREST{
 				eh:           meh,
-				attributeKey: "attributeKey",
-				textKey:      "textKey",
-				namespaceKey: "namespaceKey",
+				attributeKey: cmp.Or(tt.C().attributeKey, "attributeKey"),
+				textKey:      cmp.Or(tt.C().textKey, "textKey"),
+				namespaceKey: cmp.Or(tt.C().namespaceKey, "namespaceKey"),
+
+				soapNamespacePrefix: cmp.Or(tt.C().namespacePrefix, "soap"),
 
 				paths: tt.C().paths,
-
-				soapNamespacePrefix: "soap",
 
 				extractStringElement:  true,
 				extractBooleanElement: true,
