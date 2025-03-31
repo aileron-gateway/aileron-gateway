@@ -19,9 +19,9 @@ message HeaderCertMiddleware {
     string                          Kind       = 2 [json_name = "kind"];
     
     // [OPTIONAL]
-	// Metadata is the metadata of the middleware object.
-	// If not set, both name and namespace in the metadata
-	// are treated as "default".
+    // Metadata is the metadata of the middleware object.
+    // If not set, both name and namespace in the metadata
+    // are treated as "default".
     kernel.Metadata                 Metadata   = 3 [json_name = "metadata"];
     
     // [REQUIRED]
