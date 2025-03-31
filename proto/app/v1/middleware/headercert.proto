@@ -5,16 +5,42 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
 
+// HeaderCertMiddleware is the definition of the HeaderCertMiddleware object.
+// HeaderCertMiddleware implements interface of the middleware.
 message HeaderCertMiddleware {
+    // [REQUIRED]
+    // APIVersion is the defined version of the midleware.
+    // This value must be "app/v1".
     string                          APIVersion = 1 [json_name = "apiVersion"];
+    
+    // [REQUIRED]
+    // Kind is the kind of this object.
+    // This value must be "HeaderPolicyMiddleware".
     string                          Kind       = 2 [json_name = "kind"];
+    
+    // [OPTIONAL]
+	// Metadata is the metadata of the middleware object.
+	// If not set, both name and namespace in the metadata
+	// are treated as "default".
     kernel.Metadata                 Metadata   = 3 [json_name = "metadata"];
-    kernel.Status                   Status     = 4 [json_name = "status"];
-    HeaderCertMiddlewareSpec        Spec       = 5 [json_name = "spec"];
+    
+    // [REQUIRED]
+    // Spec is the specification of the middleware.
+    // Default values are used when nothing is set.
+    HeaderCertMiddlewareSpec        Spec       = 4 [json_name = "spec"];
 }
 
+// HeaderCertMiddlewareSpec is the specification for the HeaderCertMiddleware object.
 message HeaderCertMiddlewareSpec {
+    // [OPTIONAL]
+    // ErrorHandler is the reference to a ErrorHandler object.
+    // Referred object must implement ErrorHandler interface.
+    // Default error handler is used when not set.
     kernel.Reference    ErrorHandler    = 1 [json_name = "errorHandler"];
+    
+    // [REQUIRED]
+    // rootCAs is the list of the paths for root certificates.
+    // Default is not set.
     repeated string     rootCAs         = 2 [json_name = "rootCAs"];
 }
 
