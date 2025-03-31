@@ -34,7 +34,7 @@ Reverse proxy server will listen on  [http://localhost:8080/](http://localhost:8
 Send a HTTP request like below.
 The default upstream server of the reverse proxy is [http://httpbin.org/](http://httpbin.org/)
 
-This request return 200 OK status.
+This request returns 200 OK status.
 No error logs in the gateway log.
 
 ```bash
@@ -63,7 +63,7 @@ $ curl -v --cert pki/client.crt --key pki/client.key \
 
 Setting a fingerprint to the header is optional.
 
-This request also return 200 OK status.
+This request also returns 200 OK status.
 
 ```bash
 $ curl -v --cert pki/client.crt --key pki/client.key \
