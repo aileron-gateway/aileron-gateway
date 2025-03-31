@@ -20,33 +20,38 @@ import (
 )
 
 const (
-	reqXML = `<?xml version="1.0" encoding="UTF-8"?>
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-  <soap:Header></soap:Header>
-  <soap:Body>
-    <Value>Hello</Value>
-  </soap:Body>
-</soap:Envelope>`
-	respJSON = `{"soap:Envelope":{"_namespace":{"soap":"http://schemas.xmlsoap.org/soap/envelope/"},"soap:Body":{"Value":"Hello"}}}`
+	commonReqXML   = `<empty/>`
+	commonRespJSON = `{writtenByHandler:true}`
 )
 
 func testSOAPRESTMiddleware(t *testing.T, m core.Middleware) {
 	t.Helper()
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			http.Error(w, "failed to read body", http.StatusInternalServerError)
+			return
+		}
+		defer r.Body.Close()
+
+		// no path is set, so conversion by the SOAPRESTMiddleware will not occur.
+		// Therefore, need to check whether the Request Body remains reqXML.
+		testutil.Diff(t, commonReqXML, string(body))
+
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.Write([]byte(respJSON))
+		w.Write([]byte(commonRespJSON))
 	})
 
 	h := m.Middleware(handler)
 
-	r1 := httptest.NewRequest(http.MethodGet, "http://SOAPREST.com/test", strings.NewReader(reqXML))
-	r1.Header.Set("Content-Type", "text/xml")
-	w1 := httptest.NewRecorder()
-	h.ServeHTTP(w1, r1)
-	b1, _ := io.ReadAll(w1.Result().Body)
-	testutil.Diff(t, http.StatusOK, w1.Result().StatusCode)
-	testutil.Diff(t, reqXML, string(b1))
+	req := httptest.NewRequest(http.MethodGet, "/", strings.NewReader(commonReqXML))
+	req.Header.Set("Content-Type", "text/xml")
+	resp := httptest.NewRecorder()
+	h.ServeHTTP(resp, req)
+	body, _ := io.ReadAll(resp.Result().Body)
+	testutil.Diff(t, http.StatusOK, resp.Result().StatusCode)
+	testutil.Diff(t, commonRespJSON, string(body))
 }
 
 func TestMinimalWithoutMetadata(t *testing.T) {
@@ -60,12 +65,12 @@ func TestMinimalWithoutMetadata(t *testing.T) {
 		APIVersion: "app/v1",
 		Kind:       "SOAPRESTMiddleware",
 		Name:       "default",
-		Namespace:  "",
+		Namespace:  "default",
 	}
-	eh, err := api.ReferTypedObject[core.Middleware](server, ref)
+	m, err := api.ReferTypedObject[core.Middleware](server, ref)
 	testutil.DiffError(t, nil, nil, err)
 
-	testSOAPRESTMiddleware(t, eh)
+	testSOAPRESTMiddleware(t, m)
 }
 
 func TestMinimalWithMetadata(t *testing.T) {
@@ -81,10 +86,10 @@ func TestMinimalWithMetadata(t *testing.T) {
 		Name:       "testName",
 		Namespace:  "testNamespace",
 	}
-	eh, err := api.ReferTypedObject[core.Middleware](server, ref)
+	m, err := api.ReferTypedObject[core.Middleware](server, ref)
 	testutil.DiffError(t, nil, nil, err)
 
-	testSOAPRESTMiddleware(t, eh)
+	testSOAPRESTMiddleware(t, m)
 }
 
 func TestEmptyName(t *testing.T) {
@@ -100,10 +105,10 @@ func TestEmptyName(t *testing.T) {
 		Name:       "default",
 		Namespace:  "testNamespace",
 	}
-	eh, err := api.ReferTypedObject[core.Middleware](server, ref)
+	m, err := api.ReferTypedObject[core.Middleware](server, ref)
 	testutil.DiffError(t, nil, nil, err)
 
-	testSOAPRESTMiddleware(t, eh)
+	testSOAPRESTMiddleware(t, m)
 }
 
 func TestEmptyNamespace(t *testing.T) {
@@ -119,10 +124,10 @@ func TestEmptyNamespace(t *testing.T) {
 		Name:       "testName",
 		Namespace:  "",
 	}
-	eh, err := api.ReferTypedObject[core.Middleware](server, ref)
+	m, err := api.ReferTypedObject[core.Middleware](server, ref)
 	testutil.DiffError(t, nil, nil, err)
 
-	testSOAPRESTMiddleware(t, eh)
+	testSOAPRESTMiddleware(t, m)
 }
 
 func TestEmptyNameNamespace(t *testing.T) {
@@ -138,10 +143,10 @@ func TestEmptyNameNamespace(t *testing.T) {
 		Name:       "default",
 		Namespace:  "",
 	}
-	eh, err := api.ReferTypedObject[core.Middleware](server, ref)
+	m, err := api.ReferTypedObject[core.Middleware](server, ref)
 	testutil.DiffError(t, nil, nil, err)
 
-	testSOAPRESTMiddleware(t, eh)
+	testSOAPRESTMiddleware(t, m)
 }
 
 func TestEmptySpec(t *testing.T) {
@@ -157,10 +162,10 @@ func TestEmptySpec(t *testing.T) {
 		Name:       "default",
 		Namespace:  "",
 	}
-	eh, err := api.ReferTypedObject[core.Middleware](server, ref)
+	m, err := api.ReferTypedObject[core.Middleware](server, ref)
 	testutil.DiffError(t, nil, nil, err)
 
-	testSOAPRESTMiddleware(t, eh)
+	testSOAPRESTMiddleware(t, m)
 }
 
 func TestInvalidSpec(t *testing.T) {
