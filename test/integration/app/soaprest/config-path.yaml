@@ -1,0 +1,9 @@
+apiVersion: app/v1
+kind: SOAPRESTMiddleware
+metadata:
+  name: test
+  namespace: testNamespace
+spec:
+  matcher:
+    patterns: ["/soap"]
+    matchType: Exact
