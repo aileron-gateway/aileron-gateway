@@ -1944,7 +1944,7 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 									"arrayValue2"
 								]
 							}
-						} 
+						}
 					}}`,
 				paths: &testMatcher{match: true},
 			},
@@ -1954,8 +1954,8 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 							<soap:Header></soap:Header>
 							<soap:Body>
 								<testKey>
-									<_starts_with_separatorChar>arrayValue1</_starts_with_separatorChar>      
-									<_starts_with_separatorChar>arrayValue2</_starts_with_separatorChar>      
+									<_starts_with_separatorChar>arrayValue1</_starts_with_separatorChar>
+									<_starts_with_separatorChar>arrayValue2</_starts_with_separatorChar>
 								</testKey>
 							</soap:Body>
 						</soap:Envelope>`,
