@@ -1123,6 +1123,26 @@ If the JSON contains characters that are not valid in XML, those characters will
 <StringElement>HelloWorld</StringElement>
 ```
 
+In the conversion from REST/JSON to SOAP/XML, certain characters are represented using escape sequences. This conversion depends on the specifications of `xml.Marshal`.
+
+```json
+{
+  "Apostrophe": "It's a nice day",
+  "Quotation": "\"quotation\"",
+  "Ampersand": "&",
+  "LessThan": "<",
+  "GreaterThan": ">"
+}
+```
+
+```xml
+<Apostrophe>It&#39;s a nice day</Apostrophe>
+<Quotation>&#34;quotation&#34;</Quotation>
+<Ampersand>&amp;</Ampersand>
+<LessThan>&lt;</LessThan>
+<GreaterThan>&gt;</GreaterThan>
+```
+
 ##### Arrays
 
 In the conversion from REST/JSON to SOAP/XML, array elements are converted into XML based on the keys used in the JSON.
@@ -1424,6 +1444,55 @@ When namespace definitions are present in the SOAP Envelope, underscores will be
     <e:SomeNode prefix:attrkey="attrValue">
       <testKey>testValue</testKey>
     </e:SomeNode>
+  </soap:Body>
+</soap:Envelope>
+```
+
+By using an array, it is possible to represent the same element name and structure (of the same type) repeatedly.
+
+```json
+{
+  "soap_Envelope": {
+    "namespaceKey": {
+      "soap": "http://schemas.xmlsoap.org/soap/envelope/",
+      "xsd": "http://www.w3.org/2001/XMLSchema",
+      "xsi": "http://www.w3.org/2001/XMLSchema-instance"
+    },
+    "soap_Body": {
+      "repeatElement": [
+        {
+          "attributeKey": {
+            "xsi:type": "xsd:string"
+          },
+          "textKey": null
+        },
+        {
+          "attributeKey": {
+            "xsi:type": "xsd:string"
+          },
+          "textKey": null
+        },
+        {
+          "attributeKey": {
+            "xsi:type": "xsd:string"
+          },
+          "textKey": null
+        }
+      ]
+    },
+    "soap_Header": {}
+  }
+}
+```
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <soap:Header></soap:Header>
+  <soap:Body>
+    <repeatElement xsi:type="xsd:string" xsi:nil="true"></repeatElement>
+    <repeatElement xsi:type="xsd:string" xsi:nil="true"></repeatElement>
+    <repeatElement xsi:type="xsd:string" xsi:nil="true"></repeatElement>
   </soap:Body>
 </soap:Envelope>
 ```
