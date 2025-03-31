@@ -41,9 +41,9 @@ func TestCreate(t *testing.T) {
 			&action{
 				err: nil,
 				expect: &soapREST{
-					attributeKey: "attrKey",
+					attributeKey: "attributeKey",
 					textKey:      "textKey",
-					namespaceKey: "nsKey",
+					namespaceKey: "namespaceKey",
 
 					soapNamespacePrefix: "soap",
 
