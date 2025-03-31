@@ -237,7 +237,7 @@ By default, if a TextNode has double quotes, they are escaped and additional dou
 
 ```xml
 <MultipleElement>
-  <StringElementNode>"StringWithDoubleQuotations"</StringElementNode> 
+  <StringElementNode>"StringWithDoubleQuotations"</StringElementNode>
   <StringElementNode>StringWithoutDoubleQuotations</StringElementNode>
 </MultipleElement>
 ```
@@ -641,7 +641,7 @@ When attributes with different key names are arranged in various orders, identic
 ```xml
 <Array>
   <Name>Alice</Name>
-  <Age>25</Age> 
+  <Age>25</Age>
   <Name>Bob</Name>
   <Age>30</Age>
   <Name>Charlie</Name>
@@ -949,7 +949,7 @@ If an error occurs during the conversion process from SOAP/XML to REST/JSON, an 
 
 ##### Request Header
 
-SOAPRESTMiddleware forwards the received request headers while modifying the `Content-Type` and `Content-Length`.  
+SOAPRESTMiddleware forwards the received request headers while modifying the `Content-Type` and `Content-Length`.
 The `Content-Type` is updated to `application/json`, and the `Content-Length` is adjusted based on the converted body.
 
 #### REST to SOAP Conversion
