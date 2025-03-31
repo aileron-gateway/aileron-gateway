@@ -62,7 +62,7 @@ spec:
         - mimeType: text/xml
           statusCode: 400
           templateFile: ./_example/soap-rest/error-messages/soapfault_client.txt
-          
+
     - codes: ["E3218", "E3219", "E3220"]
       mimeContents:
         - mimeType: text/xml
