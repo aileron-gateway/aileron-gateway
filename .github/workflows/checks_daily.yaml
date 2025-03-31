@@ -1,0 +1,19 @@
+name: Vulnerability Checks
+
+on:
+  workflow_dispatch: {}
+  workflow_call: {}
+  schedule:
+    - cron: '0 20 * * *'
+
+jobs:
+  vulnerability:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - run: make vuln

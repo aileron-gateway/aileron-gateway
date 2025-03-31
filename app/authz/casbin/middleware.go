@@ -66,7 +66,7 @@ func (m *authz) Middleware(next http.Handler) http.Handler {
 			Header: r.Header,
 		}
 
-		var vals []any = []any{claims, r.URL.Path, r.Method}
+		var vals = []any{claims, r.URL.Path, r.Method}
 		for _, k := range m.extraKeys {
 			vals = append(vals, r.Context().Value(k))
 		}

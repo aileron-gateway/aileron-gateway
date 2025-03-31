@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"errors"
 	"io"
 	"log/slog"
 	"net/http"
@@ -756,13 +757,24 @@ func TestBaseLogger_logBody(t *testing.T) {
 	}
 }
 
+type errorReadCloser struct{}
+
+func (e *errorReadCloser) Read(p []byte) (n int, err error) {
+	return 0, errors.New("read error")
+}
+
+func (e *errorReadCloser) Close() error {
+	return nil
+}
+
 func TestBaseLogger_bodyReadCloser(t *testing.T) {
 	type condition struct {
-		bl       *baseLogger
-		fileName string
-		mimeType string
-		length   int64
-		body     io.ReadCloser
+		bl           *baseLogger
+		fileName     string
+		mimeType     string
+		length       int64
+		body         io.ReadCloser
+		isCompressed bool
 	}
 
 	type action struct {
@@ -896,6 +908,82 @@ func TestBaseLogger_bodyReadCloser(t *testing.T) {
 				read: "test-body",
 			},
 		),
+		gen(
+			"streaming body(length = -1) without base64",
+			[]string{},
+			[]string{},
+			&condition{
+				bl: &baseLogger{
+					mimes:   []string{"application/json"},
+					maxBody: 100,
+				},
+				mimeType: "application/json",
+				length:   -1, // Content-Length unknown
+				body:     io.NopCloser(bytes.NewBuffer([]byte("streaming-body"))),
+			},
+			&action{
+				b:    "streaming-body",
+				read: "streaming-body",
+			},
+		),
+		gen(
+			"streaming body(length = -1) with base64",
+			[]string{},
+			[]string{},
+			&condition{
+				bl: &baseLogger{
+					mimes:   []string{"application/json"},
+					maxBody: 100,
+					base64:  true,
+				},
+				mimeType: "application/json",
+				length:   -1, // Content-Length unknown
+				body:     io.NopCloser(bytes.NewBuffer([]byte("streaming-body"))),
+			},
+			&action{
+				b:    base64.StdEncoding.EncodeToString([]byte("streaming-body")),
+				read: "streaming-body",
+			},
+		),
+		gen(
+			"Compressed request with streaming body(length = -1)",
+			[]string{},
+			[]string{},
+			&condition{
+				bl: &baseLogger{
+					mimes:   []string{"application/json"},
+					maxBody: 100,
+					base64:  true,
+				},
+				mimeType:     "application/json",
+				length:       -1, // Content-Length unknown
+				body:         io.NopCloser(bytes.NewBuffer([]byte("streaming-body"))),
+				isCompressed: true,
+			},
+			&action{
+				b:    base64.StdEncoding.EncodeToString([]byte("streaming-body")),
+				read: "streaming-body",
+			},
+		),
+		gen(
+			"streaming body(length = -1) with read error",
+			[]string{},
+			[]string{},
+			&condition{
+				bl: &baseLogger{
+					mimes:   []string{"application/json"},
+					maxBody: 100,
+				},
+				mimeType: "application/json",
+				length:   -1, // Content-Length unknown
+				body:     &errorReadCloser{},
+			},
+			&action{
+				b:         "",
+				read:      "",
+				nonNilErr: true,
+			},
+		),
 	}
 
 	testutil.Register(table, testCases...)
@@ -910,7 +998,7 @@ func TestBaseLogger_bodyReadCloser(t *testing.T) {
 			fn := tt.C().fileName
 			mt := tt.C().mimeType
 			size := tt.C().length
-			b, rc, err := tt.C().bl.bodyReadCloser(fn, mt, size, tt.C().body)
+			b, rc, err := tt.C().bl.bodyReadCloser(fn, mt, size, tt.C().body, tt.C().isCompressed)
 			testutil.Diff(t, tt.A().b, string(b))
 			testutil.Diff(t, tt.A().nonNilErr, err != nil)
 			if tt.A().read != "" {
@@ -925,10 +1013,11 @@ func TestBaseLogger_bodyReadCloser(t *testing.T) {
 
 func TestBaseLogger_bodyWriter(t *testing.T) {
 	type condition struct {
-		bl       *baseLogger
-		fileName string
-		mimeType string
-		length   int64
+		bl           *baseLogger
+		fileName     string
+		mimeType     string
+		length       int64
+		isCompressed bool
 	}
 
 	type action struct {
@@ -1055,6 +1144,59 @@ func TestBaseLogger_bodyWriter(t *testing.T) {
 				read: "",
 			},
 		),
+		gen(
+			"unknown length body(length = -1)",
+			[]string{},
+			[]string{},
+			&condition{
+				bl: &baseLogger{
+					mimes:   []string{"application/json"},
+					maxBody: 100,
+				},
+				mimeType: "application/json",
+				length:   -1, // Content-Length unknown
+			},
+			&action{
+				write: "test-body",
+				read:  "test-body",
+			},
+		),
+		gen(
+			"unknown length body(length = -1) with base64",
+			[]string{},
+			[]string{},
+			&condition{
+				bl: &baseLogger{
+					mimes:   []string{"application/json"},
+					maxBody: 100,
+					base64:  true,
+				},
+				mimeType: "application/json",
+				length:   -1, // Content-Length unknown
+			},
+			&action{
+				write: "test-body",
+				read:  base64.StdEncoding.EncodeToString([]byte("test-body")),
+			},
+		),
+		gen(
+			"Compressed request with unknown body length (-1)",
+			[]string{},
+			[]string{},
+			&condition{
+				bl: &baseLogger{
+					mimes:   []string{"application/json"},
+					maxBody: 100,
+				},
+				mimeType:     "application/json",
+				length:       -1, // Content-Length unknown
+				isCompressed: true,
+			},
+			&action{
+				write: "test-body",
+				read:  base64.StdEncoding.EncodeToString([]byte("test-body")),
+			},
+		),
 	}
 
 	testutil.Register(table, testCases...)
@@ -1069,7 +1211,7 @@ func TestBaseLogger_bodyWriter(t *testing.T) {
 			fn := tt.C().fileName
 			mt := tt.C().mimeType
 			size := tt.C().length
-			bf, w, err := tt.C().bl.bodyWriter(fn, mt, size)
+			bf, w, err := tt.C().bl.bodyWriter(fn, mt, size, tt.C().isCompressed)
 			if tt.A().nonNilErr {
 				testutil.Diff(t, true, err != nil)
 				testutil.Diff(t, (func() []byte)(nil), bf)

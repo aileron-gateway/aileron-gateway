@@ -94,7 +94,8 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.Prot
 	registerProfile(mux, c.Spec.Profile)
 	registerExpvar(mux, c.Spec.Expvar)
 
-	handlers, err := registerHandlers(a, mux, c.Spec.VirtualHosts)
+	nfh := notFoundHandler(eh)
+	handlers, err := registerHandlers(a, mux, c.Spec.VirtualHosts, nfh)
 	if err != nil {
 		return nil, core.ErrCoreGenCreateObject.WithStack(err, map[string]any{"kind": kind})
 	}
