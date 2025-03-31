@@ -120,7 +120,7 @@ During this conversion:
 
 ##### Basic Structure
 
-The SOAP messages received by the SOAPRESTMiddleware must comply with the SOAP 1.1 specification and consist of a SOAPEnvelope, a SOAPBody, and an optional SOAPHeader. 
+The SOAP messages received by the SOAPRESTMiddleware must comply with the SOAP 1.1 specification and consist of a SOAPEnvelope, a SOAPBody, and an optional SOAPHeader.
 The namespace URI defined in the SOAPEnvelope is mapped to the key specified by `namespaceKey` during JSON conversion and is converted at the same depth alongside `soap:Body` and `soap:Header`. In JSON, namespace prefixes are retained as underscores (`_`) between the prefix and the key name.
 
 ```xml
@@ -228,6 +228,26 @@ By modifying the `soapNamespacePrefix`, you can change the prefix used for the n
       "SOAPENV": "http://schemas.xmlsoap.org/soap/envelope/"
     }
   }
+}
+```
+
+When converting to JSON, the keys are automatically sorted in alphabetical order. This follows the specifications of `json.Marshal`. This also applies when converting array elements.
+
+```xml
+<elements>
+  <aKey>aValue</aKey>
+  <aaKey>aaValue</aaKey>
+  <bKey>bValue</bKey>
+  <cKey>cValue</cKey>
+</elements>
+```
+
+```json
+"elements": {
+  "aKey": "aValue",
+  "aaKey": "aaValue",
+  "bKey": "bValue",
+  "cKey": "cValue"
 }
 ```
 
@@ -1495,6 +1515,36 @@ By using an array, it is possible to represent the same element name and structu
     <repeatElement xsi:type="xsd:string" xsi:nil="true"></repeatElement>
   </soap:Body>
 </soap:Envelope>
+```
+
+When converting from REST/JSON to SOAP/XML, the order of elements specified in an array in JSON is not preserved. This can result in variations in the output each time the conversion process is performed.
+
+```json
+"elements": [
+  {
+    "aKey": "aValue",
+    "bKey": "bValue",
+    "cKey": "cValue"
+  },
+  {
+    "aKey": "aValue",
+    "bKey": "bValue",
+    "cKey": "cValue"
+  }
+]
+```
+
+```xml
+<elements>
+  <cKey>cValue</cKey>
+  <aKey>aValue</aKey>
+  <bKey>bValue</bKey>
+</elements>
+<elements>
+  <cKey>cValue</cKey>
+  <aKey>aValue</aKey>
+  <bKey>bValue</bKey>
+</elements>
 ```
 
 ##### Error Handling
