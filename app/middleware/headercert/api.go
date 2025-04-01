@@ -55,7 +55,7 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.Prot
 
 	pool, err := loadRootCert(c.Spec.RootCAs)
 	if err != nil {
-		return nil, core.ErrCoreGenCreateObject.WithStack(err, map[string]any{"kind": kind}) 
+		return nil, core.ErrCoreGenCreateObject.WithStack(err, map[string]any{"kind": kind})
 	}
 
 	opts := x509.VerifyOptions{
