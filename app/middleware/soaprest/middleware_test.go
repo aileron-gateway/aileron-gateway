@@ -760,6 +760,45 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 				code: 500,
 			},
 		),
+		gen(
+			"empty content with attributes",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "text/xml",
+				body: `<?xml version="1.0" encoding="UTF-8"?>
+						<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+							<soap:Body>
+								<SomeNode testAttribute1="testValue1" testAttribute2="testValue2"/>
+							</soap:Body>
+						</soap:Envelope>`,
+
+				paths: &testMatcher{match: true},
+
+				extractStringElement:  false,
+				extractBooleanElement: false,
+				extractIntegerElement: false,
+				extractFloatElement:   false,
+			},
+			&action{
+				body: `{"soap_Envelope": {
+							"namespaceKey": {
+								"soap": "http://schemas.xmlsoap.org/soap/envelope/"
+							},
+							"soap_Body": {
+								"SomeNode": {
+									"attributeKey": {
+										"testAttribute1": "testValue1",
+										"testAttribute2": "testValue2"
+									}
+								}
+							}
+						}}`,
+				err:  app.ErrAppMiddleSOAPRESTDecodeResponseBody,
+				code: 500,
+			},
+		),
 	}
 
 	testutil.Register(table, testCases...)

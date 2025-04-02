@@ -204,7 +204,7 @@ func (s soapREST) xmlToMap(node xmlNode, nsCtx *namespaceContext) any {
 		resultMap[s.attributeKey] = attributes
 	}
 
-	// Processing child elements.
+	// Processing child elements
 	if len(node.Children) > 0 {
 		childrenMap := make(map[string][]any)
 
@@ -214,17 +214,20 @@ func (s soapREST) xmlToMap(node xmlNode, nsCtx *namespaceContext) any {
 
 			if childMap, ok := childValue.(map[string]any); ok {
 				if len(childMap) == 1 {
+					var singleKey string
+					var singleVal any
 					for k, v := range childMap {
-						// Preserve namespace prefixes if they are included
-						if strings.Contains(k, separatorChar) {
-							childrenMap[k] = append(childrenMap[k], v)
-						} else {
-							childrenMap[childName] = append(childrenMap[childName], v)
-						}
+						singleKey = k
+						singleVal = v
 					}
-				} else {
-					childrenMap[childName] = append(childrenMap[childName], childMap)
+
+					if singleKey == childName {
+						childrenMap[childName] = append(childrenMap[childName], singleVal)
+						continue
+					}
 				}
+
+				childrenMap[childName] = append(childrenMap[childName], childMap)
 			} else {
 				childrenMap[childName] = append(childrenMap[childName], childValue)
 			}
