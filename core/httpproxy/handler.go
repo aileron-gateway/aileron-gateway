@@ -59,7 +59,7 @@ func (p *reverseProxy) logIfError(ctx context.Context, err error) {
 		return
 	}
 	attr := core.ErrCoreProxyNoRecovery.WithStack(err, nil)
-	p.lg.Info(ctx, "proxy error", attr.Name(), attr.Map())
+	p.lg.Error(ctx, "proxy error", attr.Name(), attr.Map())
 }
 
 func (p *reverseProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
