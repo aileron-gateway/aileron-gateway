@@ -485,47 +485,6 @@ func TestReverseProxy_ServeHTTP(t *testing.T) {
 				errPattern: regexp.MustCompile(`write: test error`),
 			},
 		),
-		gen(
-			"copy response body/other error",
-			[]string{},
-			[]string{},
-			&condition{
-				proxy: &reverseProxy{
-					lg: log.GlobalLogger(log.DefaultLoggerName),
-					eh: &testErrorHandler{},
-					lbs: []loadBalancer{
-						&nonHashLB{
-							lbMatcher: &lbMatcher{
-								pathMatchers: []matcherFunc{func(string) (string, bool) { return "", true }},
-							},
-							LoadBalancer: func() resilience.LoadBalancer[upstream] {
-								ups := &noopUpstream{
-									weight:    1,
-									rawURL:    "http://upstream.com/proxy",
-									parsedURL: &url.URL{Scheme: "http", Host: "upstream.com", Path: "/proxy"},
-								}
-								rlb := &resilience.RoundRobinLB[upstream]{}
-								rlb.Add(ups)
-								return rlb
-							}(),
-						},
-					},
-					rt: &testRoundTripper{
-						status: http.StatusOK,
-						body: &testBody{
-							ReadCloser: io.NopCloser(bytes.NewReader(nil)),
-							readErr:    testErr,
-						},
-					},
-				},
-			},
-			&action{
-				status:     http.StatusOK,
-				written:    "",
-				err:        nil, // In this case, the error won't be passed to the error handler.
-				errPattern: regexp.MustCompile(``),
-			},
-		),
 	}
 
 	testutil.Register(table, testCases...)

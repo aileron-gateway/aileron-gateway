@@ -3,6 +3,7 @@ package httplogger
 import (
 	"cmp"
 	"context"
+	"errors"
 	"io"
 	"mime"
 	"net/http"
@@ -350,7 +351,7 @@ func (lg *journalLogger) Tripperware(next http.RoundTripper) http.RoundTripper {
 				attr.header = lg.res.logHeaders(w.Header)
 				mt, _, _ := mime.ParseMediaType(w.Header.Get("Content-Type"))
 				body, rc, err := lg.res.bodyReadCloser(id+".cli.res.bin", mt, w.ContentLength, w.Body, isCompressed(w.Header))
-				if err != nil {
+				if err != nil && !errors.Is(err, context.Canceled) {
 					err := core.ErrCoreLogger.WithStack(err, nil)
 					lg.lg.Error(ctx, "error journal response body", err.Name(), err.Map()) // Logging only because the upstream already returned response.
 				}
