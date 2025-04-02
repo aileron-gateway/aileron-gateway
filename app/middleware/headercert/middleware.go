@@ -8,6 +8,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/aileron-gateway/aileron-gateway/app"
 	"github.com/aileron-gateway/aileron-gateway/core"
@@ -47,7 +48,7 @@ func (m *headerCert) Middleware(next http.Handler) http.Handler {
 		// Verify the fingerprint
 		if fh != "" {
 			f := sha256.Sum256(cert.Raw)
-			if hex.EncodeToString(f[:]) != fh {
+			if strings.ToUpper(hex.EncodeToString(f[:])) != fh {
 				err := app.ErrAppMiddleInvalidFingerprint.WithoutStack(nil, nil)
 				m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusUnauthorized))
 				return

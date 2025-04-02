@@ -40,32 +40,32 @@ func TestMiddleware(t *testing.T) {
 
 	cert, err := os.ReadFile(certPath)
 	if err != nil {
-		t.Fatalf("fail to read client cert: %v", err)
+		t.Errorf("fail to read client cert: %v", err)
 	}
 
 	fp, err := os.ReadFile(fpPath)
 	if err != nil {
-		t.Fatalf("fail to read client fingerprint: %v", err)
+		t.Errorf("fail to read client fingerprint: %v", err)
 	}
 
 	failCert, err := os.ReadFile(failCertPath)
 	if err != nil {
-		t.Fatalf("fail to read client cert: %v", err)
+		t.Errorf("fail to read client cert: %v", err)
 	}
 
 	failFp, err := os.ReadFile(failFpPath)
 	if err != nil {
-		t.Fatalf("fail to read client fingerprint: %v", err)
+		t.Errorf("fail to read client fingerprint: %v", err)
 	}
 
 	expiredCert, err := os.ReadFile(expiredCertPath)
 	if err != nil {
-		t.Fatalf("fail to read client cert: %v", err)
+		t.Errorf("fail to read client cert: %v", err)
 	}
 
 	expiredFp, err := os.ReadFile(expiredFpPath)
 	if err != nil {
-		t.Fatalf("fail to read client fingerprint: %v", err)
+		t.Errorf("fail to read client fingerprint: %v", err)
 	}
 
 	gen := testutil.NewCase[*condition, *action]
@@ -186,11 +186,11 @@ func TestMiddleware(t *testing.T) {
 	for _, c := range rootCAs {
 		rootCertPEM, err := os.ReadFile(c)
 		if err != nil {
-			t.Fatalf("fail to load rootCA: %v", err)
+			t.Errorf("fail to load rootCA: %v", err)
 		}
 		// Add the root cert to CertPool
 		if !roots.AppendCertsFromPEM(rootCertPEM) {
-			t.Fatalf("fail to load rootCA: %v", err)
+			t.Errorf("fail to load rootCA: %v", err)
 		}
 	}
 
@@ -234,20 +234,20 @@ func TestConvertCert(t *testing.T) {
 		invalidPEM := base64.StdEncoding.EncodeToString([]byte("-----BEGIN cert-----\nInvalid cert content"))
 		_, err := parseCert(invalidPEM)
 		if err == nil {
-			t.Fatal("expected error, got nil")
+			t.Errorf("expected error, got nil")
 		}
 	})
 
 	invalidCert, err := os.ReadFile(incompleteCertPath)
 	if err != nil {
-		t.Fatalf("fail to read client cert: %v", err)
+		t.Errorf("fail to read client cert: %v", err)
 	}
 	t.Run("invalid x509 cert", func(t *testing.T) {
 
 		invalidX509 := base64.StdEncoding.EncodeToString([]byte(invalidCert)) // This cert has a negative serial number that causes an error in x509.Parsecert().
 		_, err := parseCert(invalidX509)
 		if err == nil {
-			t.Fatal("expected error, got nil")
+			t.Errorf("expected error, got nil")
 		}
 	})
 }

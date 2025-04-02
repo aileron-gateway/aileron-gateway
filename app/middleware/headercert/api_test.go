@@ -34,7 +34,7 @@ func TestCreate(t *testing.T) {
 
 	defaultRoots, err := loadRootCert([]string{})
 	if err != nil {
-		t.Fatalf("fail to load default RootCA: %v", err)
+		t.Errorf("fail to load default RootCA: %v", err)
 	}
 	defaultOpts := x509.VerifyOptions{
 		Roots: defaultRoots,
@@ -42,7 +42,7 @@ func TestCreate(t *testing.T) {
 
 	roots, err := loadRootCert([]string{rootCAPath})
 	if err != nil {
-		t.Fatalf("fail to load RootCA: %v", err)
+		t.Errorf("fail to load RootCA: %v", err)
 	}
 	opts := x509.VerifyOptions{
 		Roots: roots,
@@ -164,13 +164,13 @@ func TestLoadRootCert(t *testing.T) {
 	t.Run("no root cert", func(t *testing.T) {
 		_, err := loadRootCert([]string{"wrong"})
 		if err == nil {
-			t.Fatal("expected error, got nil")
+			t.Errorf("expected error, got nil")
 		}
 	})
 	t.Run("invalid root cert", func(t *testing.T) {
 		_, err := loadRootCert([]string{incompleteCertPath})
 		if err == nil {
-			t.Fatal("expected error, got nil")
+			t.Errorf("expected error, got nil")
 		}
 	})
 }
