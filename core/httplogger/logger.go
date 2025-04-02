@@ -3,6 +3,7 @@ package httplogger
 import (
 	"cmp"
 	"context"
+	"errors"
 	"io"
 	"mime"
 	"net/http"
@@ -269,7 +270,7 @@ func (lg *journalLogger) Middleware(next http.Handler) http.Handler {
 			bf, bw, err := lg.res.bodyWriter(id+".svr.res.bin", mt, size, isCompressed(ww.Header()))
 			if err != nil {
 				err := core.ErrCoreLogger.WithStack(err, nil)
-				lg.lg.Error(r.Context(), err.Name(), err.Map()) // Logging only.
+				lg.lg.Error(r.Context(), "error journal response body", err.Name(), err.Map()) // Logging only.
 			}
 			if bw != nil {
 				ww.dump = true
@@ -350,9 +351,9 @@ func (lg *journalLogger) Tripperware(next http.RoundTripper) http.RoundTripper {
 				attr.header = lg.res.logHeaders(w.Header)
 				mt, _, _ := mime.ParseMediaType(w.Header.Get("Content-Type"))
 				body, rc, err := lg.res.bodyReadCloser(id+".cli.res.bin", mt, w.ContentLength, w.Body, isCompressed(w.Header))
-				if err != nil {
+				if err != nil && !errors.Is(err, context.Canceled) {
 					err := core.ErrCoreLogger.WithStack(err, nil)
-					lg.lg.Error(ctx, err.Name(), err.Map()) // Logging only because the upstream already returned response.
+					lg.lg.Error(ctx, "error journal response body", err.Name(), err.Map()) // Logging only because the upstream already returned response.
 				}
 				w.Body = rc
 				attr.body = string(body)
