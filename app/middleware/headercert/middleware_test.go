@@ -15,11 +15,11 @@ import (
 const (
 	certPath           = "../../../_example/header-cert/pki/client.crt"
 	fpPath             = "../../../_example/header-cert/pki/fingerprint.txt"
-	failCertPath       = "../../../_example/header-cert/pki/fail-client.crt"
-	failFpPath         = "../../../_example/header-cert/pki/fail-fingerprint.txt"
-	expiredCertPath    = "../../../_example/header-cert/pki/expired-client.crt"
-	expiredFpPath      = "../../../_example/header-cert/pki/expired-fingerprint.txt"
-	incompleteCertPath = "../../../_example/header-cert/pki/incomplete-client.crt"
+	failCertPath       = "../../../test/ut/app/headercert/cert/fail-client.crt"
+	failFpPath         = "../../../test/ut/app/headercert/fingerprint/fail-fingerprint.txt"
+	expiredCertPath    = "../../../test/ut/app/headercert/cert/expired-client.crt"
+	expiredFpPath      = "../../../test/ut/app/headercert/fingerprint/expired-fingerprint.txt"
+	incompleteCertPath = "../../../test/ut/app/headercert/cert/incomplete-client.crt"
 	rootCAPath         = "../../../_example/header-cert/pki/rootCA.crt"
 )
 
