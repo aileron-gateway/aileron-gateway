@@ -79,7 +79,7 @@ func loadRootCert(rootCAs []string) (*x509.CertPool, error) {
 		}
 		// Add the root certificate to CertPool
 		if !pool.AppendCertsFromPEM(pem) {
-			return nil, errors.New("failed to add root certificate to CertPool")
+			return nil, errors.New("headercert: failed to add root certificate to CertPool")
 		}
 	}
 
