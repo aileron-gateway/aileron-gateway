@@ -38,7 +38,7 @@ func TestMiddleware(t *testing.T) {
 	tb.Name(t.Name())
 	table := tb.Build()
 
-	cert, err := os.ReadFile(certPath)
+	cert, _:= os.ReadFile(certPath)
 	if err != nil {
 		t.Errorf("fail to read client cert: %v", err)
 	}
