@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/pem"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -22,8 +21,6 @@ type headerCert struct {
 
 func (m *headerCert) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println(r.Header)
-
 		ch := r.Header.Get("X-SSL-Client-Cert")
 		if ch == "" {
 			err := app.ErrAppMiddleInvalidCert.WithoutStack(nil, map[string]any{"reason": "cert not found"})

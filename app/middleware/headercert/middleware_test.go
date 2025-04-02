@@ -24,7 +24,6 @@ const (
 )
 
 func TestMiddleware(t *testing.T) {
-
 	type condition struct {
 		method  string
 		headers map[string]string
@@ -38,35 +37,12 @@ func TestMiddleware(t *testing.T) {
 	tb.Name(t.Name())
 	table := tb.Build()
 
-	cert, _:= os.ReadFile(certPath)
-	if err != nil {
-		t.Errorf("fail to read client cert: %v", err)
-	}
-
-	fp, err := os.ReadFile(fpPath)
-	if err != nil {
-		t.Errorf("fail to read client fingerprint: %v", err)
-	}
-
-	failCert, err := os.ReadFile(failCertPath)
-	if err != nil {
-		t.Errorf("fail to read client cert: %v", err)
-	}
-
-	failFp, err := os.ReadFile(failFpPath)
-	if err != nil {
-		t.Errorf("fail to read client fingerprint: %v", err)
-	}
-
-	expiredCert, err := os.ReadFile(expiredCertPath)
-	if err != nil {
-		t.Errorf("fail to read client cert: %v", err)
-	}
-
-	expiredFp, err := os.ReadFile(expiredFpPath)
-	if err != nil {
-		t.Errorf("fail to read client fingerprint: %v", err)
-	}
+	cert, _ := os.ReadFile(certPath)
+	fp, _ := os.ReadFile(fpPath)
+	failCert, _ := os.ReadFile(failCertPath)
+	failFp, _ := os.ReadFile(failFpPath)
+	expiredCert, _ := os.ReadFile(expiredCertPath)
+	expiredFp, _ := os.ReadFile(expiredFpPath)
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
@@ -77,7 +53,7 @@ func TestMiddleware(t *testing.T) {
 			&condition{
 				method: http.MethodGet,
 				headers: map[string]string{
-					"X-SSL-Client-Cert":        base64.StdEncoding.EncodeToString(cert),
+					"X-SSL-Client-Cert":        base64.URLEncoding.EncodeToString(cert),
 					"X-SSL-Client-Fingerprint": string(fp),
 				},
 			},
@@ -107,7 +83,7 @@ func TestMiddleware(t *testing.T) {
 			&condition{
 				method: http.MethodGet,
 				headers: map[string]string{
-					"X-SSL-Client-Cert":        base64.StdEncoding.EncodeToString(cert),
+					"X-SSL-Client-Cert":        base64.URLEncoding.EncodeToString(cert),
 					"X-SSL-Client-Fingerprint": "", // no fingerprint
 				},
 			},
@@ -137,7 +113,7 @@ func TestMiddleware(t *testing.T) {
 			&condition{
 				method: http.MethodGet,
 				headers: map[string]string{
-					"X-SSL-Client-Cert":        base64.StdEncoding.EncodeToString(failCert), // created by another rootCA.
+					"X-SSL-Client-Cert":        base64.URLEncoding.EncodeToString(failCert), // created by another rootCA.
 					"X-SSL-Client-Fingerprint": string(failFp),
 				},
 			},
@@ -152,7 +128,7 @@ func TestMiddleware(t *testing.T) {
 			&condition{
 				method: http.MethodGet,
 				headers: map[string]string{
-					"X-SSL-Client-Cert":        base64.StdEncoding.EncodeToString(cert),
+					"X-SSL-Client-Cert":        base64.URLEncoding.EncodeToString(cert),
 					"X-SSL-Client-Fingerprint": "invalid fingerprint",
 				},
 			},
@@ -167,7 +143,7 @@ func TestMiddleware(t *testing.T) {
 			&condition{
 				method: http.MethodGet,
 				headers: map[string]string{
-					"X-SSL-Client-Cert":        base64.StdEncoding.EncodeToString(expiredCert), // expired client cert
+					"X-SSL-Client-Cert":        base64.URLEncoding.EncodeToString(expiredCert), // expired client cert
 					"X-SSL-Client-Fingerprint": string(expiredFp),
 				},
 			},
@@ -228,24 +204,24 @@ func TestMiddleware(t *testing.T) {
 	}
 }
 
-func TestConvertCert(t *testing.T) {
-
+func TestParseCert(t *testing.T) {
 	t.Run("invalid pem", func(t *testing.T) {
-		invalidPEM := base64.StdEncoding.EncodeToString([]byte("-----BEGIN cert-----\nInvalid cert content"))
+		invalidPEM := base64.URLEncoding.EncodeToString([]byte("-----BEGIN cert-----\nInvalid cert content"))
 		_, err := parseCert(invalidPEM)
 		if err == nil {
 			t.Errorf("expected error, got nil")
 		}
 	})
 
-	invalidCert, err := os.ReadFile(incompleteCertPath)
-	if err != nil {
-		t.Errorf("fail to read client cert: %v", err)
-	}
 	t.Run("invalid x509 cert", func(t *testing.T) {
 
-		invalidX509 := base64.StdEncoding.EncodeToString([]byte(invalidCert)) // This cert has a negative serial number that causes an error in x509.Parsecert().
-		_, err := parseCert(invalidX509)
+		invalidCert, err := os.ReadFile(incompleteCertPath)
+		if err != nil {
+			t.Errorf("fail to read client cert: %v", err)
+		}
+
+		invalidX509 := base64.URLEncoding.EncodeToString([]byte(invalidCert)) // This cert has a negative serial number that causes an error in [x509.ParseCertificate].
+		_, err = parseCert(invalidX509)
 		if err == nil {
 			t.Errorf("expected error, got nil")
 		}

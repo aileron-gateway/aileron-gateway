@@ -17,7 +17,6 @@ import (
 )
 
 func TestCreate(t *testing.T) {
-
 	type condition struct {
 		manifest protoreflect.ProtoMessage
 	}
@@ -32,18 +31,12 @@ func TestCreate(t *testing.T) {
 	tb.Name(t.Name())
 	table := tb.Build()
 
-	defaultRoots, err := loadRootCert([]string{})
-	if err != nil {
-		t.Errorf("fail to load default RootCA: %v", err)
-	}
+	defaultRoots, _ := loadRootCert([]string{})
 	defaultOpts := x509.VerifyOptions{
 		Roots: defaultRoots,
 	}
 
-	roots, err := loadRootCert([]string{rootCAPath})
-	if err != nil {
-		t.Errorf("fail to load RootCA: %v", err)
-	}
+	roots, _ := loadRootCert([]string{rootCAPath})
 	opts := x509.VerifyOptions{
 		Roots: roots,
 	}
@@ -160,7 +153,6 @@ func TestCreate(t *testing.T) {
 }
 
 func TestLoadRootCert(t *testing.T) {
-
 	t.Run("no root cert", func(t *testing.T) {
 		_, err := loadRootCert([]string{"wrong"})
 		if err == nil {
