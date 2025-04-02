@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -141,15 +140,10 @@ func (p *reverseProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// We can't write anything to the response writer any more.
 		// So, we only output log of the returned error.
 		p.logIfError(r.Context(), outRes.Body.Close())
-		if errors.Is(err, context.Canceled) { // Client canceled request.
-			p.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, -1))
-			return
-		}
-		if v, ok := err.(*net.OpError); ok && v.Op == "write" { // Client canceled request.
-			p.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, -1))
-			return
-		}
-		p.logIfError(r.Context(), err)
+		// Client canceled request. Following error may happen.
+		//  	- [context.Canceled]
+		//  	- [net.OpError] <-- Both read and write.
+		p.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, -1))
 		return
 	}
 
