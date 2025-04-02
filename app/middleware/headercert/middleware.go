@@ -63,7 +63,7 @@ func parseCert(ch string) (*x509.Certificate, error) {
 	// Decode a Base64-encoded client certificate and convert it to a byte array
 	decoded, err := base64.URLEncoding.DecodeString(ch)
 	if err != nil {
-		return nil, app.ErrAppMiddleInvalidCert.WithoutStack(err, map[string]any{"reason": "fail base64 decode"})
+		return nil, app.ErrAppMiddleInvalidCert.WithoutStack(err, map[string]any{"reason": "base64 decode failed"})
 	}
 
 	// Convert the client certificate into a PEM block
