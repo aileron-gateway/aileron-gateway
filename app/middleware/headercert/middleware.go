@@ -75,7 +75,7 @@ func parseCert(ch string) (*x509.Certificate, error) {
 	// Analyze the PEM block
 	cert, err := x509.ParseCertificate(block.Bytes)
 	if err != nil {
-		return nil, app.ErrAppMiddleInvalidCert.WithoutStack(err, map[string]any{"reason": "fail x509 parse"})
+		return nil, app.ErrAppMiddleInvalidCert.WithoutStack(err, map[string]any{"reason": "x509 parse failsed"})
 	}
 
 	return cert, nil
