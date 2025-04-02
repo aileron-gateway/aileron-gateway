@@ -134,4 +134,3 @@ None.
 - [kong/header-cert-auth](https://docs.konghq.com/hub/kong-inc/header-cert-auth/)
 - [tyk/client-authentication](https://tyk.io/docs/api-management/client-authentication/#use-mutual-tls)
 - [nginx/securing-http-traffic-upstream](https://docs.nginx.com/nginx/admin-guide/security-controls/securing-http-traffic-upstream/)
-
