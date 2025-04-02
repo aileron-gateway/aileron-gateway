@@ -69,7 +69,7 @@ func parseCert(ch string) (*x509.Certificate, error) {
 	// Convert the client certificate into a PEM block
 	block, _ := pem.Decode(decoded)
 	if block == nil {
-		return nil, app.ErrAppMiddleInvalidCert.WithoutStack(nil, map[string]any{"reason": "fail PEM decode"})
+		return nil, app.ErrAppMiddleInvalidCert.WithoutStack(nil, map[string]any{"reason": "pem not found"})
 	}
 
 	// Analyze the PEM block
