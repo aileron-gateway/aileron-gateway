@@ -36,6 +36,8 @@ type Middleware interface {
 
 Initially, support will only be provided for SOAP 1.1, and SOAP messages will be sent in HTTP/1.1 format.
 
+WS-series (WS-Security, WS-Addressing, etc.) extensions are not supported.
+
 ### Converting algorithm
 
 The overall process becomes like this.
@@ -84,6 +86,11 @@ If the request is valid SOAP 1.1, the middleware performs the following transfor
 2. **Namespace Processing**: XML namespaces are tracked and managed
 3. **Structure Conversion**: The hierarchical XML structure is converted to a map representation
 4. **JSON Transformation**: The map is marshaled into a JSON format for REST endpoints
+
+**Caution**
+
+* Validation for SOAP/XML is not performed by middleware, as it is assumed to be done on the server side.
+* The current implementation does not support multipart/SwA (SOAP with Attachments)/MTOM.
 
 During this conversion:
 - SOAP Envelope, Header, and Body elements are properly handled
@@ -781,8 +788,8 @@ When using partial namespaces, namespace definitions are stored under the key se
   <soap:Header></soap:Header>
   <soap:Body>
     <ns:ElementNode xmlns:ns="http://example.com/">
-		<ns:ChildElementNode>textNode</ns:ChildElementNode>
-	</ns:ElementNode>
+    <ns:ChildElementNode>textNode</ns:ChildElementNode>
+  </ns:ElementNode>
   </soap:Body>
 </soap:Envelope>
 ```
@@ -1216,22 +1223,22 @@ When defining partial namespaces, you can use the key name specified in `attribu
 
 ```json
 {
-	"soap_Envelope": {
-		"namespaceKey": {
-			"soap": "http://schemas.xmlsoap.org/soap/envelope/"
-		},
-		"soap_Body": {
-			"ns_ElementNode": {
-				"attributeKey": {
-					"ns": "http://example.com/"
-				},
-				"ns_ChildElementNode": {
-					"ns_exampleKey": "exampleValue"
-				}
-			}
-		},
-		"soap:Header": {}
-	}
+  "soap_Envelope": {
+    "namespaceKey": {
+      "soap": "http://schemas.xmlsoap.org/soap/envelope/"
+    },
+    "soap_Body": {
+      "ns_ElementNode": {
+        "attributeKey": {
+          "ns": "http://example.com/"
+        },
+        "ns_ChildElementNode": {
+          "ns_exampleKey": "exampleValue"
+        }
+      }
+    },
+    "soap:Header": {}
+  }
 }
 ```
 
@@ -1582,19 +1589,19 @@ Additionally, status codes and headers are inherited as they are sent by the ser
 {
   "soap_Envelope": {
     "namespaceKey": {
-	    "soap": "http://schemas.xmlsoap.org/soap/envelope/"
+      "soap": "http://schemas.xmlsoap.org/soap/envelope/"
     },
     "soap_Body": {
-	    "soap_Fault": {
-	  	  "faultcode": "Server",
-		    "faultstring": "Internal Server Error",
-		    "faultactor": "localhost:8000",
-		    "detail": {
-			    "message": "An error has occured on the upstream server.",
-			    "statusCode": 500
-		    }
-	    }
-	  },
+      "soap_Fault": {
+        "faultcode": "Server",
+        "faultstring": "Internal Server Error",
+        "faultactor": "localhost:8000",
+        "detail": {
+          "message": "An error has occured on the upstream server.",
+          "statusCode": 500
+        }
+      }
+    },
     "soap_Header": {}
   }
 }
