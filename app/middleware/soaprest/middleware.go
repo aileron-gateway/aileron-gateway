@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
-	"fmt"
 	"io"
+	"mime"
 	"net/http"
 	"strconv"
 	"strings"
@@ -62,8 +62,12 @@ func (s *soapREST) Middleware(next http.Handler) http.Handler {
 			return
 		}
 
-		// If it's not a SOAP　1.1 request then return VersionMismatch faultcode.
-		if !isSOAPRequest(r) {
+		// Only supports conversions for SOAP 1.1
+		// The request is determined to be SOAP 1.1 if the Content-Type includes "text/xml" or
+		// if the value of the SOAPAction header is not empty.
+		// If it's not a SOAP　1.1 request then return VersionMismatch errorKind.
+		mt, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
+		if mt != soap11MIMEType && r.Header.Get(soapActionHeaderKey) == "" {
 			err := app.ErrAppMiddleSOAPRESTVersionMismatch.WithoutStack(nil, nil)
 			s.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusForbidden))
 			return
@@ -106,7 +110,7 @@ func (s *soapREST) Middleware(next http.Handler) http.Handler {
 		newReq.Body = io.NopCloser(bytes.NewReader(jsonBody))
 		newReq.ContentLength = int64(len(jsonBody))
 		newReq.Header.Set("Content-Type", "application/json")
-		newReq.Method = "POST"
+		newReq.Method = http.MethodPost
 
 		ww := &wrappedWriter{
 			ResponseWriter: w,
@@ -144,15 +148,6 @@ type xmlNode struct {
 	Content  string     `xml:",chardata"` // text contents
 	Attrs    []xml.Attr `xml:",any,attr"` // attributes
 	Children []xmlNode  `xml:",any"`      // recursive contents
-}
-
-func removeNewlinesAndTabs(content string) string {
-	replacer := strings.NewReplacer(
-		"\n", "",
-		"\t", "",
-		"\r", "",
-	)
-	return replacer.Replace(content)
 }
 
 func (s soapREST) xmlToMap(node xmlNode, nsCtx *namespaceContext) any {
@@ -210,7 +205,7 @@ func (s soapREST) xmlToMap(node xmlNode, nsCtx *namespaceContext) any {
 
 		for _, child := range node.Children {
 			childValue := s.xmlToMap(child, nsCtx)
-			childName := s.getNodeName(child, nsCtx)
+			childName := getNodeName(child, nsCtx, s.soapNamespacePrefix)
 
 			if childMap, ok := childValue.(map[string]any); ok {
 				if len(childMap) == 1 {
@@ -266,30 +261,8 @@ func (s soapREST) xmlToMap(node xmlNode, nsCtx *namespaceContext) any {
 	}
 
 	// Retrieve element names that include namespace prefixes
-	nodeName := s.getNodeName(node, nsCtx)
+	nodeName := getNodeName(node, nsCtx, s.soapNamespacePrefix)
 	return map[string]any{nodeName: resultMap}
-}
-
-func (s soapREST) getNodeName(node xmlNode, nsCtx *namespaceContext) string {
-	nodeName := node.XMLName.Local
-
-	// Only supports conversions for SOAP 1.1
-	if nodeName == soapBodyKey && node.XMLName.Space == soapNamespaceURI {
-		// return like "soap_body"
-		return s.soapNamespacePrefix + separatorChar + soapBodyKey
-	} else if nodeName == soapHeaderKey && node.XMLName.Space == soapNamespaceURI {
-		// return like "soap_header"
-		return s.soapNamespacePrefix + separatorChar + soapHeaderKey
-	}
-
-	if node.XMLName.Space != "" {
-		prefix := nsCtx.getPrefix(node.XMLName.Space)
-		if prefix != "" {
-			return prefix + separatorChar + nodeName
-		}
-	}
-
-	return nodeName
 }
 
 func (s soapREST) convertRESTtoSOAPResponse(wrapper *wrappedWriter) ([]byte, error) {
@@ -341,7 +314,7 @@ type soapBody struct {
 }
 
 func (e soapEnvelope) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
-	start.Name.Local = fmt.Sprintf("%s:%s", e.prefix, "Envelope")
+	start.Name.Local = toString(e.prefix) + ":Envelope"
 	start.Attr = append(start.Attr, e.ExtraNS...)
 
 	if len(e.Attrs) > 0 {
@@ -365,7 +338,7 @@ func (e soapEnvelope) MarshalXML(enc *xml.Encoder, start xml.StartElement) error
 }
 
 func (h soapHeader) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
-	start.Name.Local = fmt.Sprintf("%s:%s", h.prefix, "Header")
+	start.Name.Local = toString(h.prefix) + ":Header"
 
 	if len(h.Attrs) > 0 {
 		start.Attr = append(start.Attr, h.Attrs...)
@@ -382,7 +355,7 @@ func (h soapHeader) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
 }
 
 func (b soapBody) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
-	start.Name.Local = fmt.Sprintf("%s:%s", b.prefix, "Body")
+	start.Name.Local = toString(b.prefix) + ":Body"
 
 	if len(b.Attrs) > 0 {
 		start.Attr = append(start.Attr, b.Attrs...)
@@ -411,7 +384,7 @@ type xmlElement struct {
 // xmlElement.MarshalXML is a custom marshaller for encoding an xmlElement struct to XML.
 func (e xmlElement) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
 	if e.XMLName.Space != "" {
-		start.Name.Local = fmt.Sprintf("%s:%s", e.XMLName.Space, e.XMLName.Local)
+		start.Name.Local = toString(e.XMLName.Space) + ":" + toString(e.XMLName.Local)
 	} else {
 		start.Name.Local = e.XMLName.Local
 	}
@@ -676,7 +649,7 @@ func (s soapREST) createXMLElementFromValue(elementName string, value any, names
 			element.children = append(element.children, child)
 		}
 	default:
-		element.Content = sanitizeControlCharacters(fmt.Sprintf("%v", v))
+		element.Content = sanitizeControlCharacters(toString(v))
 	}
 
 	return element
@@ -775,93 +748,10 @@ func (s soapREST) mapToXMLElement(elementName string, value any, namespace strin
 		}
 
 	default:
-		element.Content = sanitizeControlCharacters(fmt.Sprintf("%v", v))
+		element.Content = sanitizeControlCharacters(toString(v))
 	}
 
 	return element
-}
-
-// wrappedWriter wraps http.ResponseWriter.
-// This implements io.Writer interface and utilhttp.Writer interface.
-type wrappedWriter struct {
-	http.ResponseWriter
-	code    int
-	written bool
-	length  int64
-	body    *bytes.Buffer
-}
-
-func (w *wrappedWriter) Unwrap() http.ResponseWriter {
-	return w.ResponseWriter
-}
-
-func (w *wrappedWriter) WriteHeader(statusCode int) {
-	if w.written {
-		return
-	}
-	w.code = statusCode
-	w.written = true
-}
-
-func (w *wrappedWriter) Write(b []byte) (int, error) {
-	w.written = true
-	w.length += int64(len(b))
-	return w.body.Write(b)
-}
-
-func (w *wrappedWriter) Written() bool {
-	return w.written
-}
-
-func (w *wrappedWriter) StatusCode() int {
-	if w.written && w.code == 0 {
-		return http.StatusOK
-	}
-	return w.code
-}
-
-func (w *wrappedWriter) ContentLength() int64 {
-	return w.length
-}
-
-func (w *wrappedWriter) Flush() {
-	// no-op
-}
-
-// namespaceContext is a struct used for managing namespaces.
-type namespaceContext struct {
-	prefixToURI map[string]string
-	uriToPrefix map[string]string
-}
-
-func (nc *namespaceContext) addNamespace(prefix, uri string) {
-	nc.prefixToURI[prefix] = uri
-	nc.uriToPrefix[uri] = prefix
-}
-
-func (nc *namespaceContext) getPrefix(uri string) string {
-	if prefix, ok := nc.uriToPrefix[uri]; ok {
-		return prefix
-	}
-	return ""
-}
-
-type namespaceManager struct {
-	namespaces map[string]string
-}
-
-func (nm *namespaceManager) addNamespace(prefix, uri string) {
-	if _, exists := nm.namespaces[prefix]; !exists {
-		nm.namespaces[prefix] = uri
-	}
-}
-
-// Only supports conversions for SOAP 1.1
-// The request is determined to be SOAP 1.1 if the Content-Type includes "text/xml" or
-// if the value of the SOAPAction header is not empty.
-func isSOAPRequest(r *http.Request) bool {
-	return strings.Contains(r.Header.Get("Content-Type"), soap11MIMEType) ||
-		r.Header.Get(soapActionHeaderKey) != ""
 }
 
 // parseValue extracts XML elements according to their type.
@@ -900,88 +790,4 @@ func (s soapREST) parseValue(content string) any {
 	}
 
 	return content
-}
-
-// sanitizeXMLCharacters removes invalid XML 1.0 characters from the input string.
-func sanitizeControlCharacters(input string) string {
-	var sanitized strings.Builder
-	for _, r := range input {
-		if isValidXMLChar(r) {
-			sanitized.WriteRune(r)
-		}
-	}
-	return sanitized.String()
-}
-
-// isValidXMLChar checks if a rune is valid according to XML 1.0.
-func isValidXMLChar(r rune) bool {
-	// Valid XML characters (according to XML 1.0 spec)
-	return (r == 0x09 || r == 0x0A || r == 0x0D || // Tab, Line Feed, Carriage Return
-		(r >= 0x20 && r <= 0xD7FF) || // Basic characters
-		(r >= 0xE000 && r <= 0xFFFD) || // Valid non-supplementary characters
-		(r >= 0x10000 && r <= 0x10FFFF)) // Supplementary characters
-}
-
-// Recursively check if the JSON contains null.
-// If a JSON element contains null, the xsi namespace will be added to the definition.
-func hasNullValue(data any) bool {
-	switch v := data.(type) {
-	case nil:
-		return true
-	case map[string]any:
-		for _, value := range v {
-			if hasNullValue(value) {
-				return true
-			}
-		}
-	case []any:
-		for _, item := range v {
-			if hasNullValue(item) {
-				return true
-			}
-		}
-	}
-	return false
-}
-
-// mapToXMLAttrs is a helper function that converts attributes (key-value pairs) in JSON to `xml.Attr`
-func mapToXMLAttrs(attrMap map[string]interface{}, nsManager *namespaceManager) []xml.Attr {
-	attrs := make([]xml.Attr, 0, len(attrMap))
-	for k, v := range attrMap {
-		// Handling of attributes that begin with "xmlns_"
-		if strings.HasPrefix(k, "xmlns_") {
-			localName := strings.TrimPrefix(k, "xmlns_")
-			attrs = append(attrs, xml.Attr{
-				Name:  xml.Name{Local: "xmlns:" + localName},
-				Value: fmt.Sprintf("%v", v),
-			})
-			continue
-		}
-
-		// Handling of attributes that begin with "xsi_"
-		if strings.HasPrefix(k, "xsi_") {
-			// "xsi_type" → "xsi:type"
-			localName := strings.TrimPrefix(k, "xsi_")
-			attrs = append(attrs, xml.Attr{
-				Name:  xml.Name{Local: "xsi:" + localName},
-				Value: fmt.Sprintf("%v", v),
-			})
-			continue
-		}
-
-		// Handling attributes with common prefixes using separatorChar
-		parts := strings.SplitN(k, "_", 2)
-		if len(parts) == 2 && nsManager.namespaces[parts[0]] != "" {
-			attrs = append(attrs, xml.Attr{
-				Name:  xml.Name{Local: parts[0] + ":" + parts[1]},
-				Value: fmt.Sprintf("%v", v),
-			})
-		} else {
-			attrs = append(attrs, xml.Attr{
-				Name:  xml.Name{Local: k},
-				Value: fmt.Sprintf("%v", v),
-			})
-		}
-	}
-	return attrs
 }

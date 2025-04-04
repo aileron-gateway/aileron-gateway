@@ -25,7 +25,7 @@ type API struct {
 	*api.BaseResource
 }
 
-func (o *API) Default() protoreflect.ProtoMessage {
+func (s *API) Default() protoreflect.ProtoMessage {
 	return &v1.SOAPRESTMiddleware{
 		APIVersion: apiVersion,
 		Kind:       kind,
