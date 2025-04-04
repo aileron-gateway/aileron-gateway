@@ -2,6 +2,8 @@ package headercert
 
 import (
 	"crypto/x509"
+	"errors"
+	"os"
 	"regexp"
 	"testing"
 
@@ -154,15 +156,22 @@ func TestCreate(t *testing.T) {
 
 func TestLoadRootCert(t *testing.T) {
 	t.Run("no root cert", func(t *testing.T) {
-		_, err := loadRootCert([]string{"wrong"})
-		if err == nil {
-			t.Errorf("expected error, got nil")
+		pool, err := loadRootCert([]string{"wrong"})
+		if pool != nil {
+			t.Errorf("expected nil pool, got %v", pool)
+		}
+		if !os.IsNotExist(err) {
+			t.Errorf("expected os.ErrNotExist, got %v", err)
 		}
 	})
 	t.Run("invalid root cert", func(t *testing.T) {
-		_, err := loadRootCert([]string{incompleteCertPath})
-		if err == nil {
-			t.Errorf("expected error, got nil")
+		// expectedErr := "headercert: failed to add root certificate to CertPool"
+		pool, err := loadRootCert([]string{incompleteCertPath})
+		if pool != nil {
+			t.Errorf("expected nil pool, got %v", pool)
+		}
+		if !errors.Is(ErrAddCert, err) {
+			t.Errorf("expected error %v, got %v", ErrAddCert, err)
 		}
 	})
 }

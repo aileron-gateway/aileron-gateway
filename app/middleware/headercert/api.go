@@ -20,6 +20,8 @@ const (
 	Key        = apiVersion + "/" + kind
 )
 
+var ErrAddCert = errors.New("headercert: failed to add root certificate to CertPool")
+
 var (
 	Resource api.Resource = &API{
 		BaseResource: &api.BaseResource{
@@ -79,7 +81,7 @@ func loadRootCert(rootCAs []string) (*x509.CertPool, error) {
 		}
 		// Add the root certificate to CertPool
 		if !pool.AppendCertsFromPEM(pem) {
-			return nil, errors.New("headercert: failed to add root certificate to CertPool")
+			return nil, ErrAddCert
 		}
 	}
 

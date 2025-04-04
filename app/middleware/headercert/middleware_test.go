@@ -160,14 +160,9 @@ func TestMiddleware(t *testing.T) {
 
 	// Read the root cert specified in the local file
 	for _, c := range rootCAs {
-		rootCertPEM, err := os.ReadFile(c)
-		if err != nil {
-			t.Errorf("fail to load rootCA: %v", err)
-		}
+		rootCertPEM, _ := os.ReadFile(c)
 		// Add the root cert to CertPool
-		if !roots.AppendCertsFromPEM(rootCertPEM) {
-			t.Errorf("fail to load rootCA: %v", err)
-		}
+		roots.AppendCertsFromPEM(rootCertPEM)
 	}
 
 	opts := x509.VerifyOptions{
@@ -207,23 +202,26 @@ func TestMiddleware(t *testing.T) {
 func TestParseCert(t *testing.T) {
 	t.Run("invalid pem", func(t *testing.T) {
 		invalidPEM := base64.URLEncoding.EncodeToString([]byte("-----BEGIN cert-----\nInvalid cert content"))
-		_, err := parseCert(invalidPEM)
-		if err == nil {
-			t.Errorf("expected error, got nil")
+		cert, err := parseCert(invalidPEM)
+		if cert != nil {
+			t.Errorf("expected nil cert, got %v", cert)
+		}
+		want := "E3214.AppMiddleInvalidCert client certificate invalid or not found. pem not found"
+		if want != err.Error() {
+			t.Errorf("expected %v, got %v", want, err)
 		}
 	})
-
+	
 	t.Run("invalid x509 cert", func(t *testing.T) {
-
-		invalidCert, err := os.ReadFile(incompleteCertPath)
-		if err != nil {
-			t.Errorf("fail to read client cert: %v", err)
-		}
-
+		invalidCert, _ := os.ReadFile(incompleteCertPath)
 		invalidX509 := base64.URLEncoding.EncodeToString([]byte(invalidCert)) // This cert has a negative serial number that causes an error in [x509.ParseCertificate].
-		_, err = parseCert(invalidX509)
-		if err == nil {
-			t.Errorf("expected error, got nil")
+		cert, err := parseCert(invalidX509)
+		if cert != nil {
+			t.Errorf("expected nil cert, got %v", cert)
+		}
+		want := "E3214.AppMiddleInvalidCert client certificate invalid or not found. x509 parse failed [x509: negative serial number]"
+		if want != err.Error() {
+			t.Errorf("expected %v, got %v", want, err)
 		}
 	})
 }
