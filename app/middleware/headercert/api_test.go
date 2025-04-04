@@ -3,7 +3,7 @@ package headercert
 import (
 	"crypto/x509"
 	"errors"
-	"os"
+	"io/fs"
 	"regexp"
 	"testing"
 
@@ -160,8 +160,8 @@ func TestLoadRootCert(t *testing.T) {
 		if pool != nil {
 			t.Errorf("expected nil pool, got %v", pool)
 		}
-		if !os.IsNotExist(err) {
-			t.Errorf("expected os.ErrNotExist, got %v", err)
+		if !errors.Is(err, fs.ErrNotExist) {
+			t.Errorf("expected error %v, got %v", fs.ErrNotExist, err)
 		}
 	})
 	t.Run("invalid root cert", func(t *testing.T) {
@@ -170,7 +170,7 @@ func TestLoadRootCert(t *testing.T) {
 		if pool != nil {
 			t.Errorf("expected nil pool, got %v", pool)
 		}
-		if !errors.Is(ErrAddCert, err) {
+		if !errors.Is(err, ErrAddCert) {
 			t.Errorf("expected error %v, got %v", ErrAddCert, err)
 		}
 	})
