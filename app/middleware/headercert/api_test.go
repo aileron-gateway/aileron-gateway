@@ -143,7 +143,7 @@ func TestCreate(t *testing.T) {
 			got, err := a.Create(server, tt.C().manifest)
 
 			opts := []cmp.Option{
-				cmp.AllowUnexported(headerCert{}),
+				cmp.AllowUnexported(headerCert{}, x509.VerifyOptions{}),
 				cmp.Comparer(testutil.ComparePointer[core.ErrorHandler]),
 				cmp.Comparer(testutil.ComparePointer[log.Logger]),
 			}
