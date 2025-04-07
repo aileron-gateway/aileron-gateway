@@ -34,6 +34,7 @@ var (
 				},
 				Spec: &v1.HeaderCertMiddlewareSpec{
 					RootCAs: []string{},
+					FpHeader: "",
 				},
 			},
 		},
