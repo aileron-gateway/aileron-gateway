@@ -55,10 +55,11 @@ func TestCreate(t *testing.T) {
 			&action{
 				err: nil,
 				expect: &headerCert{
-					eh:       utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
-					opts:     defaultOpts,
-					fpCheck:  false,
-					fpHeader: "",
+					eh:         utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
+					opts:       defaultOpts,
+					certHeader: "X-SSL-Client-Cert",
+					fpCheck:    false,
+					fpHeader:   "",
 				},
 			},
 		),
@@ -99,18 +100,20 @@ func TestCreate(t *testing.T) {
 						Name:      "default",
 					},
 					Spec: &v1.HeaderCertMiddlewareSpec{
-						RootCAs:  []string{rootCAPath},
-						FpHeader: "X-SSL-Client-Fingerprint",
+						RootCAs:    []string{rootCAPath},
+						CertHeader: "X-SSL-Client-Cert",
+						FpHeader:   "X-SSL-Client-Fingerprint",
 					},
 				},
 			},
 			&action{
 				err: nil,
 				expect: &headerCert{
-					eh:       utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
-					opts:     opts,
-					fpCheck:  true,
-					fpHeader: "X-SSL-Client-Fingerprint",
+					eh:         utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
+					opts:       opts,
+					certHeader: "X-SSL-Client-Cert",
+					fpCheck:    true,
+					fpHeader:   "X-SSL-Client-Fingerprint",
 				},
 			},
 		),
@@ -127,8 +130,9 @@ func TestCreate(t *testing.T) {
 						Name:      "default",
 					},
 					Spec: &v1.HeaderCertMiddlewareSpec{
-						RootCAs: []string{"wrong"},
-						FpHeader: "X-SSL-Client-Fingerprint",
+						RootCAs:    []string{"wrong"},
+						CertHeader: "X-SSL-Client-Cert",
+						FpHeader:   "X-SSL-Client-Fingerprint",
 					},
 				},
 			},
@@ -138,7 +142,7 @@ func TestCreate(t *testing.T) {
 			},
 		),
 	}
-	
+
 	testutil.Register(table, testCases...)
 
 	for _, tt := range table.Entries() {

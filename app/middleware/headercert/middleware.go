@@ -15,15 +15,16 @@ import (
 )
 
 type headerCert struct {
-	eh       core.ErrorHandler
-	opts     x509.VerifyOptions
-	fpCheck  bool
-	fpHeader string
+	eh         core.ErrorHandler
+	opts       x509.VerifyOptions
+	certHeader string
+	fpCheck    bool
+	fpHeader   string
 }
 
 func (m *headerCert) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ch := r.Header.Get("X-SSL-Client-Cert")
+		ch := r.Header.Get(m.certHeader)
 		if ch == "" {
 			err := app.ErrAppMiddleInvalidCert.WithoutStack(nil, map[string]any{"reason": "cert not found"})
 			m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusBadRequest))

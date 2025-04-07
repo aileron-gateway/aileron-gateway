@@ -38,6 +38,7 @@ kind: HeaderCertMiddleware
 spec:
   rootCAs:
       - ./_example/header-cert/pki/rootCA.crt
+  certHeader: "X-SSL-Client-Cert"
   fpHeader: "X-SSL-Client-Fingerprint"
 
 ---

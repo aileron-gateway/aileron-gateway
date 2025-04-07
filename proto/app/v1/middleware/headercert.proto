@@ -44,8 +44,13 @@ message HeaderCertMiddlewareSpec {
     repeated string     RootCAs         = 2 [json_name = "rootCAs"];
 
     // [OPTIONAL]
-    // FpHeader specifies the header name for a fingerprint.
+    // CertHeader specifies the header name for the client certificate.
+    // Default is "X-SSL-Client-Cert".
+    string              CertHeader      = 3 [json_name = "certHeader"];
+
+    // [OPTIONAL]
+    // FpHeader specifies the header name for the fingerprint.
     // Default is not set.
-    string     FpHeader        = 3 [json_name = "fpHeader"];
+    string              FpHeader        = 4 [json_name = "fpHeader"];
 }
 
