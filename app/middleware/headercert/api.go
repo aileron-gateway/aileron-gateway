@@ -33,7 +33,7 @@ var (
 					Name:      "default",
 				},
 				Spec: &v1.HeaderCertMiddlewareSpec{
-					RootCAs: []string{},
+					RootCAs:  []string{},
 					FpHeader: "",
 				},
 			},
@@ -65,10 +65,7 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.Prot
 		Roots: pool,
 	}
 
-	fpCheck := false
-	if c.Spec.FpHeader != "" {
-		fpCheck = true
-	}
+	fpCheck := c.Spec.FpHeader != ""
 
 	return &headerCert{
 		eh:       eh,
