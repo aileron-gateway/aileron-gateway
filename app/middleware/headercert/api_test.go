@@ -175,7 +175,6 @@ func TestLoadRootCert(t *testing.T) {
 		}
 	})
 	t.Run("invalid root cert", func(t *testing.T) {
-		// expectedErr := "headercert: failed to add root certificate to CertPool"
 		pool, err := loadRootCert([]string{incompleteCertPath})
 		if pool != nil {
 			t.Errorf("expected nil pool, got %v", pool)

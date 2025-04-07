@@ -243,7 +243,7 @@ func TestMiddleware(t *testing.T) {
 }
 
 func TestParseCert(t *testing.T) {
-	t.Run("invalid pem", func(t *testing.T) { //TODO:基本的にメッセージで比較はしない、kind.Is()で比較できないか検討する
+	t.Run("invalid pem", func(t *testing.T) {
 		invalidPEM := base64.URLEncoding.EncodeToString([]byte("-----BEGIN cert-----\nInvalid cert content"))
 		cert, err := parseCert(invalidPEM)
 		if cert != nil {
@@ -254,7 +254,7 @@ func TestParseCert(t *testing.T) {
 			t.Errorf("expected %v, got %v", want, err)
 		}
 	})
-	t.Run("invalid x509 cert", func(t *testing.T) { //TODO:基本的にメッセージで比較はしない、kind.Is()で比較できないか検討する
+	t.Run("invalid x509 cert", func(t *testing.T) {
 		invalidCert, _ := os.ReadFile(incompleteCertPath)
 		invalidX509 := base64.URLEncoding.EncodeToString([]byte(invalidCert)) // This cert has a negative serial number that causes an error in [x509.ParseCertificate].
 		cert, err := parseCert(invalidX509)
