@@ -15,8 +15,10 @@ import (
 )
 
 type headerCert struct {
-	eh   core.ErrorHandler
-	opts x509.VerifyOptions
+	eh       core.ErrorHandler
+	opts     x509.VerifyOptions
+	fpCheck  bool
+	fpHeader string
 }
 
 func (m *headerCert) Middleware(next http.Handler) http.Handler {
@@ -40,10 +42,8 @@ func (m *headerCert) Middleware(next http.Handler) http.Handler {
 			return
 		}
 
-		fh := r.Header.Get("X-SSL-Client-Fingerprint")
-
-		// Verify the fingerprint
-		if fh != "" {
+		if m.fpCheck {
+			fh := r.Header.Get(m.fpHeader)
 			f := sha256.Sum256(cert.Raw)
 			if strings.ToUpper(hex.EncodeToString(f[:])) != fh {
 				err := app.ErrAppMiddleInvalidFingerprint.WithoutStack(nil, nil)

@@ -38,6 +38,7 @@ kind: HeaderCertMiddleware
 spec:
   rootCAs:
       - ./_example/header-cert/pki/rootCA.crt
+  fpHeader: "X-SSL-Client-Fingerprint"
 
 ---
 apiVersion: core/v1

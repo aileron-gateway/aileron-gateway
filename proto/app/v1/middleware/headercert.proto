@@ -39,8 +39,13 @@ message HeaderCertMiddlewareSpec {
     kernel.Reference    ErrorHandler    = 1 [json_name = "errorHandler"];
     
     // [REQUIRED]
-    // rootCAs is the list of the paths for root certificates.
+    // RootCAs is the list of the paths for root certificates.
     // Default is not set.
-    repeated string     rootCAs         = 2 [json_name = "rootCAs"];
+    repeated string     RootCAs         = 2 [json_name = "rootCAs"];
+
+    // [OPTIONAL]
+    // FpHeader specifies the header name for a fingerprint.
+    // Default is not set.
+    string     FpHeader        = 3 [json_name = "fpHeader"];
 }
 

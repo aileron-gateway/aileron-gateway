@@ -64,9 +64,16 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.Prot
 		Roots: pool,
 	}
 
+	fpCheck := false
+	if c.Spec.FpHeader != "" {
+		fpCheck = true
+	}
+
 	return &headerCert{
-		eh:   eh,
-		opts: opts,
+		eh:       eh,
+		opts:     opts,
+		fpCheck:  fpCheck,
+		fpHeader: c.Spec.FpHeader,
 	}, nil
 }
 
