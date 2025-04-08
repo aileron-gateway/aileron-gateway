@@ -33,9 +33,9 @@ var (
 					Name:      "default",
 				},
 				Spec: &v1.HeaderCertMiddlewareSpec{
-					RootCAs:    []string{},
-					CertHeader: "X-SSL-Client-Cert",
-					FingerprintpHeader:   "",
+					RootCAs:            []string{},
+					CertHeader:         "X-SSL-Client-Cert",
+					FingerprintpHeader: "",
 				},
 			},
 		},
