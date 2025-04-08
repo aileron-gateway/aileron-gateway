@@ -39,7 +39,7 @@ spec:
   rootCAs:
       - ./_example/header-cert/pki/rootCA.crt
   certHeader: "X-SSL-Client-Cert"
-  fpHeader: "X-SSL-Client-Fingerprint"
+  fingerprintHeader: "X-SSL-Client-Fingerprint"
 
 ---
 apiVersion: core/v1

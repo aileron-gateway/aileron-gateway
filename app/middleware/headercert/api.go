@@ -35,7 +35,7 @@ var (
 				Spec: &v1.HeaderCertMiddlewareSpec{
 					RootCAs:    []string{},
 					CertHeader: "X-SSL-Client-Cert",
-					FpHeader:   "",
+					FingerprintpHeader:   "",
 				},
 			},
 		},
@@ -66,14 +66,11 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.Prot
 		Roots: pool,
 	}
 
-	fpCheck := c.Spec.FpHeader != ""
-
 	return &headerCert{
 		eh:         eh,
 		opts:       opts,
 		certHeader: c.Spec.CertHeader,
-		fpCheck:    fpCheck,
-		fpHeader:   c.Spec.FpHeader,
+		fpHeader:   c.Spec.FingerprintpHeader,
 	}, nil
 }
 

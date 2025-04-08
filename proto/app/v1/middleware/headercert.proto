@@ -36,21 +36,21 @@ message HeaderCertMiddlewareSpec {
     // ErrorHandler is the reference to a ErrorHandler object.
     // Referred object must implement ErrorHandler interface.
     // Default error handler is used when not set.
-    kernel.Reference    ErrorHandler    = 1 [json_name = "errorHandler"];
+    kernel.Reference    ErrorHandler        = 1 [json_name = "errorHandler"];
     
     // [REQUIRED]
     // RootCAs is the list of the paths for root certificates.
     // Default is not set.
-    repeated string     RootCAs         = 2 [json_name = "rootCAs"];
+    repeated string     RootCAs             = 2 [json_name = "rootCAs"];
 
     // [OPTIONAL]
     // CertHeader specifies the header name for the client certificate.
     // Default is "X-SSL-Client-Cert".
-    string              CertHeader      = 3 [json_name = "certHeader"];
+    string              CertHeader          = 3 [json_name = "certHeader"];
 
     // [OPTIONAL]
-    // FpHeader specifies the header name for the fingerprint.
+    // FingerprintHeader specifies the header name for the fingerprint.
     // Default is not set.
-    string              FpHeader        = 4 [json_name = "fpHeader"];
+    string              FingerprintpHeader  = 4 [json_name = "fingerprintHeader"];
 }
 

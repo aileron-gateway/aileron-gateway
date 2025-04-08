@@ -58,7 +58,6 @@ func TestCreate(t *testing.T) {
 					eh:         utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
 					opts:       defaultOpts,
 					certHeader: "X-SSL-Client-Cert",
-					fpCheck:    false,
 					fpHeader:   "",
 				},
 			},
@@ -102,7 +101,7 @@ func TestCreate(t *testing.T) {
 					Spec: &v1.HeaderCertMiddlewareSpec{
 						RootCAs:    []string{rootCAPath},
 						CertHeader: "X-SSL-Client-Cert",
-						FpHeader:   "X-SSL-Client-Fingerprint",
+						FingerprintpHeader:   "X-SSL-Client-Fingerprint",
 					},
 				},
 			},
@@ -112,7 +111,6 @@ func TestCreate(t *testing.T) {
 					eh:         utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
 					opts:       opts,
 					certHeader: "X-SSL-Client-Cert",
-					fpCheck:    true,
 					fpHeader:   "X-SSL-Client-Fingerprint",
 				},
 			},
@@ -132,7 +130,7 @@ func TestCreate(t *testing.T) {
 					Spec: &v1.HeaderCertMiddlewareSpec{
 						RootCAs:    []string{"wrong"},
 						CertHeader: "X-SSL-Client-Cert",
-						FpHeader:   "X-SSL-Client-Fingerprint",
+						FingerprintpHeader:   "X-SSL-Client-Fingerprint",
 					},
 				},
 			},

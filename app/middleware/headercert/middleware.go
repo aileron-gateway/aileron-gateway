@@ -18,7 +18,6 @@ type headerCert struct {
 	eh         core.ErrorHandler
 	opts       x509.VerifyOptions
 	certHeader string
-	fpCheck    bool
 	fpHeader   string
 }
 
@@ -30,23 +29,21 @@ func (m *headerCert) Middleware(next http.Handler) http.Handler {
 			m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusBadRequest))
 			return
 		}
-
 		cert, err := parseCert(ch)
 		if err != nil {
 			m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusBadRequest))
 			return
 		}
-
 		// Verify the client certificate
 		if _, err := cert.Verify(m.opts); err != nil {
 			m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusUnauthorized))
 			return
 		}
 
-		if m.fpCheck {
+		if m.fpHeader != "" {
 			fh := r.Header.Get(m.fpHeader)
 			f := sha256.Sum256(cert.Raw)
-			if strings.ToUpper(hex.EncodeToString(f[:])) != fh {
+			if hex.EncodeToString(f[:]) != strings.ToLower(fh) {
 				err := app.ErrAppMiddleInvalidFingerprint.WithoutStack(nil, nil)
 				m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusUnauthorized))
 				return
