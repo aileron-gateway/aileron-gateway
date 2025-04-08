@@ -8,6 +8,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/aileron-gateway/aileron-gateway/app"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 )
@@ -236,7 +237,7 @@ func TestMiddleware(t *testing.T) {
 				w.WriteHeader(http.StatusOK)
 			})).ServeHTTP(resp, req)
 
-			// verify the status code
+			// Verify the status code
 			testutil.Diff(t, tt.A().status, resp.Code)
 		})
 	}
@@ -249,9 +250,8 @@ func TestParseCert(t *testing.T) {
 		if cert != nil {
 			t.Errorf("expected nil cert, got %v", cert)
 		}
-		want := "E3214.AppMiddleInvalidCert client certificate invalid or not found. pem not found"
-		if want != err.Error() {
-			t.Errorf("expected %v, got %v", want, err)
+		if !app.ErrAppMiddleInvalidCert.Is(err) {
+			t.Errorf("expected ErrAppMiddleInvalidCert, got %v", err)
 		}
 	})
 	t.Run("invalid x509 cert", func(t *testing.T) {
@@ -261,9 +261,8 @@ func TestParseCert(t *testing.T) {
 		if cert != nil {
 			t.Errorf("expected nil cert, got %v", cert)
 		}
-		want := "E3214.AppMiddleInvalidCert client certificate invalid or not found. x509 parse failed [x509: negative serial number]"
-		if want != err.Error() {
-			t.Errorf("expected %v, got %v", want, err)
+		if !app.ErrAppMiddleInvalidCert.Is(err) {
+			t.Errorf("expected ErrAppMiddleInvalidCert, got %v", err)
 		}
 	})
 }
