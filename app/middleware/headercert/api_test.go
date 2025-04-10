@@ -33,6 +33,11 @@ func TestCreate(t *testing.T) {
 	tb.Name(t.Name())
 	table := tb.Build()
 
+	defaultRoots, _ := loadRootCert([]string{})
+	defaultOpts := x509.VerifyOptions{
+		Roots: defaultRoots,
+	}
+
 	roots, _ := loadRootCert([]string{rootCAPath})
 	opts := x509.VerifyOptions{
 		Roots: roots,
@@ -48,8 +53,13 @@ func TestCreate(t *testing.T) {
 				manifest: Resource.Default(),
 			},
 			&action{
-				err:        core.ErrCoreGenCreateObject,
-				errPattern: regexp.MustCompile(core.ErrPrefix + `failed to create HeaderCertMiddleware`),
+				err: nil,
+				expect: &headerCert{
+					eh:         utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
+					opts:       defaultOpts,
+					certHeader: "X-SSL-Client-Cert",
+					fpHeader:   "",
+				},
 			},
 		),
 		gen(

@@ -3,7 +3,9 @@
 package headercert_test
 
 import (
-	"regexp"
+	"encoding/base64"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
@@ -14,32 +16,20 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/test/integration/common"
 )
 
-const (
-	certPath = "./client.crt"
-	fpPath   = "./fingerprint.txt"
-)
+func testHeaderCertMiddleware(t *testing.T, m core.Middleware) {
+	t.Helper()
 
-// func testHeaderCertMiddleware(t *testing.T, m core.Middleware) {
-// 	t.Helper()
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("ok"))
+	})
+	h := m.Middleware(handler)
 
-// 	cert, _ := os.ReadFile(certPath)
-// 	fp, _ := os.ReadFile(fpPath)
-
-// 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 		w.Write([]byte("ok"))
-// 	})
-// 	h := m.Middleware(handler)
-
-// 	r1 := httptest.NewRequest(http.MethodGet, "http://headercert-test.com/test", nil)
-// 	r1.Header.Set("X-SSL-Client-Cert", base64.URLEncoding.EncodeToString(cert))
-// 	r1.Header.Set("X-SSL-Client-Fingerprint", string(fp))
-// 	w1 := httptest.NewRecorder()
-// 	h.ServeHTTP(w1, r1)
-// 	b1, _ := io.ReadAll(w1.Result().Body)
-// 	testutil.Diff(t, http.StatusOK, w1.Result().StatusCode)
-// 	testutil.Diff(t, "ok", string(b1))
-// 	return
-// }
+	r1 := httptest.NewRequest(http.MethodPost, "http://headercert-test.com/test", nil)
+	r1.Header.Set("X-SSL-Client-Cert", base64.URLEncoding.EncodeToString(cert))
+	w1 := httptest.NewRecorder()
+	h.ServeHTTP(w1, r1)
+	testutil.Diff(t, http.StatusUnauthorized, w1.Result().StatusCode)
+}
 
 func TestMinimalWithoutMetadata(t *testing.T) {
 	configs := []string{"./config-minimal-without-metadata.yaml"}
@@ -54,9 +44,10 @@ func TestMinimalWithoutMetadata(t *testing.T) {
 		Name:       "",
 		Namespace:  "",
 	}
-	_, err = api.ReferTypedObject[core.Middleware](server, ref)
-	testutil.DiffError(t, core.ErrCoreGenCreateObject, regexp.MustCompile(core.ErrPrefix+`failed to create HeaderCertMiddleware`), err)
+	m, err := api.ReferTypedObject[core.Middleware](server, ref)
+	testutil.DiffError(t, nil, nil, err)
 
+	testHeaderCertMiddleware(t, m)
 }
 func TestMinimalWithMetadata(t *testing.T) {
 	configs := []string{"./config-minimal-with-metadata.yaml"}
@@ -71,8 +62,10 @@ func TestMinimalWithMetadata(t *testing.T) {
 		Name:       "testName",
 		Namespace:  "testNamespace",
 	}
-	_, err = api.ReferTypedObject[core.Middleware](server, ref)
-	testutil.DiffError(t, core.ErrCoreGenCreateObject, regexp.MustCompile(core.ErrPrefix+`failed to create HeaderCertMiddleware`), err)
+	m, err := api.ReferTypedObject[core.Middleware](server, ref)
+	testutil.DiffError(t, nil, nil, err)
+
+	testHeaderCertMiddleware(t, m)
 }
 func TestEmptyName(t *testing.T) {
 	configs := []string{"./config-empty-name.yaml"}
@@ -87,8 +80,10 @@ func TestEmptyName(t *testing.T) {
 		Name:       "",
 		Namespace:  "testNamespace",
 	}
-	_, err = api.ReferTypedObject[core.Middleware](server, ref)
-	testutil.DiffError(t, core.ErrCoreGenCreateObject, regexp.MustCompile(core.ErrPrefix+`failed to create HeaderCertMiddleware`), err)
+	m, err := api.ReferTypedObject[core.Middleware](server, ref)
+	testutil.DiffError(t, nil, nil, err)
+
+	testHeaderCertMiddleware(t, m)
 }
 func TestEmptyNamespace(t *testing.T) {
 	configs := []string{"./config-empty-namespace.yaml"}
@@ -103,8 +98,10 @@ func TestEmptyNamespace(t *testing.T) {
 		Name:       "testName",
 		Namespace:  "",
 	}
-	_, err = api.ReferTypedObject[core.Middleware](server, ref)
-	testutil.DiffError(t, core.ErrCoreGenCreateObject, regexp.MustCompile(core.ErrPrefix+`failed to create HeaderCertMiddleware`), err)
+	m, err := api.ReferTypedObject[core.Middleware](server, ref)
+	testutil.DiffError(t, nil, nil, err)
+
+	testHeaderCertMiddleware(t, m)
 }
 func TestEmptyNameNamespace(t *testing.T) {
 	configs := []string{"./config-empty-name-namespace.yaml"}
@@ -119,6 +116,8 @@ func TestEmptyNameNamespace(t *testing.T) {
 		Name:       "",
 		Namespace:  "",
 	}
-	_, err = api.ReferTypedObject[core.Middleware](server, ref)
-	testutil.DiffError(t, core.ErrCoreGenCreateObject, regexp.MustCompile(core.ErrPrefix+`failed to create HeaderCertMiddleware`), err)
+	m, err := api.ReferTypedObject[core.Middleware](server, ref)
+	testutil.DiffError(t, nil, nil, err)
+
+	testHeaderCertMiddleware(t, m)
 }
