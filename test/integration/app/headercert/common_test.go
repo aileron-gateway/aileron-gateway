@@ -49,6 +49,7 @@ func TestMinimalWithoutMetadata(t *testing.T) {
 
 	testHeaderCertMiddleware(t, m)
 }
+
 func TestMinimalWithMetadata(t *testing.T) {
 	configs := []string{"./config-minimal-with-metadata.yaml"}
 
@@ -67,6 +68,7 @@ func TestMinimalWithMetadata(t *testing.T) {
 
 	testHeaderCertMiddleware(t, m)
 }
+
 func TestEmptyName(t *testing.T) {
 	configs := []string{"./config-empty-name.yaml"}
 
@@ -85,6 +87,7 @@ func TestEmptyName(t *testing.T) {
 
 	testHeaderCertMiddleware(t, m)
 }
+
 func TestEmptyNamespace(t *testing.T) {
 	configs := []string{"./config-empty-namespace.yaml"}
 
@@ -103,6 +106,7 @@ func TestEmptyNamespace(t *testing.T) {
 
 	testHeaderCertMiddleware(t, m)
 }
+
 func TestEmptyNameNamespace(t *testing.T) {
 	configs := []string{"./config-empty-name-namespace.yaml"}
 
