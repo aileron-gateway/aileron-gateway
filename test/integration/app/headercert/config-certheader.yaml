@@ -1,0 +1,6 @@
+apiVersion: app/v1
+kind: HeaderCertMiddleware
+spec:
+  rootCAs: 
+    - "./rootCA.crt"
+  certHeader: "X-SSL-Client-Cert-Test"

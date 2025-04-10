@@ -1,0 +1,6 @@
+apiVersion: app/v1
+kind: HeaderCertMiddleware
+metadata:
+  name: ""
+  namespace: ""
+spec: {}
