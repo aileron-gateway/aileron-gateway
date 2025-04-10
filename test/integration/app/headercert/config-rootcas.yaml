@@ -1,0 +1,5 @@
+apiVersion: app/v1
+kind: HeaderCertMiddleware
+spec:
+  rootCAs: 
+    - "./rootCA.crt"
