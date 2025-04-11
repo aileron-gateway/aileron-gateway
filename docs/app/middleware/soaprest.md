@@ -1256,6 +1256,87 @@ When defining partial namespaces, you can use the key name specified in `attribu
 </soap:Envelope>
 ```
 
+If a key of an element specified directly under SOAPBody or SOAPHeader contains an underscore `_`, the leading underscore will be converted into a colon `:`.
+
+```json
+{
+  "soap_Envelope": {
+    "soap_Body": {
+      "not_defined_namespace": {
+        "exampleKey": "exampleValue"
+      }
+    }
+  }
+}
+```
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope>
+  <soap:Header></soap:Header>
+  <soap:Body>
+    <not:defined_namespace>
+      <exampleKey>exampleValue</exampleKey>
+    </not:defined_namespace>
+  </soap:Body>
+</soap:Envelope>
+```
+
+If an element is not directly under SOAPBody or SOAPHeader, the leading underscore `_` will not be converted into a colon `:` unless it is a prefix defined by attributeKey for namespace declaration.
+
+```json
+{
+  "soap_Envelope": {
+    "soap_Body": {
+      "parentElement": {
+        "not_namespace_prefix": {}
+      }
+    }
+  }
+}
+```
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope>
+  <soap:Header></soap:Header>
+  <soap:Body>
+    <parentElement>
+      <not_namespace_prefix></not_namespace_prefix>
+    </parentElement>
+  </soap:Body>
+</soap:Envelope>
+```
+
+If a namespace declaration is defined, the underscore `_` will be converted into a colon `:`.
+
+```json
+{
+  "soap_Envelope": {
+    "soap_Body": {
+      "parentElement": {
+        "attributeKey": {
+          "ns": "http://example.com/"
+        },
+        "ns_prefix": {}
+      }
+    }
+  }
+}
+```
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope>
+  <soap:Header></soap:Header>
+  <soap:Body>
+    <parentElement ns="http://example.com/">
+      <ns_prefix></ns_prefix>
+    </parentElement>
+  </soap:Body>
+</soap:Envelope>
+```
+
 If the namespace definition for a child element is omitted, the corresponding child element will not include a namespace definition and will be output with only the key name.
 
 ```json
@@ -1452,7 +1533,7 @@ When namespace definitions are present in the SOAP Envelope, underscores will be
       "soap": "http://schemas.xmlsoap.org/soap/envelope/"
     },
     "soap_Body": {
-      "e_SomeNode": {
+      "SomeNode": {
         "attributeKey": {
           "prefix_attrkey": "attrValue"
         },
@@ -1468,9 +1549,9 @@ When namespace definitions are present in the SOAP Envelope, underscores will be
 <soap:Envelope xmlns:prefix="http://example.com/" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
   <soap:Header></soap:Header>
   <soap:Body>
-    <e:SomeNode prefix:attrkey="attrValue">
+    <SomeNode prefix:attrkey="attrValue">
       <testKey>testValue</testKey>
-    </e:SomeNode>
+    </SomeNode>
   </soap:Body>
 </soap:Envelope>
 ```
