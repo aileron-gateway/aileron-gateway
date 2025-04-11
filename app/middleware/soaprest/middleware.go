@@ -641,9 +641,16 @@ func (s soapREST) createXMLElementFromValue(elementName string, value any, names
 				childParts[1] = separatorChar + childParts[1]
 			}
 
+			startsWithSeparator := strings.HasPrefix(childKey, separatorChar)
 			if len(childParts) == 2 {
 				childNamespace = childParts[0]
 				childLocalName = childParts[1]
+				if !startsWithSeparator && nsManager.namespaces[childParts[0]] == "" {
+					childParts[1] = childParts[0] + separatorChar + childParts[1]
+					childNamespace = ""
+					childParts[0] = ""
+					childLocalName = childParts[1]
+				}
 			} else {
 				childLocalName = childKey
 			}
@@ -714,16 +721,18 @@ func (s soapREST) mapToXMLElement(elementName string, value any, namespace strin
 					var childLocalName string
 
 					startsWithSeparator := strings.HasPrefix(childKey, separatorChar)
-
 					if len(childParts) == 2 {
 						childNamespace = childParts[0]
 						childLocalName = childParts[1]
 						if startsWithSeparator {
+							childNamespace = ""
 							childParts[1] = separatorChar + childParts[1]
 							childLocalName = childParts[1]
 						} else if nsManager.namespaces[childParts[0]] == "" {
+							childParts[1] = childParts[0] + separatorChar + childParts[1]
 							childNamespace = ""
-							childLocalName = childParts[0] + separatorChar + childParts[1]
+							childParts[0] = ""
+							childLocalName = childParts[1]
 						}
 					} else {
 						childLocalName = childKey
@@ -738,16 +747,18 @@ func (s soapREST) mapToXMLElement(elementName string, value any, namespace strin
 				var childLocalName string
 
 				startsWithSeparator := strings.HasPrefix(childKey, separatorChar)
-
 				if len(childParts) == 2 {
 					childNamespace = childParts[0]
 					childLocalName = childParts[1]
 					if startsWithSeparator {
+						childNamespace = ""
 						childParts[1] = separatorChar + childParts[1]
 						childLocalName = childParts[1]
 					} else if nsManager.namespaces[childParts[0]] == "" {
+						childParts[1] = childParts[0] + separatorChar + childParts[1]
 						childNamespace = ""
-						childLocalName = childParts[0] + separatorChar + childParts[1]
+						childParts[0] = ""
+						childLocalName = childParts[1]
 					}
 				} else {
 					childLocalName = childKey

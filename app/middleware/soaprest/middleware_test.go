@@ -2184,6 +2184,80 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 				code: 0,
 			},
 		),
+		gen(
+			"element key contains prefix doesn't define namespace with parent element",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "application/json",
+				body: `{
+						"soap_Envelope": {
+							"attributeKey": {
+								"encodingStyle": "http://schemas.xmlsoap.org/soap/encoding/"
+							},
+							"namespaceKey": {
+								"soap": "http://schemas.xmlsoap.org/soap/envelope/"
+							},
+							"soap_Body": {
+								"parentElement": {
+									"notDefined_elementKey": "testValue"
+								}
+							}
+						}}`,
+				paths: &testMatcher{match: true},
+			},
+			&action{
+				body: `<?xml version="1.0" encoding="UTF-8"?>
+						<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+							<soap:Header></soap:Header>
+							<soap:Body>
+								<parentElement>
+									<notDefined_elementKey>testValue</notDefined_elementKey>
+								</parentElement>
+							</soap:Body>
+						</soap:Envelope>`,
+				err:  nil,
+				code: 0,
+			},
+		),
+		gen(
+			"element key contains prefix doesn't define namespace",
+			nil,
+			nil,
+			&condition{
+				method:      http.MethodPost,
+				contentType: "application/json",
+				body: `{
+					"soap_Envelope": {
+						"namespaceKey": {
+							"soap": "http://schemas.xmlsoap.org/soap/envelope/"
+						},
+						"soap_Header": {},
+						"soap_Body": {
+							"elementKey": {
+								"Items": [
+									"notDefined_elementKey"
+								]
+							}
+						}
+					}}`,
+				paths: &testMatcher{match: true},
+			},
+			&action{
+				body: `<?xml version="1.0" encoding="UTF-8"?>
+						<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+							<soap:Header></soap:Header>
+							<soap:Body>
+								<elementKey>
+									<Items>notDefined_elementKey</Items>
+								</elementKey>
+							</soap:Body>
+						</soap:Envelope>`,
+				err:  nil,
+				code: 0,
+			},
+		),
 	}
 
 	testutil.Register(table, testCases...)
@@ -4021,7 +4095,7 @@ func TestSOAPREST_CreateXMLElementFromValue(t *testing.T) {
 			},
 		),
 		gen(
-			"element with separator child key",
+			"element begins with separator child key",
 			nil,
 			nil,
 			&condition{
@@ -4070,6 +4144,33 @@ func TestSOAPREST_CreateXMLElementFromValue(t *testing.T) {
 			&action{
 				expected: xmlElement{
 					Content: "",
+				},
+			},
+		),
+		gen(
+			"element with separator child key",
+			nil,
+			nil,
+			&condition{
+				value: map[string]any{
+					"test_Key": map[string]any{
+						"testKey": "testValue",
+					},
+				},
+			},
+			&action{
+				expected: xmlElement{
+					children: []xmlElement{
+						{
+							XMLName: xml.Name{Local: "test_Key"},
+							children: []xmlElement{
+								{
+									XMLName: xml.Name{Local: "testKey"},
+									Content: "testValue",
+								},
+							},
+						},
+					},
 				},
 			},
 		),
@@ -4428,7 +4529,7 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 			},
 		),
 		gen(
-			"value doesn't contain []any and the key contains separatorChar",
+			"value doesn't contain []any and the key begins with separatorChar",
 			nil,
 			nil,
 			&condition{
@@ -4445,6 +4546,31 @@ func TestSOAPREST_MapToXMLElement(t *testing.T) {
 						{
 							XMLName: xml.Name{Local: "_contains_separatorChar_key"},
 							Content: "testValue",
+						},
+					},
+				},
+			},
+		),
+		gen(
+			"value contains []any but the key contain separatorChar",
+			nil,
+			nil,
+			&condition{
+				elementName: "test",
+				value: map[string]any{
+					"test_Key": []any{
+						"childValue",
+					},
+				},
+			},
+			&action{
+				expected: xmlElement{
+					XMLName: xml.Name{Local: "test"},
+					Content: "",
+					children: []xmlElement{
+						{
+							XMLName: xml.Name{Local: "test_Key"},
+							Content: "childValue",
 						},
 					},
 				},
