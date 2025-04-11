@@ -4,9 +4,13 @@ import (
 	"bytes"
 	"encoding/xml"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"golang.org/x/text/encoding/japanese"
+	"golang.org/x/text/transform"
 )
 
 // wrappedWriter wraps http.ResponseWriter.
@@ -243,4 +247,11 @@ func toString(val any) string {
 	default:
 		return fmt.Sprint(v) // Fallback to "%+v"
 	}
+}
+
+func makeCharsetReader(charset string, input io.Reader) (io.Reader, error) {
+	if charset == "Shift-JIS" {
+		return transform.NewReader(input, japanese.ShiftJIS.NewDecoder()), nil
+	}
+	return input, nil
 }

@@ -84,7 +84,9 @@ func (s *soapREST) Middleware(next http.Handler) http.Handler {
 
 		// Parse XML
 		var root xmlNode
-		if err := xml.Unmarshal(body, &root); err != nil {
+		decoder := xml.NewDecoder(bytes.NewReader(body))
+		decoder.CharsetReader = makeCharsetReader
+		if err := decoder.Decode(&root); err != nil {
 			err = app.ErrAppMiddleSOAPRESTUnmarshalRequestBody.WithoutStack(err, map[string]any{"body": body})
 			s.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusBadRequest))
 			return
@@ -594,6 +596,7 @@ func (s soapREST) mapToXMLElements(data map[string]any, nsManager *namespaceMana
 		element := s.mapToXMLElement(key, value, namespace, parts, nsManager)
 		elements = append(elements, element)
 	}
+
 	return elements
 }
 
@@ -714,10 +717,14 @@ func (s soapREST) mapToXMLElement(elementName string, value any, namespace strin
 
 					if len(childParts) == 2 {
 						childNamespace = childParts[0]
+						childLocalName = childParts[1]
 						if startsWithSeparator {
 							childParts[1] = separatorChar + childParts[1]
+							childLocalName = childParts[1]
+						} else if nsManager.namespaces[childParts[0]] == "" {
+							childNamespace = ""
+							childLocalName = childParts[0] + separatorChar + childParts[1]
 						}
-						childLocalName = childParts[1]
 					} else {
 						childLocalName = childKey
 					}
@@ -734,10 +741,14 @@ func (s soapREST) mapToXMLElement(elementName string, value any, namespace strin
 
 				if len(childParts) == 2 {
 					childNamespace = childParts[0]
+					childLocalName = childParts[1]
 					if startsWithSeparator {
 						childParts[1] = separatorChar + childParts[1]
+						childLocalName = childParts[1]
+					} else if nsManager.namespaces[childParts[0]] == "" {
+						childNamespace = ""
+						childLocalName = childParts[0] + separatorChar + childParts[1]
 					}
-					childLocalName = childParts[1]
 				} else {
 					childLocalName = childKey
 				}
