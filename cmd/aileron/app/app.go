@@ -1,6 +1,7 @@
 package app
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
@@ -134,6 +135,7 @@ func LoadConfigFiles(server api.API[*api.Request, *api.Response], paths []string
 			continue // Ignore other formats.
 		}
 
+		manifest = bytes.ReplaceAll(manifest, []byte("\r\n"), []byte("\n"))
 		bs := io.SplitMultiDoc(manifest, "---\n")
 		for _, b := range bs {
 			into := &struct {
