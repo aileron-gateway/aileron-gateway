@@ -22,25 +22,23 @@ const (
 
 var ErrAddCert = errors.New("headercert: failed to add root certificate to CertPool")
 
-var (
-	Resource api.Resource = &API{
-		BaseResource: &api.BaseResource{
-			DefaultProto: &v1.HeaderCertMiddleware{
-				APIVersion: apiVersion,
-				Kind:       kind,
-				Metadata: &kernel.Metadata{
-					Namespace: "default",
-					Name:      "default",
-				},
-				Spec: &v1.HeaderCertMiddlewareSpec{
-					RootCAs:            []string{},
-					CertHeader:         "X-SSL-Client-Cert",
-					FingerprintpHeader: "",
-				},
+var Resource api.Resource = &API{
+	BaseResource: &api.BaseResource{
+		DefaultProto: &v1.HeaderCertMiddleware{
+			APIVersion: apiVersion,
+			Kind:       kind,
+			Metadata: &kernel.Metadata{
+				Namespace: "default",
+				Name:      "default",
+			},
+			Spec: &v1.HeaderCertMiddlewareSpec{
+				RootCAs:            []string{},
+				CertHeader:         "X-SSL-Client-Cert",
+				FingerprintpHeader: "",
 			},
 		},
-	}
-)
+	},
+}
 
 type API struct {
 	*api.BaseResource
@@ -62,13 +60,11 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.Prot
 		return nil, core.ErrCoreGenCreateObject.WithStack(err, map[string]any{"kind": kind})
 	}
 
-	opts := x509.VerifyOptions{
-		Roots: pool,
-	}
-
 	return &headerCert{
-		eh:         eh,
-		opts:       opts,
+		eh: eh,
+		opts: x509.VerifyOptions{
+			Roots: pool,
+		},
 		certHeader: c.Spec.CertHeader,
 		fpHeader:   c.Spec.FingerprintpHeader,
 	}, nil
@@ -76,7 +72,6 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.Prot
 
 func loadRootCert(rootCAs []string) (*x509.CertPool, error) {
 	pool := x509.NewCertPool()
-
 	// Read the root certificate specified in the local file
 	for _, c := range rootCAs {
 		pem, err := os.ReadFile(c)
@@ -88,6 +83,5 @@ func loadRootCert(rootCAs []string) (*x509.CertPool, error) {
 			return nil, ErrAddCert
 		}
 	}
-
 	return pool, nil
 }

@@ -14,14 +14,15 @@ import (
 )
 
 const (
-	certPath           = "../../../_example/header-cert/pki/client.crt"
-	fpPath             = "../../../_example/header-cert/pki/fingerprint.txt"
-	failCertPath       = "../../../test/ut/app/headercert/cert/fail-client.crt"
-	failFpPath         = "../../../test/ut/app/headercert/fingerprint/fail-fingerprint.txt"
-	expiredCertPath    = "../../../test/ut/app/headercert/cert/expired-client.crt"
-	expiredFpPath      = "../../../test/ut/app/headercert/fingerprint/expired-fingerprint.txt"
-	incompleteCertPath = "../../../test/ut/app/headercert/cert/incomplete-client.crt"
-	rootCAPath         = "../../../_example/header-cert/pki/rootCA.crt"
+	testDataDir        = "../../../test/ut/app/headercert/"
+	certPath           = testDataDir + "client.crt"
+	fpPath             = testDataDir + "fingerprint.txt"
+	failCertPath       = testDataDir + "fail-client.crt"
+	failFpPath         = testDataDir + "fail-fingerprint.txt"
+	expiredCertPath    = testDataDir + "expired-client.crt"
+	expiredFpPath      = testDataDir + "expired-fingerprint.txt"
+	incompleteCertPath = testDataDir + "incomplete-client.crt"
+	rootCAPath         = testDataDir + "rootCA.crt"
 )
 
 func TestMiddleware(t *testing.T) {
@@ -219,7 +220,7 @@ func TestMiddleware(t *testing.T) {
 				req.Header.Set(k, v)
 			}
 
-			// Create a test respose recoder
+			// Create a test response recorder.
 			resp := httptest.NewRecorder()
 
 			// Call the middleware

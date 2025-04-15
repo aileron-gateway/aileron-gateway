@@ -55,7 +55,7 @@ func TestRootCAs(t *testing.T) {
 }
 
 func TestCertHeader(t *testing.T) {
-	configs := []string{"./config-certheader.yaml"}
+	configs := []string{"./config-cert-header.yaml"}
 
 	server := common.NewAPI()
 	err := app.LoadConfigFiles(server, configs)
@@ -75,7 +75,7 @@ func TestCertHeader(t *testing.T) {
 	})
 	h := m.Middleware(handler)
 
-	r1 := httptest.NewRequest(http.MethodGet, "http://headercert.com/certHeader", nil)
+	r1 := httptest.NewRequest(http.MethodGet, "http://headercert.com/cert-header", nil)
 	r1.Header.Set("X-SSL-Client-Cert-Test", base64.URLEncoding.EncodeToString(cert))
 	w1 := httptest.NewRecorder()
 	h.ServeHTTP(w1, r1)
@@ -86,7 +86,7 @@ func TestCertHeader(t *testing.T) {
 }
 
 func TestFingerprintHeader(t *testing.T) {
-	configs := []string{"./config-fingerprintheader.yaml"}
+	configs := []string{"./config-fingerprint-header.yaml"}
 
 	server := common.NewAPI()
 	err := app.LoadConfigFiles(server, configs)
@@ -107,7 +107,7 @@ func TestFingerprintHeader(t *testing.T) {
 	h := m.Middleware(handler)
 
 	// test valid fingerprint header name
-	r1 := httptest.NewRequest(http.MethodGet, "http://headercert.com/certHeader", nil)
+	r1 := httptest.NewRequest(http.MethodGet, "http://headercert.com/cert-header", nil)
 	r1.Header.Set("X-SSL-Client-Cert-Test", base64.URLEncoding.EncodeToString(cert))
 	r1.Header.Set("X-SSL-Client-Fingerprint-Test", string(fp))
 	w1 := httptest.NewRecorder()
@@ -115,9 +115,9 @@ func TestFingerprintHeader(t *testing.T) {
 	b1, _ := io.ReadAll(w1.Result().Body)
 	testutil.Diff(t, http.StatusOK, w1.Result().StatusCode)
 	testutil.Diff(t, "ok", string(b1))
-	
+
 	// test invalid fingerprint header name
-	r2 := httptest.NewRequest(http.MethodGet, "http://headercert.com/certHeader", nil)
+	r2 := httptest.NewRequest(http.MethodGet, "http://headercert.com/cert-header", nil)
 	r2.Header.Set("X-SSL-Client-Cert-Test", base64.URLEncoding.EncodeToString(cert))
 	r2.Header.Set("X-SSL-Client-Fingerprint", string(fp))
 	w2 := httptest.NewRecorder()

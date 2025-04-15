@@ -29,9 +29,7 @@ The client certificate is passed along in HTTP headers for subsequent validation
 
 `HeaderCertAuthMiddleware` validates the client certificate and transfers the request to the upstream server as shown in the image below.
 
-<img alt="header-cert-auth.svg" src="./img/header-cert-auth.svg" width="80%">
-
-<!-- <img alt="header-cert-auth-process.svg" src="./img/header-cert-auth-process.svg" width="30%"> -->
+![header-cert-auth.svg](./img/header-cert-auth.svg)
 
 1. **Client Request**
    - The client initiates a request using TLS for secure communication.
@@ -57,7 +55,7 @@ HeaderCertAuthMiddleware performs the following validations on the client certif
 
 - Trusted CA Verification
 
-   Verifies the certificate chain to ensure the root certificate is registered as a trusted root certificate in the middleware. If the client certificate cannnot be trusted, it returns a 401 Unauthorized error.
+   Verifies the certificate chain to ensure the root certificate is registered as a trusted root certificate in the middleware. If the client certificate cannot be trusted, it returns a 401 Unauthorized error.
 
 - Fingerprint Matching
 
