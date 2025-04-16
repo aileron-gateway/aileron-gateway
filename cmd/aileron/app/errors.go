@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The AILERON Gateway Authors
+
 package app
 
 import "github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
