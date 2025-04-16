@@ -82,6 +82,8 @@ example:
 #                         Analysis                         #
 ############################################################
 
+LICENS_HEADER_PATH = ./LICENS_HEADER.txt
+
 .PHONY: lint
 lint:
 ifeq (,$(shell which golangci-lint 2>/dev/null))
@@ -110,6 +112,14 @@ ifeq (,$(shell which cyclonedx-gomod 2>/dev/null))
 	go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@latest
 endif
 	cyclonedx-gomod mod -licenses -type library -json -output $(OUTPUT_PATH)sbom.json ./
+
+.PHONY: licenseheader
+licenseheader:
+ifeq (,$(shell which addlicense 2>/dev/null))
+	go install github.com/google/addlicense@latest
+endif
+	addlicense -check -f $(LICENS_HEADER_PATH) -ignore "apis/**" $(shell find . -name "*.go")
+
 
 ############################################################
 #                           Help                           #
