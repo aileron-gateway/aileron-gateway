@@ -82,7 +82,7 @@ example:
 #                         Analysis                         #
 ############################################################
 
-LICENS_HEADER_PATH = ./LICENS_HEADER.txt
+LICENS_HEADER_PATH = ./LICENSE_HEADER.txt
 
 .PHONY: lint
 lint:
