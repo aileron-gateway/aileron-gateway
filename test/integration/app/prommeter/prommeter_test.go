@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The AILERON Gateway Authors
+
 //go:build integration
 
 package prommeter_test
