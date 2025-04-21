@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The AILERON Gateway Authors
+
 package app
 
 import (
@@ -47,19 +50,21 @@ var (
 
 	// ---------------------------------------------------------
 	// app/middleware: E3200 - E3249
-	ErrAppMiddleGenID          = errorutil.NewKind("E3201", "AppMiddleGenID", "failed to generate {{type}} ID")
-	ErrAppMiddleAPITimeout     = errorutil.NewKind("E3202", "AppMiddleAPITimeout", "api timeout occurred")
-	ErrAppMiddlePanicRecovered = errorutil.NewKind("E3203", "AppMiddlePanicRecovered", "panic recovered")
-	ErrAppMiddleCORSForbidden  = errorutil.NewKind("E3204", "AppMiddleCORSForbidden", "forbidden by cors policy")
-	ErrAppMiddleBodyTooLarge   = errorutil.NewKind("E3205", "AppMiddleBodyTooLarge", "request body size exceeded the body limit.")
-	ErrAppMiddleInvalidLength  = errorutil.NewKind("E3206", "AppMiddleInvalidLength", "Content-Length header invalid or not found.")
-	ErrAppMiddleBodyLimit      = errorutil.NewKind("E3207", "AppMiddleBodyLimit", "error limiting body size")
-	ErrAppMiddleCSRFNewToken   = errorutil.NewKind("E3208", "AppMiddleCSRFNewToken", "failed to create new CSRF token.")
-	ErrAppMiddleCSRFToken      = errorutil.NewKind("E3209", "AppMiddleCSRFToken", "error on checking CSRF token..")
-	ErrAppMiddleCSRFSession    = errorutil.NewKind("E3210", "AppMiddleCSRFSession", "csrf session operation error.")
-	ErrAppMiddleHeaderPolicy   = errorutil.NewKind("E3211", "AppMiddleHeaderPolicy", "header policy error. {{reason}}")
-	ErrAppMiddleSession        = errorutil.NewKind("E3212", "AppMiddleSession", "session operation failed.")
-	ErrAppMiddleThrottle       = errorutil.NewKind("E3213", "AppMiddleThrottle", "too many requests.")
+	ErrAppMiddleGenID              = errorutil.NewKind("E3201", "AppMiddleGenID", "failed to generate {{type}} ID")
+	ErrAppMiddleAPITimeout         = errorutil.NewKind("E3202", "AppMiddleAPITimeout", "api timeout occurred")
+	ErrAppMiddlePanicRecovered     = errorutil.NewKind("E3203", "AppMiddlePanicRecovered", "panic recovered")
+	ErrAppMiddleCORSForbidden      = errorutil.NewKind("E3204", "AppMiddleCORSForbidden", "forbidden by cors policy")
+	ErrAppMiddleBodyTooLarge       = errorutil.NewKind("E3205", "AppMiddleBodyTooLarge", "request body size exceeded the body limit.")
+	ErrAppMiddleInvalidLength      = errorutil.NewKind("E3206", "AppMiddleInvalidLength", "Content-Length header invalid or not found.")
+	ErrAppMiddleBodyLimit          = errorutil.NewKind("E3207", "AppMiddleBodyLimit", "error limiting body size")
+	ErrAppMiddleCSRFNewToken       = errorutil.NewKind("E3208", "AppMiddleCSRFNewToken", "failed to create new CSRF token.")
+	ErrAppMiddleCSRFToken          = errorutil.NewKind("E3209", "AppMiddleCSRFToken", "error on checking CSRF token..")
+	ErrAppMiddleCSRFSession        = errorutil.NewKind("E3210", "AppMiddleCSRFSession", "csrf session operation error.")
+	ErrAppMiddleHeaderPolicy       = errorutil.NewKind("E3211", "AppMiddleHeaderPolicy", "header policy error. {{reason}}")
+	ErrAppMiddleSession            = errorutil.NewKind("E3212", "AppMiddleSession", "session operation failed.")
+	ErrAppMiddleThrottle           = errorutil.NewKind("E3213", "AppMiddleThrottle", "too many requests.")
+	ErrAppMiddleInvalidCert        = errorutil.NewKind("E3214", "AppMiddleInvalidCert", "client certificate invalid or not found. {{reason}}")
+	ErrAppMiddleInvalidFingerprint = errorutil.NewKind("E3214", "AppMiddleInvalidFingerprint", "fingerprint invalid.")
 	// ---------------------------------------------------------
 
 	// ---------------------------------------------------------

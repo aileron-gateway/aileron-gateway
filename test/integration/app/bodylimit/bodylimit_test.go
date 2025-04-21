@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The AILERON Gateway Authors
+
 //go:build integration
 
 package bodylimit_test
@@ -33,6 +36,14 @@ func TestMaxSize(t *testing.T) {
 	testutil.DiffError(t, nil, nil, err)
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if rec := recover(); rec != nil {
+				if rec != http.ErrAbortHandler {
+					panic(rec)
+				}
+			}
+		}()
+		_, _ = io.ReadAll(r.Body)
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("test"))
 	})
@@ -57,8 +68,16 @@ func TestMaxSize(t *testing.T) {
 	w3 := httptest.NewRecorder()
 	h.ServeHTTP(w3, r3)
 	b3, _ := io.ReadAll(w3.Result().Body)
-	testutil.Diff(t, http.StatusLengthRequired, w3.Result().StatusCode)
-	testutil.Diff(t, `{"status":411,"statusText":"Length Required"}`, string(b3))
+	testutil.Diff(t, http.StatusOK, w3.Result().StatusCode)
+	testutil.Diff(t, "test", string(b3))
+
+	r4 := httptest.NewRequest(http.MethodPost, "http://test.com/", bytes.NewReader([]byte("12345678901")))
+	r4.ContentLength = -1
+	w4 := httptest.NewRecorder()
+	h.ServeHTTP(w4, r4)
+	b4, _ := io.ReadAll(w4.Result().Body)
+	testutil.Diff(t, http.StatusRequestEntityTooLarge, w4.Result().StatusCode)
+	testutil.Diff(t, `{"status":413,"statusText":"Request Entity Too Large"}`, string(b4))
 }
 
 func TestMaxSizeWithLimit(t *testing.T) {
@@ -77,6 +96,14 @@ func TestMaxSizeWithLimit(t *testing.T) {
 	testutil.DiffError(t, nil, nil, err)
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if rec := recover(); rec != nil {
+				if rec != http.ErrAbortHandler {
+					panic(rec)
+				}
+			}
+		}()
+		_, _ = io.ReadAll(r.Body)
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("test"))
 	})
@@ -101,6 +128,14 @@ func TestMaxSizeWithLimit(t *testing.T) {
 	w3 := httptest.NewRecorder()
 	h.ServeHTTP(w3, r3)
 	b3, _ := io.ReadAll(w3.Result().Body)
-	testutil.Diff(t, http.StatusLengthRequired, w3.Result().StatusCode)
-	testutil.Diff(t, `{"status":411,"statusText":"Length Required"}`, string(b3))
+	testutil.Diff(t, http.StatusOK, w3.Result().StatusCode)
+	testutil.Diff(t, "test", string(b3))
+
+	r4 := httptest.NewRequest(http.MethodPost, "http://test.com/", bytes.NewReader([]byte("12345678901")))
+	r4.ContentLength = -1
+	w4 := httptest.NewRecorder()
+	h.ServeHTTP(w4, r4)
+	b4, _ := io.ReadAll(w4.Result().Body)
+	testutil.Diff(t, http.StatusRequestEntityTooLarge, w4.Result().StatusCode)
+	testutil.Diff(t, `{"status":413,"statusText":"Request Entity Too Large"}`, string(b4))
 }
