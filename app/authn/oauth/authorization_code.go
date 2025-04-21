@@ -154,11 +154,10 @@ func (h *authorizationCodeHandler) ServeAuthn(w http.ResponseWriter, r *http.Req
 		} else {
 			// Valid OAuth tokens are found in the session.
 			session.MustPersist(ss, authzCodeSessionKey, oauthTokens)
-			r = r.WithContext(oc.contextWithToken(r.Context(), oauthTokens))
 
 			if r.URL.Path == h.userInfoPath {
 				var ui []byte
-				ui, err = oc.userInfoRequestor.userInfoRequest(r.Context(), oauthTokens.AT)
+				ui, err = oc.userInfoRequest(r.Context(), oauthTokens.AT)
 				if err != nil {
 					return nil, app.AuthFailed, true, err
 				}
@@ -174,6 +173,7 @@ func (h *authorizationCodeHandler) ServeAuthn(w http.ResponseWriter, r *http.Req
 				}
 			}
 
+			r = r.WithContext(oc.contextWithToken(r.Context(), oauthTokens))
 			if r.URL.Path == h.loginPath || r.URL.Path == h.callbackPath {
 				w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 				w.Header().Set("X-Content-Type-Options", "nosniff")

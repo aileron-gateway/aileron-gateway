@@ -216,7 +216,7 @@ func newOAuthContext(a api.API[*api.Request, *api.Response], spec *v1.Context, l
 		lg:       lg,
 		provider: provider,
 	}
-	
+
 	userInfoRequestor := &userInfoClient{
 		lg:       lg,
 		rt:       http.DefaultTransport,

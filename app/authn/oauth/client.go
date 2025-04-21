@@ -282,7 +282,7 @@ type userInfoClient struct {
 
 func (c *userInfoClient) userInfoRequest(ctx context.Context, at string) ([]byte, core.HTTPError) {
 	body := []byte{}
-	req, err := http.NewRequest(http.MethodPost, c.provider.userinfoEP, bytes.NewReader([]byte{}))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.provider.userinfoEP, bytes.NewReader([]byte{}))
 	if err != nil {
 		err := app.ErrAppGenCreateRequest.WithStack(err, map[string]any{"method": http.MethodPost, "url": c.provider.userinfoEP, "body": string(body)})
 		if c.lg.Enabled(log.LvDebug) {
