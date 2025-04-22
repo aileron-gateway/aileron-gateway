@@ -102,22 +102,19 @@ spec:
       idtProxyHeader: "X-ID-Token"
       enableIntrospection: false
       provider:
-        issuer: "http://localhost:18080/realms/aileron"
-        baseURL: "http://localhost:18080"
+        issuer: "https://www.certification.openid.net/test/${OIDC_CERTIFICATION_TEST_ID}/"
+        baseURL: "https://www.certification.openid.net"
         endpoints:
-          discovery: "/realms/aileron/.well-known/openid-configuration"
+          discovery: "/test/${OIDC_CERTIFICATION_TEST_ID}/.well-known/openid-configuration"
       tokenRedeemer:
         clientAuthMethod: BasicAuth
       client:
-        id: "aileron_authorization_code"
-        secret: "NNJxpasHJgwGmgTYMoVFTKGUWZxp12bl"
+        id: "aileron"
+        secret: "aileron"
         scopes:
           - openid
           - profile
           - read
       jwtHandler:
-        publicKeys:
-          - keyID: LO9dmmUtUOiV1P7OkzYW-CDbTJV94nADvDFhojxvSqk
-            algorithm: RS256
-            keyType: PUBLIC
-            keyFilePath: ./_devtools/keycloak/keys/public.key
+        JWKs:
+          "https://www.certification.openid.net/test/${OIDC_CERTIFICATION_TEST_ID}/": "https://www.certification.openid.net/test/${OIDC_CERTIFICATION_TEST_ID}/jwks"

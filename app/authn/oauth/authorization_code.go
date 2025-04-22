@@ -93,6 +93,7 @@ func newAuthorizationCodeHandler(bh *baseHandler, spec *v1.AuthorizationCodeHand
 		unauthorizeAny:      spec.UnauthorizeAny,
 		restoreRequest:      spec.RestoreRequest,
 		urlParams:           url.PathEscape(strings.Join(spec.URLParams, "&")),
+		userInfoPath:        spec.UserInfoPath,
 		fapiEnabled:         spec.EnabledFAPI,
 		requestObject:       ro,
 		jarm:                jarm,
@@ -121,6 +122,8 @@ type authorizationCodeHandler struct {
 	urlParams string
 
 	maxAge int64
+
+	userInfoPath string
 
 	fapiEnabled bool
 
@@ -151,6 +154,25 @@ func (h *authorizationCodeHandler) ServeAuthn(w http.ResponseWriter, r *http.Req
 		} else {
 			// Valid OAuth tokens are found in the session.
 			session.MustPersist(ss, authzCodeSessionKey, oauthTokens)
+
+			if r.URL.Path == h.userInfoPath {
+				var ui []byte
+				ui, err = oc.userInfoRequest(r.Context(), oauthTokens.AT)
+				if err != nil {
+					return nil, app.AuthFailed, true, err
+				}
+
+				err = oc.validateUserInfo(ui, oauthTokens.IDT)
+				if err != nil {
+					return nil, app.AuthFailed, true, err
+				} else {
+					w.Header().Set("Content-Type", "application/json")
+					w.WriteHeader(http.StatusOK)
+					w.Write(ui)
+					return r, app.AuthSucceeded, true, nil
+				}
+			}
+
 			r = r.WithContext(oc.contextWithToken(r.Context(), oauthTokens))
 			if r.URL.Path == h.loginPath || r.URL.Path == h.callbackPath {
 				w.Header().Set("Content-Type", "text/plain; charset=utf-8")

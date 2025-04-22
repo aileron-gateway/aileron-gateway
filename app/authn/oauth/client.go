@@ -52,6 +52,10 @@ type requester interface {
 	doRequest(context.Context, string, map[string]string) (int, []byte, error)
 }
 
+type userInfoRequestor interface {
+	userInfoRequest(context.Context, string) ([]byte, core.HTTPError)
+}
+
 // TokenResponse is the response body model for token requests.
 type TokenResponse struct {
 	IDToken          string `json:"id_token,omitempty"`
@@ -268,4 +272,44 @@ func (c *clientRequester) doRequest(ctx context.Context, endpoint string, queryP
 	}
 
 	return res.StatusCode, b, nil
+}
+
+type userInfoClient struct {
+	lg       log.Logger
+	rt       http.RoundTripper
+	provider *provider
+}
+
+func (c *userInfoClient) userInfoRequest(ctx context.Context, at string) ([]byte, core.HTTPError) {
+	body := []byte{}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.provider.userinfoEP, bytes.NewReader([]byte{}))
+	if err != nil {
+		err := app.ErrAppGenCreateRequest.WithStack(err, map[string]any{"method": http.MethodPost, "url": c.provider.userinfoEP, "body": string(body)})
+		if c.lg.Enabled(log.LvDebug) {
+			c.lg.Debug(ctx, "userinfo request failed", err.Name(), err.Map())
+		}
+		return nil, utilhttp.NewHTTPError(app.ErrAppAuthnUserInfo.WithStack(err, nil), http.StatusInternalServerError)
+	}
+	req.Header.Set("Authorization", "Bearer "+at)
+
+	res, err := c.rt.RoundTrip(req)
+	if err != nil {
+		err := app.ErrAppGenRoundTrip.WithStack(err, map[string]any{"method": http.MethodPost, "url": c.provider.userinfoEP, "body": string(body)})
+		return nil, utilhttp.NewHTTPError(app.ErrAppAuthnUserInfo.WithStack(err, nil), http.StatusInternalServerError)
+	}
+	defer res.Body.Close()
+
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		err := app.ErrAppGenReadHTTPBody.WithStack(err, map[string]any{"direction": "response", "body": string(b)})
+		return nil, utilhttp.NewHTTPError(app.ErrAppAuthnUserInfo.WithStack(err, nil), http.StatusInternalServerError)
+	}
+
+	if res.StatusCode != http.StatusOK {
+		err := utilhttp.NewHTTPError(nil, res.StatusCode)
+		err.Header().Add("WWW-Authenticate", res.Header.Get("WWW-Authenticate"))
+		return nil, err
+	}
+
+	return b, nil
 }

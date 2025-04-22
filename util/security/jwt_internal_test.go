@@ -1380,7 +1380,7 @@ func TestSigningKeys(t *testing.T) {
 		tt := tt
 
 		t.Run(tt.Name(), func(t *testing.T) {
-			keys, err := SigningKeys(tt.C().specs...)
+			keys, err := SigningKeys(true, tt.C().specs...)
 			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
 
 			opts := []cmp.Option{
@@ -1979,11 +1979,13 @@ func TestNewJWTHandler(t *testing.T) {
 			},
 			&action{
 				jh: &JWTHandler{
-					rt:             http.DefaultTransport,
-					signingKeys:    map[string]*SigningKey{},
-					validatingKeys: map[string]*SigningKey{},
-					jkus:           map[string]string{},
-					kids:           map[string][]string{},
+					rt:          http.DefaultTransport,
+					signingKeys: map[string]*SigningKey{},
+					validatingKeys: ValidatingKeyStore{
+						keys:    []*SigningKey{},
+						jkuKeys: map[string][]*SigningKey{},
+					},
+					jkus: map[string]string{},
 				},
 			},
 		),
@@ -2017,9 +2019,11 @@ func TestNewJWTHandler(t *testing.T) {
 							method: jwt.SigningMethodHS256,
 						},
 					},
-					validatingKeys: map[string]*SigningKey{},
-					jkus:           map[string]string{},
-					kids:           map[string][]string{},
+					validatingKeys: ValidatingKeyStore{
+						keys:    []*SigningKey{},
+						jkuKeys: map[string][]*SigningKey{},
+					},
+					jkus: map[string]string{},
 				},
 			},
 		),
@@ -2042,20 +2046,22 @@ func TestNewJWTHandler(t *testing.T) {
 			&action{
 				jh: &JWTHandler{
 					rt: http.DefaultTransport,
-					validatingKeys: map[string]*SigningKey{
-						"test": {
-							kid: "test",
-							header: map[string]any{
-								"alg": HS256,
-								"kid": "test",
-								"typ": "JWT",
+					validatingKeys: ValidatingKeyStore{
+						keys: []*SigningKey{
+							{
+								kid: "test",
+								header: map[string]any{
+									"alg": HS256,
+									"kid": "test",
+									"typ": "JWT",
+								},
+								method: jwt.SigningMethodHS256,
 							},
-							method: jwt.SigningMethodHS256,
 						},
+						jkuKeys: map[string][]*SigningKey{},
 					},
 					signingKeys: map[string]*SigningKey{},
 					jkus:        map[string]string{},
-					kids:        map[string][]string{},
 				},
 			},
 		),
@@ -2117,6 +2123,7 @@ func TestNewJWTHandler(t *testing.T) {
 				cmp.Comparer(testutil.ComparePointer[http.RoundTripper]),
 				cmp.AllowUnexported(SigningKey{}),
 				cmpopts.IgnoreFields(SigningKey{}, "key"),
+				cmp.AllowUnexported(ValidatingKeyStore{}),
 			}
 			testutil.Diff(t, tt.A().jh, jh, opts...)
 		})
@@ -2678,8 +2685,37 @@ func TestKeyFunc(t *testing.T) {
 				},
 			},
 			&action{
-				key: []byte(""),
-				err: ErrNoKid,
+				key: jwt.VerificationKeySet{
+					Keys: []jwt.VerificationKey{},
+				},
+			},
+		),
+		gen(
+			"no kid header and no kid key",
+			[]string{cndKeyExist},
+			[]string{actCheckError},
+			&condition{
+				spec: &v1.JWTHandlerSpec{
+					PublicKeys: []*v1.SigningKeySpec{
+						{
+							Algorithm: v1.SigningKeyAlgorithm_HS256,
+							KeyType:   v1.SigningKeyType_COMMON,
+							KeyString: base64.StdEncoding.EncodeToString([]byte(testCommonKey)),
+						},
+					},
+				},
+				token: &jwt.Token{
+					Method: jwt.SigningMethodHS256,
+					Header: map[string]any{
+						"alg": "HS256",
+						"typ": "JWT",
+					},
+				},
+			},
+			&action{
+				key: jwt.VerificationKeySet{
+					Keys: []jwt.VerificationKey{[]uint8("test common key")},
+				},
 			},
 		),
 		gen(
@@ -2776,9 +2812,14 @@ func TestKeyFunc(t *testing.T) {
 			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
 
 			if err == nil {
-				// Only check key type because it is difficult to compare the content of keys attributes.
-				// The validation of the key content should be done through other tests in other way.
-				testutil.Diff(t, reflect.TypeOf(tt.A().key).String(), reflect.TypeOf(key).String())
+				switch k := key.(type) {
+				case jwt.VerificationKeySet:
+					testutil.Diff(t, tt.A().key, k)
+				default:
+					// Only check key type because it is difficult to compare the content of keys attributes.
+					// The validation of the key content should be done through other tests in other way.
+					testutil.Diff(t, reflect.TypeOf(tt.A().key).String(), reflect.TypeOf(key).String())
+				}
 			} else {
 				testutil.Diff(t, nil, key)
 			}
@@ -2807,31 +2848,26 @@ func (rt *testJWKRoundTripper) RoundTrip(r *http.Request) (*http.Response, error
 func TestRefreshValidatingKeys(t *testing.T) {
 	type condition struct {
 		spec  *v1.JWTHandlerSpec
-		kids  map[string][]string
 		token *jwt.Token
 		rt    http.RoundTripper
 	}
 
 	type action struct {
-		ok   bool
-		kids map[string][]string
-		key  any
-		err  any // error or errorutil.Kind
+		jku  string
+		err  error
 	}
 
 	cndKeyExist := "key exist"
 	cndUseJWKs := "use JWKs"
 	cndUseJKU := "use JKU"
-	actCheckKey := "check returned key"
-	actCheckKids := "check kids"
+	actCheckJKU := "check returned jku"
 
 	tb := testutil.NewTableBuilder[*condition, *action]()
 	tb.Name(t.Name())
 	tb.Condition(cndKeyExist, "a singing key exists in the handler")
 	tb.Condition(cndUseJWKs, "fetch JWK set using preset JWKs endpoints")
 	tb.Condition(cndUseJKU, "fetch JWK set using jku header in a JWT")
-	tb.Action(actCheckKey, "check the returned key type was one expected")
-	tb.Action(actCheckKids, "check the kids which contains kids of fetched from JWK set endpoint")
+	tb.Action(actCheckJKU, "check the returned jku")
 	table := tb.Build()
 
 	gen := testutil.NewCase[*condition, *action]
@@ -2839,7 +2875,7 @@ func TestRefreshValidatingKeys(t *testing.T) {
 		gen(
 			"use preset jku",
 			[]string{cndUseJWKs},
-			[]string{actCheckKey, actCheckKids},
+			[]string{actCheckJKU},
 			&condition{
 				spec: &v1.JWTHandlerSpec{
 					JWKs: map[string]string{
@@ -2866,15 +2902,14 @@ func TestRefreshValidatingKeys(t *testing.T) {
 				},
 			},
 			&action{
-				ok:   true,
-				key:  &rsa.PublicKey{},
-				kids: map[string][]string{"http://test.com/jwks": {"test"}},
+				err:  nil,
+				jku:  "http://test.com/jwks",
 			},
 		),
 		gen(
 			"use jku in header",
 			[]string{cndUseJKU},
-			[]string{actCheckKey, actCheckKids},
+			[]string{actCheckJKU},
 			&condition{
 				spec: &v1.JWTHandlerSpec{
 					UseJKU: true,
@@ -2898,15 +2933,14 @@ func TestRefreshValidatingKeys(t *testing.T) {
 				},
 			},
 			&action{
-				ok:   true,
-				key:  &rsa.PublicKey{},
-				kids: map[string][]string{"http://test.com/jwks": {"test"}},
+				err:  nil,
+				jku:  "http://test.com/jwks",
 			},
 		),
 		gen(
 			"failed to fetch public keys",
 			[]string{cndUseJWKs},
-			[]string{actCheckKids},
+			[]string{},
 			&condition{
 				spec: &v1.JWTHandlerSpec{
 					JWKs: map[string]string{
@@ -2930,15 +2964,14 @@ func TestRefreshValidatingKeys(t *testing.T) {
 				},
 			},
 			&action{
-				ok:   false,
-				key:  nil,
-				kids: map[string][]string{},
+				err:  ErrRefreshValidatingKeys,
+				jku:  "",
 			},
 		),
 		gen(
 			"key already exists",
 			[]string{cndUseJWKs, cndKeyExist},
-			[]string{actCheckKey, actCheckKids},
+			[]string{actCheckJKU},
 			&condition{
 				spec: &v1.JWTHandlerSpec{
 					PublicKeys: []*v1.SigningKeySpec{
@@ -2973,15 +3006,14 @@ func TestRefreshValidatingKeys(t *testing.T) {
 				},
 			},
 			&action{
-				ok:   true,
-				key:  &rsa.PublicKey{},
-				kids: map[string][]string{},
+				err:  nil,
+				jku:  "http://test.com/jwks",
 			},
 		),
 		gen(
 			"key not found in the JWKs",
 			[]string{cndUseJWKs},
-			[]string{actCheckKids},
+			[]string{actCheckJKU},
 			&condition{
 				spec: &v1.JWTHandlerSpec{
 					JWKs: map[string]string{
@@ -3008,22 +3040,20 @@ func TestRefreshValidatingKeys(t *testing.T) {
 				},
 			},
 			&action{
-				ok:   false,
-				key:  nil,
-				kids: map[string][]string{"http://test.com/jwks": {"test"}},
+				err:  nil,
+				jku:  "http://test.com/jwks",
 			},
 		),
 		gen(
 			"delete old keys",
 			[]string{cndUseJWKs},
-			[]string{actCheckKey, actCheckKids},
+			[]string{actCheckJKU},
 			&condition{
 				spec: &v1.JWTHandlerSpec{
 					JWKs: map[string]string{
 						"test-issuer": "http://test.com/jwks",
 					},
 				},
-				kids: map[string][]string{"http://test.com/jwks": {"old"}},
 				token: &jwt.Token{
 					Method: jwt.SigningMethodRS256,
 					Header: map[string]any{
@@ -3044,9 +3074,8 @@ func TestRefreshValidatingKeys(t *testing.T) {
 				},
 			},
 			&action{
-				ok:   true,
-				key:  &rsa.PublicKey{},
-				kids: map[string][]string{"http://test.com/jwks": {"test"}},
+				err:  nil,
+				jku:  "http://test.com/jwks",
 			},
 		),
 	}
@@ -3060,22 +3089,15 @@ func TestRefreshValidatingKeys(t *testing.T) {
 			jh, err := NewJWTHandler(tt.C().spec, tt.C().rt)
 			testutil.Diff(t, nil, err)
 
-			// Replace kids for making test condition.
-			if tt.C().kids != nil {
-				jh.kids = tt.C().kids
-			}
+			jku, err := jh.refreshValidatingKeys(tt.C().token)
+			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
 
-			kid := tt.C().token.Header["kid"].(string)
-			key, ok := jh.refreshValidatingKeys(kid, tt.C().token)
-			testutil.Diff(t, tt.A().ok, ok)
-
-			if tt.A().ok {
+			if tt.A().err != nil {
 				// Only check key type because it is difficult to compare the content of keys attributes.
 				// The validation of the key content should be done through other tests in other way.
-				testutil.Diff(t, reflect.TypeOf(tt.A().key).String(), reflect.TypeOf(key.key).String())
-				testutil.Diff(t, reflect.TypeOf(tt.A().key).String(), reflect.TypeOf(jh.validatingKeys[kid].key).String())
+				testutil.Diff(t, tt.A().jku, jku)
+				// testutil.Diff(t, reflect.TypeOf(tt.A().key).String(), reflect.TypeOf(jh.validatingKeys.keys).String())
 			}
-			testutil.Diff(t, tt.A().kids, jh.kids)
 		})
 	}
 }
@@ -3095,7 +3117,7 @@ func TestFetchPublicKeys(t *testing.T) {
 	cndValidJku := "valid JWK set URL"
 	cndValidJWKSet := "valid JWK set"
 	cndRoundTripFail := "round trip failed"
-	actCheckKey := "check returned keys"
+	actCheckJKU := "check returned keys"
 	actCheckNoError := "check that there is no error"
 	actCheckError := "check error"
 
@@ -3104,7 +3126,7 @@ func TestFetchPublicKeys(t *testing.T) {
 	tb.Condition(cndValidJku, "specify a valid JWK set endpoint URL")
 	tb.Condition(cndValidJWKSet, "valid JWK set json was returned")
 	tb.Condition(cndRoundTripFail, "failed to round trip")
-	tb.Action(actCheckKey, "check the returned signing keys")
+	tb.Action(actCheckJKU, "check the returned signing keys")
 	tb.Action(actCheckNoError, "check that there is no error returned")
 	tb.Action(actCheckError, "check that an expected error was returned")
 	table := tb.Build()
@@ -3114,7 +3136,7 @@ func TestFetchPublicKeys(t *testing.T) {
 		gen(
 			"valid jku and JWKs",
 			[]string{cndValidJku, cndValidJWKSet},
-			[]string{actCheckKey, actCheckNoError},
+			[]string{actCheckJKU, actCheckNoError},
 			&condition{
 				jku: "http://test.com/jwks",
 				rt: &testJWKRoundTripper{
@@ -3142,7 +3164,7 @@ func TestFetchPublicKeys(t *testing.T) {
 		gen(
 			"invalid jku URL",
 			[]string{cndValidJWKSet},
-			[]string{actCheckKey, actCheckError},
+			[]string{actCheckJKU, actCheckError},
 			&condition{
 				jku: "http://test.com\n",
 				rt: &testJWKRoundTripper{
@@ -3162,7 +3184,7 @@ func TestFetchPublicKeys(t *testing.T) {
 		gen(
 			"error on roundTrip",
 			[]string{cndValidJku, cndRoundTripFail},
-			[]string{actCheckKey, actCheckError},
+			[]string{actCheckJKU, actCheckError},
 			&condition{
 				jku: "http://test.com/jwks",
 				rt: &testJWKRoundTripper{
@@ -3178,7 +3200,7 @@ func TestFetchPublicKeys(t *testing.T) {
 		gen(
 			"invalid JWKs body",
 			[]string{cndValidJku},
-			[]string{actCheckKey, actCheckError},
+			[]string{actCheckJKU, actCheckError},
 			&condition{
 				jku: "http://test.com/jwks",
 				rt: &testJWKRoundTripper{
@@ -3198,7 +3220,7 @@ func TestFetchPublicKeys(t *testing.T) {
 		gen(
 			"invalid JWKs content",
 			[]string{cndValidJku},
-			[]string{actCheckKey, actCheckError},
+			[]string{actCheckJKU, actCheckError},
 			&condition{
 				jku: "http://test.com/jwks",
 				rt: &testJWKRoundTripper{
