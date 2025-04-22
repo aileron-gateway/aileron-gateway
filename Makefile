@@ -89,6 +89,7 @@ lint:
 ifeq (,$(shell which golangci-lint 2>/dev/null))
 	go install "github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest"
 endif
+	go mod tidy
 	golangci-lint run ./...
 
 .PHONY: spell
