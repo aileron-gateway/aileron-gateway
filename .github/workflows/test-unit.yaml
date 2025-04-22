@@ -69,7 +69,8 @@ jobs:
         with:
           go-version: stable
       - run: |
-          sudo add-apt-repository -y ppa:canonical-server/server-backports
+          # sudo add-apt-repository -y ppa:canonical-server/server-backports
+          sudo add-apt-repository -y ppa:canonical-server
           sudo apt -y update
           sudo apt -y install qemu-user
       - name: make test
