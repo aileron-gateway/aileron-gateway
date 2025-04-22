@@ -85,6 +85,7 @@ go-licenses: go-licenses-install
 #                                                                              #
 .PHONY: go-licenses-run
 go-licenses-run: go-licenses-install
+	go mod tidy
 	$(GO_LICENSES_CMD) check $(GO_LICENSES_OPTION_CHECK) $(GO_LICENSES_TARGET)
 	$(GO_LICENSES_CMD) report $(GO_LICENSES_OPTION_REPORT) $(GO_LICENSES_TARGET)
 #______________________________________________________________________________#

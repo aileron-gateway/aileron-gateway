@@ -57,9 +57,10 @@ jobs:
         with:
           go-version: stable
       - run: |
-          sudo add-apt-repository -y ppa:canonical-server/server-backports
-          sudo apt -y update
-          sudo apt -y install qemu-user
+          # See https://launchpad.net/~canonical-server
+          # sudo add-apt-repository -y ppa:canonical-server/server-backports
+          sudo apt-get -y update
+          sudo apt-get -y install qemu-user
       - name: make test
         run: |
           make go-test-qemu GOARCH=${{ matrix.arch }} GO_TEST_TARGET=./test/integration/... EXTRA_ARGS="-tags=integration"
