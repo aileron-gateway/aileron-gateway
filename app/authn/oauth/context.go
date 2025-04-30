@@ -6,6 +6,7 @@ package oauth
 import (
 	"cmp"
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"time"
@@ -90,6 +91,7 @@ func (h *baseHandler) oauthContext(r *http.Request) (*oauthContext, error) {
 type oauthContext struct {
 	tokenRedeemer
 	tokenIntrospector
+	userInfoRequestor
 
 	lg log.Logger
 
@@ -149,7 +151,7 @@ func (c *oauthContext) validOauthClaims(ctx context.Context, tokens *OAuthTokens
 
 	// Validate the access token if exists.
 	// Skip validation when the access token has not expired yet.
-	if tokens.AT != "" && !(c.skipUnexpiredAT && (now < tokens.ATExp)) {
+	if tokens.AT != "" && !(c.skipUnexpiredAT && (now < tokens.ATExp)) && !skipATValidation {
 		claims, err := c.validateAT(ctx, tokens.AT)
 		if err != nil && err != reAuthenticationRequired {
 			return err
@@ -207,7 +209,7 @@ func (c *oauthContext) validOauthClaims(ctx context.Context, tokens *OAuthTokens
 
 	// Validate the ID token if exists.
 	// Skip validation when the ID token has not expired yet.
-	if tokens.IDT != "" && !(c.skipUnexpiredIDT && (now < tokens.IDTExp)) {
+	if tokens.IDT != "" && !(c.skipUnexpiredIDT && (now < tokens.IDTExp)) && !skipIDTValidation {
 		claims, err := c.validateIDT(tokens.IDT, opts)
 		if err != nil {
 			// Unauthorize for invalid ID token or require re-authentication if expired.
@@ -248,6 +250,12 @@ func (c *oauthContext) validateAT(ctx context.Context, at string) (jwt.MapClaims
 			return claims, nil
 		}
 
+		sud, _ := claims.GetSubject()
+		if sud == "" {
+			err := app.ErrAppAuthnInvalidToken.WithoutStack(err, map[string]any{"name": "access token", "reason": "sub in access token does not exist.", "token": at})
+			return nil, utilhttp.NewHTTPError(err, http.StatusUnauthorized)
+		}
+
 		if c.lg.Enabled(log.LvDebug) {
 			err := app.ErrAppAuthnParseWithClaims.WithoutStack(err, map[string]any{"jwt": at})
 			c.lg.Debug(ctx, "failed to parse claims", err.Name(), err.Map())
@@ -266,6 +274,18 @@ func (c *oauthContext) validateIDT(idt string, opts []validateOption) (jwt.MapCl
 	claims, err := c.jh.ValidMapClaims(idt, c.idtParseOpts...)
 	if err != nil {
 		err := app.ErrAppAuthnInvalidToken.WithoutStack(err, map[string]any{"name": "id token", "reason": "token validation failed.", "token": idt})
+		return nil, utilhttp.NewHTTPError(err, http.StatusUnauthorized)
+	}
+
+	sud, _ := claims.GetSubject()
+	if sud == "" {
+		err := app.ErrAppAuthnInvalidToken.WithoutStack(err, map[string]any{"name": "id token", "reason": "sub in ID token does not exist.", "token": idt})
+		return nil, utilhttp.NewHTTPError(err, http.StatusUnauthorized)
+	}
+
+	iat, _ := claims.GetIssuedAt()
+	if iat == nil {
+		err := app.ErrAppAuthnInvalidToken.WithoutStack(err, map[string]any{"name": "id token", "reason": "iat in ID token does not exist.", "token": idt})
 		return nil, utilhttp.NewHTTPError(err, http.StatusUnauthorized)
 	}
 
@@ -309,6 +329,40 @@ func (h *oauthContext) contextWithToken(ctx context.Context, tokens *OAuthTokens
 	}
 
 	return ctx
+}
+
+func (c *oauthContext) validateUserInfo(ui []byte, idt string) core.HTTPError {
+	info := map[string]any{}
+	err := json.Unmarshal(ui, &info)
+	if err != nil {
+		err := app.ErrAppGenUnmarshal.WithoutStack(err, map[string]any{"from": "json", "to": "map[string]any{}", "content": string(ui)})
+		return utilhttp.NewHTTPError(app.ErrAppAuthnInvalidUserInfo.WithoutStack(err, nil), http.StatusUnauthorized)
+	}
+
+	uiSub, ok := info["sub"].(string)
+	if !ok {
+		err := app.ErrAppAuthnInvalidUserInfo.WithoutStack(err, map[string]any{"reason": "sub in UserInfo response isn't string type."})
+		return utilhttp.NewHTTPError(err, http.StatusUnauthorized)
+	}
+
+	claims, err := c.jh.ValidMapClaims(idt, c.idtParseOpts...)
+	if err != nil {
+		err := app.ErrAppAuthnInvalidToken.WithoutStack(err, map[string]any{"name": "id token", "reason": "token validation failed.", "token": idt})
+		return utilhttp.NewHTTPError(app.ErrAppAuthnInvalidUserInfo.WithoutStack(err, nil), http.StatusUnauthorized)
+	}
+
+	idtSud, _ := claims.GetSubject()
+	if idtSud == "" {
+		err := app.ErrAppAuthnInvalidToken.WithoutStack(err, map[string]any{"name": "id token", "reason": "sub in ID token does not exist.", "token": idt})
+		return utilhttp.NewHTTPError(app.ErrAppAuthnInvalidUserInfo.WithoutStack(err, nil), http.StatusUnauthorized)
+	}
+
+	if uiSub != idtSud {
+		err := app.ErrAppAuthnInvalidUserInfo.WithoutStack(err, map[string]any{"reason": "sub in UserInfo does not match sub in ID token."})
+		return utilhttp.NewHTTPError(err, http.StatusUnauthorized)
+	}
+
+	return nil
 }
 
 // mapValue returns a value by searching with the given key.

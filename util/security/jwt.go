@@ -28,12 +28,13 @@ var (
 	ErrNoKey       = errors.New("util/security: no key specified")
 	ErrInvalidType = errors.New("util/security: invalid key type")
 
-	ErrKeyNotFound  = errors.New("util/security: validating key was not found")
-	ErrNoKid        = errors.New("util/security: kid is not in the JWT header")
-	ErrNoAlg        = errors.New("util/security: alg is not in the JWT header")
-	ErrWrongAlg     = errors.New("util/security: wrong algorithm is used for the key")
-	ErrNoSigningKey = errors.New("util/security: no keys found for signing a JWT")
-	ErrNilToken     = errors.New("util/security: token or token's header is nil")
+	ErrRefreshValidatingKeys = errors.New("util/security: failed to refresh validating keys")
+	ErrKeyNotFound           = errors.New("util/security: validating key was not found")
+	ErrNoKid                 = errors.New("util/security: kid is not in the JWT header")
+	ErrNoAlg                 = errors.New("util/security: alg is not in the JWT header")
+	ErrWrongAlg              = errors.New("util/security: wrong algorithm is used for the key")
+	ErrNoSigningKey          = errors.New("util/security: no keys found for signing a JWT")
+	ErrNilToken              = errors.New("util/security: token or token's header is nil")
 )
 
 // Algorithm is the type of signing algorithm for JWT.
@@ -160,7 +161,7 @@ type SigningKey struct {
 
 // SigningKeys returns list of JWT signing keys.
 // This function will panic when the specs contains nil.
-func SigningKeys(specs ...*v1.SigningKeySpec) ([]*SigningKey, error) {
+func SigningKeys(private bool, specs ...*v1.SigningKeySpec) ([]*SigningKey, error) {
 	keys := make([]*SigningKey, 0, len(specs))
 	for _, spec := range specs {
 		alg, ok := JWTAlgorithm[spec.Algorithm]
@@ -169,7 +170,7 @@ func SigningKeys(specs ...*v1.SigningKeySpec) ([]*SigningKey, error) {
 		}
 
 		kid := spec.KeyID
-		if kid == "" {
+		if private && kid == "" {
 			// KeyID in the spec is optional.
 			// So, use the calculated value from the signature of the spec when not set.
 			b, _ := json.Marshal(spec.JWTHeader)
@@ -267,6 +268,59 @@ func parsePublicKey(alg Algorithm, pem []byte) (any, error) {
 	return nil, ErrInvalidAlg
 }
 
+// ValidatingKeyStore is a structure used for storing and retrieving signing keys.
+// It stores a base set of keys ("keys") and additional keys indexed by JKU ("jkuKeys").
+type ValidatingKeyStore struct {
+	keys    []*SigningKey
+	jkuKeys map[string][]*SigningKey
+}
+
+// mergeKeysByJKU merges keys from the base set and, if a jku is provided, additional keys indexed by JKU.
+func (s *ValidatingKeyStore) mergeKeysByJKU(jku string) []*SigningKey {
+	allKeys := make([]*SigningKey, len(s.keys))
+	copy(allKeys, s.keys)
+
+	if jku != "" {
+		if additionalKeys, exists := s.jkuKeys[jku]; exists {
+			allKeys = append(allKeys, additionalKeys...)
+		}
+	}
+	return allKeys
+}
+
+// FindByKID searches the key store for a SigningKey that matches the provided "kid".
+func (s *ValidatingKeyStore) FindByKID(kid string, jku string) (*SigningKey, bool) {
+	if kid == "" {
+		return nil, false
+	}
+
+	allKeys := s.mergeKeysByJKU(jku)
+
+	for _, signingKey := range allKeys {
+		if signingKey.kid == kid {
+			return signingKey, true
+		}
+	}
+
+	return nil, false
+}
+
+// FilterWithoutKID retrieves all keys that do not have a "kid" set.
+func (s *ValidatingKeyStore) FilterWithoutKID(jku string) jwt.VerificationKeySet {
+	allKeys := s.mergeKeysByJKU(jku)
+
+	keysWithoutKID := jwt.VerificationKeySet{
+		Keys: make([]jwt.VerificationKey, 0, len(allKeys)),
+	}
+
+	for _, signingKey := range allKeys {
+		if signingKey.kid == "" {
+			keysWithoutKID.Keys = append(keysWithoutKID.Keys, signingKey.key)
+		}
+	}
+	return keysWithoutKID
+}
+
 // NewJWTHandler returns a new JWTHandler.
 func NewJWTHandler(spec *v1.JWTHandlerSpec, rt http.RoundTripper) (*JWTHandler, error) {
 	if spec == nil {
@@ -274,7 +328,7 @@ func NewJWTHandler(spec *v1.JWTHandlerSpec, rt http.RoundTripper) (*JWTHandler, 
 	}
 
 	// Get private keys for signing JWTs.
-	sk, err := SigningKeys(spec.PrivateKeys...)
+	sk, err := SigningKeys(true, spec.PrivateKeys...)
 	if err != nil {
 		return nil, core.ErrCoreGenCreateComponent.WithStack(err, map[string]any{"reason": "failed to create JWT handler"})
 	}
@@ -284,13 +338,9 @@ func NewJWTHandler(spec *v1.JWTHandlerSpec, rt http.RoundTripper) (*JWTHandler, 
 	}
 
 	// Get public keys for validating JWTs.
-	vk, err := SigningKeys(spec.PublicKeys...)
+	vk, err := SigningKeys(false, spec.PublicKeys...)
 	if err != nil {
 		return nil, core.ErrCoreGenCreateComponent.WithStack(err, map[string]any{"reason": "failed to create JWT handler"})
-	}
-	v := map[string]*SigningKey{}
-	for _, k := range vk {
-		v[k.kid] = k
 	}
 
 	if spec.JWKs == nil {
@@ -302,12 +352,14 @@ func NewJWTHandler(spec *v1.JWTHandlerSpec, rt http.RoundTripper) (*JWTHandler, 
 	}
 
 	return &JWTHandler{
-		signingKeys:    s,
-		validatingKeys: v,
-		jkus:           spec.JWKs,
-		kids:           map[string][]string{},
-		useJKU:         spec.UseJKU,
-		rt:             rt,
+		signingKeys: s,
+		validatingKeys: ValidatingKeyStore{
+			keys:    vk,
+			jkuKeys: make(map[string][]*SigningKey),
+		},
+		jkus:   spec.JWKs,
+		useJKU: spec.UseJKU,
+		rt:     rt,
 	}, nil
 }
 
@@ -324,20 +376,14 @@ type JWTHandler struct {
 	// validatingKeys will be updated when a key was not found.
 	mu sync.RWMutex
 
-	// validationKey is a set of signing keys.
-	// Public keys for public key algorithms.
-	validatingKeys map[string]*SigningKey
+	// validatingKeys represents a store for signing keys.
+	// It contains public keys used for public key algorithms and is
+	// implemented as a ValidatingKeyStore structure.
+	validatingKeys ValidatingKeyStore
 
 	// jkus is the set of jku, JWKs URI of providers.
 	// Keys should be the issuer ID and the value should be the valid JWKs endpoint URI.
 	jkus map[string]string
-
-	// kids holds kid of keys obtained from JWKs endpoints.
-	// The key is the JWKs URL and the values are kid obtained
-	// from that endpoint.
-	// All keys obtained from a endpoint should be removed from
-	// this JWTHandler when refreshing keys.
-	kids map[string][]string
 
 	// useJKU is the flag to use JWKs endpoint set in the "jku" header.
 	// If true, this handler tries to get JWK Set from the JWKs endpoint.
@@ -399,20 +445,33 @@ func (h *JWTHandler) ValidMapClaims(token string, options ...jwt.ParserOption) (
 }
 
 // keyFunc is the key finding function.
-//   - ErrNoKid: if "kid" not found in the header
 func (h *JWTHandler) keyFunc(t *jwt.Token) (any, error) {
 	kid, ok := t.Header["kid"].(string)
 	if !ok {
-		return nil, ErrNoKid
+		// If "kid" is missing, attempt to retrieve keys without "kid"
+		jku, err := h.refreshValidatingKeys(t)
+		if err != nil {
+			return nil, err
+		}
+
+		return h.validatingKeys.FilterWithoutKID(jku), nil
 	}
 
 	h.mu.RLock()
-	key, ok := h.validatingKeys[kid]
+	key, ok := h.validatingKeys.FindByKID(kid, "")
 	h.mu.RUnlock()
 	if !ok {
 		// Key not found in this handler.
 		// Try to get keys from JWKs endpoints if possible.
-		key, ok = h.refreshValidatingKeys(kid, t)
+		jku, err := h.refreshValidatingKeys(t)
+		if err != nil {
+			return nil, err
+		}
+
+		h.mu.RLock()
+		key, ok = h.validatingKeys.FindByKID(kid, jku)
+		h.mu.RUnlock()
+
 		if !ok {
 			return nil, ErrKeyNotFound
 		}
@@ -437,9 +496,13 @@ func (h *JWTHandler) keyFunc(t *jwt.Token) (any, error) {
 }
 
 // refreshValidatingKeys refreshes validating keys.
-func (h *JWTHandler) refreshValidatingKeys(kid string, t *jwt.Token) (*SigningKey, bool) {
+func (h *JWTHandler) refreshValidatingKeys(t *jwt.Token) (string, error) {
 	// jku is JWK set URI.
 	var jku string
+
+	if t.Claims == nil {
+		return "", nil
+	}
 
 	if iss, err := t.Claims.GetIssuer(); err == nil {
 		jku = h.jkus[iss]
@@ -451,42 +514,22 @@ func (h *JWTHandler) refreshValidatingKeys(kid string, t *jwt.Token) (*SigningKe
 
 	if jku == "" {
 		// No JWKs URL to get validating keys.
-		return nil, false
+		return "", nil
 	}
 
 	keys, err := fetchPublicKeys(h.rt, jku)
 	if err != nil {
-		return nil, false
+		return "", ErrRefreshValidatingKeys
 	}
 
-	// Obtain lock to update validatingKeys and kids.
+	// Obtain lock to update validatingKeys.
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
-	// Keys are already refreshed while waiting for
-	// fetching validating keys of getting a lock.
-	if key, ok := h.validatingKeys[kid]; ok {
-		return key, true
-	}
+	// Replace old keys obtained from the JKU endpoint.
+	h.validatingKeys.jkuKeys[jku] = keys
 
-	// Delete old keys obtained from this JWKs endpoints.
-	for _, old := range h.kids[jku] {
-		delete(h.validatingKeys, old)
-	}
-
-	kids := make([]string, 0, len(keys))
-	var key *SigningKey
-	for _, k := range keys {
-		h.validatingKeys[k.kid] = k
-		kids = append(kids, k.kid)
-		if k.kid == kid {
-			key = k
-		}
-	}
-
-	h.kids[jku] = kids
-
-	return key, key != nil
+	return jku, nil
 }
 
 // fetchPublicKeys get public keys from given JWU, or JWKs URL.
