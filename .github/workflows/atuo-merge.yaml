@@ -19,6 +19,18 @@ jobs:
         uses: dependabot/fetch-metadata@v2
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - run: go mod tidy
+      - name: git commit
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add .
+          git commit -s -m "go mod tidy"
+          git push
       - name: Enable auto-merge
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
