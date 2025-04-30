@@ -96,7 +96,7 @@ message RetryConfig {
     int32 MaxContentLength = 3 [json_name = "maxContentLength", (buf.validate.field).int32 = {gte : 0, lte : 16777216}];
 
     // [OPTIONAL]
-    // RetryStatuses is the list of HTTP status codes that should be retried.
+    // RetryStatusCodes is the list of HTTP status codes that should be retried.
     // Only networking layer errors are retried when this field is not set.
     // Default is not set.
     repeated int32 RetryStatusCodes = 4 [json_name = "retryStatusCodes", (buf.validate.field).repeated.unique = true];

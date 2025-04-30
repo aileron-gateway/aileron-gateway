@@ -70,19 +70,9 @@ e2e:
 example: 
 	go test -v -tags=example -timeout 60s ./test/example/...
 
-# .PHONY: bench
-# bench: 
-# 	go test -cpu=1 -bench=. ./test/benchmark/...
-
-# .PHONY: fuzz
-# fuzz: 
-# 	go test -fuzztime=10s -fuzz=FuzzBase16Encode ./test/fuzz/...
-
 ############################################################
 #                         Analysis                         #
 ############################################################
-
-LICENS_HEADER_PATH = ./LICENSE_HEADER.txt
 
 .PHONY: lint
 lint:
@@ -119,7 +109,7 @@ licenseheader:
 ifeq (,$(shell which addlicense 2>/dev/null))
 	go install github.com/google/addlicense@latest
 endif
-	addlicense -check -f $(LICENS_HEADER_PATH) -ignore "apis/**" $(shell find . -name "*.go")
+	addlicense -check -f ./LICENSE_HEADER.txt -ignore "apis/**" $(shell find . -name "*.go")
 
 
 ############################################################
