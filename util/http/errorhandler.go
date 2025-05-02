@@ -295,10 +295,10 @@ func (h *DefaultErrorHandler) ServeHTTPError(w http.ResponseWriter, r *http.Requ
 
 	// Log output.
 	if statusCode >= 500 {
-		name, value := LogAttr(err, true)
+		name, value := logAttr(err, true)
 		h.LG.Error(r.Context(), "serve http error. status="+strconv.Itoa(statusCode), name, value)
 	} else if h.LG.Enabled(log.LvDebug) {
-		name, value := LogAttr(err, h.StackAlways)
+		name, value := logAttr(err, h.StackAlways)
 		h.LG.Debug(r.Context(), "serve http error. status="+strconv.Itoa(statusCode), name, value)
 	}
 
@@ -323,7 +323,7 @@ func (h *DefaultErrorHandler) ServeHTTPError(w http.ResponseWriter, r *http.Requ
 // First argument err must not be nil.
 // If the stack is true, returned map always contains stack trace.
 // if the stack is false, returned map does not always contain stack trace.
-func LogAttr(err error, stack bool) (string, map[string]any) {
+func logAttr(err error, stack bool) (string, map[string]any) {
 	// First, assert the error to log attribute.
 	attr, ok := err.(log.Attributes)
 	if !ok {
