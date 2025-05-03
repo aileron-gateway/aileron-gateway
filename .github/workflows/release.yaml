@@ -12,7 +12,12 @@ permissions:
   packages: write
 
 jobs:
+  tidy:
+    uses: ./.github/workflows/tidy.yaml
+    secrets: inherit
+
   proto:
+    needs: tidy
     uses: ./.github/workflows/proto.yaml
     secrets: inherit
 
