@@ -35,20 +35,17 @@ func (s *soapREST) Middleware(next http.Handler) http.Handler {
 			return
 		}
 
-		// If Content-Type is exactly "application/soap+xml", treat as SOAP1.2 request.
-		// If Content-Type is exactly "text/xml" and SOAPAction header exists, treat as SOAP1.1 request.
-		// If neither condition is met, return a VersionMismatch error with HTTP 403 Forbidden status.
-		var ct string
-		reqmt, params, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
-		switch reqmt {
+		var ct string     // Content-Type for response.
+		var action string // Action for X-SOAP-Action header.
+		mt, params, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
+		switch mt {
 		case "application/soap+xml":
-			// SOAP1.2 Request
-			ct = "application/soap+xml"
+			ct = "application/soap+xml; charset=utf-8" // SOAP1.2
+			action = params["action"]                  // 6.5 SOAP Action Feature (https://www.w3.org/TR/soap12-part2/)
 		case "text/xml":
-			_, soapActionExists := r.Header["Soapaction"]
-			if soapActionExists {
-				// SOAP1.1 Request
-				ct = "text/xml"
+			if _, ok := r.Header["Soapaction"]; ok {
+				ct = "text/xml; charset=utf-8"      // SOAP1.1
+				action = r.Header.Get("Soapaction") // 6.1.1 The SOAPAction HTTP Header Field (http://www.w3.org/TR/SOAP)
 				break
 			}
 			fallthrough
@@ -59,82 +56,54 @@ func (s *soapREST) Middleware(next http.Handler) http.Handler {
 			return
 		}
 
-		// Read the request body.
 		xmlBody, err := io.ReadAll(r.Body)
 		if err != nil {
 			err = app.ErrAppMiddleSOAPRESTReadXMLBody.WithoutStack(err, nil)
 			s.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusBadRequest))
 			return
 		}
-		r.Body.Close()
 
-		// Convert XML to JSON.
-		jsonBody, err := s.converter.XMLtoJSON(xmlBody)
+		jsonBody, err := s.converter.XMLtoJSON(xmlBody) // XML to JSON.
 		if err != nil {
 			err = app.ErrAppMiddleSOAPRESTConvertXMLtoJSON.WithoutStack(err, nil)
 			s.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusBadRequest))
 			return
 		}
 
-		// Create new request with JSON body.
 		newReq := r.Clone(r.Context())
-
 		// Set ContentLength to -1 to indicate that the body size is unknown as per Go documentation:
 		// "The value -1 indicates that the length is unknown."
 		// Reference: https://pkg.go.dev/net/http#Request
 		newReq.ContentLength = -1
 		newReq.Body = io.NopCloser(bytes.NewReader(jsonBody))
 		newReq.Header.Set("Content-Type", "application/json")
-
-		// Set X-SOAP-Action header consistently for both SOAP 1.1 and 1.2.
-		switch reqmt {
-		case "application/soap+xml":
-			// SOAP 1.2: Get action from Content-Type parameter
-			if act := params["action"]; act != "" {
-				newReq.Header.Set("X-SOAP-Action", act)
-			}
-		case "text/xml":
-			// SOAP 1.1: Get action from SOAPAction header
-			soapAction := r.Header.Get("Soapaction")
-			newReq.Header.Set("X-SOAP-Action", soapAction)
-		}
+		newReq.Header.Set("X-SOAP-Action", action)
 
 		ww := &wrappedWriter{
 			ResponseWriter: w,
 			body:           &bytes.Buffer{},
 		}
-
 		next.ServeHTTP(ww, newReq)
-
-		// Delete Content-Length because the body will be modified.
-		ww.ResponseWriter.Header().Del("Content-Length")
+		w.Header().Del("Content-Length") // Delete Content-Length because the body will be modified.
 
 		// Ensure the upstream handler actually returned JSON before we convert it back to XML.
 		// If the Content-Type isn’t application/json, abort with an InvalidContentType error.
-		respmt, _, _ := mime.ParseMediaType(ww.Header().Get("Content-Type"))
-		if respmt != "application/json" {
-			err := app.ErrAppMiddleSOAPRESTInvalidContentType.WithoutStack(nil, map[string]any{"type": respmt})
+		if mt, _, _ := mime.ParseMediaType(w.Header().Get("Content-Type")); mt != "application/json" {
+			err := app.ErrAppMiddleSOAPRESTInvalidContentType.WithoutStack(nil, map[string]any{"type": mt})
 			s.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusInternalServerError))
 			return
 		}
 
-		// Convert JSON to XML.
-		respBody, err := s.converter.JSONtoXML(ww.body.Bytes())
+		respBody, err := s.converter.JSONtoXML(ww.body.Bytes()) // JSON to XML.
 		if err != nil {
 			err = app.ErrAppMiddleSOAPRESTConvertJSONtoXML.WithoutStack(err, nil)
 			s.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusInternalServerError))
 			return
 		}
 
-		// The middleware supports only UTF‑8,
-		// therefore we always add `charset=utf-8` to the Content‑Type.
-		ct += "; charset=utf-8"
-		ww.ResponseWriter.Header().Set("Content-Type", ct)
-
+		w.Header().Set("Content-Type", ct)
 		w.WriteHeader(ww.StatusCode())
-
-		// Modify response with XML body.
-		_, err = ww.ResponseWriter.Write(respBody)
+		_, err = w.Write(respBody) // Write XML content.
 		if err != nil {
 			err = app.ErrAppMiddleSOAPRESTWriteResponseBody.WithoutStack(err, nil)
 			s.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusInternalServerError))
@@ -170,10 +139,6 @@ func (w *wrappedWriter) Write(b []byte) (int, error) {
 	return w.body.Write(b)
 }
 
-func (w *wrappedWriter) Written() bool {
-	return w.written
-}
-
 func (w *wrappedWriter) StatusCode() int {
 	if w.written && w.code == 0 {
 		return http.StatusOK
@@ -181,13 +146,9 @@ func (w *wrappedWriter) StatusCode() int {
 	return w.code
 }
 
-func (w *wrappedWriter) ContentLength() int64 {
-	return w.length
-}
-
 func (w *wrappedWriter) Flush() {
 	// No-op: prevent premature header/status commit.
-	// If we propagated Flush to the real ResponseWriter,
+	// If we propagated Flush to the inner ResponseWriter,
 	// net/http would immediately send headers with status=200
 	// (if WriteHeader wasn’t called), and any later conversion error
 	// could not override that status.

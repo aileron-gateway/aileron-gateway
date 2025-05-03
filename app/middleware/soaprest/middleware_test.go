@@ -989,7 +989,6 @@ func TestWrappedWriter_WriteHeader(t *testing.T) {
 			}
 			ww.WriteHeader(tt.C().code)
 
-			testutil.Diff(t, true, ww.Written())
 			testutil.Diff(t, tt.A().code, ww.code)
 			testutil.Diff(t, tt.A().written, ww.written)
 		})
@@ -1069,12 +1068,9 @@ func TestWrappedWriter_Write(t *testing.T) {
 			}
 			ww.Write([]byte(tt.C().body))
 
-			testutil.Diff(t, true, ww.Written())
 			testutil.Diff(t, tt.A().code, ww.code)
-
 			body, _ := io.ReadAll(ww.body)
 			testutil.Diff(t, tt.A().body, string(body))
-			testutil.Diff(t, len(tt.A().body), int(ww.ContentLength()))
 		})
 	}
 }

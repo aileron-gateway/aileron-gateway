@@ -82,7 +82,6 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.Prot
 
 	// Use json.Number instead of float64 for JSON numbers.
 	cv.WithJSONDecoderOpts(func(d *json.Decoder) { d.UseNumber() })
-
 	// Prevent escaping of HTML special characters.
 	cv.WithJSONEncoderOpts(func(e *json.Encoder) { e.SetEscapeHTML(false) })
 
