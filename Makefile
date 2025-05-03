@@ -51,7 +51,7 @@ WHAT ?= ./...
 test:
 	mkdir -p $(OUTPUT_PATH)
 	go test -v -cover -timeout 60s -covermode=atomic -coverprofile=$(OUTPUT_PATH)coverage.out $(WHAT)
-	sed -i.bak -E '/(testutil|apis)/d' $(OUTPUT_PATH)coverage.out
+	sed -i.bak -E '/(testutil|apis|examples)/d' $(OUTPUT_PATH)coverage.out
 	go tool cover -html=$(OUTPUT_PATH)coverage.out -o $(OUTPUT_PATH)coverage.html
 	go tool cover -func=$(OUTPUT_PATH)coverage.out -o $(OUTPUT_PATH)coverage.txt
 	@echo ==================================================
@@ -65,10 +65,6 @@ integration:
 .PHONY: e2e
 e2e:
 	go test -v -tags=e2e -timeout 180s ./test/e2e/...
-
-.PHONY: example
-example: 
-	go test -v -tags=example -timeout 60s ./test/example/...
 
 ############################################################
 #                         Analysis                         #

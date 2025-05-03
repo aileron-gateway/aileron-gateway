@@ -50,31 +50,31 @@ message SCryptSpec {
     // Random bytes read by a random reader of crypt/rand is
     // used for generating a specified length of random salt.
     // Salts are appended to the resulting hash value.
-    // Default value is used if not set or set to zeto.
+    // Default value is used if not set or set to zero.
     // Default is [32].
     int32 SaltLen = 1 [json_name = "saltLen"];
 
     // [OPTIONAL]
     // N is the "N" parameter for SCrypt algorith.
-    // Default value is used if not set or set to zeto.
+    // Default value is used if not set or set to zero.
     // Default is [32768].
     int32 N = 2 [json_name = "n"];
 
     // [OPTIONAL]
     // R is the "r" parameter for SCrypt algorith.
-    // Default value is used if not set or set to zeto.
+    // Default value is used if not set or set to zero.
     // Default is [8].
     int32 R = 3 [json_name = "r"];
 
     // [OPTIONAL]
     // P is the "p" parameter for SCrypt algorith.
-    // Default value is used if not set or set to zeto.
+    // Default value is used if not set or set to zero.
     // Default is [1].
     int32 P = 4 [json_name = "p"];
 
     // [OPTIONAL]
     // KeyLen is the hashed key length.
-    // Default value is used if not set or set to zeto.
+    // Default value is used if not set or set to zero.
     // Default is [32].
     int32 KeyLen = 5 [json_name = "keyLen"];
 }
@@ -85,19 +85,19 @@ message PBKDF2Spec {
     // Random bytes read by a random reader of crypt/rand is
     // used for generating a specified length of random salt.
     // Salts are appended to the resulting hash value.
-    // Default value is used if not set or set to zeto.
+    // Default value is used if not set or set to zero.
     // Default is [32].
     int32 SaltLen = 1 [json_name = "saltLen"];
 
     // [OPTIONAL]
     // Iter is the iteration count parameter for PBKDF2.
-    // Default value is used if not set or set to zeto.
+    // Default value is used if not set or set to zero.
     // Default is [4096].
     int32 Iter = 2 [json_name = "iter"];
 
     // [OPTIONAL]
     // KeyLen is the hashed key length.
-    // Default value is used if not set or set to zeto.
+    // Default value is used if not set or set to zero.
     // Default is [32].
     int32 KeyLen = 3 [json_name = "keyLen"];
 
@@ -113,7 +113,7 @@ message Argon2Spec {
     // Random bytes read by a random reader of crypt/rand is
     // used for generating a specified length of random salt.
     // Salts are appended to the resulting hash value.
-    // Default value is used if not set or set to zeto.
+    // Default value is used if not set or set to zero.
     // Default is [32].
     uint32 SaltLen = 1 [json_name = "saltLen"];
 
@@ -136,7 +136,7 @@ message Argon2Spec {
 
     // [OPTIONAL]
     // KeyLen is the hashed key length.
-    // Default value is used if not set or set to zeto.
+    // Default value is used if not set or set to zero.
     // Default is [32].
     uint32 KeyLen = 5 [json_name = "keyLen"];
 }
