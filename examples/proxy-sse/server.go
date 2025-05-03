@@ -11,20 +11,19 @@ import (
 )
 
 func main() {
-
 	addr := "0.0.0.0:9999"
 	log.Println("SSE server listens at", addr)
-
-	http.HandleFunc("/", sse)
-
-	if err := http.ListenAndServe(addr, nil); err != nil && err != http.ErrServerClosed {
+	svr := &http.Server{
+		Addr:              addr,
+		Handler:           http.HandlerFunc(sse),
+		ReadHeaderTimeout: 10 * time.Second,
+	}
+	if err := svr.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		panic(err)
 	}
-
 }
 
 func sse(w http.ResponseWriter, r *http.Request) {
-
 	flusher, _ := w.(http.Flusher)
 
 	// Set response headers.
@@ -40,8 +39,7 @@ func sse(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		fmt.Fprintf(w, "Hello !!\n")
 
-		for i := 0; i < 30; i++ {
-
+		for range 30 {
 			select {
 			case <-r.Context().Done():
 				return
@@ -55,7 +53,6 @@ func sse(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				panic(err)
 			}
-
 		}
 
 		fmt.Fprintf(w, "Goodbye !!\n")
@@ -69,5 +66,4 @@ func sse(w http.ResponseWriter, r *http.Request) {
 	case <-done:
 		log.Println("Done!!")
 	}
-
 }

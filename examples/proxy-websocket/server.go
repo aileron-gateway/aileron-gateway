@@ -13,18 +13,21 @@ import (
 )
 
 func main() {
-
 	addr := "0.0.0.0:9999"
 	log.Println("WebSocket server listens at", addr)
 
-	dir := http.Dir("./")
-	http.Handle("/", http.FileServer(dir))
-	http.HandleFunc("/ws", ws())
+	mux := &http.ServeMux{}
+	mux.Handle("/", http.FileServer(http.Dir("./")))
+	mux.HandleFunc("/ws", ws())
 
-	if err := http.ListenAndServe(addr, nil); err != nil && err != http.ErrServerClosed {
+	svr := &http.Server{
+		Addr:              addr,
+		Handler:           mux,
+		ReadHeaderTimeout: 10 * time.Second,
+	}
+	if err := svr.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		panic(err)
 	}
-
 }
 
 func ws() http.HandlerFunc {
@@ -48,7 +51,7 @@ func ws() http.HandlerFunc {
 					close(done)
 					return
 				}
-				err := websocket.Message.Send(ws, fmt.Sprintf("Your message arrived: %s", msg))
+				err := websocket.Message.Send(ws, "Your message arrived: "+msg)
 				if err != nil {
 					log.Println(err)
 					close(done)
@@ -73,6 +76,5 @@ func ws() http.HandlerFunc {
 				break
 			}
 		}
-
 	}).ServeHTTP
 }

@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/quic-go/quic-go/http3"
 )
@@ -36,7 +37,8 @@ func runHTTP1(wg *sync.WaitGroup) {
 			fmt.Fprintf(w, "Path : %s\n", r.URL.Path)
 			fmt.Fprintf(w, "HTTP : %d.%d\n", r.ProtoMajor, r.ProtoMinor)
 		}),
-		TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler)),
+		TLSNextProto:      make(map[string]func(*http.Server, *tls.Conn, http.Handler)),
+		ReadHeaderTimeout: 10 * time.Second,
 	}
 	log.Println("HTTP 1 server listens on", svr.Addr)
 	if err := svr.ListenAndServeTLS(certFile, keyFile); err != nil {
@@ -53,6 +55,7 @@ func runHTTP2(wg *sync.WaitGroup) {
 			fmt.Fprintf(w, "Path : %s\n", r.URL.Path)
 			fmt.Fprintf(w, "HTTP : %d.%d\n", r.ProtoMajor, r.ProtoMinor)
 		}),
+		ReadHeaderTimeout: 10 * time.Second,
 	}
 	log.Println("HTTP 2 server listens on", svr.Addr)
 	if err := svr.ListenAndServeTLS(certFile, keyFile); err != nil {

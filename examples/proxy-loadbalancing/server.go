@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"time"
 )
 
 // main runs multiple servers.
@@ -22,6 +23,7 @@ func main() {
 				Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					fmt.Fprintf(w, "Server %s\n", addr)
 				}),
+				ReadHeaderTimeout: 10 * time.Second,
 			}
 			log.Println("Server listens at", addr)
 			if err := svr.ListenAndServe(); err != nil {

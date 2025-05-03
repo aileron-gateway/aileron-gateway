@@ -4,6 +4,7 @@
 package main
 
 import (
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"io"
@@ -26,19 +27,18 @@ func main() {
 	t := &http.Transport{ // HTTP 1 transport.
 		ForceAttemptHTTP2: false,
 		TLSClientConfig: &tls.Config{
-			RootCAs: pool,
+			RootCAs:    pool,
+			MinVersion: tls.VersionTLS12,
 		},
 	}
 
 	log.Println("Send HTTP 1 request :", target)
-	r, err := http.NewRequest(http.MethodGet, target, nil)
-	if err != nil {
-		log.Fatalln(err.Error())
-	}
+	r, _ := http.NewRequestWithContext(context.Background(), http.MethodGet, target, nil)
 	w, err := t.RoundTrip(r)
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
+	defer w.Body.Close()
 	b, err := io.ReadAll(w.Body)
 	if err != nil {
 		log.Fatalln(err.Error())
