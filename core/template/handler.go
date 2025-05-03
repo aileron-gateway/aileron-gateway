@@ -42,7 +42,7 @@ func (h *templateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// given to the template.
 	info := map[string]any{
 		"proto":  r.Proto,
-		"host":   r.URL.Host,
+		"host":   r.Host,
 		"method": r.Method,
 		"path":   r.URL.Path,
 		"remote": r.RemoteAddr,
@@ -67,8 +67,7 @@ func (h *templateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // was not found.
 func (h *templateHandler) findContent(accept string) *utilhttp.MIMEContent {
 	accepts := strings.Split(accept, ",")
-
-	for i := 0; i < len(accepts); i++ {
+	for i := range len(accepts) {
 		mimeType, _, _ := mime.ParseMediaType(accepts[i])
 		for j := 0; j < len(h.contents); j++ {
 			matched, _ := path.Match(mimeType, h.contents[j].MIMEType)
@@ -77,6 +76,5 @@ func (h *templateHandler) findContent(accept string) *utilhttp.MIMEContent {
 			}
 		}
 	}
-
 	return nil
 }
