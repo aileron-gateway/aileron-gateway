@@ -22,6 +22,7 @@ jobs:
           version: "29.0"
       - run: make proto-clean
       - run: make proto
+      - run: go mod tidy
       - name: git commit
         run: |
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
