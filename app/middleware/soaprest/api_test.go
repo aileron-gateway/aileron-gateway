@@ -72,9 +72,8 @@ func TestCreate(t *testing.T) {
 						Namespace: "default",
 					},
 					Spec: &v1.SOAPRESTMiddlewareSpec{
-						Matcher: &k.MatcherSpec{},
-						Method: &v1.SOAPRESTMiddlewareSpec_SimpleMethodSpec{
-							SimpleMethodSpec: &v1.SimpleMethodSpec{
+						Rules: &v1.SOAPRESTMiddlewareSpec_Simple{
+							Simple: &v1.SimpleSpec{
 								TextKey:      "$test",
 								AttrPrefix:   "@test",
 								NamespaceSep: ":test",
@@ -114,9 +113,8 @@ func TestCreate(t *testing.T) {
 						Namespace: "default",
 					},
 					Spec: &v1.SOAPRESTMiddlewareSpec{
-						Matcher: &k.MatcherSpec{},
-						Method: &v1.SOAPRESTMiddlewareSpec_RayfishMethodSpec{
-							RayfishMethodSpec: &v1.RayfishMethodSpec{
+						Rules: &v1.SOAPRESTMiddlewareSpec_Rayfish{
+							Rayfish: &v1.RayfishSpec{
 								NameKey:      "#testName",
 								TextKey:      "#testText",
 								ChildrenKey:  "#testChildren",
@@ -158,9 +156,8 @@ func TestCreate(t *testing.T) {
 						Namespace: "default",
 					},
 					Spec: &v1.SOAPRESTMiddlewareSpec{
-						Matcher: &k.MatcherSpec{},
-						Method: &v1.SOAPRESTMiddlewareSpec_BadgerfishMethodSpec{
-							BadgerfishMethodSpec: &v1.BadgerfishMethodSpec{
+						Rules: &v1.SOAPRESTMiddlewareSpec_Badgerfish{
+							Badgerfish: &v1.BadgerfishSpec{
 								TextKey:      "$test",
 								AttrPrefix:   "@test",
 								NamespaceSep: ":test",
@@ -209,31 +206,6 @@ func TestCreate(t *testing.T) {
 				errPattern: regexp.MustCompile(core.ErrPrefix + `failed to create SOAPRESTMiddleware`),
 			},
 		),
-		gen(
-			"failed to load matcher",
-			[]string{},
-			[]string{},
-			&condition{
-				manifest: &v1.SOAPRESTMiddleware{
-					APIVersion: apiVersion,
-					Kind:       kind,
-					Metadata: &k.Metadata{
-						Namespace: "default",
-						Name:      "default",
-					},
-					Spec: &v1.SOAPRESTMiddlewareSpec{
-						Matcher: &k.MatcherSpec{
-							MatchType: k.MatchType_Regex,
-							Patterns:  []string{"[0-9"},
-						},
-					},
-				},
-			},
-			&action{
-				err:        core.ErrCoreGenCreateObject,
-				errPattern: regexp.MustCompile(core.ErrPrefix + `failed to create SOAPRESTMiddleware`),
-			},
-		),
 	}
 
 	testutil.Register(table, testCases...)
@@ -246,13 +218,12 @@ func TestCreate(t *testing.T) {
 			got, err := a.Create(server, tt.C().manifest)
 			opts := []cmp.Option{
 				cmp.AllowUnexported(soapREST{}, zxml.JSONConverter{}, zxml.Simple{}),
-				cmpopts.IgnoreFields(soapREST{}, "paths", "eh"),
-				cmpopts.IgnoreFields(zxml.JSONConverter{}, "jsonEncoderOpts", "jsonDecoderOpts"),
+				cmpopts.IgnoreFields(soapREST{}, "eh"),
+				cmpopts.IgnoreFields(zxml.JSONConverter{}, "jsonEncoderOpts", "jsonDecoderOpts", "xmlEncoderOpts", "xmlDecoderOpts"),
 				cmpopts.IgnoreFields(zxml.Simple{}, "emptyVal"),
 				cmpopts.IgnoreFields(zxml.RayFish{}, "emptyVal"),
 				cmpopts.IgnoreFields(zxml.BadgerFish{}, "emptyVal"),
 			}
-
 			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
 			testutil.Diff(t, tt.A().expect, got, opts...)
 		})

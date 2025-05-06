@@ -4,8 +4,5 @@ metadata:
   name: test
   namespace: testNamespace
 spec:
-  matcher:
-    patterns: ["/"]
-    matchType: Contains
-  badgerfishMethodSpec:
+  simple:
     trimSpace: true

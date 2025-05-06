@@ -7,6 +7,7 @@
 package soaprest_test
 
 import (
+	"encoding/xml"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -22,43 +23,30 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/test/integration/common"
 )
 
-const (
-	commonReqXML   = `<empty/>`
-	commonRespJSON = `{"writtenByHandler":true}`
-)
-
 func testSOAPRESTMiddleware(t *testing.T, m core.Middleware) {
 	t.Helper()
-
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		b, err := io.ReadAll(r.Body)
 		if err != nil {
 			http.Error(w, "failed to read body", http.StatusInternalServerError)
 			return
 		}
-		defer r.Body.Close()
-
-		// no path is set, so conversion by the SOAPRESTMiddleware will not occur.
-		// Therefore, need to check whether the Request Body remains reqXML.
-		if !equalXML(t, []byte(commonReqXML), b) {
-			t.Error("result not match in handler")
-		}
-
+		testutil.Diff(t, `{"empty":{"$":""}}`+"\n", string(b))
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.Write([]byte(commonRespJSON))
+		w.Write([]byte(`{"writtenByHandler":true}`))
 	})
 
 	h := m.Middleware(handler)
 
-	req := httptest.NewRequest(http.MethodGet, "/", strings.NewReader(commonReqXML))
+	req := httptest.NewRequest(http.MethodGet, "/", strings.NewReader(`<empty/>`))
 	req.Header.Set("Content-Type", "text/xml")
+	req.Header.Set("SOAPAction", "dummy")
 	resp := httptest.NewRecorder()
 	h.ServeHTTP(resp, req)
 	b, _ := io.ReadAll(resp.Result().Body)
 	testutil.Diff(t, http.StatusOK, resp.Result().StatusCode)
-	if !equalJSON(t, []byte(commonRespJSON), b) {
-		t.Error("result not match")
-	}
+	want := xml.Header + "<writtenByHandler>true</writtenByHandler>"
+	testutil.Diff(t, want, string(b))
 }
 
 func TestMinimalWithoutMetadata(t *testing.T) {
