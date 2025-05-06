@@ -1,0 +1,58 @@
+{
+  "#children": [
+    {
+      "#children": [],
+      "#name": "@xmlns:env",
+      "#text": "http://www.w3.org/2003/05/soap-envelope"
+    },
+    {
+      "#children": [],
+      "#name": "@xmlns:xsi",
+      "#text": "http://www.w3.org/2001/XMLSchema-instance"
+    },
+    {
+      "#children": [],
+      "#name": "@xmlns:xsd",
+      "#text": "http://www.w3.org/2001/XMLSchema"
+    },
+    {
+      "#children": [
+        {
+          "#children": [
+            {
+              "#children": [],
+              "#name": "@xmlns:auth",
+              "#text": "http://example.com/auth"
+            },
+            { "#children": [], "#name": "auth:Username", "#text": "user" },
+            { "#children": [], "#name": "auth:Password", "#text": "pass" }
+          ],
+          "#name": "auth:Authentication",
+          "#text": ""
+        }
+      ],
+      "#name": "env:Header",
+      "#text": ""
+    },
+    {
+      "#children": [
+        {
+          "#children": [
+            {
+              "#children": [],
+              "#name": "@xmlns:m",
+              "#text": "http://example.com/user"
+            },
+            { "#children": [], "#name": "m:UserId", "#text": "12345" }
+          ],
+          "#name": "m:GetUserInfo",
+          "#text": ""
+        }
+      ],
+      "#name": "env:Body",
+      "#text": ""
+    }
+  ],
+  "#name": "env:Envelope",
+  "#text": ""
+}

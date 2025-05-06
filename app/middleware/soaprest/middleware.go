@@ -10,7 +10,7 @@ import (
 	"net/http"
 
 	"github.com/aileron-gateway/aileron-gateway/app"
-	"github.com/aileron-gateway/aileron-gateway/app/middleware/soaprest/xmlconv"
+	"github.com/aileron-gateway/aileron-gateway/app/middleware/soaprest/zxml"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
@@ -23,7 +23,7 @@ type soapREST struct {
 	// paths must not be nil.
 	paths txtutil.Matcher[string]
 
-	converter *xmlconv.Converter
+	converter *zxml.JSONConverter
 }
 
 func (s *soapREST) Middleware(next http.Handler) http.Handler {

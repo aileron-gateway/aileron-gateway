@@ -10,7 +10,7 @@ import (
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
-	"github.com/aileron-gateway/aileron-gateway/app/middleware/soaprest/xmlconv"
+	"github.com/aileron-gateway/aileron-gateway/app/middleware/soaprest/zxml"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
@@ -46,8 +46,8 @@ func TestCreate(t *testing.T) {
 			&action{
 				err: nil,
 				expect: &soapREST{
-					converter: &xmlconv.Converter{
-						EncodeDecoder: &xmlconv.Simple{
+					converter: &zxml.JSONConverter{
+						EncodeDecoder: &zxml.Simple{
 							TextKey:      "$",
 							AttrPrefix:   "@",
 							NamespaceSep: ":",
@@ -75,12 +75,11 @@ func TestCreate(t *testing.T) {
 						Matcher: &k.MatcherSpec{},
 						Method: &v1.SOAPRESTMiddlewareSpec_SimpleMethodSpec{
 							SimpleMethodSpec: &v1.SimpleMethodSpec{
-								TextKey:         "$test",
-								AttrPrefix:      "@test",
-								NamespaceSep:    ":test",
-								TrimSpace:       true,
-								PreferShort:     true,
-								IgnoreUnusedKey: true,
+								TextKey:      "$test",
+								AttrPrefix:   "@test",
+								NamespaceSep: ":test",
+								TrimSpace:    true,
+								PreferShort:  true,
 							},
 						},
 					},
@@ -89,14 +88,13 @@ func TestCreate(t *testing.T) {
 			&action{
 				err: nil,
 				expect: &soapREST{
-					converter: &xmlconv.Converter{
-						EncodeDecoder: &xmlconv.Simple{
-							TextKey:         "$test",
-							AttrPrefix:      "@test",
-							NamespaceSep:    ":test",
-							TrimSpace:       true,
-							PreferShort:     true,
-							IgnoreUnusedKey: true,
+					converter: &zxml.JSONConverter{
+						EncodeDecoder: &zxml.Simple{
+							TextKey:      "$test",
+							AttrPrefix:   "@test",
+							NamespaceSep: ":test",
+							TrimSpace:    true,
+							PreferShort:  true,
 						},
 						Header: xml.Header,
 					},
@@ -119,13 +117,12 @@ func TestCreate(t *testing.T) {
 						Matcher: &k.MatcherSpec{},
 						Method: &v1.SOAPRESTMiddlewareSpec_RayfishMethodSpec{
 							RayfishMethodSpec: &v1.RayfishMethodSpec{
-								NameKey:         "#testName",
-								TextKey:         "#testText",
-								ChildrenKey:     "#testChildren",
-								AttrPrefix:      "@test",
-								NamespaceSep:    ":test",
-								TrimSpace:       true,
-								IgnoreUnusedKey: true,
+								NameKey:      "#testName",
+								TextKey:      "#testText",
+								ChildrenKey:  "#testChildren",
+								AttrPrefix:   "@test",
+								NamespaceSep: ":test",
+								TrimSpace:    true,
 							},
 						},
 					},
@@ -134,15 +131,14 @@ func TestCreate(t *testing.T) {
 			&action{
 				err: nil,
 				expect: &soapREST{
-					converter: &xmlconv.Converter{
-						EncodeDecoder: &xmlconv.RayFish{
-							NameKey:         "#testName",
-							TextKey:         "#testText",
-							ChildrenKey:     "#testChildren",
-							AttrPrefix:      "@test",
-							NamespaceSep:    ":test",
-							TrimSpace:       true,
-							IgnoreUnusedKey: true,
+					converter: &zxml.JSONConverter{
+						EncodeDecoder: &zxml.RayFish{
+							NameKey:      "#testName",
+							TextKey:      "#testText",
+							ChildrenKey:  "#testChildren",
+							AttrPrefix:   "@test",
+							NamespaceSep: ":test",
+							TrimSpace:    true,
 						},
 						Header: xml.Header,
 					},
@@ -165,11 +161,10 @@ func TestCreate(t *testing.T) {
 						Matcher: &k.MatcherSpec{},
 						Method: &v1.SOAPRESTMiddlewareSpec_BadgerfishMethodSpec{
 							BadgerfishMethodSpec: &v1.BadgerfishMethodSpec{
-								TextKey:         "$test",
-								AttrPrefix:      "@test",
-								NamespaceSep:    ":test",
-								TrimSpace:       true,
-								IgnoreUnusedKey: true,
+								TextKey:      "$test",
+								AttrPrefix:   "@test",
+								NamespaceSep: ":test",
+								TrimSpace:    true,
 							},
 						},
 					},
@@ -178,13 +173,12 @@ func TestCreate(t *testing.T) {
 			&action{
 				err: nil,
 				expect: &soapREST{
-					converter: &xmlconv.Converter{
-						EncodeDecoder: &xmlconv.BadgerFish{
-							TextKey:         "$test",
-							AttrPrefix:      "@test",
-							NamespaceSep:    ":test",
-							TrimSpace:       true,
-							IgnoreUnusedKey: true,
+					converter: &zxml.JSONConverter{
+						EncodeDecoder: &zxml.BadgerFish{
+							TextKey:      "$test",
+							AttrPrefix:   "@test",
+							NamespaceSep: ":test",
+							TrimSpace:    true,
 						},
 						Header: xml.Header,
 					},
@@ -251,12 +245,12 @@ func TestCreate(t *testing.T) {
 			a := &API{}
 			got, err := a.Create(server, tt.C().manifest)
 			opts := []cmp.Option{
-				cmp.AllowUnexported(soapREST{}, xmlconv.Converter{}, xmlconv.Simple{}),
+				cmp.AllowUnexported(soapREST{}, zxml.JSONConverter{}, zxml.Simple{}),
 				cmpopts.IgnoreFields(soapREST{}, "paths", "eh"),
-				cmpopts.IgnoreFields(xmlconv.Converter{}, "jsonEncoderOpts", "jsonDecoderOpts"),
-				cmpopts.IgnoreFields(xmlconv.Simple{}, "emptyVal"),
-				cmpopts.IgnoreFields(xmlconv.RayFish{}, "emptyVal"),
-				cmpopts.IgnoreFields(xmlconv.BadgerFish{}, "emptyVal"),
+				cmpopts.IgnoreFields(zxml.JSONConverter{}, "jsonEncoderOpts", "jsonDecoderOpts"),
+				cmpopts.IgnoreFields(zxml.Simple{}, "emptyVal"),
+				cmpopts.IgnoreFields(zxml.RayFish{}, "emptyVal"),
+				cmpopts.IgnoreFields(zxml.BadgerFish{}, "emptyVal"),
 			}
 
 			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)

@@ -95,12 +95,6 @@ message SimpleMethodSpec {
     // This option is used in XML to JSON conversion.
     // Default is false.
     bool PreferShort = 5 [json_name = "preferShort"];
-
-    // [OPTIONAL]
-    // IgnoreUnknownKey if true, ignores undefined or unused JSON attributes rather than error.
-    // This option is used in JSON to XML conversion.
-    // Default is false.
-    bool IgnoreUnusedKey = 6 [json_name = "ignoreUnusedKey"];
 }
 
 message RayfishMethodSpec {
@@ -145,12 +139,6 @@ message RayfishMethodSpec {
     // This option is used in XML to JSON conversion.
     // Default is false.
     bool TrimSpace = 6 [json_name = "trimSpace"];
-
-    // [OPTIONAL]
-    // IgnoreUnknownKey if true, ignores undefined or unused JSON attributes rather than error.
-    // This option is used in JSON to XML conversion.
-    // Default is false.
-    bool IgnoreUnusedKey = 7 [json_name = "ignoreUnusedKey"];
 }
 
 message BadgerfishMethodSpec {
@@ -182,10 +170,4 @@ message BadgerfishMethodSpec {
     // This option is used in XML to JSON conversion.
     // Default is false.
     bool TrimSpace = 4 [json_name = "trimSpace"];
-
-    // [OPTIONAL]
-    // IgnoreUnknownKey if true, ignores undefined or unused JSON attributes rather than error.
-    // This option is used in JSON to XML conversion.
-    // Default is false.
-    bool IgnoreUnusedKey = 5 [json_name = "ignoreUnusedKey"];
 }

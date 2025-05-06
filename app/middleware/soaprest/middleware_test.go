@@ -19,8 +19,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/aileron-gateway/aileron-gateway/app/middleware/soaprest/zxml"
+
 	"github.com/aileron-gateway/aileron-gateway/app"
-	"github.com/aileron-gateway/aileron-gateway/app/middleware/soaprest/xmlconv"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	gocmp "github.com/google/go-cmp/cmp"
@@ -75,7 +76,7 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 		contentType string
 
 		paths     *testMatcher
-		converter *xmlconv.Converter
+		converter *zxml.JSONConverter
 
 		readBodyError bool
 		pathNotMatch  bool
@@ -105,8 +106,8 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 				contentType: "text/xml",
 
 				paths: &testMatcher{match: true},
-				converter: &xmlconv.Converter{
-					EncodeDecoder: xmlconv.NewSimple(),
+				converter: &zxml.JSONConverter{
+					EncodeDecoder: zxml.NewSimple(),
 				},
 
 				setSOAPAction: true,
@@ -131,8 +132,8 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 				contentType: "text/xml",
 
 				paths: &testMatcher{match: true},
-				converter: &xmlconv.Converter{
-					EncodeDecoder: xmlconv.NewSimple(),
+				converter: &zxml.JSONConverter{
+					EncodeDecoder: zxml.NewSimple(),
 				},
 
 				setSOAPAction: true,
@@ -157,8 +158,8 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 				contentType: "text/xml",
 
 				paths: &testMatcher{match: true},
-				converter: &xmlconv.Converter{
-					EncodeDecoder: xmlconv.NewSimple(),
+				converter: &zxml.JSONConverter{
+					EncodeDecoder: zxml.NewSimple(),
 				},
 
 				setSOAPAction: false,
@@ -180,8 +181,8 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 				contentType: "application/soap+xml",
 
 				paths: &testMatcher{match: true},
-				converter: &xmlconv.Converter{
-					EncodeDecoder: xmlconv.NewSimple(),
+				converter: &zxml.JSONConverter{
+					EncodeDecoder: zxml.NewSimple(),
 				},
 			},
 			&action{
@@ -204,8 +205,8 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 				contentType: "application/soap+xml",
 
 				paths: &testMatcher{match: true},
-				converter: &xmlconv.Converter{
-					EncodeDecoder: xmlconv.NewSimple(),
+				converter: &zxml.JSONConverter{
+					EncodeDecoder: zxml.NewSimple(),
 				},
 
 				setSOAPAction: true,
@@ -324,8 +325,8 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 				contentType: "text/xml",
 
 				paths: &testMatcher{match: true},
-				converter: &xmlconv.Converter{
-					EncodeDecoder: xmlconv.NewSimple(),
+				converter: &zxml.JSONConverter{
+					EncodeDecoder: zxml.NewSimple(),
 					Header:        xml.Header,
 				},
 
@@ -532,7 +533,7 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 		charset     string
 
 		paths     *testMatcher
-		converter *xmlconv.Converter
+		converter *zxml.JSONConverter
 
 		invalidContentTypeError bool
 		responseConvertError    bool
@@ -567,8 +568,8 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 				charset:     "utf-8",
 
 				paths: &testMatcher{match: true},
-				converter: &xmlconv.Converter{
-					EncodeDecoder: xmlconv.NewSimple(),
+				converter: &zxml.JSONConverter{
+					EncodeDecoder: zxml.NewSimple(),
 				},
 
 				setSOAPAction: true,
@@ -593,8 +594,8 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 				charset:     "utf-8",
 
 				paths: &testMatcher{match: true},
-				converter: &xmlconv.Converter{
-					EncodeDecoder: xmlconv.NewSimple(),
+				converter: &zxml.JSONConverter{
+					EncodeDecoder: zxml.NewSimple(),
 				},
 
 				setSOAPAction: true,
@@ -619,8 +620,8 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 				charset:     "utf-8",
 
 				paths: &testMatcher{match: true},
-				converter: &xmlconv.Converter{
-					EncodeDecoder: xmlconv.NewSimple(),
+				converter: &zxml.JSONConverter{
+					EncodeDecoder: zxml.NewSimple(),
 				},
 
 				setSOAPAction: false,
@@ -645,8 +646,8 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 				charset:     "utf-8",
 
 				paths: &testMatcher{match: true},
-				converter: &xmlconv.Converter{
-					EncodeDecoder: xmlconv.NewSimple(),
+				converter: &zxml.JSONConverter{
+					EncodeDecoder: zxml.NewSimple(),
 				},
 
 				invalidContentTypeError: true,
@@ -673,8 +674,8 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 				charset:     "utf-8",
 
 				paths: &testMatcher{match: true},
-				converter: &xmlconv.Converter{
-					EncodeDecoder: xmlconv.NewSimple(),
+				converter: &zxml.JSONConverter{
+					EncodeDecoder: zxml.NewSimple(),
 				},
 
 				responseConvertError: true,
@@ -701,8 +702,8 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 				charset:     "utf-8",
 
 				paths: &testMatcher{match: true},
-				converter: &xmlconv.Converter{
-					EncodeDecoder: xmlconv.NewSimple(),
+				converter: &zxml.JSONConverter{
+					EncodeDecoder: zxml.NewSimple(),
 				},
 
 				responseWriteError: true,
@@ -728,8 +729,8 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 				contentType: "text/xml",
 
 				paths: &testMatcher{match: true},
-				converter: &xmlconv.Converter{
-					EncodeDecoder: xmlconv.NewSimple(),
+				converter: &zxml.JSONConverter{
+					EncodeDecoder: zxml.NewSimple(),
 				},
 
 				setSOAPAction: true,
@@ -753,8 +754,8 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 				contentType: "application/soap+xml",
 
 				paths: &testMatcher{match: true},
-				converter: &xmlconv.Converter{
-					EncodeDecoder: xmlconv.NewSimple(),
+				converter: &zxml.JSONConverter{
+					EncodeDecoder: zxml.NewSimple(),
 				},
 
 				setSOAPAction: true,

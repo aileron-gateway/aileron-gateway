@@ -1,0 +1,20 @@
+{
+  "soap:Envelope": {
+    "@xmlns:soap": "http://schemas.xmlsoap.org/soap/envelope/",
+    "@xmlns:xsd": "http://www.w3.org/2001/XMLSchema",
+    "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+    "soap:Body": {
+      "m:GetUserInfo": {
+        "@xmlns:m": "http://example.com/user",
+        "m:UserId": "12345"
+      }
+    },
+    "soap:Header": {
+      "auth:Authentication": {
+        "@xmlns:auth": "http://example.com/auth",
+        "auth:Password": "pass",
+        "auth:Username": "user"
+      }
+    }
+  }
+}

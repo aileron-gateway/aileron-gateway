@@ -10,7 +10,7 @@ import (
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
-	"github.com/aileron-gateway/aileron-gateway/app/middleware/soaprest/xmlconv"
+	"github.com/aileron-gateway/aileron-gateway/app/middleware/soaprest/zxml"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
@@ -70,7 +70,7 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.Prot
 		return nil, core.ErrCoreGenCreateObject.WithStack(err, map[string]any{"kind": kind})
 	}
 
-	var cv *xmlconv.Converter
+	var cv *zxml.JSONConverter
 	switch c.Spec.Method.(type) {
 	case *v1.SOAPRESTMiddlewareSpec_SimpleMethodSpec:
 		cv = newSimpleConverter(c.Spec.GetSimpleMethodSpec())
@@ -92,52 +92,49 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.Prot
 	}, nil
 }
 
-func newSimpleConverter(spec *v1.SimpleMethodSpec) *xmlconv.Converter {
-	simple := &xmlconv.Simple{
-		TextKey:         cmp.Or(spec.TextKey, "$"),
-		AttrPrefix:      cmp.Or(spec.AttrPrefix, "@"),
-		NamespaceSep:    cmp.Or(spec.NamespaceSep, ":"),
-		TrimSpace:       spec.TrimSpace,
-		PreferShort:     spec.PreferShort,
-		IgnoreUnusedKey: spec.IgnoreUnusedKey,
+func newSimpleConverter(spec *v1.SimpleMethodSpec) *zxml.JSONConverter {
+	simple := &zxml.Simple{
+		TextKey:      cmp.Or(spec.TextKey, "$"),
+		AttrPrefix:   cmp.Or(spec.AttrPrefix, "@"),
+		NamespaceSep: cmp.Or(spec.NamespaceSep, ":"),
+		TrimSpace:    spec.TrimSpace,
+		PreferShort:  spec.PreferShort,
 	}
 	simple.WithEmptyValue(string(""))
 
-	return &xmlconv.Converter{
+	return &zxml.JSONConverter{
 		EncodeDecoder: simple,
 		Header:        xml.Header,
 	}
 }
 
-func newRayfishConverter(spec *v1.RayfishMethodSpec) *xmlconv.Converter {
-	rayfish := &xmlconv.RayFish{
-		NameKey:         cmp.Or(spec.NameKey, "#name"),
-		TextKey:         cmp.Or(spec.TextKey, "#text"),
-		ChildrenKey:     cmp.Or(spec.ChildrenKey, "#children"),
-		AttrPrefix:      cmp.Or(spec.AttrPrefix, "@"),
-		NamespaceSep:    cmp.Or(spec.NamespaceSep, ":"),
-		TrimSpace:       spec.TrimSpace,
-		IgnoreUnusedKey: spec.IgnoreUnusedKey,
+func newRayfishConverter(spec *v1.RayfishMethodSpec) *zxml.JSONConverter {
+	rayfish := &zxml.RayFish{
+		NameKey:      cmp.Or(spec.NameKey, "#name"),
+		TextKey:      cmp.Or(spec.TextKey, "#text"),
+		ChildrenKey:  cmp.Or(spec.ChildrenKey, "#children"),
+		AttrPrefix:   cmp.Or(spec.AttrPrefix, "@"),
+		NamespaceSep: cmp.Or(spec.NamespaceSep, ":"),
+		TrimSpace:    spec.TrimSpace,
 	}
 	rayfish.WithEmptyValue(string(""))
 
-	return &xmlconv.Converter{
+	return &zxml.JSONConverter{
 		EncodeDecoder: rayfish,
 		Header:        xml.Header,
 	}
 }
 
-func newBadgerfishConverter(spec *v1.BadgerfishMethodSpec) *xmlconv.Converter {
-	badgerfish := &xmlconv.BadgerFish{
-		TextKey:         cmp.Or(spec.TextKey, "$"),
-		AttrPrefix:      cmp.Or(spec.AttrPrefix, "@"),
-		NamespaceSep:    cmp.Or(spec.NamespaceSep, ":"),
-		TrimSpace:       spec.TrimSpace,
-		IgnoreUnusedKey: spec.IgnoreUnusedKey,
+func newBadgerfishConverter(spec *v1.BadgerfishMethodSpec) *zxml.JSONConverter {
+	badgerfish := &zxml.BadgerFish{
+		TextKey:      cmp.Or(spec.TextKey, "$"),
+		AttrPrefix:   cmp.Or(spec.AttrPrefix, "@"),
+		NamespaceSep: cmp.Or(spec.NamespaceSep, ":"),
+		TrimSpace:    spec.TrimSpace,
 	}
 	badgerfish.WithEmptyValue(string(""))
 
-	return &xmlconv.Converter{
+	return &zxml.JSONConverter{
 		EncodeDecoder: badgerfish,
 		Header:        xml.Header,
 	}
