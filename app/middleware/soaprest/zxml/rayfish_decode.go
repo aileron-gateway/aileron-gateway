@@ -4,9 +4,9 @@
 package zxml
 
 import (
+	"bytes"
 	"encoding/xml"
 	"io"
-	"strings"
 )
 
 // Decode decodes XML document read by the decoder into Go values.
@@ -82,8 +82,12 @@ Loop:
 			}
 			children = append(children, content)
 		case xml.CharData:
+			trimmed := bytes.TrimSpace(t)
+			if len(trimmed) == 0 {
+				continue // Ignore text with only space characters.
+			}
 			if r.TrimSpace {
-				text += strings.TrimSpace(string(t))
+				text += string(trimmed)
 			} else {
 				text += string(t)
 			}
