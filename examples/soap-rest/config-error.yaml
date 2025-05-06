@@ -1,6 +1,9 @@
 apiVersion: core/v1
 kind: Entrypoint
 spec:
+  defaultErrorHandler:
+    apiVersion: core/v1
+    kind: ErrorHandler
   runners:
     - apiVersion: core/v1
       kind: HTTPServer
@@ -9,7 +12,7 @@ spec:
 apiVersion: core/v1
 kind: HTTPServer
 spec:
-  addr: ":8080"
+  addr: "localhost:8080"
   virtualHosts:
     - middleware:
         - apiVersion: app/v1
@@ -36,3 +39,24 @@ kind: SOAPRESTMiddleware
 spec:
   simple:
     trimSpace: true
+
+---
+apiVersion: core/v1
+kind: ErrorHandler
+spec:
+  errorMessages:
+    - codes: ["E3216"]
+      mimeContents:
+        - mimeType: text/xml
+          statusCode: 403
+          templateFile: ./errors/version.xml
+    - codes: ["E3217", "E3218"]
+      mimeContents:
+        - mimeType: text/xml
+          statusCode: 400
+          templateFile: ./errors/client.xml
+    - codes: ["E3219", "E3220"]
+      mimeContents:
+        - mimeType: text/xml
+          statusCode: 500
+          templateFile: ./errors/server.xml
