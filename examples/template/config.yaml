@@ -25,17 +25,15 @@ spec:
       statusCode: 500
       templateType: Text
       template: |
-        AILERON Gateway
-        Hello World!!
+        Hello! AILERON Gateway!
     - mimeType: application/json
       statusCode: 500
       templateType: GoText
       template: |
         {
-          "app": "AILERON Gateway",
-          "hello": "World!"
+          "hello": "AILERON Gateway!"
         }
     - mimeType: text/html
       statusCode: 500
       templateType: GoHTML
-      templateFile: template.html
+      templateFile: ./template.html

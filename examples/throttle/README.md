@@ -106,13 +106,12 @@ This graph shows the resource dependencies of the configuration.
 graph TD
   Entrypoint["🟪 **Entrypoint**</br>default/default"]
   HTTPServer["🟪 **HTTPServer**</br>default/default"]
-  ThrottleMiddleware["🟩 **ThrottleMiddleware**</br>default/default"]
-  EchoHandler["🟥 **EchoHandler**</br>default/default"]
+  ThrottleMiddleware["🟩</br>**ThrottleMiddleware**</br>default/default"]
+  EchoHandler["🟥</br>**EchoHandler**</br>default/default"]
 
   Entrypoint --> HTTPServer
   HTTPServer --> EchoHandler
   HTTPServer --> ThrottleMiddleware
-  EchoHandler
 
   style ThrottleMiddleware stroke:#77dd77,stroke-width:2px
   style EchoHandler stroke:#ff6961,stroke-width:2px

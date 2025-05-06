@@ -108,13 +108,12 @@ This graph shows the resource dependencies of the configuration.
 graph TD
   Entrypoint["🟪 **Entrypoint**</br>default/default"]
   HTTPServer["🟪 **HTTPServer**</br>default/default"]
-  TrackingMiddleware["🟩 **TrackingMiddleware**</br>default/default"]
-  ReverseProxyHandler["🟥 **ReverseProxyHandler**</br>default/default"]
+  TrackingMiddleware["🟩</br>**TrackingMiddleware**</br>default/default"]
+  ReverseProxyHandler["🟥</br>**ReverseProxyHandler**</br>default/default"]
 
   Entrypoint --> HTTPServer
   HTTPServer --> ReverseProxyHandler
   HTTPServer --> TrackingMiddleware
-  ReverseProxyHandler
 
   style TrackingMiddleware stroke:#77dd77,stroke-width:2px
   style ReverseProxyHandler stroke:#ff6961,stroke-width:2px

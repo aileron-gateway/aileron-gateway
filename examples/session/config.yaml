@@ -28,7 +28,7 @@ spec:
         match: ".*"
         matchType: Regex
       upstreams:
-        - url: http://localhost:8000/
+        - url: http://httpbin.org
 
 ---
 apiVersion: app/v1
