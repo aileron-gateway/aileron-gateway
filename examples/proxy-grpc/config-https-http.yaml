@@ -1,0 +1,45 @@
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  runners:
+    - apiVersion: core/v1
+      kind: HTTPServer
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+spec:
+  addr: ":50000"
+  httpConfig:
+    listenConfig:
+      tlsConfig:
+        certKeyPairs:
+          - certFile: ./pki/cert.pem # Set server cert.
+            keyFile: ./pki/key.pem # Set server key.
+  http2Config: {} # Needs this.
+  virtualHosts:
+    - handlers:
+        - handler:
+            apiVersion: core/v1
+            kind: ReverseProxyHandler
+
+---
+apiVersion: core/v1
+kind: ReverseProxyHandler
+spec:
+  roundTripper:
+    apiVersion: core/v1
+    kind: HTTPClient
+  loadBalancers:
+    - pathMatcher:
+        match: ""
+        matchType: Regex
+      upstreams:
+        - url: http://127.0.0.1:50051 # gRPC server is http.
+
+---
+apiVersion: core/v1
+kind: HTTPClient
+spec:
+  http2TransportConfig:
+    allowHTTP: true # Allow h2c.

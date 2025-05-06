@@ -1,0 +1,11 @@
+# https://taskfile.dev
+version: '3'
+vars:
+  EXAMPLE_DIR: "./_example/"
+tasks:
+  reverse-proxy:
+    dir: "{{.EXAMPLE_DIR}}reverse-proxy/"
+    cmds: ["task"]
+  vanilla-server:
+    # dir: "{{.EXAMPLE_DIR}}vanilla-server/"
+    cmds: ["task -t {{.EXAMPLE_DIR}}vanilla-server/"]

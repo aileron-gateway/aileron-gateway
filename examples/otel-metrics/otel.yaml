@@ -1,0 +1,20 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: :4317
+      http:
+        endpoint: :4318
+processors:
+  batch:
+exporters:
+  prometheus:
+    endpoint: :8889
+  debug:
+    verbosity: detailed
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug,prometheus]

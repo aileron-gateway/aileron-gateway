@@ -1,0 +1,10 @@
+version: '3'
+env:
+  AILERON_CMD: "./aileron"
+tasks:
+  default:
+    deps: ["upstream", "server"]
+  server:
+    cmd: "{{.AILERON_CMD}} -f ./config.yaml"
+  upstream:
+    cmd: "go run ./server.go"

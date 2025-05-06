@@ -12,12 +12,12 @@ message Entrypoint {
     // [REQUIRED]
     // APIVersion is the defined version of the service.
     // This value must be "core/v1".
-    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "core/v1"];
+    string APIVersion = 1 [json_name = "apiVersion"];
 
     // [REQUIRED]
     // Kind is the kind of this object.
     // This value must be "Entrypoint".
-    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "Entrypoint"];
+    string Kind = 2 [json_name = "kind"];
 
     // [OPTIONAL]
     // Metadata is the metadata of the entrypoint object.
@@ -37,16 +37,17 @@ message EntrypointSpec {
     // DefaultLogger is the reference to a Logger object
     // that will be used from other resources by default.
     // Object must implement Logger interface.
-    // Default Logger is used when not set.
+    // If not set, pre-defined logger is used.
+    // Default is not set.
     kernel.Reference DefaultLogger = 1 [json_name = "defaultLogger"];
 
     // [OPTIONAL]
-    // Loggers is the list of references to Logger objects.
-    // The specified loggers can be referred from other resources
+    // Loggers is the list of references to logger objects.
+    // Specified loggers can be referred from other resources
     // by the name "<group>/<version>/<kind>/<namespace>/<name>"
     // from their metadata field
     // for example "core/v1/SLogger/myNamespace/myLogger".
-    // Objects must implement Logger interface.
+    // Objects must implement logger interface.
     // Default is not set.
     repeated kernel.Reference Loggers = 2 [json_name = "loggers"];
 

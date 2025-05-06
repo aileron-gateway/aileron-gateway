@@ -198,7 +198,7 @@ func (t *leakyBucket) leak() {
 		for i := 0; i < t.rate; i++ {
 			select {
 			case c := <-t.bucket:
-				close(c) // Accept.
+				c <- struct{}{} // Accept.
 			case <-ticker.C:
 				i = -1 // Reset the counter.
 			}
@@ -219,7 +219,6 @@ func (t *leakyBucket) accept(ctx context.Context) (bool, func()) {
 	case <-c:
 		return true, noopReleaser // Accepted.
 	case <-ctx.Done():
-		close(c)
 		return false, nil // Request canceled.
 	}
 }
