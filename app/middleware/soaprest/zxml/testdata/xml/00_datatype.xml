@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <primitive>
+    <xs:string>example text</xs:string>
+    <xs:boolean>true</xs:boolean>
+    <xs:decimal>1234567890.123456789012345678901234567890</xs:decimal>
+    <xs:float>1234567890.1234567890</xs:float>
+    <xs:double>1.234567890e100</xs:double>
+    <xs:duration>P1Y2M3DT4H5M6.7S</xs:duration>
+    <xs:dateTime>2006-01-02T15:04:05Z</xs:dateTime>
+    <xs:time>15:04:05Z</xs:time>
+    <xs:date>2006-01-02</xs:date>
+    <xs:gYearMonth>2006-01</xs:gYearMonth>
+    <xs:gYear>2006</xs:gYear>
+    <xs:gMonthDay>--01-02</xs:gMonthDay>
+    <xs:gDay>---02</xs:gDay>
+    <xs:gMonth>--01</xs:gMonth>
+    <xs:hexBinary>5468697320697320612074657374</xs:hexBinary>
+    <xs:base64Binary>VGhpcyBpcyBhIHRlc3Q=</xs:base64Binary>
+    <xs:anyURI>https://example.com</xs:anyURI>
+    <xs:QName>ns:elementName</xs:QName>
+    <xs:NOTATION>myNotation</xs:NOTATION>
+  </primitive>
+  <derived>
+    <xs:normalizedString>normalized text</xs:normalizedString>
+    <xs:token>tokenized text</xs:token>
+    <xs:language>en-US</xs:language>
+    <xs:NMTOKEN>token123</xs:NMTOKEN>
+    <xs:NMTOKENS>token123 token456</xs:NMTOKENS>
+    <xs:Name>MyName</xs:Name>
+    <xs:NCName>My_NCName</xs:NCName>
+    <xs:ID>id123</xs:ID>
+    <xs:IDREF>id123</xs:IDREF>
+    <xs:IDREFS>id123 id456</xs:IDREFS>
+    <xs:ENTITY>entity123</xs:ENTITY>
+    <xs:ENTITIES>entity123 entity456</xs:ENTITIES>
+    <xs:integer>1234567890</xs:integer>
+    <xs:nonPositiveInteger>-1</xs:nonPositiveInteger>
+    <xs:negativeInteger>-999</xs:negativeInteger>
+    <xs:long>9223372036854775807</xs:long>
+    <xs:int>2147483647</xs:int>
+    <xs:short>32767</xs:short>
+    <xs:byte>127</xs:byte>
+    <xs:nonNegativeInteger>0</xs:nonNegativeInteger>
+    <xs:unsignedLong>18446744073709551615</xs:unsignedLong>
+    <xs:unsignedInt>4294967295</xs:unsignedInt>
+    <xs:unsignedShort>65535</xs:unsignedShort>
+    <xs:unsignedByte>255</xs:unsignedByte>
+    <xs:positiveInteger>1</xs:positiveInteger>
+  </derived>
+</root>

@@ -1,0 +1,173 @@
+syntax = "proto3";
+package app.v1;
+
+import "buf/validate/validate.proto";
+import "kernel/resource.proto";
+import "kernel/txtutil.proto";
+
+option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
+
+// SOAPRESTMiddleware is the definition of the SOAPRESTMiddleware object.
+// SOAPRESTMiddleware implements interface of the middleware.
+message SOAPRESTMiddleware {
+    // [REQUIRED]
+    // APIVersion is the defined version of the middleware.
+    // This value must be "app/v1".
+    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "app/v1"];
+
+    // [REQUIRED]
+    // Kind is the kind of this object.
+    // This value must be "SOAPRESTMiddleware".
+    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "SOAPRESTMiddleware"];
+
+    // [OPTIONAL]
+    // Metadata is the metadata of the http logger object.
+    // If not set, both name and namespace in the metadata
+    // are treated as "default".
+    kernel.Metadata Metadata = 3 [json_name = "metadata"];
+
+    // [OPTIONAL]
+    // Spec is the specification of the middleware.
+    // Default values are used when nothing is set.
+    SOAPRESTMiddlewareSpec Spec = 4 [json_name = "spec"];
+}
+
+// SOAPRESTMiddlewareSpec is the status of the SOAPRESTMiddleware object.
+// Values are managed by the application and therefore should not be set by users.
+message SOAPRESTMiddlewareSpec {
+    // [REQUIRED]
+    // Matcher is a matcher which matches to defined patterns.
+    // Default is not set.
+    kernel.MatcherSpec Matcher = 1 [json_name = "matcher", (buf.validate.field).required = true];
+
+    // [OPTIONAL]
+    // ErrorHandler is the reference to a ErrorHandler object.
+    // Referred object must implement ErrorHandler interface.
+    // Default error handler is used when not set.
+    kernel.Reference ErrorHandler = 2 [json_name = "errorHandler"];
+
+    // [OPTIONAL]
+    // Method is the conversion type between XML and JSON.
+    // Default is [Custom].
+    oneof Method {
+        SimpleMethodSpec     SimpleMethodSpec     = 3 [json_name = "simpleMethodSpec"];
+        RayfishMethodSpec    RayfishMethodSpec    = 4 [json_name = "rayfishMethodSpec"];
+        BadgerfishMethodSpec BadgerfishMethodSpec = 5 [json_name = "badgerfishMethodSpec"];
+    }
+}
+
+message SimpleMethodSpec {
+    // [OPTIONAL]
+    // TextKey is the json key name to store content of XML elements.
+    // TextKey should not be empty.
+    // Default is "$".
+    string TextKey = 1 [json_name = "textKey"];
+
+    // [OPTIONAL]
+    // AttrPrefix is the json key name prefix for XML attributes.
+    // Attribute names are stored in a json with this prefix.
+    // For example, XML attribute foo="" is converted into {"@foo": "bar"}
+    // AttrPrefix should not be empty.
+    // Default is "@".
+    string AttrPrefix = 2 [json_name = "attrPrefix"];
+
+    // [OPTIONAL]
+    // NamespaceSep is the name space separator.
+    // Namespace separator ":" in XML element names are converted into the specified string.
+    // Note that, general RayFish convention discard namespace information but this converter keep it.
+    // NamespaceSep should not be empty.
+    // Default is ":".
+    string NamespaceSep = 3 [json_name = "namespaceSep"];
+
+    // [OPTIONAL]
+    // TrimSpace if true, trims unicode space from xml text.
+    // See the [unicode.IsSpace] for space definition.
+    // This option is used in XML to JSON conversion.
+    // Default is false.
+    bool TrimSpace = 4 [json_name = "trimSpace"];
+
+    // [OPTIONAL]
+    // PreferShort if true, use short format.
+    // For XML to JSON conversion, if content has no attribute and no child elements,
+    // JSON will be {"key": "value"} rather than {"key": {"$": "value"}}.
+    // For JSON to XML conversion, JSON can always use {"key": "value"}
+    // and {"key": {"$": "value"}} expression without this configuration.
+    // This option is used in XML to JSON conversion.
+    // Default is false.
+    bool PreferShort = 5 [json_name = "preferShort"];
+}
+
+message RayfishMethodSpec {
+    // [OPTIONAL]
+    // NameKeys is the json key name to store XML element names.
+    // NameKey should not be empty.
+    // Default is "#name".
+    string NameKey = 1 [json_name = "nameKey"];
+
+    // [OPTIONAL]
+    // TextKey is the json key name to store content of XML elements.
+    // Typically "#text" is used.
+    // TextKey should not be empty.
+    // Default is "#text".
+    string TextKey = 2 [json_name = "textKey"];
+
+    // [OPTIONAL]
+    // ChildrenKey is the json key name to store attributes of a element and its child elements.
+    // ChildrenKey should not be empty.
+    // Default is "#children".
+    string ChildrenKey = 3 [json_name = "childrenKey"];
+
+    // [OPTIONAL]
+    // AttrPrefix is the json key name prefix for XML attributes.
+    // Attribute names are stored in a json with this prefix.
+    // For example, XML attribute foo="" is converted into {"@foo": "bar"}
+    // AttrPrefix should not be empty.
+    // Default is "@".
+    string AttrPrefix = 4 [json_name = "attrPrefix"];
+
+    // [OPTIONAL]
+    // NamespaceSep is the name space separator.
+    // Namespace separator ":" in XML element names are converted into the specified string.
+    // Note that, general RayFish convention discard namespace information but this converter keep it.
+    // NamespaceSep should not be empty.
+    // Default is ":".
+    string NamespaceSep = 5 [json_name = "namespaceSep"];
+
+    // [OPTIONAL]
+    // TrimSpace if true, trims unicode space from xml text.
+    // See the [unicode.IsSpace] for space definition.
+    // This option is used in XML to JSON conversion.
+    // Default is false.
+    bool TrimSpace = 6 [json_name = "trimSpace"];
+}
+
+message BadgerfishMethodSpec {
+    // [OPTIONAL]
+    // TextKey is the json key name to store content of XML elements.
+    // TextKey should not be empty.
+    // Default is "#text".
+    string TextKey = 1 [json_name = "textKey"];
+
+    // [OPTIONAL]
+    // AttrPrefix is the json key name prefix for XML attributes.
+    // Attribute names are stored in a json with this prefix.
+    // For example, XML attribute foo="" is converted into {"@foo": "bar"}
+    // AttrPrefix should not be empty.
+    // Default is "@".
+    string AttrPrefix = 2 [json_name = "attrPrefix"];
+
+    // [OPTIONAL]
+    // NamespaceSep is the name space separator.
+    // Namespace separator ":" in XML element names are converted into the specified string.
+    // Note that, general RayFish convention discard namespace information but this converter keep it.
+    // NamespaceSep should not be empty.
+    // Default is ":".
+    string NamespaceSep = 3 [json_name = "namespaceSep"];
+
+    // [OPTIONAL]
+    // TrimSpace if true, trims unicode space from xml text.
+    // See the [unicode.IsSpace] for space definition.
+    // This option is used in XML to JSON conversion.
+    // Default is false.
+    bool TrimSpace = 4 [json_name = "trimSpace"];
+}

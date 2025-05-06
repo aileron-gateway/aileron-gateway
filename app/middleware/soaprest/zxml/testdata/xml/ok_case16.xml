@@ -1,0 +1,6 @@
+<!-- Attribute has non-default namespace -->
+<alice>
+  <ns:bob xmlns:ns="http://xyz.com/" ns:foo="bar">
+    <ns:david>edgar</ns:david>
+  </ns:bob>
+</alice>

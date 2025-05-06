@@ -1,0 +1,31 @@
+name: Example Test
+
+on:
+  workflow_dispatch: {}
+  workflow_call: {}
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}-latest
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        os:
+          - ubuntu
+          # - windows
+          - macos
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: make example
+        run: |
+          set +o pipefail
+          make example 2>&1 | tee _output/example-test.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: example-test-${{ matrix.os }}
+          path: _output/**
+          retention-days: 7

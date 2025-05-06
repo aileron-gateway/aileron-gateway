@@ -1,0 +1,6 @@
+{
+  "alice": {
+    "bob": [{ "$": "charlie" }, { "$": "edgar" }],
+    "david": { "$": "edgar" }
+  }
+}

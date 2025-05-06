@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <soap:Header>
+    <auth:Authentication xmlns:auth="http://example.com/auth">
+      <auth:Username>user</auth:Username>
+      <auth:Password>pass</auth:Password>
+    </auth:Authentication>
+  </soap:Header>
+  <soap:Body>
+    <m:GetUserInfo xmlns:m="http://example.com/user">
+      <m:UserId>12345</m:UserId>
+    </m:GetUserInfo>
+  </soap:Body>
+</soap:Envelope>

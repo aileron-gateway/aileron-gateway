@@ -23,6 +23,7 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/app/middleware/header"
 	"github.com/aileron-gateway/aileron-gateway/app/middleware/headercert"
 	"github.com/aileron-gateway/aileron-gateway/app/middleware/session"
+	"github.com/aileron-gateway/aileron-gateway/app/middleware/soaprest"
 	"github.com/aileron-gateway/aileron-gateway/app/middleware/throttle"
 	"github.com/aileron-gateway/aileron-gateway/app/middleware/timeout"
 	"github.com/aileron-gateway/aileron-gateway/app/middleware/tracking"
@@ -84,6 +85,7 @@ func RegisterAll(r Registerer) {
 	_ = r.Register(redis.Key, redis.Resource)
 	_ = r.Register(session.Key, session.Resource)
 	_ = r.Register(skipper.Key, skipper.Resource)
+	_ = r.Register(soaprest.Key, soaprest.Resource)
 	_ = r.Register(throttle.Key, throttle.Resource)
 	_ = r.Register(timeout.Key, timeout.Resource)
 	_ = r.Register(tracking.Key, tracking.Resource)

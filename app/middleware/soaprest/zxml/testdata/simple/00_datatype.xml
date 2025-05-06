@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <primitive>
+    <xs:base64Binary>VGhpcyBpcyBhIHRlc3Q=</xs:base64Binary>
+    <xs:boolean>true</xs:boolean>
+    <xs:hexBinary>5468697320697320612074657374</xs:hexBinary>
+    <xs:NOTATION>myNotation</xs:NOTATION>
+    <xs:gDay>---02</xs:gDay>
+    <xs:string>example text</xs:string>
+    <xs:duration>P1Y2M3DT4H5M6.7S</xs:duration>
+    <xs:double>1.234567890e100</xs:double>
+    <xs:gMonthDay>--01-02</xs:gMonthDay>
+    <xs:QName>ns:elementName</xs:QName>
+    <xs:dateTime>2006-01-02T15:04:05Z</xs:dateTime>
+    <xs:decimal>1234567890.123456789012345678901234567890</xs:decimal>
+    <xs:float>1234567890.1234567890</xs:float>
+    <xs:gMonth>--01</xs:gMonth>
+    <xs:gYear>2006</xs:gYear>
+    <xs:time>15:04:05Z</xs:time>
+    <xs:anyURI>https://example.com</xs:anyURI>
+    <xs:date>2006-01-02</xs:date>
+    <xs:gYearMonth>2006-01</xs:gYearMonth>
+  </primitive>
+  <derived>
+    <xs:normalizedString>normalized text</xs:normalizedString>
+    <xs:positiveInteger>1</xs:positiveInteger>
+    <xs:unsignedByte>255</xs:unsignedByte>
+    <xs:long>9223372036854775807</xs:long>
+    <xs:integer>1234567890</xs:integer>
+    <xs:negativeInteger>-999</xs:negativeInteger>
+    <xs:Name>MyName</xs:Name>
+    <xs:NCName>My_NCName</xs:NCName>
+    <xs:NMTOKEN>token123</xs:NMTOKEN>
+    <xs:language>en-US</xs:language>
+    <xs:unsignedLong>18446744073709551615</xs:unsignedLong>
+    <xs:unsignedShort>65535</xs:unsignedShort>
+    <xs:token>tokenized text</xs:token>
+    <xs:NMTOKENS>token123 token456</xs:NMTOKENS>
+    <xs:nonNegativeInteger>0</xs:nonNegativeInteger>
+    <xs:ENTITIES>entity123 entity456</xs:ENTITIES>
+    <xs:short>32767</xs:short>
+    <xs:IDREF>id123</xs:IDREF>
+    <xs:nonPositiveInteger>-1</xs:nonPositiveInteger>
+    <xs:ID>id123</xs:ID>
+    <xs:IDREFS>id123 id456</xs:IDREFS>
+    <xs:unsignedInt>4294967295</xs:unsignedInt>
+    <xs:ENTITY>entity123</xs:ENTITY>
+    <xs:byte>127</xs:byte>
+    <xs:int>2147483647</xs:int>
+  </derived>
+</root>

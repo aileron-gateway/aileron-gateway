@@ -1,0 +1,13 @@
+{
+  "alice": {
+    "ns:bob": {
+      "@ns:foo": "bar",
+      "@xmlns": { "ns": "http://abc.com/" },
+      "ns:david": {
+        "$": "edgar",
+        "@ns:foo": "bar",
+        "@xmlns": { "ns": "http://xyz.com/" }
+      }
+    }
+  }
+}
