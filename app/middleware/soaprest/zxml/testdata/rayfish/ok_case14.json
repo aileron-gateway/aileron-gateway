@@ -1,0 +1,14 @@
+{
+  "#children": [
+    {
+      "#children": [
+        { "#children": [], "#name": "@xmlns", "#text": "http://abc.com/" },
+        { "#children": [], "#name": "david", "#text": "edgar" }
+      ],
+      "#name": "bob",
+      "#text": ""
+    }
+  ],
+  "#name": "alice",
+  "#text": ""
+}

@@ -1,0 +1,7 @@
+{
+  "alice": {
+    "@xmlns": { "$": "http://abc.com/" },
+    "bob": { "$": "charlie" },
+    "david": { "$": "edgar" }
+  }
+}

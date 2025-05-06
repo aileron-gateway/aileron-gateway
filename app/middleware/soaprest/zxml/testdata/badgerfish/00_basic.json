@@ -1,0 +1,31 @@
+{
+  "root": {
+    "@enabled": "true",
+    "@version": "1.0",
+    "@xmlns": { "xsi": "http://www.w3.org/2001/XMLSchema-instance" },
+    "@xsi:noNamespaceSchemaLocation": "sample.xsd",
+    "elementWithAttributes": {
+      "@flag": "true",
+      "@id": "123",
+      "@type": "example"
+    },
+    "emptyElement": {},
+    "items": {
+      "item": [
+        { "$": "This is item3.", "@id": "1" },
+        { "$": "This is item2.", "@id": "2" },
+        { "$": "This is item3.", "@id": "3" }
+      ]
+    },
+    "mixed": { "$": "This element containsin it.", "b": { "$": "bold text" } },
+    "ns:element": {
+      "$": "namespace element",
+      "@xmlns": { "ns": "http://example.com/ns" }
+    },
+    "parent": {
+      "child": { "grandchild": { "$": "text", "@attribute": "value" } }
+    },
+    "script": { "$": "function test() { alert(\"JavaScript\"); }" },
+    "simpleElement": { "$": "text" }
+  }
+}

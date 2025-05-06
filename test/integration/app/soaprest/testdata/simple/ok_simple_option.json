@@ -1,0 +1,35 @@
+{
+    "soap:Envelope": {
+        "@xmlns:soap": "http://schemas.xmlsoap.org/soap/envelope/",
+        "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+        "soap:Body": {
+            "TestOptionsRequest": {
+                "htmlSection": {
+                    "content": {
+                        "$": "<div id=\"test\">Value & Name</div>"
+                    },
+                    "script": {
+                        "$": "if (x < 10 && y > 20) { return true; }"
+                    }
+                },
+                "numberSection": {
+                    "decimal": {
+                        "$": "3.1415926535897932384626433832795"
+                    },
+                    "infinity": {
+                        "$": "INF"
+                    },
+                    "integer": {
+                        "$": "12345"
+                    },
+                    "scientific": {
+                        "$": "1.23e+20"
+                    }
+                }
+            }
+        },
+        "soap:Header": {
+            "$": ""
+        }
+    }
+}

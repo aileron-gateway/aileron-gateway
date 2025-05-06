@@ -1,0 +1,131 @@
+{
+  "#children": [
+    {
+      "#children": [],
+      "#name": "@xmlns:env",
+      "#text": "http://www.w3.org/2003/05/soap-envelope"
+    },
+    {
+      "#children": [
+        {
+          "#children": [
+            {
+              "#children": [],
+              "#name": "@xmlns:m",
+              "#text": "http://travelcompany.example.org/reservation"
+            },
+            {
+              "#children": [],
+              "#name": "@env:role",
+              "#text": "http://www.w3.org/2003/05/soap-envelope/role/next"
+            },
+            {
+              "#children": [],
+              "#name": "m:reference",
+              "#text": "uuid:093a2da1-q345-739r-ba5d-pqff98fe8j7d"
+            },
+            {
+              "#children": [],
+              "#name": "m:dateAndTime",
+              "#text": "2007-11-29T13:20:00.000-05:00"
+            }
+          ],
+          "#name": "m:reservation",
+          "#text": ""
+        },
+        {
+          "#children": [
+            {
+              "#children": [],
+              "#name": "@xmlns:n",
+              "#text": "http://mycompany.example.com/employees"
+            },
+            {
+              "#children": [],
+              "#name": "@env:role",
+              "#text": "http://www.w3.org/2003/05/soap-envelope/role/next"
+            },
+            { "#children": [], "#name": "n:name", "#text": "Fred Bloggs" }
+          ],
+          "#name": "n:passenger",
+          "#text": ""
+        }
+      ],
+      "#name": "env:Header",
+      "#text": ""
+    },
+    {
+      "#children": [
+        {
+          "#children": [
+            {
+              "#children": [],
+              "#name": "@xmlns:p",
+              "#text": "http://travelcompany.example.org/reservation/travel"
+            },
+            {
+              "#children": [
+                {
+                  "#children": [],
+                  "#name": "p:departing",
+                  "#text": "New York"
+                },
+                {
+                  "#children": [],
+                  "#name": "p:arriving",
+                  "#text": "Los Angeles"
+                },
+                {
+                  "#children": [],
+                  "#name": "p:departureDate",
+                  "#text": "2007-12-14"
+                },
+                {
+                  "#children": [],
+                  "#name": "p:departureTime",
+                  "#text": "late afternoon"
+                },
+                {
+                  "#children": [],
+                  "#name": "p:seatPreference",
+                  "#text": "aisle"
+                }
+              ],
+              "#name": "p:departure",
+              "#text": ""
+            },
+            {
+              "#children": [
+                {
+                  "#children": [],
+                  "#name": "p:departing",
+                  "#text": "Los Angeles"
+                },
+                { "#children": [], "#name": "p:arriving", "#text": "New York" },
+                {
+                  "#children": [],
+                  "#name": "p:departureDate",
+                  "#text": "2007-12-20"
+                },
+                {
+                  "#children": [],
+                  "#name": "p:departureTime",
+                  "#text": "mid-morning"
+                },
+                { "#children": [], "#name": "p:seatPreference", "#text": "" }
+              ],
+              "#name": "p:return",
+              "#text": ""
+            }
+          ],
+          "#name": "p:itinerary",
+          "#text": ""
+        }
+      ],
+      "#name": "env:Body",
+      "#text": ""
+    }
+  ],
+  "#name": "env:Envelope",
+  "#text": ""
+}

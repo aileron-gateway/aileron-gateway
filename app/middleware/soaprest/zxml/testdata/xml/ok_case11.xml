@@ -1,0 +1,6 @@
+<!-- An element with children -->
+<alice>
+  <bob>charlie</bob>
+  <david>edgar</david>
+  <bob>edgar</bob>
+</alice>

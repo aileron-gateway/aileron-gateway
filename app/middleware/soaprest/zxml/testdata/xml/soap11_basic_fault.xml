@@ -1,0 +1,16 @@
+<!-- SOAP1.1 basic soap fault structure -->
+<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope
+  xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Body>
+    <soap:Fault>
+      <faultcode>soap:Client</faultcode>
+      <faultstring>Invalid User ID</faultstring>
+      <faultactor>http://example.com/api</faultactor>
+      <detail>
+        <errorcode>USR_001</errorcode>
+        <errormessage>User ID must be numeric</errormessage>
+      </detail>
+    </soap:Fault>
+  </soap:Body>
+</soap:Envelope>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root enabled="true" version="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:noNamespaceSchemaLocation="sample.xsd">
+  <ns:element xmlns:ns="http://example.com/ns">namespace element</ns:element>
+  <parent>
+    <child>
+      <grandchild attribute="value">text</grandchild>
+    </child>
+  </parent>
+  <script>function test() { alert(&#34;JavaScript&#34;); }</script>
+  <elementWithAttributes flag="true" id="123" type="example"></elementWithAttributes>
+  <emptyElement></emptyElement>
+  <mixed>This element containsin it.<b>bold text</b></mixed>
+  <simpleElement>text</simpleElement>
+  <items>
+    <item id="1">This is item3.</item>
+    <item id="2">This is item2.</item>
+    <item id="3">This is item3.</item>
+  </items>
+</root>
