@@ -11,8 +11,7 @@ kind: HTTPServer
 spec:
   addr: ":8080"
   virtualHosts:
-    - hosts: []
-      middleware:
+    - middleware:
         - apiVersion: app/v1
           kind: TrackingMiddleware
       handlers:

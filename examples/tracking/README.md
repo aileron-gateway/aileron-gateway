@@ -1,17 +1,18 @@
-# Reverse Proxy
+# Tracking Middleware
 
 ## Overview
 
-This example runs a reverse-proxy server.
-A revere-proxy server, which is the very basic feature in API Gateways, proxy requests from client to upstream services.
+This example runs a reverse-proxy server with tracking middleware.
+Tracking middleware have ability to handle request IDs and tracing IDs.
 
 ```mermaid
 block-beta
-  columns 6
+  columns 7
   Downstream:1
   space:1
-  block:aileron:2
+  block:aileron:3
     HTTPServer["🟪</br>HTTP</br>Server"]
+    TrackingMiddleware["🟩</br>Tracking</br>Middleware"]
     ReverseProxyHandler["🟥</br>ReverseProxy</br>Handler"]
   end
   space:1
@@ -24,6 +25,7 @@ block-beta
 
   style Downstream stroke:#888
   style Upstream stroke:#888
+  style TrackingMiddleware stroke:#77dd77,stroke-width:2px
   style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
 ```
 
@@ -36,11 +38,11 @@ block-beta
 
 In this example, following directory structure and files are supposed.
 
-Resources are available at [examples/reverse-proxy/](https://github.com/aileron-gateway/aileron-gateway/tree/main/examples/reverse-proxy).
+Resources are available at [examples/tracking/](https://github.com/aileron-gateway/aileron-gateway/tree/main/examples/tracking).
 If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt
-reverse-proxy/     ----- Working directory.
+tracking/          ----- Working directory.
 ├── aileron        ----- AILERON Gateway binary (aileron.exe on windows).
 ├── config.yaml    ----- AILERON Gateway config file.
 └── Taskfile.yaml  ----- (Optional) Config file for the go-task.
@@ -66,7 +68,10 @@ kind: HTTPServer
 spec:
   addr: ":8080"
   virtualHosts:
-    - handlers:
+    - middleware:
+        - apiVersion: app/v1
+          kind: TrackingMiddleware
+      handlers:
         - handler:
             apiVersion: core/v1
             kind: ReverseProxyHandler
@@ -81,13 +86,21 @@ spec:
         matchType: Prefix
       upstreams:
         - url: http://httpbin.org
+
+---
+apiVersion: app/v1
+kind: TrackingMiddleware
+spec:
+  requestIDProxyName: X-Aileron-Request-ID
+  traceIDProxyName: X-Aileron-Trace-ID
 ```
 
 The config tells:
 
 - Start a `HTTPServer` with port 8080.
-- ReverseProxy is applied for the path having prefix `/`.
-- Upstream service is [http://httpbin.org](http://httpbin.org).
+- ReverseProxy is registered to the server (all paths match).
+- Apply tracking middleware to the proxy.
+- Proxy upstream is [http://httpbin.org](http://httpbin.org).
 
 This graph shows the resource dependencies of the configuration.
 
@@ -95,12 +108,15 @@ This graph shows the resource dependencies of the configuration.
 graph TD
   Entrypoint["🟪 **Entrypoint**</br>default/default"]
   HTTPServer["🟪 **HTTPServer**</br>default/default"]
+  TrackingMiddleware["🟩 **TrackingMiddleware**</br>default/default"]
   ReverseProxyHandler["🟥 **ReverseProxyHandler**</br>default/default"]
 
   Entrypoint --> HTTPServer
   HTTPServer --> ReverseProxyHandler
+  HTTPServer --> TrackingMiddleware
   ReverseProxyHandler
 
+  style TrackingMiddleware stroke:#77dd77,stroke-width:2px
   style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
 ```
 
@@ -129,9 +145,14 @@ task AILERON_CMD="./path/to/aileron/binary"
 
 ## Check
 
-After running a reverse-proxy server, send HTTP requests to it.
+After running a reverse-proxy server with tracking middleware, send HTTP requests to it.
 
 A json response will be returned when the reverse-proxy server is correctly running.
+
+We can check
+
+- `X-Aileron-Request-Id` is added to the proxy request.
+- `X-Aileron-Trace-Id` is added to the proxy request.
 
 ```bash
 $ curl http://localhost:8080/get
@@ -141,34 +162,12 @@ $ curl http://localhost:8080/get
     "Accept": "*/*",
     "Host": "httpbin.org",
     "User-Agent": "curl/7.68.0",
-    "X-Amzn-Trace-Id": "Root=1-68146a36-66235c683c6d7ae90b60c969",
+    "X-Aileron-Request-Id": "00338GYPDSUVFQ4KRDD6QVX8VPH9UVGHRG5QNZZBH2V9Y0XN",
+    "X-Aileron-Trace-Id": "00338GYPDSUVFQ4KRDD6QVX8VPH9UVGHRG5QNZZBH2V9Y0XN",
+    "X-Amzn-Trace-Id": "Root=1-681623e8-0f9880644a116cbe4ee1db61",
     "X-Forwarded-Host": "localhost:8080"
   },
   "origin": "127.0.0.1, 106.73.5.65",
   "url": "http://localhost:8080/get"
 }
 ```
-
-## Additional resources
-
-Here's the some nice apis that can be used for testing.
-
-**Available with NO configuration.**
-
-- [http://httpbin.org/](http://httpbin.org/)
-- [http://worldtimeapi.org](http://worldtimeapi.org)
-- [http://ipconfig.io](http://ipconfig.io)
-- [http://ifconfig.io](http://ifconfig.io)
-- [http://ifconfig.io](http://ifconfig.io)
-- [http://sse.dev/](http://sse.dev/)
-
-**Available after configuration.**
-
-- [https://mockbin.io/](https://mockbin.io/)
-- [https://httpdump.app/](https://httpdump.app/)
-- [https://webhook.site/](https://webhook.site/)
-- [https://beeceptor.com/](https://beeceptor.com/)
-
-**Local mock server.**
-
-- [https://github.com/fortio/fortio](https://github.com/fortio/fortio)

@@ -3,28 +3,28 @@
 ## Overview
 
 This example runs a vanilla server.
-A vanilla-server does not have any features but returns 404 NotFound.
+A vanilla-server does not have any feature but returns 404 NotFound.
+
+AILERON Gateway supports running multiple servers in a single process.
 
 ```mermaid
 block-beta
-  columns 6
+  columns 3
   Downstream:1
   space:1
-  block:aileron:2
-    HTTPServer["🟪</br>HTTP</br>Server"]
-    ReverseProxyHandler["🟥</br>ReverseProxy</br>Handler"]
+  block:aileron:1
+    columns 1
+    HTTPServer1["🟪</br>HTTP</br>Server"]
+    ︙
+    HTTPServer2["🟪</br>HTTP</br>Server"]
   end
-  space:1
-  Upstream:1
 
-  Downstream --> HTTPServer
-  HTTPServer --> Downstream
-  Upstream --> ReverseProxyHandler
-  ReverseProxyHandler --> Upstream
+  Downstream --> HTTPServer1
+  HTTPServer1 --> Downstream
+    Downstream --> HTTPServer2
+  HTTPServer2 --> Downstream
 
   style Downstream stroke:#888
-  style Upstream stroke:#888
-  style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
 ```
 
 **Legend**:
@@ -36,22 +36,24 @@ block-beta
 
 In this example, following directory structure and files are supposed.
 
-Resources are available at [_example/reverse-proxy/](https://github.com/aileron-gateway/aileron-gateway/tree/main/_example/reverse-proxy).
+Resources are available at [examples/vanilla-server/](https://github.com/aileron-gateway/aileron-gateway/tree/main/examples/vanilla-server).
 If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt
-reverse-proxy/     ----- Working directory.
-├── aileron        ----- AILERON Gateway binary (aileron.exe on windows).
-├── config.yaml    ----- AILERON Gateway config file.
-└── Taskfile.yaml  ----- (Optional) Config file for the go-task.
+vanilla-server/           ----- Working directory.
+├── aileron               ----- AILERON Gateway binary (aileron.exe on windows).
+├── config-single.yaml    ----- AILERON Gateway config file for single server.
+├── config-multiple.yaml  ----- AILERON Gateway config file for multiple servers.
+└── Taskfile.yaml         ----- (Optional) Config file for the go-task.
 ```
 
 ## Config
 
-Configuration yaml to run a reverse-proxy server would becomes as follows.
+Configuration yaml to run multiple vanilla servers would becomes as follows.
+Config for a single server would be more simple than this (See the config-single.yaml).
 
 ```yaml
-# config.yaml
+# config-multiple.yaml
 
 apiVersion: core/v1
 kind: Entrypoint
@@ -59,63 +61,71 @@ spec:
   runners:
     - apiVersion: core/v1
       kind: HTTPServer
+      name: server1
+    - apiVersion: core/v1
+      kind: HTTPServer
+      name: server2
+    - apiVersion: core/v1
+      kind: HTTPServer
+      name: server3
 
 ---
 apiVersion: core/v1
 kind: HTTPServer
+metadata:
+  name: server1
 spec:
-  addr: ":8080"
-  virtualHosts:
-    - handlers:
-        - handler:
-            apiVersion: core/v1
-            kind: ReverseProxyHandler
+  addr: ":8081"
 
 ---
 apiVersion: core/v1
-kind: ReverseProxyHandler
+kind: HTTPServer
+metadata:
+  name: server2
 spec:
-  loadBalancers:
-    - pathMatcher:
-        match: "/"
-        matchType: Prefix
-      upstreams:
-        - url: http://httpbin.org
+  addr: ":8082"
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+metadata:
+  name: server3
+spec:
+  addr: ":8083"
 ```
 
 The config tells:
 
-- Start a `HTTPServer` with port 8080.
-- ReverseProxy is applied for the path having prefix `/`.
-- Upstream service is [http://httpbin.org](http://httpbin.org).
+- Start 3 `HTTPServer` with port 8081, 8082 and 8083.
+- Each server has their name `server1`, `server2` and `server3`.
+- No other features are applied.
 
 This graph shows the resource dependencies of the configuration.
 
 ```mermaid
 graph TD
   Entrypoint["🟪 **Entrypoint**</br>default/default"]
-  HTTPServer["🟪 **HTTPServer**</br>default/default"]
-  ReverseProxyHandler["🟥 **ReverseProxyHandler**</br>default/default"]
+  HTTPServer1["🟪 **HTTPServer**</br>default/server1"]
+  HTTPServer2["🟪 **HTTPServer**</br>default/server2"]
+  HTTPServer3["🟪 **HTTPServer**</br>default/server3"]
 
-  Entrypoint --> HTTPServer
-  HTTPServer --> ReverseProxyHandler
-  ReverseProxyHandler
-
-  style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
+  Entrypoint --> HTTPServer1
+  Entrypoint --> HTTPServer2
+  Entrypoint --> HTTPServer3
 ```
 
 ## Run
 
-### (Option 1) Run the binary directly
+### (Option 1) Directory run the binary
 
 ```bash
-./aileron -f ./config.yaml
+./aileron -f ./config-multiple.yaml
 ```
 
-### (Option 1) Run using taskfile
+### (Option 2) Use taskfile
 
-`Taskfile.yaml` is exist in the [_example/reverse-proxy/](https://github.com/aileron-gateway/aileron-gateway/tree/main/_example/reverse-proxy) for convenience.
-The example can be run using [go-task](https://taskfile.dev/) just running the following command.
+`Taskfile.yaml` is available to run the example.
+Install [go-task](https://taskfile.dev/) and run the following command.
 
 ```bash
 task
@@ -127,50 +137,24 @@ or with arbitrary binary path.
 task AILERON_CMD="./path/to/aileron/binary"
 ```
 
-Defined tasks:
-
-- `task`: Alias for the `task single`.
-- `task single`: Runs `config-single.yaml`.
-- `task multiple`: Runs `config-multiple.yaml`.
-
 ## Check
 
-After running a reverse-proxy server, send HTTP requests to it.
+After running servers, send HTTP requests to it.
 
-A json response will be returned when the reverse-proxy server is correctly running.
+A json response will be returned when the vanilla servers are correctly running.
+Note that the vanilla servers returns **404 NotFound** because no handlers are registered to them.
 
 ```bash
-$ curl http://localhost:8080/get
-{
-  "args": {},
-  "headers": {
-    "Accept": "*/*",
-    "Host": "httpbin.org",
-    "User-Agent": "curl/7.68.0",
-    "X-Amzn-Trace-Id": "Root=1-68146a36-66235c683c6d7ae90b60c969",
-    "X-Forwarded-Host": "localhost:8080"
-  },
-  "origin": "127.0.0.1, 106.73.5.65",
-  "url": "http://localhost:8080/get"
-}
+$ curl http://localhost:8081
+{"status":404,"statusText":"Not Found"}
 ```
 
-## Additional resources
+```bash
+$ curl http://localhost:8082
+{"status":404,"statusText":"Not Found"}
+```
 
-Here's the some nice apis that can be used for testing.
-
-**Available with NO configuration.**
-
-- [http://httpbin.org/](http://httpbin.org/)
-- [http://worldtimeapi.org](http://worldtimeapi.org)
-- [http://ipconfig.io](http://ipconfig.io)
-- [http://ifconfig.io](http://ifconfig.io)
-- [http://ifconfig.io](http://ifconfig.io)
-- [http://sse.dev/](http://sse.dev/)
-
-**Available after configuration.**
-
-- [https://mockbin.io/](https://mockbin.io/)
-- [https://httpdump.app/](https://httpdump.app/)
-- [https://webhook.site/](https://webhook.site/)
-- [https://beeceptor.com/](https://beeceptor.com/)
+```bash
+$ curl http://localhost:8083
+{"status":404,"statusText":"Not Found"}
+```

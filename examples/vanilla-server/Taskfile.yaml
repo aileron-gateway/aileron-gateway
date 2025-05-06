@@ -3,7 +3,7 @@ env:
   AILERON_CMD: "./aileron"
 tasks:
   default:
-    deps: ["single"]
+    deps: ["multiple"]
   single:
     cmd: "{{.AILERON_CMD}} -f ./config-single.yaml"
   multiple:
