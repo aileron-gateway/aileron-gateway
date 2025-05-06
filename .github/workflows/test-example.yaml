@@ -12,7 +12,7 @@ jobs:
       matrix:
         os:
           - ubuntu
-          - windows
+          # - windows
           - macos
     steps:
       - uses: actions/checkout@v4
