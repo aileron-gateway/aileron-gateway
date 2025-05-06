@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The AILERON Gateway Authors
+
 package zxml
 
 import (
@@ -58,20 +61,6 @@ func (r *RayFish) Encode(encoder *xml.Encoder, obj map[string]any) error {
 	return encoder.Flush()
 }
 
-// parseItems parses name, text and children.
-// By default, it raises an error if undefined JSON key found.
-// Use [RayFish.IgnoreUnusedKey] to ignore unknown, or unused JSON key.
-//
-// The input obj structure must follows:
-//
-//	map[string]any{
-//		"#name": "alice", -----| Cannot omit. Must be string. [RayFish.NameKey] is used to extract.
-//		"#text": "bob",   -----| Can omit. Any types. Nil if not exists. [RayFish.TextKey] is used to extract.
-//		"#children": [    -----| Can omit. Must be []any. Nil if not exists. [RayFish.ChildrenKey] is used to extract.
-//			......
-//		],
-//		"#unknown": "mallory", ---| Other keys are error by default. Use [RayFish.IgnoreUnusedKey] to ignore.
-//	}
 func (r *RayFish) parseItems(obj map[string]any) (name string, text any, children []any, err error) {
 	var ok bool
 	for k, v := range obj {

@@ -45,12 +45,11 @@ func (s *API) Default() protoreflect.ProtoMessage {
 			Matcher: &kernel.MatcherSpec{Patterns: nil, MatchType: kernel.MatchType_Exact},
 			Method: &v1.SOAPRESTMiddlewareSpec_SimpleMethodSpec{
 				SimpleMethodSpec: &v1.SimpleMethodSpec{
-					TextKey:         "$",
-					AttrPrefix:      "@",
-					NamespaceSep:    ":",
-					TrimSpace:       false,
-					PreferShort:     false,
-					IgnoreUnusedKey: false,
+					TextKey:      "$",
+					AttrPrefix:   "@",
+					NamespaceSep: ":",
+					TrimSpace:    false,
+					PreferShort:  false,
 				},
 			},
 		},
