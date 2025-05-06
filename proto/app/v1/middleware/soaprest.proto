@@ -35,28 +35,23 @@ message SOAPRESTMiddleware {
 // SOAPRESTMiddlewareSpec is the status of the SOAPRESTMiddleware object.
 // Values are managed by the application and therefore should not be set by users.
 message SOAPRESTMiddlewareSpec {
-    // [REQUIRED]
-    // Matcher is a matcher which matches to defined patterns.
-    // Default is not set.
-    kernel.MatcherSpec Matcher = 1 [json_name = "matcher", (buf.validate.field).required = true];
-
     // [OPTIONAL]
     // ErrorHandler is the reference to a ErrorHandler object.
     // Referred object must implement ErrorHandler interface.
     // Default error handler is used when not set.
-    kernel.Reference ErrorHandler = 2 [json_name = "errorHandler"];
+    kernel.Reference ErrorHandler = 1 [json_name = "errorHandler"];
 
     // [OPTIONAL]
-    // Method is the conversion type between XML and JSON.
-    // Default is [Custom].
-    oneof Method {
-        SimpleMethodSpec     SimpleMethodSpec     = 3 [json_name = "simpleMethodSpec"];
-        RayfishMethodSpec    RayfishMethodSpec    = 4 [json_name = "rayfishMethodSpec"];
-        BadgerfishMethodSpec BadgerfishMethodSpec = 5 [json_name = "badgerfishMethodSpec"];
+    // Rules is the conversion ruleset.
+    // Default is [Simple].
+    oneof Rules {
+        SimpleSpec     Simple     = 2 [json_name = "simple"];
+        RayfishSpec    Rayfish    = 3 [json_name = "rayfish"];
+        BadgerfishSpec Badgerfish = 4 [json_name = "badgerfish"];
     }
 }
 
-message SimpleMethodSpec {
+message SimpleSpec {
     // [OPTIONAL]
     // TextKey is the json key name to store content of XML elements.
     // TextKey should not be empty.
@@ -97,7 +92,7 @@ message SimpleMethodSpec {
     bool PreferShort = 5 [json_name = "preferShort"];
 }
 
-message RayfishMethodSpec {
+message RayfishSpec {
     // [OPTIONAL]
     // NameKeys is the json key name to store XML element names.
     // NameKey should not be empty.
@@ -141,7 +136,7 @@ message RayfishMethodSpec {
     bool TrimSpace = 6 [json_name = "trimSpace"];
 }
 
-message BadgerfishMethodSpec {
+message BadgerfishSpec {
     // [OPTIONAL]
     // TextKey is the json key name to store content of XML elements.
     // TextKey should not be empty.

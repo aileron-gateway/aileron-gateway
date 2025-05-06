@@ -45,14 +45,6 @@ func (m *mockReader) Read(p []byte) (int, error) {
 	return 0, errors.New("mock read error")
 }
 
-type testMatcher struct {
-	match bool
-}
-
-func (t testMatcher) Match(s string) bool {
-	return t.match
-}
-
 func equalJSON(t *testing.T, a, b []byte) bool {
 	var obj1, obj2 interface{}
 	if err := json.Unmarshal(a, &obj1); err != nil {
@@ -71,13 +63,10 @@ func equalJSON(t *testing.T, a, b []byte) bool {
 
 func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 	type condition struct {
-		file        string
-		method      string
-		contentType string
-
-		paths     *testMatcher
-		converter *zxml.JSONConverter
-
+		file          string
+		method        string
+		contentType   string
+		converter     *zxml.JSONConverter
 		readBodyError bool
 		pathNotMatch  bool
 		setSOAPAction bool
@@ -104,17 +93,13 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 				file:        "ok_case01",
 				method:      http.MethodPost,
 				contentType: "text/xml",
-
-				paths: &testMatcher{match: true},
 				converter: &zxml.JSONConverter{
 					EncodeDecoder: zxml.NewSimple(),
 				},
-
 				setSOAPAction: true,
 			},
 			&action{
 				file: "ok_case01",
-
 				// This case: no errors on the request side and the upstream handler writes no body,
 				// so the response Content-Type remains the default (not application/json).
 				// As a result, the middleware should abort with an InvalidContentType error.
@@ -130,12 +115,9 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 				file:        "ok_case01",
 				method:      http.MethodGet,
 				contentType: "text/xml",
-
-				paths: &testMatcher{match: true},
 				converter: &zxml.JSONConverter{
 					EncodeDecoder: zxml.NewSimple(),
 				},
-
 				setSOAPAction: true,
 			},
 			&action{
@@ -156,12 +138,9 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 				file:        "ok_case01",
 				method:      http.MethodPost,
 				contentType: "text/xml",
-
-				paths: &testMatcher{match: true},
 				converter: &zxml.JSONConverter{
 					EncodeDecoder: zxml.NewSimple(),
 				},
-
 				setSOAPAction: false,
 			},
 			&action{
@@ -179,15 +158,12 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 				file:        "ok_case02",
 				method:      http.MethodPost,
 				contentType: "application/soap+xml",
-
-				paths: &testMatcher{match: true},
 				converter: &zxml.JSONConverter{
 					EncodeDecoder: zxml.NewSimple(),
 				},
 			},
 			&action{
 				file: "ok_case02",
-
 				// This case: no errors on the request side and the upstream handler writes no body,
 				// so the response Content-Type remains the default (not application/json).
 				// As a result, the middleware should abort with an InvalidContentType error.
@@ -203,79 +179,18 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 				file:        "ok_case02",
 				method:      http.MethodPost,
 				contentType: "application/soap+xml",
-
-				paths: &testMatcher{match: true},
 				converter: &zxml.JSONConverter{
 					EncodeDecoder: zxml.NewSimple(),
 				},
-
 				setSOAPAction: true,
 			},
 			&action{
 				file: "ok_case02",
-
 				// This case: no errors on the request side and the upstream handler writes no body,
 				// so the response Content-Type remains the default (not application/json).
 				// As a result, the middleware should abort with an InvalidContentType error.
 				err:  app.ErrAppMiddleSOAPRESTInvalidContentType,
 				code: 500,
-			},
-		),
-		gen(
-			"wrong URL path with SOAP1.1 request",
-			nil,
-			nil,
-			&condition{
-				file:        "ok_case01",
-				method:      http.MethodPost,
-				contentType: "text/xml",
-
-				paths:         &testMatcher{match: false},
-				pathNotMatch:  true,
-				setSOAPAction: true,
-			},
-			&action{
-				file: "ok_case01",
-				err:  nil,
-				code: 200,
-			},
-		),
-		gen(
-			"wrong URL path with SOAP1.2 request, action element",
-			nil,
-			nil,
-			&condition{
-				file:        "ok_case02",
-				method:      http.MethodPost,
-				contentType: "application/soap+xml",
-
-				paths:         &testMatcher{match: false},
-				pathNotMatch:  true,
-				setSOAPAction: true,
-			},
-			&action{
-				file: "ok_case02",
-				err:  nil,
-				code: 200,
-			},
-		),
-		gen(
-			"wrong URL path with SOAP1.2 request, without action element",
-			nil,
-			nil,
-			&condition{
-				file:        "ok_case02",
-				method:      http.MethodPost,
-				contentType: "application/soap+xml",
-
-				paths:         &testMatcher{match: false},
-				pathNotMatch:  true,
-				setSOAPAction: false,
-			},
-			&action{
-				file: "ok_case02",
-				err:  nil,
-				code: 200,
 			},
 		),
 		gen(
@@ -286,8 +201,6 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 				file:        "ng_case01",
 				method:      http.MethodPost,
 				contentType: "application/json",
-
-				paths: &testMatcher{match: true},
 			},
 			&action{
 				file: "ng_case01",
@@ -300,12 +213,9 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 			nil,
 			nil,
 			&condition{
-				file:        "ng_case01",
-				method:      http.MethodPost,
-				contentType: "text/xml",
-
-				paths: &testMatcher{match: true},
-
+				file:          "ng_case01",
+				method:        http.MethodPost,
+				contentType:   "text/xml",
 				readBodyError: true,
 				setSOAPAction: true,
 			},
@@ -323,8 +233,6 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 				file:        "ng_case02",
 				method:      http.MethodPost,
 				contentType: "text/xml",
-
-				paths: &testMatcher{match: true},
 				converter: &zxml.JSONConverter{
 					EncodeDecoder: zxml.NewSimple(),
 					Header:        xml.Header,
@@ -348,7 +256,6 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 			meh := &mockErrorHandler{}
 			sr := &soapREST{
 				eh:        meh,
-				paths:     tt.C().paths,
 				converter: tt.C().converter,
 			}
 
@@ -532,7 +439,6 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 		contentType string
 		charset     string
 
-		paths     *testMatcher
 		converter *zxml.JSONConverter
 
 		invalidContentTypeError bool
@@ -566,21 +472,17 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 				method:      http.MethodPost,
 				contentType: "text/xml",
 				charset:     "utf-8",
-
-				paths: &testMatcher{match: true},
 				converter: &zxml.JSONConverter{
 					EncodeDecoder: zxml.NewSimple(),
 				},
-
 				setSOAPAction: true,
 			},
 			&action{
 				file:        "ok_case01",
 				contentType: "text/xml; charset=utf-8",
 				actionURI:   "http://example.com/",
-
-				err:  nil,
-				code: 200,
+				err:         nil,
+				code:        200,
 			},
 		),
 		gen(
@@ -592,21 +494,17 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 				method:      http.MethodPost,
 				contentType: "application/soap+xml",
 				charset:     "utf-8",
-
-				paths: &testMatcher{match: true},
 				converter: &zxml.JSONConverter{
 					EncodeDecoder: zxml.NewSimple(),
 				},
-
 				setSOAPAction: true,
 			},
 			&action{
 				file:        "ok_case02",
 				contentType: "application/soap+xml; charset=utf-8",
 				actionURI:   "http://example.com/",
-
-				err:  nil,
-				code: 200,
+				err:         nil,
+				code:        200,
 			},
 		),
 		gen(
@@ -618,21 +516,17 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 				method:      http.MethodPost,
 				contentType: "application/soap+xml",
 				charset:     "utf-8",
-
-				paths: &testMatcher{match: true},
 				converter: &zxml.JSONConverter{
 					EncodeDecoder: zxml.NewSimple(),
 				},
-
 				setSOAPAction: false,
 			},
 			&action{
 				file:        "ok_case02",
 				contentType: "application/soap+xml; charset=utf-8",
 				actionURI:   "",
-
-				err:  nil,
-				code: 200,
+				err:         nil,
+				code:        200,
 			},
 		),
 		gen(
@@ -644,12 +538,9 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 				method:      http.MethodPost,
 				contentType: "text/xml",
 				charset:     "utf-8",
-
-				paths: &testMatcher{match: true},
 				converter: &zxml.JSONConverter{
 					EncodeDecoder: zxml.NewSimple(),
 				},
-
 				invalidContentTypeError: true,
 				setSOAPAction:           true,
 			},
@@ -658,9 +549,8 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 				file:        "notExist",
 				contentType: "invalid",
 				actionURI:   "http://example.com/",
-
-				err:  app.ErrAppMiddleSOAPRESTInvalidContentType,
-				code: 500,
+				err:         app.ErrAppMiddleSOAPRESTInvalidContentType,
+				code:        500,
 			},
 		),
 		gen(
@@ -672,12 +562,9 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 				method:      http.MethodPost,
 				contentType: "text/xml",
 				charset:     "utf-8",
-
-				paths: &testMatcher{match: true},
 				converter: &zxml.JSONConverter{
 					EncodeDecoder: zxml.NewSimple(),
 				},
-
 				responseConvertError: true,
 				setSOAPAction:        true,
 			},
@@ -686,9 +573,8 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 				file:        "notExist",
 				contentType: "application/json; charset=utf-8",
 				actionURI:   "http://example.com/",
-
-				err:  app.ErrAppMiddleSOAPRESTConvertJSONtoXML,
-				code: 500,
+				err:         app.ErrAppMiddleSOAPRESTConvertJSONtoXML,
+				code:        500,
 			},
 		),
 		gen(
@@ -700,12 +586,9 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 				method:      http.MethodPost,
 				contentType: "text/xml",
 				charset:     "utf-8",
-
-				paths: &testMatcher{match: true},
 				converter: &zxml.JSONConverter{
 					EncodeDecoder: zxml.NewSimple(),
 				},
-
 				responseWriteError: true,
 				setSOAPAction:      true,
 			},
@@ -727,12 +610,9 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 				file:        "ok_case01",
 				method:      http.MethodPost,
 				contentType: "text/xml",
-
-				paths: &testMatcher{match: true},
 				converter: &zxml.JSONConverter{
 					EncodeDecoder: zxml.NewSimple(),
 				},
-
 				setSOAPAction: true,
 			},
 			&action{
@@ -752,12 +632,9 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 				file:        "ok_case01",
 				method:      http.MethodPost,
 				contentType: "application/soap+xml",
-
-				paths: &testMatcher{match: true},
 				converter: &zxml.JSONConverter{
 					EncodeDecoder: zxml.NewSimple(),
 				},
-
 				setSOAPAction: true,
 			},
 			&action{
@@ -779,7 +656,6 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 			meh := &mockErrorHandler{}
 			m := &soapREST{
 				eh:        meh,
-				paths:     tt.C().paths,
 				converter: tt.C().converter,
 			}
 

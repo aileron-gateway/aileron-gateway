@@ -12,29 +12,16 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/app"
 	"github.com/aileron-gateway/aileron-gateway/app/middleware/soaprest/zxml"
 	"github.com/aileron-gateway/aileron-gateway/core"
-	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 )
 
 type soapREST struct {
-	eh core.ErrorHandler
-
-	// paths is the path matcher to apply SOAP/REST conversion.
-	// paths must not be nil.
-	paths txtutil.Matcher[string]
-
+	eh        core.ErrorHandler
 	converter *zxml.JSONConverter
 }
 
 func (s *soapREST) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// If the request path does not match the configured value,
-		// the conversion process will not be executed, and the request will be passed to the next handler.
-		if !s.paths.Match(r.URL.Path) {
-			next.ServeHTTP(w, r)
-			return
-		}
-
 		var ct string     // Content-Type for response.
 		var action string // Action for X-SOAP-Action header.
 		mt, params, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
