@@ -143,7 +143,7 @@ func (b *BadgerFish) attrsToMap(attrs []xml.Attr, ns [][2]string) map[string]any
 	m := make(map[string]any, 0)
 	for _, attr := range attrs {
 		name := attr.Name
-		key := ""
+		var key string
 		switch name.Space {
 		case "": // Format <elem foo="bar"> or <elem xmlns="http://abc.com/">
 			if name.Local != "xmlns" {
