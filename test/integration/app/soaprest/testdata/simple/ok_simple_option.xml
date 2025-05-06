@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" 
-               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <soap:Header></soap:Header>
   <soap:Body>
     <TestOptionsRequest>
@@ -10,7 +10,7 @@
         <infinity>INF</infinity>
         <scientific>1.23e+20</scientific>
       </numberSection>
-      
+
       <htmlSection>
         <content><![CDATA[<div id="test">Value & Name</div>]]></content>
         <script><![CDATA[if (x < 10 && y > 20) { return true; }]]></script>

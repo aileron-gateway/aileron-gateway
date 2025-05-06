@@ -13,7 +13,6 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/app/middleware/soaprest/zxml"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
@@ -41,18 +40,7 @@ func (s *API) Default() protoreflect.ProtoMessage {
 			Namespace: "default",
 			Name:      "default",
 		},
-		Spec: &v1.SOAPRESTMiddlewareSpec{
-			Matcher: &kernel.MatcherSpec{Patterns: nil, MatchType: kernel.MatchType_Exact},
-			Method: &v1.SOAPRESTMiddlewareSpec_SimpleMethodSpec{
-				SimpleMethodSpec: &v1.SimpleMethodSpec{
-					TextKey:      "$",
-					AttrPrefix:   "@",
-					NamespaceSep: ":",
-					TrimSpace:    false,
-					PreferShort:  false,
-				},
-			},
-		},
+		Spec: &v1.SOAPRESTMiddlewareSpec{},
 	}
 }
 
@@ -64,34 +52,29 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.Prot
 		return nil, core.ErrCoreGenCreateObject.WithStack(err, map[string]any{"kind": kind})
 	}
 
-	m, err := txtutil.NewStringMatcher(txtutil.MatchTypes[c.Spec.Matcher.MatchType], c.Spec.Matcher.Patterns...)
-	if err != nil {
-		return nil, core.ErrCoreGenCreateObject.WithStack(err, map[string]any{"kind": kind})
-	}
-
 	var cv *zxml.JSONConverter
-	switch c.Spec.Method.(type) {
-	case *v1.SOAPRESTMiddlewareSpec_SimpleMethodSpec:
-		cv = newSimpleConverter(c.Spec.GetSimpleMethodSpec())
-	case *v1.SOAPRESTMiddlewareSpec_RayfishMethodSpec:
-		cv = newRayfishConverter(c.Spec.GetRayfishMethodSpec())
-	case *v1.SOAPRESTMiddlewareSpec_BadgerfishMethodSpec:
-		cv = newBadgerfishConverter(c.Spec.GetBadgerfishMethodSpec())
+	switch t := c.Spec.Rules.(type) {
+	case *v1.SOAPRESTMiddlewareSpec_Simple:
+		cv = newSimpleConverter(t.Simple)
+	case *v1.SOAPRESTMiddlewareSpec_Rayfish:
+		cv = newRayfishConverter(t.Rayfish)
+	case *v1.SOAPRESTMiddlewareSpec_Badgerfish:
+		cv = newBadgerfishConverter(t.Badgerfish)
+	default:
+		cv = newSimpleConverter(&v1.SimpleSpec{})
 	}
 
-	// Use json.Number instead of float64 for JSON numbers.
 	cv.WithJSONDecoderOpts(func(d *json.Decoder) { d.UseNumber() })
-	// Prevent escaping of HTML special characters.
 	cv.WithJSONEncoderOpts(func(e *json.Encoder) { e.SetEscapeHTML(false) })
+	cv.WithXMLEncoderOpts(func(e *xml.Encoder) { e.Indent("", "  ") })
 
 	return &soapREST{
 		eh:        eh,
-		paths:     m,
 		converter: cv,
 	}, nil
 }
 
-func newSimpleConverter(spec *v1.SimpleMethodSpec) *zxml.JSONConverter {
+func newSimpleConverter(spec *v1.SimpleSpec) *zxml.JSONConverter {
 	simple := &zxml.Simple{
 		TextKey:      cmp.Or(spec.TextKey, "$"),
 		AttrPrefix:   cmp.Or(spec.AttrPrefix, "@"),
@@ -100,14 +83,13 @@ func newSimpleConverter(spec *v1.SimpleMethodSpec) *zxml.JSONConverter {
 		PreferShort:  spec.PreferShort,
 	}
 	simple.WithEmptyValue(string(""))
-
 	return &zxml.JSONConverter{
 		EncodeDecoder: simple,
 		Header:        xml.Header,
 	}
 }
 
-func newRayfishConverter(spec *v1.RayfishMethodSpec) *zxml.JSONConverter {
+func newRayfishConverter(spec *v1.RayfishSpec) *zxml.JSONConverter {
 	rayfish := &zxml.RayFish{
 		NameKey:      cmp.Or(spec.NameKey, "#name"),
 		TextKey:      cmp.Or(spec.TextKey, "#text"),
@@ -117,22 +99,20 @@ func newRayfishConverter(spec *v1.RayfishMethodSpec) *zxml.JSONConverter {
 		TrimSpace:    spec.TrimSpace,
 	}
 	rayfish.WithEmptyValue(string(""))
-
 	return &zxml.JSONConverter{
 		EncodeDecoder: rayfish,
 		Header:        xml.Header,
 	}
 }
 
-func newBadgerfishConverter(spec *v1.BadgerfishMethodSpec) *zxml.JSONConverter {
+func newBadgerfishConverter(spec *v1.BadgerfishSpec) *zxml.JSONConverter {
 	badgerfish := &zxml.BadgerFish{
 		TextKey:      cmp.Or(spec.TextKey, "$"),
 		AttrPrefix:   cmp.Or(spec.AttrPrefix, "@"),
 		NamespaceSep: cmp.Or(spec.NamespaceSep, ":"),
 		TrimSpace:    spec.TrimSpace,
 	}
-	badgerfish.WithEmptyValue(string(""))
-
+	badgerfish.WithEmptyValue(make(map[string]any, 0))
 	return &zxml.JSONConverter{
 		EncodeDecoder: badgerfish,
 		Header:        xml.Header,

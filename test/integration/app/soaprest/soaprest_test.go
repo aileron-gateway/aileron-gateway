@@ -27,110 +27,8 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/test/integration/common"
 )
 
-func TestCorrectPath(t *testing.T) {
-	configs := []string{"./config-path.yaml"}
-
-	server := common.NewAPI()
-	err := app.LoadConfigFiles(server, configs)
-	testutil.DiffError(t, nil, nil, err)
-
-	ref := &kernel.Reference{
-		APIVersion: "app/v1",
-		Kind:       "SOAPRESTMiddleware",
-		Name:       "test",
-		Namespace:  "testNamespace",
-	}
-
-	m, err := api.ReferTypedObject[core.Middleware](server, ref)
-	testutil.DiffError(t, nil, nil, err)
-
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		b, err := io.ReadAll(r.Body)
-		if err != nil {
-			http.Error(w, "failed to read body", http.StatusInternalServerError)
-			return
-		}
-		defer r.Body.Close()
-		respJSON, _ := os.ReadFile("./testdata/simple/ok_simple.json")
-		if !equalJSON(t, []byte(respJSON), b) {
-			t.Error("result not match (xml to json)")
-		}
-
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.Write([]byte(respJSON))
-	})
-
-	h := m.Middleware(handler)
-
-	xmlBytes, _ := os.ReadFile("./testdata/simple/ok_simple.xml")
-	r := httptest.NewRequest(http.MethodPost, "http://test.com/soap/", strings.NewReader(string(xmlBytes)))
-	r.Header.Set("Content-Type", "text/xml")
-	r.Header.Set("SOAPAction", "http://example.com/")
-	w := httptest.NewRecorder()
-	h.ServeHTTP(w, r)
-	b, _ := io.ReadAll(w.Result().Body)
-	testutil.Diff(t, http.StatusOK, w.Result().StatusCode)
-	if !equalXML(t, []byte(xmlBytes), b) {
-		t.Error("result not match (json to xml)")
-	}
-}
-
-func TestWrongPath(t *testing.T) {
-	configs := []string{"./config-path.yaml"}
-
-	server := common.NewAPI()
-	err := app.LoadConfigFiles(server, configs)
-	testutil.DiffError(t, nil, nil, err)
-
-	ref := &kernel.Reference{
-		APIVersion: "app/v1",
-		Kind:       "SOAPRESTMiddleware",
-		Name:       "test",
-		Namespace:  "testNamespace",
-	}
-
-	m, err := api.ReferTypedObject[core.Middleware](server, ref)
-	testutil.DiffError(t, nil, nil, err)
-
-	reqXML, _ := os.ReadFile("./testdata/simple/ok_simple.xml")
-	respJSON, _ := os.ReadFile("./testdata/simple/ok_simple.json")
-
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		b, err := io.ReadAll(r.Body)
-		if err != nil {
-			http.Error(w, "failed to read body", http.StatusInternalServerError)
-			return
-		}
-		defer r.Body.Close()
-
-		// since requests are being sent to different paths,
-		// the conversion from SOAP/XML to REST/JSON will not take place
-		if !equalXML(t, []byte(reqXML), b) {
-			t.Error("result not match")
-		}
-
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.Write([]byte(respJSON))
-	})
-
-	h := m.Middleware(handler)
-
-	r := httptest.NewRequest(http.MethodPost, "http://soaprest.com/wrong", strings.NewReader(string(reqXML)))
-	r.Header.Set("Content-Type", "text/xml")
-	w := httptest.NewRecorder()
-	h.ServeHTTP(w, r)
-	b, _ := io.ReadAll(w.Result().Body)
-	testutil.Diff(t, http.StatusOK, w.Result().StatusCode)
-
-	// similarly to the request,
-	// the response will not undergo conversion from REST/JSON to SOAP/XML
-	if !equalJSON(t, []byte(respJSON), b) {
-		t.Error("result not match")
-	}
-}
-
-func TestRayfishEmptyStringValue(t *testing.T) {
-	configs := []string{"./config-rayfish-string.yaml"}
+func TestRayfish(t *testing.T) {
+	configs := []string{"./config-rayfish.yaml"}
 
 	server := common.NewAPI()
 	err := app.LoadConfigFiles(server, configs)
@@ -157,7 +55,6 @@ func TestRayfishEmptyStringValue(t *testing.T) {
 		if !equalJSON(t, []byte(respJSON), b) {
 			t.Error("result not match (xml to json)")
 		}
-
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.Write([]byte(respJSON))
 	})
@@ -177,8 +74,8 @@ func TestRayfishEmptyStringValue(t *testing.T) {
 	}
 }
 
-func TestBadgerfishEmptyStringValue(t *testing.T) {
-	configs := []string{"./config-badgerfish-string.yaml"}
+func TestBadgerfish(t *testing.T) {
+	configs := []string{"./config-badgerfish.yaml"}
 
 	server := common.NewAPI()
 	err := app.LoadConfigFiles(server, configs)
@@ -226,7 +123,7 @@ func TestBadgerfishEmptyStringValue(t *testing.T) {
 }
 
 func TestJSONEncodeDecodeOptions(t *testing.T) {
-	configs := []string{"./config-simple-string.yaml"}
+	configs := []string{"./config-simple.yaml"}
 
 	server := common.NewAPI()
 	err := app.LoadConfigFiles(server, configs)

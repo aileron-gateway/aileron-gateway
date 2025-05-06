@@ -34,14 +34,12 @@ type Middleware interface {
 }
 ```
 
-### Request Validation and Routing
+### Request Validation
 
-1. When a request is received, the middleware first checks if the request path matches the configured pattern.
-2. If the path doesn't match, the request is passed to the next handler without modification.
-3. If the path matches, the middleware validates whether it's a SOAP1.2 or SOAP1.1 request by checking:
-   - The Content-Type header is exactly `application/soap+xml`, treat as SOAP1.2 request
-   - The Content-Type header is exactly `text/xml` and the SOAPAction header exists, treat as SOAP1.1 request
-4. If the request doesn't meet either condition, a VersionMismatch error with HTTP 403 Forbidden status is returned.
+1. Middleware validates whether it's a SOAP1.2 or SOAP1.1 request by checking:
+   - The Content-Type header is `application/soap+xml`, treat as SOAP1.2 request
+   - The Content-Type header is `text/xml` and the SOAPAction header exists, treat as SOAP1.1 request
+2. If the request doesn't meet either condition, a VersionMismatch error with 403 Forbidden is returned.
 
 ### Converting Algorithms
 
@@ -101,7 +99,6 @@ Integration tests are implemented with these aspects.
 
 - SOAPRESTMiddleware works as middleware.
 - SOAPRESTMiddleware works with input configuration.
-- Conversion can be applied with path-based.
 
 ### e2e Tests
 
@@ -109,7 +106,6 @@ e2e tests are implemented with these aspects.
 
 - SOAPRESTMiddleware works as middleware.
 - SOAPRESTMiddleware works with input configuration.
-- Conversion can be applied with path-based.
 
 ### Fuzz Tests
 
@@ -126,7 +122,3 @@ Not planned.
 ## Future works
 
 - [ ] Documentation regarding the algorithm.
-
-## References
-
-None.
