@@ -63,6 +63,7 @@ func (s *soapREST) Middleware(next http.Handler) http.Handler {
 		// Reference: https://pkg.go.dev/net/http#Request
 		newReq.ContentLength = -1
 		newReq.Body = io.NopCloser(bytes.NewReader(jsonBody))
+		newReq.Header.Set("Accept", "application/json")
 		newReq.Header.Set("Content-Type", "application/json")
 		newReq.Header.Set("X-SOAP-Action", action)
 

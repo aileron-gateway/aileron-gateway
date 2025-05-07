@@ -274,34 +274,10 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 				}
 
 				// Verify that the Content-Type is correctly modified.
-				mt, params, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
-				if tt.C().pathNotMatch {
-					// Maintain the original Content-Type when paths don't match,
-					// as no conversion is performed in that case.
-					cs := params["charset"]
-					act := params["action"]
-					ct := tt.C().contentType
-					if cs != "" {
-						ct += "; charset=" + cs
-					}
-					if act != "" {
-						ct += "; action=" + act
-					}
-
-					switch tt.C().contentType {
-					case "application/soap+xml":
-						if tt.C().setSOAPAction {
-							testutil.Diff(t, tt.C().contentType+"; charset=utf-8; action=http://example.com/", ct)
-						} else {
-							testutil.Diff(t, tt.C().contentType+"; charset=utf-8", ct)
-						}
-					case "text/xml":
-						testutil.Diff(t, tt.C().contentType+"; charset=utf-8", ct)
-					}
-				} else {
-					testutil.Diff(t, "application/json", mt)
-				}
-
+				mt, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
+				testutil.Diff(t, "application/json", mt)
+				// Verify that the Accept header is set to application/json.
+				testutil.Diff(t, "application/json", r.Header.Get("Accept"))
 				// Verify that the request method is preserved.
 				testutil.Diff(t, tt.C().method, r.Method)
 
