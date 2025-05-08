@@ -63,7 +63,7 @@ When a SOAP request is received, the middleware performs the following transform
    - For SOAP 1.1 requests: Uses the value from the SOAPAction header
 4. Preserves the original Content-Type by adding it as an `X-Content-Type` header:
    - This allows backend services to identify the SOAP version (1.1 or 1.2)
-   - The complete original Content-Type is preserved, including all parameters
+   - Only the base media type is preserved (e.g., `application/soap+xml` or `text/xml`), without parameters
 5. Converts the SOAP XML request body to JSON format.
 6. Creates a new request with:
    - JSON body
