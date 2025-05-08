@@ -66,6 +66,7 @@ func (s *soapREST) Middleware(next http.Handler) http.Handler {
 		newReq.Header.Set("Accept", "application/json")
 		newReq.Header.Set("Content-Type", "application/json")
 		newReq.Header.Set("X-SOAP-Action", action)
+		newReq.Header.Set("X-Content-Type", r.Header.Get("Content-Type"))
 
 		ww := &wrappedWriter{
 			ResponseWriter: w,

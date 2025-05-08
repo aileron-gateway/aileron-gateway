@@ -61,12 +61,16 @@ When a SOAP request is received, the middleware performs the following transform
 3. Preserves SOAP action information by adding it as an `X-SOAP-Action` header:
    - For SOAP 1.2 requests: Uses the action parameter from the Content-Type header
    - For SOAP 1.1 requests: Uses the value from the SOAPAction header
-4. Converts the SOAP XML request body to JSON format.
-5. Creates a new request with:
+4. Preserves the original Content-Type by adding it as an `X-Content-Type` header:
+   - This allows backend services to identify the SOAP version (1.1 or 1.2)
+   - The complete original Content-Type is preserved, including all parameters
+5. Converts the SOAP XML request body to JSON format.
+6. Creates a new request with:
    - JSON body
    - Content-Type set to `application/json`
    - Original headers preserved
    - SOAP action information consistently preserved in the `X-SOAP-Action` header for both SOAP versions
+   - SOAP version information preserved in the `X-Content-Type` header
 
 ### Response Transformation
 
