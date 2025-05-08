@@ -283,11 +283,7 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 
 				// Verify that the original Content-Type is preserved in X-Content-Type
 				if tt.C().contentType == "text/xml" || tt.C().contentType == "application/soap+xml" {
-					expectedContentType := tt.C().contentType + "; charset=utf-8"
-					if tt.C().contentType == "application/soap+xml" && tt.C().setSOAPAction {
-						expectedContentType += "; action=\"http://example.com/\""
-					}
-					testutil.Diff(t, expectedContentType, r.Header.Get("X-Content-Type"))
+					testutil.Diff(t, tt.C().contentType, r.Header.Get("X-Content-Type"))
 				}
 
 				w.WriteHeader(http.StatusOK)
