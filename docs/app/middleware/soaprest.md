@@ -68,6 +68,7 @@ When a SOAP request is received, the middleware performs the following transform
 6. Creates a new request with:
    - JSON body
    - Content-Type set to `application/json`
+   - Accept set to `application/json` to ensure the backend returns JSON response
    - Original headers preserved
    - SOAP action information consistently preserved in the `X-SOAP-Action` header for both SOAP versions
    - SOAP version information preserved in the `X-Content-Type` header
