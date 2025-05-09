@@ -63,7 +63,7 @@ spec:
           statusCode: 400
           templateFile: ./_example/soap-rest/error-messages/soapfault_client.txt
 
-    - codes: ["E3219", "E3220"]
+    - codes: ["E3219", "E3220", "E3221"]
       mimeContents:
         - mimeType: text/xml
           statusCode: 500
@@ -73,6 +73,3 @@ spec:
 apiVersion: app/v1
 kind: SOAPRESTMiddleware
 spec:
-  matcher:
-    patterns: ["/"]
-    matchType: Contains
