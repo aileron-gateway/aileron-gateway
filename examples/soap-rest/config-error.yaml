@@ -12,7 +12,7 @@ spec:
 apiVersion: core/v1
 kind: HTTPServer
 spec:
-  addr: "localhost:8080"
+  addr: ":8080"
   virtualHosts:
     - middleware:
         - apiVersion: app/v1
@@ -61,8 +61,3 @@ spec:
         - mimeType: text/xml
           statusCode: 500
           templateFile: ./_example/soap-rest/error-messages/soapfault_server.txt
-
----
-apiVersion: app/v1
-kind: SOAPRESTMiddleware
-spec:
