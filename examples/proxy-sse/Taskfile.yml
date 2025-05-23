@@ -3,8 +3,10 @@ env:
   AILERON_CMD: "./aileron"
 tasks:
   default:
-    deps: ["upstream", "server"]
+    deps: ["server"]
   server:
     cmd: "{{.AILERON_CMD}} -f ./config.yaml"
+  withmock:
+    deps: ["upstream", "server"]
   upstream:
     cmd: "go run ./server.go"

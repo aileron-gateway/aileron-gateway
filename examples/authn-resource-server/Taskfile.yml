@@ -3,4 +3,4 @@ env:
   AILERON_CMD: "./aileron"
 tasks:
   default:
-    cmd: "{{.AILERON_CMD}} -f ./config.yaml"
+    cmd: "{{.AILERON_CMD}} -f ./config-introspection.yaml"

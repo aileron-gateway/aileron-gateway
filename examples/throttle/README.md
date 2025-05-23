@@ -17,12 +17,12 @@ block-beta
     EchoHandler["🟥</br>Echo</br>Handler"]
   end
 
-  Downstream --> HTTPServer
-  HTTPServer --> Downstream
+Downstream --> HTTPServer
+HTTPServer --> Downstream
 
-  style Downstream stroke:#888
-  style ThrottleMiddleware stroke:#77dd77,stroke-width:2px
-  style EchoHandler stroke:#ff6961,stroke-width:2px
+style Downstream stroke:#888
+style ThrottleMiddleware stroke:#77dd77,stroke-width:2px
+style EchoHandler stroke:#ff6961,stroke-width:2px
 ```
 
 **Legend**:
@@ -109,12 +109,12 @@ graph TD
   ThrottleMiddleware["🟩</br>**ThrottleMiddleware**</br>default/default"]
   EchoHandler["🟥</br>**EchoHandler**</br>default/default"]
 
-  Entrypoint --> HTTPServer
-  HTTPServer --> EchoHandler
-  HTTPServer --> ThrottleMiddleware
+Entrypoint --> HTTPServer
+HTTPServer --> EchoHandler
+HTTPServer --> ThrottleMiddleware
 
-  style ThrottleMiddleware stroke:#77dd77,stroke-width:2px
-  style EchoHandler stroke:#ff6961,stroke-width:2px
+style ThrottleMiddleware stroke:#77dd77,stroke-width:2px
+style EchoHandler stroke:#ff6961,stroke-width:2px
 ```
 
 ## Run

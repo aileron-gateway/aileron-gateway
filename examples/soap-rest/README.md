@@ -20,15 +20,15 @@ block-beta
   space:1
   Upstream:1
 
-  Downstream --> HTTPServer
-  HTTPServer --> Downstream
-  Upstream --> ReverseProxyHandler
-  ReverseProxyHandler --> Upstream
+Downstream --> HTTPServer
+HTTPServer --> Downstream
+Upstream --> ReverseProxyHandler
+ReverseProxyHandler --> Upstream
 
-  style Downstream stroke:#888
-  style Upstream stroke:#888
-  style SOAPRESTMiddleware stroke:#77dd77,stroke-width:2px
-  style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
+style Downstream stroke:#888
+style Upstream stroke:#888
+style SOAPRESTMiddleware stroke:#77dd77,stroke-width:2px
+style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
 ```
 
 **Legend**:
@@ -114,13 +114,13 @@ graph TD
   SOAPRESTMiddleware["🟩 **SOAPRESTMiddleware**</br>default/default"]
   ReverseProxyHandler["🟥 **ReverseProxyHandler**</br>default/default"]
 
-  Entrypoint --> HTTPServer
-  HTTPServer --> ReverseProxyHandler
-  HTTPServer --> SOAPRESTMiddleware
-  ReverseProxyHandler
+Entrypoint --> HTTPServer
+HTTPServer --> ReverseProxyHandler
+HTTPServer --> SOAPRESTMiddleware
+ReverseProxyHandler
 
-  style SOAPRESTMiddleware stroke:#77dd77,stroke-width:2px
-  style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
+style SOAPRESTMiddleware stroke:#77dd77,stroke-width:2px
+style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
 ```
 
 ## Run

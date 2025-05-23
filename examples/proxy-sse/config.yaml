@@ -10,9 +10,6 @@ apiVersion: core/v1
 kind: HTTPServer
 spec:
   addr: ":8080"
-  httpConfig:
-    readTimeout: 300
-    writeTimeout: 300
   virtualHosts:
     - handlers:
         - handler:
@@ -28,4 +25,4 @@ spec:
         match: "/"
         matchType: Prefix
       upstreams:
-        - url: http://localhost:9999
+        - url: http://sse.dev/

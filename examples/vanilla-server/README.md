@@ -19,12 +19,12 @@ block-beta
     HTTPServer2["🟪</br>HTTP</br>Server"]
   end
 
-  Downstream --> HTTPServer1
-  HTTPServer1 --> Downstream
-    Downstream --> HTTPServer2
-  HTTPServer2 --> Downstream
+Downstream --> HTTPServer1
+HTTPServer1 --> Downstream
+Downstream --> HTTPServer2
+HTTPServer2 --> Downstream
 
-  style Downstream stroke:#888
+style Downstream stroke:#888
 ```
 
 **Legend**:

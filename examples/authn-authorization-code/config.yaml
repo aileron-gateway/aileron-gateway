@@ -4,27 +4,18 @@ spec:
   runners:
     - apiVersion: core/v1
       kind: HTTPServer
-      namespace: example
-      name: default
 
 ---
 apiVersion: core/v1
 kind: HTTPServer
-metadata:
-  name: default
-  namespace: example
 spec:
   addr: ":8080"
   virtualHosts:
     - middleware:
         - apiVersion: app/v1
           kind: SessionMiddleware
-          name: default
-          namespace: example
         - apiVersion: app/v1
           kind: AuthenticationMiddleware
-          namespace: example
-          name: default
       handlers:
         - handler:
             apiVersion: core/v1
@@ -34,25 +25,16 @@ spec:
 apiVersion: core/v1
 kind: ReverseProxyHandler
 spec:
-  methods:
-    - GET
-    - POST
-    - DELETE
-    - PUT
   loadBalancers:
     - pathMatcher:
         match: "/"
         matchType: Prefix
       upstreams:
         - url: http://httpbin.org
-          weight: 1
 
 ---
 apiVersion: app/v1
 kind: SessionMiddleware
-metadata:
-  namespace: example
-  name: default
 spec:
   secureEncoder:
     enableCompression: false
@@ -62,22 +44,14 @@ spec:
 ---
 apiVersion: app/v1
 kind: AuthenticationMiddleware
-metadata:
-  namespace: example
-  name: default
 spec:
   handlers:
     - apiVersion: app/v1
       kind: OAuthAuthenticationHandler
-      namespace: example
-      name: default
 
 ---
 apiVersion: app/v1
 kind: OAuthAuthenticationHandler
-metadata:
-  namespace: example
-  name: default
 spec:
   contextQueryKey: context
   contextHeaderKey: X-Oauth-Context
@@ -86,7 +60,7 @@ spec:
     disableNonce: false
     disablePKCE: false
     redirectPath: "/anything"
-    redirectPathPattern: /*
+    redirectPathPattern: "/*"
     loginPath: "/auth/login"
     callbackURL: "http://localhost:8080/auth/callback"
     redirectToLogin: false
@@ -120,4 +94,4 @@ spec:
           - keyID: LO9dmmUtUOiV1P7OkzYW-CDbTJV94nADvDFhojxvSqk
             algorithm: RS256
             keyType: PUBLIC
-            keyFilePath: ./_devtools/keycloak/keys/public.key
+            keyFilePath: ./keycloak/keys/public.key

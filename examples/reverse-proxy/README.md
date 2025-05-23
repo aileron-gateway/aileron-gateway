@@ -17,14 +17,14 @@ block-beta
   space:1
   Upstream:1
 
-  Downstream --> HTTPServer
-  HTTPServer --> Downstream
-  Upstream --> ReverseProxyHandler
-  ReverseProxyHandler --> Upstream
+Downstream --> HTTPServer
+HTTPServer --> Downstream
+Upstream --> ReverseProxyHandler
+ReverseProxyHandler --> Upstream
 
-  style Downstream stroke:#888
-  style Upstream stroke:#888
-  style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
+style Downstream stroke:#888
+style Upstream stroke:#888
+style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
 ```
 
 **Legend**:
@@ -97,11 +97,11 @@ graph TD
   HTTPServer["🟪 **HTTPServer**</br>default/default"]
   ReverseProxyHandler["🟥 **ReverseProxyHandler**</br>default/default"]
 
-  Entrypoint --> HTTPServer
-  HTTPServer --> ReverseProxyHandler
-  ReverseProxyHandler
+Entrypoint --> HTTPServer
+HTTPServer --> ReverseProxyHandler
+ReverseProxyHandler
 
-  style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
+style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
 ```
 
 ## Run
@@ -161,6 +161,7 @@ Here's the some nice apis that can be used for testing.
 - [http://ifconfig.io](http://ifconfig.io)
 - [http://ifconfig.io](http://ifconfig.io)
 - [http://sse.dev/](http://sse.dev/)
+- [https://websocket.org/](https://websocket.org/tools/websocket-echo-server)
 
 **Available after configuration.**
 

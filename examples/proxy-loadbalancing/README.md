@@ -1,111 +1,199 @@
-# Reverse Proxy Example
+# Reverse Proxy (Load Balancing)
 
-## About this example
+## Overview
 
-This example shows how to configure reverse proxy handler that proxy requests to upstream services.
+This example runs a reverse-proxy server that proxy requests with various loadbalancing algorithm.
 
-Files that required to run this example is shown below.
-Make sure to build or download AILERON Gateway binary, `aileron`.
+```mermaid
+block-beta
+  columns 6
+  Downstream:1
+  space:1
+  block:aileron:2
+    HTTPServer["🟪</br>HTTP</br>Server"]
+    ReverseProxyHandler["🟥</br>ReverseProxy</br>Handler"]
+  end
+  space:1
+  block:upstream:1
+    columns 1
+    Upstream1["Upstream 1"]:1
+    Upstream2["Upstream 2"]:1
+    Upstream3["："]:1
+    Upstream4["Upstream N"]:1
+  end
+
+Downstream --> HTTPServer
+HTTPServer --> Downstream
+Upstream1 --> ReverseProxyHandler
+Upstream2 --> ReverseProxyHandler
+Upstream3 --> ReverseProxyHandler
+Upstream4 --> ReverseProxyHandler
+ReverseProxyHandler --> Upstream1
+ReverseProxyHandler --> Upstream2
+ReverseProxyHandler --> Upstream3
+ReverseProxyHandler --> Upstream4
+
+style Downstream stroke:#888
+style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
+style Upstream1 stroke:#888
+style Upstream2 stroke:#888
+style Upstream3 stroke:#888
+style Upstream4 stroke:#888
+```
+
+**Legend**:
+
+- 🟥 `#ff6961` Handler resources.
+- 🟩 `#77dd77` Middleware resources (Server-side middleware).
+- 🟦 `#89CFF0` Tripperware resources (Client-side middleware).
+- 🟪 `#9370DB` Other resources.
+
+In this example, following directory structure and files are supposed.
+
+Resources are available at [examples/proxy-loadbalancing/](https://github.com/aileron-gateway/aileron-gateway/tree/main/examples/proxy-loadbalancing).
+If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt
-./
-├── aileron
-├── server  !!!!! This binary is built from the server.go in the Test section. 
-└── _example/
-    └── proxy-loadbalancing/
-        ├── server.go
-        ├── config-direct-hash.yaml
-        ├── config-maglev.yaml
-        ├── config-random.yaml
-        ├── config-ring-hash.yaml
-        └── config-round-robin.yaml
+proxy-loadbalancing/         ----- Working directory.
+├── aileron                  ----- AILERON Gateway binary (aileron.exe on windows).
+├── config-direct-hash.yaml  ----- Config that uses Direct Hash algorithm.
+├── config-maglev.yaml       ----- Config that uses Maglev Hash algorithm.
+├── config-random.yaml       ----- Config that uses (Weighted) Random algorithm.
+├── config-ring-hash.yaml    ----- Config that uses Ring Hash algorithm.
+├── config-round-robin.yaml  ----- Config that uses (Weighted) Round Robin algorithm.
+├── server.go                ----- Example upstream servers. 5 servers are run.
+└── Taskfile.yaml            ----- (Optional) Config file for the go-task.
+```
+
+## Config
+
+Configuration yaml to run a reverse-proxy server for round-robin loadbalancer would becomes as follows.
+
+```yaml
+# config-round-robin.yaml
+
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  runners:
+    - apiVersion: core/v1
+      kind: HTTPServer
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+spec:
+  addr: ":8080"
+  virtualHosts:
+    - handlers:
+        - handler:
+            apiVersion: core/v1
+            kind: ReverseProxyHandler
+
+---
+apiVersion: core/v1
+kind: ReverseProxyHandler
+spec:
+  loadBalancers:
+    - pathMatcher:
+        match: "/"
+        matchType: Prefix
+      lbAlgorithm: RoundRobin # RoundRobin load balancer (Default).
+      upstreams:
+        - url: http://localhost:8001
+        - url: http://localhost:8002
+        - url: http://localhost:8003
+        - url: http://localhost:8004
+        - url: http://localhost:8005
+```
+
+The config tells:
+
+- Start a `HTTPServer` with port 8080.
+- ReverseProxy is applied for the path having prefix `/` (matches all).
+- Upstream service is `:8081`~`:8085`.
+- Use the `RoundRobin` loadbalancing algorithm.
+
+This graph shows the resource dependencies of the configuration.
+
+```mermaid
+graph TD
+  Entrypoint["🟪 **Entrypoint**</br>default/default"]
+  HTTPServer["🟪 **HTTPServer**</br>default/default"]
+  ReverseProxyHandler["🟥 **ReverseProxyHandler**</br>default/default"]
+
+  Entrypoint --> HTTPServer
+  HTTPServer --> ReverseProxyHandler
+  ReverseProxyHandler
+
+style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
 ```
 
 ## Run
 
-Run the example with this command.
-Reverse proxy server will listen on  [http://localhost:8080/](http://localhost:8080/).
+### (Option 1) Directory run the binary
 
 ```bash
-# Use DirectHash load balancer.
-./aileron -f _example/proxy-loadbalancing/config-direct-hash.yaml
+./aileron -f ./config-round-robin.yaml
 ```
 
+Or
+
+- Direct Hash: `./aileron -f ./config-direct-hash.yaml`
+- Maglev: `./aileron -f ./config-maglev.yaml`
+- Random: `./aileron -f ./config-random.yaml`
+- Ring Hash: `./aileron -f ./config-ring-hash.yaml`
+- Round Robin: `./aileron -f ./config-round-robin.yaml`
+
+### (Option 2) Use taskfile
+
+`Taskfile.yaml` is available to run the example.
+Install [go-task](https://taskfile.dev/) and run the following command.
+
 ```bash
-# Use Maglev load balancer.
-./aileron -f _example/proxy-loadbalancing/config-maglev.yaml
+task
 ```
 
+or with arbitrary binary path.
+
 ```bash
-# Use Random load balancer.
-./aileron -f _example/proxy-loadbalancing/config-random.yaml
+task AILERON_CMD="./path/to/aileron/binary"
 ```
 
-```bash
-# Use RingHash load balancer.
-./aileron -f _example/proxy-loadbalancing/config-ring-hash.yaml
-```
+## Check
+
+After running a reverse-proxy server and upstream servers, send HTTP requests to the proxy.
+
+AILERON Gateway proxies requests to upstreams with selected loadbalancing algorithm (Round Robin here).
 
 ```bash
-# Use RoundRobin load balancer.
-./aileron -f _example/proxy-loadbalancing/config-round-robin.yaml
-```
+$ curl http://localhost:8080
+Server :8001
 
-## Test
+$ curl http://localhost:8080
+Server :8002
 
-Before testing the load balancers, we need to build a upstream server.
+$ curl http://localhost:8080
+Server :8003
 
-So, run the following command to build a server.
-A binary `server` will be created.
+$ curl http://localhost:8080
+Server :8004
 
-```bash
-go build _example/proxy-loadbalancing/server.go
-```
+$ curl http://localhost:8080
+Server :8005
 
-Then, run the server.
+$ curl http://localhost:8080
+Server :8001
 
-It runs 5 HTTP servers by default.
+$ curl http://localhost:8080
+Server :8002
 
-- <http://localhost:8001>
-- <http://localhost:8002>
-- <http://localhost:8003>
-- <http://localhost:8004>
-- <http://localhost:8005>
+$ curl http://localhost:8080
+Server :8003
 
-```bash
-$ ./server
+$ curl http://localhost:8080
+Server :8004
 
-2024/08/25 23:07:21 Server listens at :8001
-2024/08/25 23:07:21 Server listens at :8002
-2024/08/25 23:07:21 Server listens at :8003
-2024/08/25 23:07:21 Server listens at :8004
-2024/08/25 23:07:21 Server listens at :8005
-```
-
-Send a HTTP request like below.
-
-This request will be proxied by client ip and port
-because there is no header named `Hash-Key`.
-
-```bash
-# RingHash proxy is used in this example.
-$ curl http://localhost:8080/
-
-Hello! 127.0.0.1:45758 from :8004  // 1st request response example.
-Hello! 127.0.0.1:48032 from :8002  // 2nd
-Hello! 127.0.0.1:54380 from :8005  // 3rd
-Hello! 127.0.0.1:45758 from :8004  // 4th
-```
-
-This request will be proxied by the header value of `Hash-Key`.
-So the request reaches to the same upstream every time.
-
-```bash
-# RingHash proxy is used in this example.
-$ curl -H "Hash-Key: foo" http://localhost:8080/
-
-Hello! 127.0.0.1:60998 from :8005  // 1st request response example.
-Hello! 127.0.0.1:60998 from :8005  // 2nd
-Hello! 127.0.0.1:60998 from :8005  // 3rd
-Hello! 127.0.0.1:60998 from :8005  // 4th
+$ curl http://localhost:8080
+Server :8005
 ```

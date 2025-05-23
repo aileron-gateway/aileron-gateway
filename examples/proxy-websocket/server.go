@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	addr := "0.0.0.0:9999"
+	addr := "0.0.0.0:9090"
 	log.Println("WebSocket server listens at", addr)
 
 	mux := &http.ServeMux{}

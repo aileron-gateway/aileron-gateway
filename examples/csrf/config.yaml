@@ -11,34 +11,22 @@ kind: HTTPServer
 spec:
   addr: ":8080"
   virtualHosts:
-    - hosts: []
-      handlers:
+    - handlers:
         - middleware:
             - apiVersion: app/v1
               kind: CSRFMiddleware
           handler:
             apiVersion: app/v1
             kind: EchoHandler
-        - handler:
-            apiVersion: app/v1
-            kind: CSRFMiddleware
 
 ---
 apiVersion: app/v1
 kind: EchoHandler
-spec: {}
 
 ---
 apiVersion: app/v1
 kind: CSRFMiddleware
 spec:
   customRequestHeader:
-    headerName: __csrfToken
-    allowedPattern: ""
-  # doubleSubmitCookies:
-  #   cookieName: __csrfToken
-  #   tokenSource: Header
-  #   sourceKey: __csrfToken
-  # synchronizerToken:
-  #   tokenSource: Header
-  #   sourceKey: __csrfToken
+    headerName: "__csrfToken"
+    allowedPattern: "^localhost$"

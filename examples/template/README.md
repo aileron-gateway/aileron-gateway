@@ -14,9 +14,9 @@ block-beta
     TemplateHandler["🟥</br>Template</br>Handler"]
   end
 
-  Downstream --> HTTPServer
+Downstream --> HTTPServer
 
-  style TemplateHandler stroke:#ff6961,stroke-width:2px
+style TemplateHandler stroke:#ff6961,stroke-width:2px
 ```
 
 **Legend**:
@@ -104,10 +104,10 @@ graph TD
   HTTPServer["🟪 **HTTPServer**</br>default/default"]
   TemplateHandler["🟥</br>**TemplateHandler**</br>default/default"]
 
-  Entrypoint --> HTTPServer
-  HTTPServer --> TemplateHandler
+Entrypoint --> HTTPServer
+HTTPServer --> TemplateHandler
 
-  style TemplateHandler stroke:#ff6961,stroke-width:2px
+style TemplateHandler stroke:#ff6961,stroke-width:2px
 ```
 
 ## Run

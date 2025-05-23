@@ -1,0 +1,56 @@
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  runners:
+    - apiVersion: core/v1
+      kind: HTTPServer
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+spec:
+  addr: ":8080"
+  virtualHosts:
+    - middleware:
+        - apiVersion: app/v1
+          kind: AuthenticationMiddleware
+      handlers:
+        - handler:
+            apiVersion: app/v1
+            kind: EchoHandler
+
+---
+apiVersion: app/v1
+kind: EchoHandler
+
+---
+apiVersion: app/v1
+kind: AuthenticationMiddleware
+spec:
+  handlers:
+    - apiVersion: app/v1
+      kind: OAuthAuthenticationHandler
+
+---
+apiVersion: app/v1
+kind: OAuthAuthenticationHandler
+spec:
+  resourceServerHandler: {}
+  contexts:
+    - name: default
+      atProxyHeader: "X-Access-Token"
+      enableIntrospection: true # Local validation.
+      provider:
+        issuer: "http://localhost:18080/realms/aileron"
+        baseURL: "http://localhost:18080"
+        endpoints:
+          discovery: "/realms/aileron/.well-known/openid-configuration"
+      client:
+        id: "aileron_resource_server"
+        secret: "KWYPBgrTEEGZNH6wZsP2zyK14LZHJi77"
+      # jwtHandler:
+      #   publicKeys:
+      #     - keyID: LO9dmmUtUOiV1P7OkzYW-CDbTJV94nADvDFhojxvSqk
+      #       algorithm: RS256
+      #       keyType: PUBLIC
+      #       keyFilePath: ./keycloak/keys/public.key

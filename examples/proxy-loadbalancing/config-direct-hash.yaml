@@ -27,10 +27,8 @@ spec:
       lbAlgorithm: DirectHash # Use DirectHash load balancer.
       hashers: # DirectHasher requires at least 1 hasher.
         - hasherType: Header
-          hashAlg: FNV1_32
           key: Hash-Key
         - hasherType: ClientAddr
-          hashAlg: FNV1_64
       upstreams:
         - url: http://localhost:8001
         - url: http://localhost:8002

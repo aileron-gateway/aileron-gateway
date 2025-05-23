@@ -1,80 +1,160 @@
-# Proxy WebSocket Example
+# Reverse Proxy (WebSocket)
 
-## About this example
+## Overview
 
-This example shows reverse proxy handler can proxy WebSocket.
+This example runs a reverse-proxy server and proxy [websocket](https://en.wikipedia.org/wiki/WebSocket) requesnt and response.
+Websocket is one of the streaming type requests and responses.
 
-Files that required to run this example is shown below.
-Make sure to build or download AILERON Gateway binary, `aileron`.
+```mermaid
+block-beta
+  columns 6
+  Downstream:1
+  space:1
+  block:aileron:2
+    HTTPServer["🟪</br>HTTP</br>Server"]
+    ReverseProxyHandler["🟥</br>ReverseProxy</br>Handler"]
+  end
+  space:1
+  Upstream:1
+
+Downstream --> HTTPServer
+HTTPServer --"WebSocket"--> Downstream
+Upstream --> ReverseProxyHandler
+ReverseProxyHandler --"WebSocket"--> Upstream
+
+style Downstream stroke:#888
+style Upstream stroke:#888
+style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
+```
+
+**Legend**:
+
+- 🟥 `#ff6961` Handler resources.
+- 🟩 `#77dd77` Middleware resources (Server-side middleware).
+- 🟦 `#89CFF0` Tripperware resources (Client-side middleware).
+- 🟪 `#9370DB` Other resources.
+
+In this example, following directory structure and files are supposed.
+
+Resources are available at [examples/proxy-websocket/](https://github.com/aileron-gateway/aileron-gateway/tree/main/examples/proxy-websocket).
+If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt
-./
-├── aileron
-├── server  !!!!! This binary is built from the server.go in the Test section. 
-└── _example/
-    └── proxy-websocket/
-        ├── index.html
-        ├── server.go
-        └── config.yaml
+proxy-websocket/   ----- Working directory.
+├── aileron        ----- AILERON Gateway binary (aileron.exe on windows).
+├── config.yaml    ----- AILERON Gateway config file.
+├── server.go      ----- Sample websocket server/client.
+├── index.html     ----- WebSocket client test page used by server.go.
+└── Taskfile.yaml  ----- (Optional) Config file for the go-task.
+```
+
+## Config
+
+Configuration yaml to run a reverse-proxy server for websocket would becomes as follows.
+This config is almost the same as plain reverse-proxy except for the upstream url.
+
+```yaml
+# config.yaml
+
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  runners:
+    - apiVersion: core/v1
+      kind: HTTPServer
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+spec:
+  addr: ":8080"
+  virtualHosts:
+    - handlers:
+        - handler:
+            apiVersion: core/v1
+            kind: ReverseProxyHandler
+
+---
+apiVersion: core/v1
+kind: ReverseProxyHandler
+spec:
+  loadBalancers:
+    - pathMatcher:
+        match: "/"
+        matchType: Prefix
+      upstreams:
+        - url: http://localhost:9090
+```
+
+The config tells:
+
+- Start a `HTTPServer` with port 8080.
+- ReverseProxy is applied for the path having prefix `/` (matches all).
+- Upstream service is [http://localhost:9090](http://localhost:9090) (This url is defined in server.go).
+
+This graph shows the resource dependencies of the configuration.
+
+```mermaid
+graph TD
+  Entrypoint["🟪 **Entrypoint**</br>default/default"]
+  HTTPServer["🟪 **HTTPServer**</br>default/default"]
+  ReverseProxyHandler["🟥 **ReverseProxyHandler**</br>default/default"]
+
+Entrypoint --> HTTPServer
+HTTPServer --> ReverseProxyHandler
+ReverseProxyHandler
+
+style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
 ```
 
 ## Run
 
-Run the example with this command.
-Reverse proxy server will listen on  [http://localhost:8080/](http://localhost:8080/).
+### (Option 1) Directory run the binary
+
+First run the AILERON Gateway with the sample config as follows.
 
 ```bash
-./aileron -f _example/proxy-websocket/
+./aileron -f ./config.yaml
 ```
 
-## Test
+We also runs the upstream websocket server using [server.go](server.go).
 
-Before testing the WebSocket proxy, we need to build a WebSocket server.
-
-So, run the following command to build a server.
-A binary `server` will be created.
+Run the server with this command.
+The server will listens on the port `:9090` by default.
 
 ```bash
-go build _example/proxy-websocket/server.go
+go run server.go
 ```
 
-Then run the WebSocket server.
+### (Option 2) Use taskfile
+
+`Taskfile.yaml` is available to run the example.
+Install [go-task](https://taskfile.dev/) and run the following command.
 
 ```bash
-$ ./server
-
-2024/08/24 20:46:16 WebSocket server listens at 0.0.0.0:9999
+task
 ```
 
-The WebSocket server has 2 handlers of
+or with arbitrary binary path.
 
-- `/`: Return index.html.
-- `/ws`: Do WebSocket communication.
-
-So, access to the `index.html` through  [http://localhost:8080/_example/proxy-websocket/](http://localhost:8080/_example/proxy-websocket/) from your browser.
-
-Once you accessed to the index.html, a WebSocket communication will start.
-You will receive the current datetime.
-And you can send some messages.
-
-```text
-Hello!! This is a WebSocket server!!
-It's Sat, 24 Aug 2024 20:51:17 GMT
-It's Sat, 24 Aug 2024 20:51:18 GMT
-It's Sat, 24 Aug 2024 20:51:19 GMT
-It's Sat, 24 Aug 2024 20:51:20 GMT
-It's Sat, 24 Aug 2024 20:51:21 GMT
-Your message arrived: hello!
-It's Sat, 24 Aug 2024 20:51:22 GMT
-It's Sat, 24 Aug 2024 20:51:23 GMT
-It's Sat, 24 Aug 2024 20:51:24 GMT
-It's Sat, 24 Aug 2024 20:51:25 GMT
-It's Sat, 24 Aug 2024 20:51:26 GMT
-It's Sat, 24 Aug 2024 20:51:27 GMT
-It's Sat, 24 Aug 2024 20:51:28 GMT
-Your message arrived: hi!
-It's Sat, 24 Aug 2024 20:51:29 GMT
-It's Sat, 24 Aug 2024 20:51:30 GMT
-
-..... output omitted
+```bash
+task AILERON_CMD="./path/to/aileron/binary"
 ```
+
+This runs both AILERON Gateway and the upstream server.
+
+## Check
+
+After running a reverse-proxy server and upstream server,
+we check websocket requests and responses are proxied.
+
+Access [http://localhost:8080](http://localhost:8080) from a browser.
+The server returns index.html that works as a websocket client.
+
+Once accessed the url, client connects to the websocket server
+and the server returns the current datetime every seconds.
+
+You can send a message to the server with the form.
+The upstream websocket server will echoes your message.
+
+![screenshot.png](screenshot.png)

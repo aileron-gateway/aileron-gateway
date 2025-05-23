@@ -8,3 +8,4 @@ tasks:
     cmd: "{{.AILERON_CMD}} -f ./config.yaml"
   upstream:
     cmd: "go run ./server.go"
+

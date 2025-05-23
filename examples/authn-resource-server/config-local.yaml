@@ -1,0 +1,48 @@
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  runners:
+    - apiVersion: core/v1
+      kind: HTTPServer
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+spec:
+  addr: ":8080"
+  virtualHosts:
+    - middleware:
+        - apiVersion: app/v1
+          kind: AuthenticationMiddleware
+      handlers:
+        - handler:
+            apiVersion: app/v1
+            kind: EchoHandler
+
+---
+apiVersion: app/v1
+kind: EchoHandler
+
+---
+apiVersion: app/v1
+kind: AuthenticationMiddleware
+spec:
+  handlers:
+    - apiVersion: app/v1
+      kind: OAuthAuthenticationHandler
+
+---
+apiVersion: app/v1
+kind: OAuthAuthenticationHandler
+spec:
+  resourceServerHandler: {}
+  contexts:
+    - name: default
+      atProxyHeader: "X-Access-Token"
+      enableIntrospection: false # Local validation.
+      jwtHandler:
+        publicKeys:
+          - keyID: LO9dmmUtUOiV1P7OkzYW-CDbTJV94nADvDFhojxvSqk
+            algorithm: RS256
+            keyType: PUBLIC
+            keyFilePath: ./keycloak/keys/public.key

@@ -14,9 +14,9 @@ block-beta
     StaticHandler["🟥</br>Static</br>Handler"]
   end
 
-  Downstream --> HTTPServer
+Downstream --> HTTPServer
 
-  style StaticHandler stroke:#ff6961,stroke-width:2px
+style StaticHandler stroke:#ff6961,stroke-width:2px
 ```
 
 **Legend**:
@@ -88,10 +88,10 @@ graph TD
   HTTPServer["🟪 **HTTPServer**</br>default/default"]
   StaticHandler["🟥</br>**StaticHandler**</br>default/default"]
 
-  Entrypoint --> HTTPServer
-  HTTPServer --> StaticHandler
+Entrypoint --> HTTPServer
+HTTPServer --> StaticHandler
 
-  style StaticHandler stroke:#ff6961,stroke-width:2px
+style StaticHandler stroke:#ff6961,stroke-width:2px
 ```
 
 ## Run

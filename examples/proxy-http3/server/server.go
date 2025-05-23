@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	certFile = "./pki/cert.pem"
-	keyFile  = "./pki/key.pem"
+	certFile = "../pki/cert.pem"
+	keyFile  = "../pki/key.pem"
 )
 
 func main() {

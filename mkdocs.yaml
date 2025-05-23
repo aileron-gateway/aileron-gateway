@@ -92,27 +92,11 @@ markdown_extensions:
           format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.arithmatex:
       generic: true
-
 extra:
   analytics:
     provider: google
     property: G-68J9W3Q5NX
-  status:
-    Proposed: "Status: Proposed</br> This proposal have actively been discussed."
-    Deferred: "Status: Deferred</br> This proposal was suspended."
-    Archived: "Status: Archived</br> This proposal was withdrawn or rejected."
-    Draft: "Status: Draft</br> This proposal have been available with non-GA status."
-    Experimental: "Status: Experimental</br> This proposal have been released as experimental."
-    Completed: "Status: Completed</br> This proposal have been available."
-    Historic: "Status: Historic</br> Related features are removed from releases."
-
 nav:
-  - Architecture:
-      - Architecture: ./architecture/README.md
-      - Concept: ./architecture/concept.md
-      - Architecture: ./architecture/architecture.md
-      - Application: ./architecture/application.md
-      - Networking: ./architecture/networking.md
   - App:
       - App: ./app/README.md
       - Handler:
