@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Body>
+    <soap:Fault>
+      <faultcode>Client</faultcode>
+      <faultstring>"An error has occurred while processing the request from the client."</faultstring>
+      <faultactor>Client</faultactor>
+      <detail>
+        <error>client error</error>
+        <status>400</status>
+      </detail>
+    </soap:Fault>
+  </soap:Body>
+</soap:Envelope>

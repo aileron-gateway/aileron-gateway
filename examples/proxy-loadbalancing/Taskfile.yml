@@ -1,0 +1,33 @@
+version: '3'
+env:
+  AILERON_CMD: "./aileron"
+tasks:
+  default:
+    deps: ["round-robin"]
+  upstream:
+    cmd: "go run ./server.go"
+
+  direct-hash:
+    deps: ["upstream", "config-direct-hash"]
+  config-direct-hash:
+    cmd: "{{.AILERON_CMD}} -f ./config-direct-hash.yaml"
+
+  maglev:
+    deps: ["upstream", "config-maglev"]
+  config-maglev:
+    cmd: "{{.AILERON_CMD}} -f ./config-maglev.yaml"
+
+  random:
+    deps: ["upstream", "config-random"]
+  config-random:
+    cmd: "{{.AILERON_CMD}} -f ./config-random.yaml"
+
+  ring-hash:
+    deps: ["upstream", "config-ring-hash"]
+  config-ring-hash:
+    cmd: "{{.AILERON_CMD}} -f ./config-ring-hash.yaml"
+
+  round-robin:
+    deps: ["upstream", "config-round-robin"]
+  config-round-robin:
+    cmd: "{{.AILERON_CMD}} -f ./config-round-robin.yaml"

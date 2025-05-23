@@ -1,0 +1,110 @@
+{
+  "realm" : "aileron",
+  "users" : [ {
+    "id" : "ebeeb0af-1ff8-4997-922a-51251ec904bd",
+    "username" : "service-account-aileron_client_credentials",
+    "emailVerified" : false,
+    "createdTimestamp" : 1725846203737,
+    "enabled" : true,
+    "totp" : false,
+    "serviceAccountClientId" : "aileron_client_credentials",
+    "credentials" : [ ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-aileron" ],
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "164b5b0f-5c17-4cb1-bd97-d8d71c096b1e",
+    "username" : "test",
+    "firstName" : "foo",
+    "lastName" : "bar",
+    "email" : "test@example.com",
+    "emailVerified" : true,
+    "createdTimestamp" : 1725848796709,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "fa8d48c7-c47b-4c6c-ab91-1c7e981c51ec",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1725848806574,
+      "secretData" : "{\"value\":\"lDdKXSWU1GmO3taU5G6mCsZ2JU9+t9nmafaxqC5shGPfbgSx4RI3VYZhffb1O29ZVFyVOGGdNu4iHsKkQ0wc7g==\",\"salt\":\"gnoy81+fph1Ku0BUA72x/A==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":210000,\"algorithm\":\"pbkdf2-sha512\",\"additionalParameters\":{}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-aileron" ],
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "f1b7d1e9-76e6-41fc-826e-e327e0cfecb0",
+    "username" : "test1",
+    "firstName" : "foo1",
+    "lastName" : "bar1",
+    "email" : "test1@example.com",
+    "emailVerified" : true,
+    "createdTimestamp" : 1725848735039,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "172507de-0346-4ae3-a5a8-aa5db8e812e8",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1725848760061,
+      "secretData" : "{\"value\":\"bmZHfHCMC+d8w3/eHFrMsFtTr9lbGTBmB9HEGeyKrFV6SPWBDkrCQTiEEvrqc93YefyaHJB+T4nFXv3k3Y8Z3Q==\",\"salt\":\"ceiuC9+RtX1nOXP4BdyKlg==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":210000,\"algorithm\":\"pbkdf2-sha512\",\"additionalParameters\":{}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-aileron" ],
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "0237aac0-c72a-47bd-b42a-31df3672b78f",
+    "username" : "test2",
+    "firstName" : "foo2",
+    "lastName" : "bar2",
+    "email" : "test2@example.com",
+    "emailVerified" : true,
+    "createdTimestamp" : 1725848826728,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "ad9dc9a0-5a76-4a8e-97aa-55f4f1914755",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1725848840731,
+      "secretData" : "{\"value\":\"G8LYJiGdDFYjWhbmeKJ+iIX70OGvIpYgA8hdWl6BvKrA0UTfJVa+0QJQUMZbHrtiZ1GgMEO+zxUFbV9PMWHI0Q==\",\"salt\":\"WafykZg2tqKkzwiw0s6ufA==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":210000,\"algorithm\":\"pbkdf2-sha512\",\"additionalParameters\":{}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-aileron" ],
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "6cec6e89-2af0-4a4b-b8c1-12dc0081b555",
+    "username" : "test3",
+    "firstName" : "foo3",
+    "lastName" : "bar3",
+    "email" : "test3@example.com",
+    "emailVerified" : false,
+    "createdTimestamp" : 1725848865452,
+    "enabled" : true,
+    "totp" : false,
+    "credentials" : [ {
+      "id" : "f9d5d66d-87ba-46bf-bc64-efcf0774801d",
+      "type" : "password",
+      "userLabel" : "My password",
+      "createdDate" : 1725848877540,
+      "secretData" : "{\"value\":\"m0nS80MjyX2VbM2f1VbaQ3JkdxITGDGZjFCg8Al7Ru8DBZBKLrNXeR1BnHpRX9AQu7IYtNmRaeDDIqaqWy4UzA==\",\"salt\":\"YDkyzWVrfBp0Amr1dZC6jA==\",\"additionalParameters\":{}}",
+      "credentialData" : "{\"hashIterations\":210000,\"algorithm\":\"pbkdf2-sha512\",\"additionalParameters\":{}}"
+    } ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "default-roles-aileron" ],
+    "notBefore" : 0,
+    "groups" : [ ]
+  } ]
+}

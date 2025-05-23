@@ -1,0 +1,7 @@
+services:
+  jaeger:
+    image: jaegertracing/jaeger:2.5.0
+    ports:
+      - 4317:4317 # gRPC endpoint for OTLP
+      - 4318:4318 # HTTP endpoint for OTLP
+      - 16686:16686 # HTTP query serve frontend

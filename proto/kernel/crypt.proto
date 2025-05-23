@@ -9,20 +9,20 @@ import "kernel/hash.proto";
 // CommonKeyCryptType is the algorithms of common key encryption.
 enum CommonKeyCryptType {
     CommonKeyCryptTypeUnknown = 0;   // Unknown crypt type.
-    AESGCM                    = 1;   // AES-GCM chipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.
-    AESCBC                    = 2;   // AES-CBC chipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.
-    AESCFB                    = 3;   // AES-CFB chipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.
-    AESCTR                    = 4;   // AES-CTR chipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.
-    AESOFB                    = 5;   // AES-OFB chipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.
-    DESCBC                    = 6;   // DES-CBC chipher. Key length must be 8 bytes.
-    DESCFB                    = 7;   // DES-CFB chipher. Key length must be 8 bytes.
-    DESCTR                    = 8;   // DES-CTR chipher. Key length must be 8 bytes.
-    DESOFB                    = 9;   // DES-OFB chipher. Key length must be 8 bytes.
-    TripleDESCBC              = 10;  // 3DES-CBC chipher. Key length must be 24 bytes.
-    TripleDESCFB              = 11;  // 3DES-CFB chipher. Key length must be 24 bytes.
-    TripleDESCTR              = 12;  // 3DES-CTR chipher. Key length must be 24 bytes.
-    TripleDESOFB              = 13;  // 3DES-OFB chipher. Key length must be 24 bytes.
-    RC4                       = 14;  // RC4 chipher. Key length must be 5 to 256 bytes.
+    AESGCM                    = 1;   // AES-GCM cipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.
+    AESCBC                    = 2;   // AES-CBC cipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.
+    AESCFB                    = 3;   // AES-CFB cipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.
+    AESCTR                    = 4;   // AES-CTR cipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.
+    AESOFB                    = 5;   // AES-OFB cipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.
+    DESCBC                    = 6;   // DES-CBC cipher. Key length must be 8 bytes.
+    DESCFB                    = 7;   // DES-CFB cipher. Key length must be 8 bytes.
+    DESCTR                    = 8;   // DES-CTR cipher. Key length must be 8 bytes.
+    DESOFB                    = 9;   // DES-OFB cipher. Key length must be 8 bytes.
+    TripleDESCBC              = 10;  // 3DES-CBC cipher. Key length must be 24 bytes.
+    TripleDESCFB              = 11;  // 3DES-CFB cipher. Key length must be 24 bytes.
+    TripleDESCTR              = 12;  // 3DES-CTR cipher. Key length must be 24 bytes.
+    TripleDESOFB              = 13;  // 3DES-OFB cipher. Key length must be 24 bytes.
+    RC4                       = 14;  // RC4 cipher. Key length must be 5 to 256 bytes.
 }
 
 message PasswordCryptSpec {
@@ -50,31 +50,31 @@ message SCryptSpec {
     // Random bytes read by a random reader of crypt/rand is
     // used for generating a specified length of random salt.
     // Salts are appended to the resulting hash value.
-    // Default value is used if not set or set to zeto.
+    // Default value is used if not set or set to zero.
     // Default is [32].
     int32 SaltLen = 1 [json_name = "saltLen"];
 
     // [OPTIONAL]
     // N is the "N" parameter for SCrypt algorith.
-    // Default value is used if not set or set to zeto.
+    // Default value is used if not set or set to zero.
     // Default is [32768].
     int32 N = 2 [json_name = "n"];
 
     // [OPTIONAL]
     // R is the "r" parameter for SCrypt algorith.
-    // Default value is used if not set or set to zeto.
+    // Default value is used if not set or set to zero.
     // Default is [8].
     int32 R = 3 [json_name = "r"];
 
     // [OPTIONAL]
     // P is the "p" parameter for SCrypt algorith.
-    // Default value is used if not set or set to zeto.
+    // Default value is used if not set or set to zero.
     // Default is [1].
     int32 P = 4 [json_name = "p"];
 
     // [OPTIONAL]
     // KeyLen is the hashed key length.
-    // Default value is used if not set or set to zeto.
+    // Default value is used if not set or set to zero.
     // Default is [32].
     int32 KeyLen = 5 [json_name = "keyLen"];
 }
@@ -85,19 +85,19 @@ message PBKDF2Spec {
     // Random bytes read by a random reader of crypt/rand is
     // used for generating a specified length of random salt.
     // Salts are appended to the resulting hash value.
-    // Default value is used if not set or set to zeto.
+    // Default value is used if not set or set to zero.
     // Default is [32].
     int32 SaltLen = 1 [json_name = "saltLen"];
 
     // [OPTIONAL]
     // Iter is the iteration count parameter for PBKDF2.
-    // Default value is used if not set or set to zeto.
+    // Default value is used if not set or set to zero.
     // Default is [4096].
     int32 Iter = 2 [json_name = "iter"];
 
     // [OPTIONAL]
     // KeyLen is the hashed key length.
-    // Default value is used if not set or set to zeto.
+    // Default value is used if not set or set to zero.
     // Default is [32].
     int32 KeyLen = 3 [json_name = "keyLen"];
 
@@ -113,7 +113,7 @@ message Argon2Spec {
     // Random bytes read by a random reader of crypt/rand is
     // used for generating a specified length of random salt.
     // Salts are appended to the resulting hash value.
-    // Default value is used if not set or set to zeto.
+    // Default value is used if not set or set to zero.
     // Default is [32].
     uint32 SaltLen = 1 [json_name = "saltLen"];
 
@@ -136,7 +136,7 @@ message Argon2Spec {
 
     // [OPTIONAL]
     // KeyLen is the hashed key length.
-    // Default value is used if not set or set to zeto.
+    // Default value is used if not set or set to zero.
     // Default is [32].
     uint32 KeyLen = 5 [json_name = "keyLen"];
 }

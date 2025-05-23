@@ -1,0 +1,49 @@
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  runners:
+    - apiVersion: core/v1
+      kind: HTTPServer
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+spec:
+  addr: ":8080"
+  virtualHosts:
+    - middleware:
+        - apiVersion: app/v1
+          kind: PrometheusMeter
+      handlers:
+        - handler:
+            apiVersion: app/v1
+            kind: PrometheusMeter
+        - handler:
+            apiVersion: core/v1
+            kind: ReverseProxyHandler
+
+---
+apiVersion: app/v1
+kind: PrometheusMeter
+
+---
+apiVersion: core/v1
+kind: ReverseProxyHandler
+spec:
+  roundTripper:
+    apiVersion: core/v1
+    kind: HTTPClient
+  loadBalancers:
+    - pathMatcher:
+        match: ".*"
+        matchType: Regex
+      upstreams:
+        - url: http://httpbin.org
+
+---
+apiVersion: core/v1
+kind: HTTPClient
+spec:
+  tripperwares:
+    - apiVersion: app/v1
+      kind: PrometheusMeter

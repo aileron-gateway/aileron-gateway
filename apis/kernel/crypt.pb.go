@@ -27,20 +27,20 @@ type CommonKeyCryptType int32
 
 const (
 	CommonKeyCryptType_CommonKeyCryptTypeUnknown CommonKeyCryptType = 0  // Unknown crypt type.
-	CommonKeyCryptType_AESGCM                    CommonKeyCryptType = 1  // AES-GCM chipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.
-	CommonKeyCryptType_AESCBC                    CommonKeyCryptType = 2  // AES-CBC chipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.
-	CommonKeyCryptType_AESCFB                    CommonKeyCryptType = 3  // AES-CFB chipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.
-	CommonKeyCryptType_AESCTR                    CommonKeyCryptType = 4  // AES-CTR chipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.
-	CommonKeyCryptType_AESOFB                    CommonKeyCryptType = 5  // AES-OFB chipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.
-	CommonKeyCryptType_DESCBC                    CommonKeyCryptType = 6  // DES-CBC chipher. Key length must be 8 bytes.
-	CommonKeyCryptType_DESCFB                    CommonKeyCryptType = 7  // DES-CFB chipher. Key length must be 8 bytes.
-	CommonKeyCryptType_DESCTR                    CommonKeyCryptType = 8  // DES-CTR chipher. Key length must be 8 bytes.
-	CommonKeyCryptType_DESOFB                    CommonKeyCryptType = 9  // DES-OFB chipher. Key length must be 8 bytes.
-	CommonKeyCryptType_TripleDESCBC              CommonKeyCryptType = 10 // 3DES-CBC chipher. Key length must be 24 bytes.
-	CommonKeyCryptType_TripleDESCFB              CommonKeyCryptType = 11 // 3DES-CFB chipher. Key length must be 24 bytes.
-	CommonKeyCryptType_TripleDESCTR              CommonKeyCryptType = 12 // 3DES-CTR chipher. Key length must be 24 bytes.
-	CommonKeyCryptType_TripleDESOFB              CommonKeyCryptType = 13 // 3DES-OFB chipher. Key length must be 24 bytes.
-	CommonKeyCryptType_RC4                       CommonKeyCryptType = 14 // RC4 chipher. Key length must be 5 to 256 bytes.
+	CommonKeyCryptType_AESGCM                    CommonKeyCryptType = 1  // AES-GCM cipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.
+	CommonKeyCryptType_AESCBC                    CommonKeyCryptType = 2  // AES-CBC cipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.
+	CommonKeyCryptType_AESCFB                    CommonKeyCryptType = 3  // AES-CFB cipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.
+	CommonKeyCryptType_AESCTR                    CommonKeyCryptType = 4  // AES-CTR cipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.
+	CommonKeyCryptType_AESOFB                    CommonKeyCryptType = 5  // AES-OFB cipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.
+	CommonKeyCryptType_DESCBC                    CommonKeyCryptType = 6  // DES-CBC cipher. Key length must be 8 bytes.
+	CommonKeyCryptType_DESCFB                    CommonKeyCryptType = 7  // DES-CFB cipher. Key length must be 8 bytes.
+	CommonKeyCryptType_DESCTR                    CommonKeyCryptType = 8  // DES-CTR cipher. Key length must be 8 bytes.
+	CommonKeyCryptType_DESOFB                    CommonKeyCryptType = 9  // DES-OFB cipher. Key length must be 8 bytes.
+	CommonKeyCryptType_TripleDESCBC              CommonKeyCryptType = 10 // 3DES-CBC cipher. Key length must be 24 bytes.
+	CommonKeyCryptType_TripleDESCFB              CommonKeyCryptType = 11 // 3DES-CFB cipher. Key length must be 24 bytes.
+	CommonKeyCryptType_TripleDESCTR              CommonKeyCryptType = 12 // 3DES-CTR cipher. Key length must be 24 bytes.
+	CommonKeyCryptType_TripleDESOFB              CommonKeyCryptType = 13 // 3DES-OFB cipher. Key length must be 24 bytes.
+	CommonKeyCryptType_RC4                       CommonKeyCryptType = 14 // RC4 cipher. Key length must be 5 to 256 bytes.
 )
 
 // Enum value maps for CommonKeyCryptType.
@@ -294,27 +294,27 @@ type SCryptSpec struct {
 	// Random bytes read by a random reader of crypt/rand is
 	// used for generating a specified length of random salt.
 	// Salts are appended to the resulting hash value.
-	// Default value is used if not set or set to zeto.
+	// Default value is used if not set or set to zero.
 	// Default is [32].
 	SaltLen int32 `protobuf:"varint,1,opt,name=SaltLen,json=saltLen,proto3" json:"SaltLen,omitempty"`
 	// [OPTIONAL]
 	// N is the "N" parameter for SCrypt algorith.
-	// Default value is used if not set or set to zeto.
+	// Default value is used if not set or set to zero.
 	// Default is [32768].
 	N int32 `protobuf:"varint,2,opt,name=N,json=n,proto3" json:"N,omitempty"`
 	// [OPTIONAL]
 	// R is the "r" parameter for SCrypt algorith.
-	// Default value is used if not set or set to zeto.
+	// Default value is used if not set or set to zero.
 	// Default is [8].
 	R int32 `protobuf:"varint,3,opt,name=R,json=r,proto3" json:"R,omitempty"`
 	// [OPTIONAL]
 	// P is the "p" parameter for SCrypt algorith.
-	// Default value is used if not set or set to zeto.
+	// Default value is used if not set or set to zero.
 	// Default is [1].
 	P int32 `protobuf:"varint,4,opt,name=P,json=p,proto3" json:"P,omitempty"`
 	// [OPTIONAL]
 	// KeyLen is the hashed key length.
-	// Default value is used if not set or set to zeto.
+	// Default value is used if not set or set to zero.
 	// Default is [32].
 	KeyLen        int32 `protobuf:"varint,5,opt,name=KeyLen,json=keyLen,proto3" json:"KeyLen,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -393,17 +393,17 @@ type PBKDF2Spec struct {
 	// Random bytes read by a random reader of crypt/rand is
 	// used for generating a specified length of random salt.
 	// Salts are appended to the resulting hash value.
-	// Default value is used if not set or set to zeto.
+	// Default value is used if not set or set to zero.
 	// Default is [32].
 	SaltLen int32 `protobuf:"varint,1,opt,name=SaltLen,json=saltLen,proto3" json:"SaltLen,omitempty"`
 	// [OPTIONAL]
 	// Iter is the iteration count parameter for PBKDF2.
-	// Default value is used if not set or set to zeto.
+	// Default value is used if not set or set to zero.
 	// Default is [4096].
 	Iter int32 `protobuf:"varint,2,opt,name=Iter,json=iter,proto3" json:"Iter,omitempty"`
 	// [OPTIONAL]
 	// KeyLen is the hashed key length.
-	// Default value is used if not set or set to zeto.
+	// Default value is used if not set or set to zero.
 	// Default is [32].
 	KeyLen int32 `protobuf:"varint,3,opt,name=KeyLen,json=keyLen,proto3" json:"KeyLen,omitempty"`
 	// Currently following algorithms are available.
@@ -479,7 +479,7 @@ type Argon2Spec struct {
 	// Random bytes read by a random reader of crypt/rand is
 	// used for generating a specified length of random salt.
 	// Salts are appended to the resulting hash value.
-	// Default value is used if not set or set to zeto.
+	// Default value is used if not set or set to zero.
 	// Default is [32].
 	SaltLen uint32 `protobuf:"varint,1,opt,name=SaltLen,json=saltLen,proto3" json:"SaltLen,omitempty"`
 	// [OPTIONAL]
@@ -498,7 +498,7 @@ type Argon2Spec struct {
 	Threads uint32 `protobuf:"varint,4,opt,name=Threads,json=threads,proto3" json:"Threads,omitempty"`
 	// [OPTIONAL]
 	// KeyLen is the hashed key length.
-	// Default value is used if not set or set to zeto.
+	// Default value is used if not set or set to zero.
 	// Default is [32].
 	KeyLen        uint32 `protobuf:"varint,5,opt,name=KeyLen,json=keyLen,proto3" json:"KeyLen,omitempty"`
 	unknownFields protoimpl.UnknownFields
