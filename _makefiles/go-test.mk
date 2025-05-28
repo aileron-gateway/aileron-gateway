@@ -1,4 +1,4 @@
-SHELL ?= /bin/bash -euo pipefail
+SHELL := /bin/bash -euo pipefail
 INCLUDED += go-test # Basename of this makefile.
 .DEFAULT_GOAL := go-test-help # Basename + "-help"
 ################################################################################
@@ -147,6 +147,7 @@ go-test-qemu:
 	echo ""; \
 	echo "INFO: Testing $$target"; \
 	$(GO_TEST_CMD) $(EXTRA_ARGS) -c -o $$target $$target; \
-	find $$target -name "*.test" | xargs -i bash -c "cd $$target && $(QEMU_CMD_$(GOARCH)) {}; rm -f {}"; \
+	cd $$target && test -n *.test && test -f *.test && $(QEMU_CMD_$(GOARCH)) *.test; \
+	rm -f *.test; \
 	done
 #______________________________________________________________________________#

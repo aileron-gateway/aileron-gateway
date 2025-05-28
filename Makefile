@@ -2,7 +2,7 @@
 #                      Global Configs                      #
 ############################################################
 
-SHELL ?= /bin/bash -euo pipefail
+SHELL := /bin/bash -euo pipefail
 
 include _makefiles/nfpm.mk
 include _makefiles/go-test.mk
