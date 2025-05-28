@@ -1,3 +1,4 @@
+SHELL ?= /bin/bash -euo pipefail
 INCLUDED += go-test # Basename of this makefile.
 .DEFAULT_GOAL := go-test-help # Basename + "-help"
 ################################################################################
@@ -67,7 +68,6 @@ QEMU_CMD_ppc64 := qemu-ppc64
 QEMU_CMD_ppc64le := qemu-ppc64le
 QEMU_CMD_riscv64 := qemu-riscv64
 QEMU_CMD_s390x := qemu-s390x
-QEMU_CMD_sparc64 := qemu-sparc64
 
 
 ##### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ #####

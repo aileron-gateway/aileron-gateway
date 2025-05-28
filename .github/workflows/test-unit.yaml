@@ -61,7 +61,6 @@ jobs:
           - "mips64" # Can be removed.
           - "mips64le" # Can be removed.
           - "mipsle" # Can be removed.
-          - "sparc64" # Can be removed.
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
