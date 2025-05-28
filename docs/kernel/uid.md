@@ -162,17 +162,17 @@ Because the original IDs have 30 bytes length, padding character `=` does not ap
 Regular expressions represents the IDs string pattern.
 `Base32Escaped` and `Base32HexEscaped` are  defined in the `kernel/encoder`.
 
-| Encode method    | Regular expression    | Notes                         |
-| ---------------- | --------------------- | ----------------------------- |
-| Base16 (Hex)     | `^[0-9a-fA-F]{60}$`   | -                             |
-| Base32           | `^[2-7A-Z]{48}$`      | There is no padding char `=`. |
-| Base32Hex        | `^[0-9A-V]{48}$`      | There is no padding char `=`. |
-| Base32Escaped    | `^[0-9A-Z^AEIO]{48}$` | There is no padding char `=`. |
-| Base32HexEscaped | `^[0-9A-Z^AEIO]{48}$` | There is no padding char `=`. |
-| Base64           | `^[0-9a-zA-Z+/]{40}$` | There is no padding char `=`. |
-| Base64Raw        | `^[0-9a-zA-Z+/]{40}$` | -                             |
-| Base64URL        | `^[0-9a-zA-Z-_]{40}$` | There is no padding char `=`. |
-| Base64RawURL     | `^[0-9a-zA-Z-_]{40}$` | -                             |
+| Encode method    | Regular expression           | Notes                         |
+| ---------------- | ---------------------------- | ----------------------------- |
+| Base16 (Hex)     | `^[0-9a-fA-F]{60}$`          | -                             |
+| Base32           | `^[2-7A-Z]{48}$`             | There is no padding char `=`. |
+| Base32Hex        | `^[0-9A-V]{48}$`             | There is no padding char `=`. |
+| Base32Escaped    | `^[0-9B-DF-HJ-NP-TV-Z]{48}$` | There is no padding char `=`. |
+| Base32HexEscaped | `^[0-9B-DF-HJ-NP-TV-Z]{48}$` | There is no padding char `=`. |
+| Base64           | `^[0-9a-zA-Z+/]{40}$`        | There is no padding char `=`. |
+| Base64Raw        | `^[0-9a-zA-Z+/]{40}$`        | -                             |
+| Base64URL        | `^[0-9a-zA-Z-_]{40}$`        | There is no padding char `=`. |
+| Base64RawURL     | `^[0-9a-zA-Z-_]{40}$`        | -                             |
 
 ### Propagate IDs with contexts
 
