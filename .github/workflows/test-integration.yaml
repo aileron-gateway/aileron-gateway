@@ -23,7 +23,7 @@ jobs:
       - name: make integration
         run: |
           set +o pipefail
-          make integration 2>&1 | tee _output/integration-test.log
+          make integration
       - uses: actions/upload-artifact@v4
         with:
           name: integration-test-${{ matrix.os }}

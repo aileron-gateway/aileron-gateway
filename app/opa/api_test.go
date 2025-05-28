@@ -107,7 +107,7 @@ func TestCreate(t *testing.T) {
 							{
 								QueryParameter: "data.example.authz.allow",
 								PolicyFiles: []string{
-									"../../../test/ut/app/opa/policy.rego",
+									"../../test/ut/app/opa/policy.rego",
 								},
 							},
 						},
