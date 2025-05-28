@@ -1,4 +1,0 @@
-p, "authValue(r.sub.Auth, 'age') > 50", /*, TRACE
-p, "authValue(r.sub.Auth, 'age') > 25", /*, DELETE
-p, "authValue(r.sub.Auth, 'age') > 20", /*, POST
-p, "authValue(r.sub.Auth, 'age') > 15", /*, GET

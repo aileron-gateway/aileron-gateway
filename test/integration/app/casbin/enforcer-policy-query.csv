@@ -1,1 +1,0 @@
-p, "regexMatch(queryValue(r.sub.Query, 'test'), '.*allowed.*')", /*, GET

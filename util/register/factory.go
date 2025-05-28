@@ -10,12 +10,8 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/app/authn/idkey"
 	"github.com/aileron-gateway/aileron-gateway/app/authn/key"
 	"github.com/aileron-gateway/aileron-gateway/app/authn/oauth"
-	"github.com/aileron-gateway/aileron-gateway/app/authz/casbin"
-	"github.com/aileron-gateway/aileron-gateway/app/authz/opa"
 	"github.com/aileron-gateway/aileron-gateway/app/handler/echo"
 	"github.com/aileron-gateway/aileron-gateway/app/handler/healthcheck"
-	"github.com/aileron-gateway/aileron-gateway/app/meter/otelmeter"
-	"github.com/aileron-gateway/aileron-gateway/app/meter/prommeter"
 	"github.com/aileron-gateway/aileron-gateway/app/middleware/bodylimit"
 	"github.com/aileron-gateway/aileron-gateway/app/middleware/compression"
 	"github.com/aileron-gateway/aileron-gateway/app/middleware/cors"
@@ -27,10 +23,12 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/app/middleware/throttle"
 	"github.com/aileron-gateway/aileron-gateway/app/middleware/timeout"
 	"github.com/aileron-gateway/aileron-gateway/app/middleware/tracking"
+	"github.com/aileron-gateway/aileron-gateway/app/opa"
+	"github.com/aileron-gateway/aileron-gateway/app/otelmeter"
+	"github.com/aileron-gateway/aileron-gateway/app/oteltracer"
+	"github.com/aileron-gateway/aileron-gateway/app/prommeter"
 	"github.com/aileron-gateway/aileron-gateway/app/skipper"
 	"github.com/aileron-gateway/aileron-gateway/app/storage/redis"
-	"github.com/aileron-gateway/aileron-gateway/app/tracer/jaegertracer"
-	"github.com/aileron-gateway/aileron-gateway/app/tracer/oteltracer"
 	"github.com/aileron-gateway/aileron-gateway/core/entrypoint"
 	"github.com/aileron-gateway/aileron-gateway/core/errhandler"
 	"github.com/aileron-gateway/aileron-gateway/core/goplugin"
@@ -65,7 +63,6 @@ func RegisterAll(r Registerer) {
 	_ = r.Register(authn.Key, authn.Resource)
 	_ = r.Register(basic.Key, basic.Resource)
 	_ = r.Register(bodylimit.Key, bodylimit.Resource)
-	_ = r.Register(casbin.Key, casbin.Resource)
 	_ = r.Register(compression.Key, compression.Resource)
 	_ = r.Register(cors.Key, cors.Resource)
 	_ = r.Register(csrf.Key, csrf.Resource)
@@ -75,7 +72,6 @@ func RegisterAll(r Registerer) {
 	_ = r.Register(headercert.Key, headercert.Resource)
 	_ = r.Register(healthcheck.Key, healthcheck.Resource)
 	_ = r.Register(idkey.Key, idkey.Resource)
-	_ = r.Register(jaegertracer.Key, jaegertracer.Resource)
 	_ = r.Register(key.Key, key.Resource)
 	_ = r.Register(oauth.Key, oauth.Resource)
 	_ = r.Register(opa.Key, opa.Resource)

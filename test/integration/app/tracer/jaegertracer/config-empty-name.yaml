@@ -1,6 +1,0 @@
-apiVersion: app/v1
-kind: JaegerTracer
-metadata:
-  name: ""
-  namespace: testNamespace
-spec: {}
