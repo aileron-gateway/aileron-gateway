@@ -60,13 +60,14 @@ func (s *runner) Run(sigCtx context.Context) error {
 
 	// Start the server.
 	s.lg.Info(sigCtx, "server started. listening on "+s.svr.Addr())
-	if err := s.svr.Serve(); err != nil && err != http.ErrServerClosed {
+	err := s.svr.Serve()
+	<-serverClosed // Wait the server fully closed.
+	fmt.Println("shutdown ", err)
+	if err != nil && err != http.ErrServerClosed {
 		err := core.ErrCoreServer.WithStack(err, nil)
 		s.lg.Error(sigCtx, "error serving.", err.Name(), err.Map())
 		return err
 	}
-	<-serverClosed // Wait the server fully closed.
-
 	return nil
 }
 
