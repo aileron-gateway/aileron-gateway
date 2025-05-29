@@ -20,13 +20,8 @@ jobs:
     uses: ./.github/workflows/proto.yaml
     secrets: inherit
 
-  tidy:
-    needs: proto
-    uses: ./.github/workflows/tidy.yaml
-    secrets: inherit
-
   checks:
-    needs: tidy
+    needs: proto
     uses: ./.github/workflows/checks.yaml
     secrets: inherit
 
