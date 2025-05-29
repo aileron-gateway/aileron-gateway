@@ -23,7 +23,7 @@
 /*.html
 
 # Ignore directories.
-proto/protovalidate/
+protovalidate/
 site/
 work/
 study/
