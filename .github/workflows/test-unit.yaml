@@ -23,7 +23,7 @@ jobs:
       - name: make test
         run: |
           set +o pipefail
-          make test 2>&1 | tee _output/unit-test.log
+          make test
       - uses: codecov/codecov-action@v4
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
@@ -61,7 +61,6 @@ jobs:
           - "mips64" # Can be removed.
           - "mips64le" # Can be removed.
           - "mipsle" # Can be removed.
-          - "sparc64" # Can be removed.
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4

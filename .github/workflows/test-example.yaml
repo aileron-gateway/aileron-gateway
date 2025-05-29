@@ -1,4 +1,4 @@
-name: E2E Test
+name: Example Test
 
 on:
   workflow_dispatch: {}
@@ -13,20 +13,19 @@ jobs:
         os:
           - ubuntu
           # - windows
-          # - macos
+          - macos
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
       - uses: actions/setup-go@v5
         with:
           go-version: stable
-      - name: make e2e
+      - name: make example
         run: |
           set +o pipefail
-          mkdir -p _output/
-          make e2e 2>&1 | tee _output/e2e-test.log
+          make example
       - uses: actions/upload-artifact@v4
         with:
-          name: e2e-test-${{ matrix.os }}
+          name: example-test-${{ matrix.os }}
           path: _output/**
           retention-days: 7

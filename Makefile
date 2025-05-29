@@ -2,6 +2,8 @@
 #                      Global Configs                      #
 ############################################################
 
+SHELL := /bin/bash -euo pipefail
+
 include _makefiles/nfpm.mk
 include _makefiles/go-test.mk
 include _makefiles/go-licenses.mk
@@ -62,9 +64,9 @@ test:
 integration:
 	go test -v -tags=integration -timeout 180s ./test/integration/...
 
-.PHONY: e2e
-e2e:
-	go test -v -tags=e2e -timeout 180s ./test/e2e/...
+.PHONY: example
+example:
+	go test -v -tags=example -timeout 60s ./test/example/...
 
 ############################################################
 #                         Analysis                         #

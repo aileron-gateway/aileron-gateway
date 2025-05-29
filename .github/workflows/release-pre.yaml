@@ -39,9 +39,9 @@ jobs:
     uses: ./.github/workflows/test-integration.yaml
     secrets: inherit
 
-  e2e-test:
+  example-test:
     needs: integration-test
-    uses: ./.github/workflows/test-e2e.yaml
+    uses: ./.github/workflows/test-example.yaml
     secrets: inherit
 
   release-binary:
