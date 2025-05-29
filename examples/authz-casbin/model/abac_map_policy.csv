@@ -1,2 +1,0 @@
-p, "containsString(asStringSlice(authValue(r.sub.Auth.Attrs, 'scope')), 'readonly')", /*, GET
-p, "containsString(asStringSlice(authValue(r.sub.Auth.Attrs, 'scope')), 'update')", /*, POST
