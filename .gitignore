@@ -7,20 +7,22 @@
 *.gz
 *.tmp
 *.temp
-/*.env
+*.html
+*.env
 /*.mk
-/*.html
 
 # Ignore directories.
 work/
 study/
 temp/
 tmp/
+logs/
 .vscode/
 .idea/
 
 # Exclude.
-!test/
-!testdata/
+!examples/**
+!test/**
+!testdata/**
 !.gitkeep
 !.gitignore

@@ -15,7 +15,7 @@ import (
 var (
 	_, file, _, _ = runtime.Caller(0)
 	dir           = filepath.Dir(file)
-	tpl           = template.Must(template.New("table.html").ParseFiles(dir + "/table.html"))
+	tpl           = template.Must(template.New("").ParseFiles(dir + "/table.gohtml"))
 )
 
 // Record represents one row of a decision table.
