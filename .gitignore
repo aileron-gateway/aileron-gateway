@@ -12,6 +12,7 @@
 !CODEOWNERS
 
 # Ignore files with extension.
+*.html
 *.exe
 *.so
 *.test
