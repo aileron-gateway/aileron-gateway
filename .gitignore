@@ -1,12 +1,6 @@
 # Ignore files without extension.
-*
+/*
 !*.*
-!**/
-!packaging/**
-!examples/**
-
-# Include files without extension.
-!.gitignore
 !Makefile
 !LICENSE
 !Dockerfile
@@ -21,9 +15,10 @@
 *.tmp
 *.temp
 /*.env
+/*.mk
 /*.html
 
-# Ignore directories.
+# For convenience.
 work/
 study/
 temp/
@@ -32,3 +27,8 @@ tmp/
 # Ignore IDE directory.
 .vscode
 .idea
+
+# Just in case.
+!**/testdata/**
+!*.gitkeep
+!*.gitignore
