@@ -20,29 +20,29 @@ jobs:
         include:
           - {os: "darwin", arch: "amd64"}
           - {os: "darwin", arch: "arm64"}
-          - {os: "freebsd", arch: "386"}
+          # - {os: "freebsd", arch: "386"}
           - {os: "freebsd", arch: "amd64"}
-          - {os: "freebsd", arch: "arm7"}
+          # - {os: "freebsd", arch: "arm7"}
           - {os: "freebsd", arch: "arm64"}
-          - {os: "linux", arch: "386"}
+          # - {os: "linux", arch: "386"}
           - {os: "linux", arch: "amd64"}
-          - {os: "linux", arch: "arm7"}
+          # - {os: "linux", arch: "arm7"}
           - {os: "linux", arch: "arm64"}
-          - {os: "linux", arch: "ppc64"}
-          - {os: "linux", arch: "ppc64le"}
+          # - {os: "linux", arch: "ppc64"}
+          # - {os: "linux", arch: "ppc64le"}
           - {os: "linux", arch: "riscv64"}
-          - {os: "linux", arch: "s390x"}
-          - {os: "netbsd", arch: "386"}
+          # - {os: "linux", arch: "s390x"}
+          # - {os: "netbsd", arch: "386"}
           - {os: "netbsd", arch: "amd64"}
-          - {os: "netbsd", arch: "arm7"}
+          # - {os: "netbsd", arch: "arm7"}
           - {os: "netbsd", arch: "arm64"}
-          - {os: "openbsd", arch: "386"}
+          # - {os: "openbsd", arch: "386"}
           - {os: "openbsd", arch: "amd64"}
-          - {os: "openbsd", arch: "arm7"}
+          # - {os: "openbsd", arch: "arm7"}
           - {os: "openbsd", arch: "arm64"}
-          - {os: "windows", arch: "386"}
+          # - {os: "windows", arch: "386"}
           - {os: "windows", arch: "amd64"}
-          - {os: "windows", arch: "arm7"}
+          # - {os: "windows", arch: "arm7"}
           - {os: "windows", arch: "arm64"}
     with:
       # Check available go version at the link below.
@@ -72,10 +72,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y nfpm
           export VERSION="${{github.ref_name}}"
-          make nfpm-rpm NFPM_RPM_ARCH="386 amd64 arm7 arm64 ppc64le riscv64 s390x"
-          make nfpm-deb NFPM_DEB_ARCH="386 amd64 arm7 arm64 ppc64le riscv64 s390x"
-          make nfpm-apk NFPM_APK_ARCH="386 amd64 arm7 arm64 ppc64le riscv64 s390x"
-          make nfpm-arch NFPM_ARCH_ARCH="amd64 arm7 arm64 riscv64"
+          make nfpm-rpm NFPM_RPM_ARCH="amd64 arm64 riscv64"
+          make nfpm-deb NFPM_DEB_ARCH="amd64 arm64 riscv64"
+          make nfpm-apk NFPM_APK_ARCH="amd64 arm64 riscv64"
+          make nfpm-arch NFPM_ARCH_ARCH="amd64 arm64 riscv64"
           ls -la ./_output/pkg/
       - run: |
           cd ./_output/pkg/

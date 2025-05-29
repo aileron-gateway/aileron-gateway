@@ -107,6 +107,50 @@ $ curl http://localhost:8080/get
 }
 ```
 
+## Tested Environment
+
+Operating System:
+
+- `Linux` ([ubuntu-latest](https://github.com/actions/runner-images))
+- `Windows` ([windows-latest](https://github.com/actions/runner-images))
+- `macOS` ([macos-latest](https://github.com/actions/runner-images))
+
+Go:
+
+- Current Stable (Latest patch version of `go 1.(N).x`)
+- Previous Stable (Latest patch version of `go 1.(N-1).x`)
+- Minimum Requirement (Currently `go 1.23.0`)
+
+Where `N` is the current latest minor version.
+See the Go official release page [Stable versions](https://go.dev/dl/).
+
+In addition to the environment above, following platforms are tested on ubuntu
+using [QEMU User space emulator](https://www.qemu.org/docs/master/user/main.html).
+
+- `amd64`
+- `arm/v7`
+- `arm64`
+- `ppc64`
+- `ppc64le`
+- `riscv64`
+- `s390x`
+- `loong64`
+- `386`
+- `mips`
+- `mips64`
+- `mips64le`
+- `mipsle`
+
+## Release Cycle
+
+- Versions follow [Semantic Versioning](https://semver.org/).
+  - `vZ.Y.Z`
+  - `vZ.Y.Z-rc.N`
+  - `vZ.Y.Z-beta.N`
+  - `vZ.Y.Z-alpha.N`
+- Minor release (update `Y`) is twice a year.
+- Patch release (update `Z`) is almost once a month.
+
 ## Contributing
 
 > [!IMPORTANT]
