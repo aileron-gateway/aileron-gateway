@@ -141,7 +141,7 @@ go-test-bin:
 #    make go-test-qemu GOARCH=arm64                                            #
 #                                                                              #
 .PHONY: go-test-qemu
-go-test-qemu: 
+go-test-qemu:
 	$(info INFO: GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=$(CGO_ENABLED))
 	@for target in $(QEMU_TARGET); do \
 	echo ""; \

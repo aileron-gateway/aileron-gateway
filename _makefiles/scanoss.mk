@@ -1,3 +1,5 @@
+SHELL := /bin/bash
+
 INCLUDED += scanoss # Basename of this makefile.
 .DEFAULT_GOAL := scanoss-help # Basename + "-help"
 ################################################################################
