@@ -5,7 +5,7 @@ on:
   workflow_call: {}
 
 jobs:
-  test:
+  test-stable:
     runs-on: ${{ matrix.os }}-latest
     timeout-minutes: 10
     strategy:
@@ -16,17 +16,55 @@ jobs:
           - macos
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
       - uses: actions/setup-go@v5
         with:
           go-version: stable
-      - name: make integration
-        run: |
-          set +o pipefail
-          make integration
+      - run: make integration
       - uses: actions/upload-artifact@v4
         with:
-          name: integration-test-${{ matrix.os }}
+          name: integration-test-${{ matrix.os }}-stable
+          path: _output/**
+          retention-days: 7
+
+  test-oldstable:
+    runs-on: ${{ matrix.os }}-latest
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        os:
+          - ubuntu
+          # - windows
+          - macos
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: oldstable
+      - run: make integration
+      - uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-${{ matrix.os }}-oldstable
+          path: _output/**
+          retention-days: 7
+
+  test-minimum:
+    runs-on: ${{ matrix.os }}-latest
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        os:
+          - ubuntu
+          # - windows
+          - macos
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: "go.mod"
+      - run: make integration
+      - uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-${{ matrix.os }}-minimum
           path: _output/**
           retention-days: 7
 
@@ -51,7 +89,6 @@ jobs:
           - "mipsle" # Can be removed.
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
       - uses: actions/setup-go@v5
         with:
           go-version: stable
