@@ -6,13 +6,13 @@
 !examples/**
 
 # Include files without extension.
+!.gitignore
 !Makefile
 !LICENSE
 !Dockerfile
 !CODEOWNERS
 
 # Ignore files with extension.
-*.html
 *.exe
 *.so
 *.test
