@@ -16,7 +16,6 @@ jobs:
           - macos
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
       - uses: actions/setup-go@v5
         with:
           go-version: stable
@@ -50,7 +49,6 @@ jobs:
           - macos
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
       - uses: actions/setup-go@v5
         with:
           go-version: oldstable
@@ -74,7 +72,6 @@ jobs:
           - macos
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
       - uses: actions/setup-go@v5
         with:
           go-version-file: "go.mod"
@@ -108,7 +105,6 @@ jobs:
           - "mipsle" # Can be removed.
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
       - uses: actions/setup-go@v5
         with:
           go-version: stable
