@@ -1,6 +1,0 @@
-<!-- Child element override namespace -->
-<alice>
-  <ns:bob xmlns:ns="http://abc.com/" ns:foo="bar">
-    <ns:david xmlns:ns="http://xyz.com/" ns:foo="bar">edgar</ns:david>
-  </ns:bob>
-</alice>

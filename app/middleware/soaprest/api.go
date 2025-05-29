@@ -10,9 +10,9 @@ import (
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
-	"github.com/aileron-gateway/aileron-gateway/app/middleware/soaprest/zxml"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
+	"github.com/aileron-projects/go/zencoding/zxml"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"

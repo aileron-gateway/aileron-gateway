@@ -1,5 +1,0 @@
-<!-- An element with 2 children having different name -->
-<alice>
-  <bob>charlie</bob>
-  <david>edgar</david>
-</alice>

@@ -1,8 +1,0 @@
-{
-  "#children": [
-    { "#children": [], "#name": "bob", "#text": "charlie" },
-    { "#children": [], "#name": "bob", "#text": "edgar" }
-  ],
-  "#name": "alice",
-  "#text": ""
-}

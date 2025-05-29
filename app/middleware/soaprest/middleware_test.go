@@ -19,11 +19,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/aileron-gateway/aileron-gateway/app/middleware/soaprest/zxml"
-
 	"github.com/aileron-gateway/aileron-gateway/app"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/aileron-projects/go/zencoding/zxml"
 	gocmp "github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
