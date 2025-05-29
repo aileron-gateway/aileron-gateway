@@ -21,8 +21,8 @@ spec:
     listenConfig:
       tlsConfig:
         certKeyPairs:
-          - certFile: ./_example/http3-server/pki/server.crt # Set server cert.
-            keyFile: ./_example/http3-server/pki/server.key # Set server key.
+          - certFile: ./pki/server.crt # Set server cert.
+            keyFile: ./pki/server.key # Set server key.
   virtualHosts:
     - handlers:
         - handler:
@@ -40,8 +40,8 @@ spec:
     altSvc: h3=":8443";ma=3600,h3-29=":8443";ma=3600
     tlsConfig:
       certKeyPairs:
-        - certFile: "./_example/http3-server/pki/server.crt" # Replace to your cert
-          keyFile: "./_example/http3-server/pki/server.key" # Replace to your key.
+        - certFile: "./pki/server.crt" # Replace to your cert
+          keyFile: "./pki/server.key" # Replace to your key.
   virtualHosts:
     - hosts: []
       handlers:

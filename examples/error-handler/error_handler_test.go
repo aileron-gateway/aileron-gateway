@@ -27,7 +27,7 @@ func TestErrorHandler(t *testing.T) {
 	var resp *http.Response
 	var err error
 	go func() {
-		req, _ := http.NewRequest(http.MethodGet, "http://localhost:8080/", nil)
+		req, _ := http.NewRequest(http.MethodGet, "http://localhost:8080/not-exist", nil)
 		req.Header.Set("Accept", "application/json")
 		resp, err = http.DefaultTransport.RoundTrip(req)
 		timer.Stop() // Stop the timer

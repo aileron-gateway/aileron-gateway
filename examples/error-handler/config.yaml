@@ -24,7 +24,7 @@ spec:
 apiVersion: core/v1
 kind: StaticFileHandler
 spec:
-  rootDir: "_example/error-handler/html/"
+  rootDir: "./html/"
   enableListing: true
 
 ---

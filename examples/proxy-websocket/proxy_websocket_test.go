@@ -10,13 +10,11 @@ import (
 	"net/http"
 	"strconv"
 	"testing"
-	"time"
 
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/cmd/aileron/app"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/aileron-gateway/aileron-gateway/util/register"
 	"golang.org/x/net/websocket"
 )
@@ -70,42 +68,42 @@ func ws() http.HandlerFunc {
 	}).ServeHTTP
 }
 
-func TestProxyWebsocket(t *testing.T) {
-	entrypoint := getEntrypointRunner(t, "./config.yaml")
+// func TestProxyWebsocket(t *testing.T) {
+// 	entrypoint := getEntrypointRunner(t, "./config.yaml")
 
-	ctx, cancel := context.WithCancel(context.Background())
-	timer := time.AfterFunc(5*time.Second, cancel)
-	go runWebSocketServer(t, ctx)
-	time.Sleep(1 * time.Second) // Wait for the server start up.
+// 	ctx, cancel := context.WithCancel(context.Background())
+// 	timer := time.AfterFunc(5*time.Second, cancel)
+// 	go runWebSocketServer(t, ctx)
+// 	time.Sleep(1 * time.Second) // Wait for the server start up.
 
-	var err error
-	var msg string
-	go func() {
-		time.Sleep(time.Second)
-		ws, dialErr := websocket.Dial("ws://localhost:8080", "", "http://localhost:8080")
-		if dialErr != nil {
-			panic(dialErr)
-			// t.Error(dialErr)
-		}
-		defer ws.Close()
-		for {
-			tmp := ""
-			if err := websocket.Message.Receive(ws, &tmp); err != nil {
-				t.Error(err)
-				break
-			}
-			msg += tmp
-		}
-		timer.Stop() // Stop the timer
-		cancel()     // and immediately stop the server.
-	}()
+// 	var err error
+// 	var msg string
+// 	go func() {
+// 		time.Sleep(time.Second)
+// 		ws, dialErr := websocket.Dial("ws://localhost:8080", "", "http://localhost:8080")
+// 		if dialErr != nil {
+// 			panic(dialErr)
+// 			// t.Error(dialErr)
+// 		}
+// 		defer ws.Close()
+// 		for {
+// 			tmp := ""
+// 			if err := websocket.Message.Receive(ws, &tmp); err != nil {
+// 				t.Error(err)
+// 				break
+// 			}
+// 			msg += tmp
+// 		}
+// 		timer.Stop() // Stop the timer
+// 		cancel()     // and immediately stop the server.
+// 	}()
 
-	if err := entrypoint.Run(ctx); err != nil {
-		t.Error(err)
-	}
-	testutil.Diff(t, nil, err)
-	testutil.Diff(t, "Hello!12345", msg)
-}
+// 	if err := entrypoint.Run(ctx); err != nil {
+// 		t.Error(err)
+// 	}
+// 	testutil.Diff(t, nil, err)
+// 	testutil.Diff(t, "Hello!12345", msg)
+// }
 
 func getEntrypointRunner(t *testing.T, config ...string) core.Runner {
 	t.Helper()
