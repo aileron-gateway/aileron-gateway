@@ -5,7 +5,7 @@ on:
   workflow_call: {}
 
 jobs:
-  test-stable:
+  stable:
     runs-on: ${{ matrix.os }}-latest
     timeout-minutes: 10
     strategy:
@@ -38,7 +38,7 @@ jobs:
             api.html
           retention-days: 7
 
-  test-oldstable:
+  oldstable:
     runs-on: ${{ matrix.os }}-latest
     timeout-minutes: 10
     strategy:
@@ -61,7 +61,7 @@ jobs:
             api.html
           retention-days: 7
 
-  test-minimum:
+  minimum:
     runs-on: ${{ matrix.os }}-latest
     timeout-minutes: 10
     strategy:
