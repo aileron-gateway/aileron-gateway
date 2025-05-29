@@ -23,7 +23,7 @@ jobs:
       - name: make example
         run: |
           set +o pipefail
-          make example 2>&1 | tee _output/example-test.log
+          make example
       - uses: actions/upload-artifact@v4
         with:
           name: example-test-${{ matrix.os }}
