@@ -1,6 +1,8 @@
 module github.com/aileron-gateway/aileron-gateway
 
-go 1.23
+go 1.23.0
+
+toolchain go1.24.3
 
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.4-20250130201111-63bb56e20495.1
