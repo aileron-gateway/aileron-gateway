@@ -55,10 +55,7 @@ func runServer(t *testing.T, ctx context.Context) {
 
 func TestConfigHTTPtoHTTP(t *testing.T) {
 	entrypoint := getEntrypointRunner(t, "./config-http-http.yaml")
-
 	ctx, cancel := context.WithCancel(context.Background())
-	timer := time.AfterFunc(5*time.Second, cancel)
-
 	go runServer(t, ctx)
 	time.Sleep(1 * time.Second)
 
@@ -77,7 +74,6 @@ func TestConfigHTTPtoHTTP(t *testing.T) {
 		} else {
 			log.Printf("feature: %v", in)
 		}
-		timer.Stop()
 		cancel()
 	}()
 

@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/cmd/aileron/app"
@@ -24,9 +23,7 @@ import (
 
 func TestConfig(t *testing.T) {
 	entrypoint := getEntrypointRunner(t, "./config.yaml")
-
 	ctx, cancel := context.WithCancel(context.Background())
-	timer := time.AfterFunc(5*time.Second, cancel)
 
 	pem, _ := os.ReadFile("./pki/server.crt")
 	pool := x509.NewCertPool()
@@ -42,7 +39,6 @@ func TestConfig(t *testing.T) {
 	go func() {
 		req, _ := http.NewRequest(http.MethodGet, "https://localhost:8443/get", nil)
 		resp, err = transport.RoundTrip(req)
-		timer.Stop()
 		cancel() // Stop the server.
 	}()
 

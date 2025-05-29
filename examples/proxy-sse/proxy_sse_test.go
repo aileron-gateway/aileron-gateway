@@ -68,7 +68,6 @@ func sseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 // 	entrypoint := getEntrypointRunner(t, "./config.yaml")
 
 // 	ctx, cancel := context.WithCancel(context.Background())
-// 	timer := time.AfterFunc(5*time.Second, cancel)
 // 	go runSSEServer(t, ctx)
 // 	time.Sleep(1 * time.Second) // Wait for the server start up.
 
@@ -77,7 +76,6 @@ func sseHandlerFunc(w http.ResponseWriter, r *http.Request) {
 // 	go func() {
 // 		req, _ := http.NewRequest(http.MethodGet, "http://localhost:8080/test", nil)
 // 		resp, err = http.DefaultTransport.RoundTrip(req)
-// 		timer.Stop() // Stop the timer
 // 		cancel()     // and immediately stop the server.
 // 	}()
 

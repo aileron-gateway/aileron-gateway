@@ -72,7 +72,6 @@ func ws() http.HandlerFunc {
 // 	entrypoint := getEntrypointRunner(t, "./config.yaml")
 
 // 	ctx, cancel := context.WithCancel(context.Background())
-// 	timer := time.AfterFunc(5*time.Second, cancel)
 // 	go runWebSocketServer(t, ctx)
 // 	time.Sleep(1 * time.Second) // Wait for the server start up.
 
@@ -94,7 +93,6 @@ func ws() http.HandlerFunc {
 // 			}
 // 			msg += tmp
 // 		}
-// 		timer.Stop() // Stop the timer
 // 		cancel()     // and immediately stop the server.
 // 	}()
 

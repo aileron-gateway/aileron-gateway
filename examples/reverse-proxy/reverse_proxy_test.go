@@ -8,7 +8,6 @@ import (
 	"errors"
 	"net/http"
 	"testing"
-	"time"
 
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/cmd/aileron/app"
@@ -20,17 +19,13 @@ import (
 
 func TestReverseProxy(t *testing.T) {
 	entrypoint := getEntrypointRunner(t, "./config.yaml")
-
 	ctx, cancel := context.WithCancel(context.Background())
-	timer := time.AfterFunc(5*time.Second, cancel)
-
 	var resp *http.Response
 	var err error
 	go func() {
 		req, _ := http.NewRequest(http.MethodGet, "http://localhost:8080/", nil)
 		resp, err = http.DefaultTransport.RoundTrip(req)
-		timer.Stop() // Stop the timer
-		cancel()     // and immediately stop the server.
+		cancel() // and immediately stop the server.
 	}()
 
 	if err := entrypoint.Run(ctx); err != nil {

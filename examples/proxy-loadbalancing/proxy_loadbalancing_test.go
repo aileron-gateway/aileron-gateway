@@ -61,7 +61,6 @@ func TestConfigRoundRobin(t *testing.T) {
 	entrypoint := getEntrypointRunner(t, "./config-round-robin.yaml")
 
 	ctx, cancel := context.WithCancel(context.Background())
-	timer := time.AfterFunc(5*time.Second, cancel)
 	go runServers(t, ctx)
 	time.Sleep(1 * time.Second) // Wait the server to start up.
 
@@ -70,8 +69,7 @@ func TestConfigRoundRobin(t *testing.T) {
 	go func() {
 		req, _ := http.NewRequest(http.MethodGet, "http://localhost:8080/", nil)
 		resp, err = http.DefaultTransport.RoundTrip(req)
-		timer.Stop() // Stop the timer
-		cancel()     // and immediately stop the server.
+		cancel() // and immediately stop the server.
 	}()
 
 	if err := entrypoint.Run(ctx); err != nil {
