@@ -1,6 +1,7 @@
 ignore:
   - "test/"
   - "apis/"
+  - "examples/"
   - "kernel/testutil/"
 coverage:
   range: 80..95

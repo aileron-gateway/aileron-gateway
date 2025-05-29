@@ -1,0 +1,66 @@
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  defaultErrorHandler:
+    apiVersion: core/v1
+    kind: ErrorHandler
+  runners:
+    - apiVersion: core/v1
+      kind: HTTPServer
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+spec:
+  addr: ":8080"
+  virtualHosts:
+    - hosts: []
+      handlers:
+        - handler:
+            apiVersion: core/v1
+            kind: StaticFileHandler
+
+---
+apiVersion: core/v1
+kind: StaticFileHandler
+spec:
+  rootDir: "./html/"
+  enableListing: true
+
+---
+apiVersion: core/v1
+kind: ErrorHandler
+spec:
+  stackAlways: false
+  errorMessages:
+    - codes: ["*"]
+      kinds: []
+      messages: []
+      headerTemplate:
+        "Location": "https://www.google.co.jp/?status={{status}}"
+      mimeContents:
+        - mimeType: text/html
+          statusCode: 302
+        - mimeType: application/json
+          statusCode: 500
+          templateType: GoText
+          template: |
+            {
+              "app": "AILERON Gateway",
+              "status": {{.status}},
+              "statusText": "{{.statusText}}",
+              "code": "{{.code}}",
+              "kind": "{{.kind}}"
+            }
+        - mimeType: application/xml
+          statusCode: 0
+          templateType: GoText
+          template: |
+            <?xml version="1.0" encoding="UTF-8" ?>
+            <error>
+                <app>AILERON Gateway</app>
+                <status>{{.status}}</status>
+                <statusText>{{.statusText}}</statusText>
+                <code>{{.code}}</code>
+                <kind>{{.kind}}</kind>
+            </error>

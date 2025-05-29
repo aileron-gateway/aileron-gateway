@@ -1,0 +1,11 @@
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector:0.123.0
+    command:
+      - --config=/etc/otel.yaml
+    volumes:
+      - ./otel.yaml:/etc/otel.yaml
+    ports:
+      - 4317:4317 # gRPC endpoint for OTLP
+      - 4318:4318 # HTTP endpoint for OTLP
+      - 8889:8889 # Prometheus metrics

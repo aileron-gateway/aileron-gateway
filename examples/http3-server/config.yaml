@@ -1,0 +1,64 @@
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  runners:
+    - apiVersion: core/v1
+      kind: HTTPServer
+      name: http3
+    - apiVersion: core/v1
+      kind: HTTPServer
+      name: http2
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+metadata:
+  name: http2
+spec:
+  addr: ":8443"
+  httpConfig:
+    altSvc: h3=":8443";ma=3600,h3-29=":8443";ma=3600
+    listenConfig:
+      tlsConfig:
+        certKeyPairs:
+          - certFile: ./pki/server.crt # Set server cert.
+            keyFile: ./pki/server.key # Set server key.
+  virtualHosts:
+    - handlers:
+        - handler:
+            apiVersion: core/v1
+            kind: ReverseProxyHandler
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+metadata:
+  name: http3
+spec:
+  addr: ":8443"
+  http3Config:
+    altSvc: h3=":8443";ma=3600,h3-29=":8443";ma=3600
+    tlsConfig:
+      certKeyPairs:
+        - certFile: "./pki/server.crt" # Replace to your cert
+          keyFile: "./pki/server.key" # Replace to your key.
+  virtualHosts:
+    - hosts: []
+      handlers:
+        - handler:
+            apiVersion: core/v1
+            kind: ReverseProxyHandler
+
+---
+apiVersion: core/v1
+kind: ReverseProxyHandler
+spec:
+  loadBalancers:
+    - pathMatcher:
+        match: ".*"
+        matchType: Regex
+      upstreams:
+        - url: http://httpbin.org
+        # - url: http://worldtimeapi.org
+        # - url: http://ipconfig.io
+        # - url: http://ifconfig.io

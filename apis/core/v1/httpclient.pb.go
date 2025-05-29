@@ -267,7 +267,7 @@ type RetryConfig struct {
 	// Default is [1,048,576] bytes or 1MiB.
 	MaxContentLength int32 `protobuf:"varint,3,opt,name=MaxContentLength,json=maxContentLength,proto3" json:"MaxContentLength,omitempty"`
 	// [OPTIONAL]
-	// RetryStatuses is the list of HTTP status codes that should be retried.
+	// RetryStatusCodes is the list of HTTP status codes that should be retried.
 	// Only networking layer errors are retried when this field is not set.
 	// Default is not set.
 	RetryStatusCodes []int32 `protobuf:"varint,4,rep,packed,name=RetryStatusCodes,json=retryStatusCodes,proto3" json:"RetryStatusCodes,omitempty"`

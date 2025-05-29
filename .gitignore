@@ -1,16 +1,5 @@
-# Ignore files without extension.
-*
-!*.*
-!**/
-!packaging/**
-
-# Include files without extension.
-!Makefile
-!LICENSE
-!Dockerfile
-!CODEOWNERS
-
-# Ignore files with extension.
+# Ignore files.
+/aileron
 *.exe
 *.so
 *.test
@@ -18,17 +7,22 @@
 *.gz
 *.tmp
 *.temp
-/*.env
-/*.html
+*.html
+*.env
+/*.mk
 
 # Ignore directories.
-proto/protovalidate/
-site/
 work/
 study/
 temp/
 tmp/
+logs/
+.vscode/
+.idea/
 
-# Ignore IDE directory.
-.vscode
-.idea
+# Exclude.
+!examples/**
+!test/**
+!testdata/**
+!.gitkeep
+!.gitignore

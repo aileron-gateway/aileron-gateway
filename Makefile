@@ -53,7 +53,7 @@ WHAT ?= ./...
 test:
 	mkdir -p $(OUTPUT_PATH)
 	go test -v -cover -timeout 60s -covermode=atomic -coverprofile=$(OUTPUT_PATH)coverage.out $(WHAT)
-	sed -i.bak -E '/(testutil|apis)/d' $(OUTPUT_PATH)coverage.out
+	sed -i.bak -E '/(testutil|apis|examples)/d' $(OUTPUT_PATH)coverage.out
 	go tool cover -html=$(OUTPUT_PATH)coverage.out -o $(OUTPUT_PATH)coverage.html
 	go tool cover -func=$(OUTPUT_PATH)coverage.out -o $(OUTPUT_PATH)coverage.txt
 	@echo ==================================================
@@ -71,8 +71,6 @@ example:
 ############################################################
 #                         Analysis                         #
 ############################################################
-
-LICENS_HEADER_PATH = ./LICENSE_HEADER.txt
 
 .PHONY: lint
 lint:
@@ -109,7 +107,7 @@ licenseheader:
 ifeq (,$(shell which addlicense 2>/dev/null))
 	go install github.com/google/addlicense@latest
 endif
-	addlicense -check -f $(LICENS_HEADER_PATH) -ignore "apis/**" $(shell find . -name "*.go")
+	addlicense -check -f ./LICENSE_HEADER.txt -ignore "apis/**" $(shell find . -name "*.go")
 
 
 ############################################################

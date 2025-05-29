@@ -217,59 +217,6 @@ it provides non-blocking read and generate enough entropy for most cases.
 > - On js/wasm, Reader uses the Web Crypto API.
 > - On wasip1/wasm, Reader uses random_get from wasi_snapshot_preview1.
 
-## Benchmarks
-
-```text
-goos: linux
-goarch: amd64
-cpu: Intel(R) Core(TM) i7-10870H CPU @ 2.20GHz
-
-BenchmarkNewID            3533654     351.9 ns/op      32 B/op     1 allocs/op
-BenchmarkNewHostedID      3211572     359.8 ns/op      32 B/op     1 allocs/op
-BenchmarkNewUUIDv1        9725796     115.2 ns/op      48 B/op     1 allocs/op
-BenchmarkNewUUIDv6        8855176     115.1 ns/op      48 B/op     1 allocs/op
-BenchmarkNewUUIDv7        2713765     450.1 ns/op      64 B/op     2 allocs/op
-BenchmarkNewXID          15140803      81.24 ns/op     24 B/op     1 allocs/op
-BenchmarkNewULID          2995784     399.2 ns/op      48 B/op     2 allocs/op
-```
-
-## Test Plan
-
-### Unit Tests
-
-Unit tests are implemented and passed.
-
-- All functions and methods are covered.
-- Coverage objective 98%.
-
-### Integration Tests
-
-Not planned.
-
-### e2e Tests
-
-Not planned.
-
-### Fuzz Tests
-
-Fuzz tests are supposed to be implemented for
-
-- functions that accepts `[]byte` data.
-
-### Benchmark Tests
-
-Fuzz tests are supposed to be implemented for
-
-- ID generation functions.
-
-### Chaos Tests
-
-Not planned.
-
-## Future works
-
-None.
-
 ## References
 
 - [RFC 9562 Universally Unique IDentifiers (UUIDs)](https://datatracker.ietf.org/doc/rfc9562/)

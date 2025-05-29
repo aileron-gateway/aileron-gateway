@@ -1,0 +1,15 @@
+version: '3'
+env:
+  AILERON_CMD: "./aileron"
+tasks:
+  default:
+    deps: ["otel","run"]
+  run:
+    cmd: "{{.AILERON_CMD}} -f ./config.yaml"
+  otel:
+    vars:
+      PORT: "-p 4317:4317 -p 4318:4318 -p 8889:8889"
+      VOLUME: "-v ./otel.yaml:/etc/otel.yaml"
+      CMD: "--config=/etc/otel.yaml"
+      IMAGE: "otel/opentelemetry-collector:0.123.0"
+    cmd: "docker run --rm  {{.PORT}} {{.VOLUME}} {{.IMAGE}} {{.CMD}}"
