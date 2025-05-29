@@ -49,7 +49,7 @@ func (s *runner) Run(sigCtx context.Context) error {
 		msg := fmt.Sprintf("server shutting down %s with graceful period %.0f seconds.", s.svr.Addr(), s.timeout.Seconds())
 		s.lg.Info(ctx, msg)
 		if err := s.svr.Shutdown(shutdownCtx); err != nil && err != http.ErrServerClosed {
-			msg := "shut down failure. caused by " + err.Error()
+			msg := fmt.Sprintf("server shut down failed. [%v]", err)
 			s.lg.Info(ctx, msg) // May be shutdown timeout. We do not treat this as ERROR.
 		}
 		if close, ok := s.svr.(interface{ Close() error }); ok {
