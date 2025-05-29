@@ -56,7 +56,7 @@ Configuration yaml to run a server with access logging becomes as follows.
 ```yaml
 # config.yaml
 
-{{% remote "https://raw.githubusercontent.com/aileron-gateway/aileron-gateway/refs/heads/update-examples/examples/access-logging/config.yaml" %}}
+{{% example "config.yaml" %}}
 ```
 
 The config tells:

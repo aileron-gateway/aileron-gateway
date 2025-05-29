@@ -8,21 +8,12 @@ import "kernel/hash.proto";
 
 // CommonKeyCryptType is the algorithms of common key encryption.
 enum CommonKeyCryptType {
-    CommonKeyCryptTypeUnknown = 0;   // Unknown crypt type.
-    AESGCM                    = 1;   // AES-GCM cipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.
-    AESCBC                    = 2;   // AES-CBC cipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.
-    AESCFB                    = 3;   // AES-CFB cipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.
-    AESCTR                    = 4;   // AES-CTR cipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.
-    AESOFB                    = 5;   // AES-OFB cipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.
-    DESCBC                    = 6;   // DES-CBC cipher. Key length must be 8 bytes.
-    DESCFB                    = 7;   // DES-CFB cipher. Key length must be 8 bytes.
-    DESCTR                    = 8;   // DES-CTR cipher. Key length must be 8 bytes.
-    DESOFB                    = 9;   // DES-OFB cipher. Key length must be 8 bytes.
-    TripleDESCBC              = 10;  // 3DES-CBC cipher. Key length must be 24 bytes.
-    TripleDESCFB              = 11;  // 3DES-CFB cipher. Key length must be 24 bytes.
-    TripleDESCTR              = 12;  // 3DES-CTR cipher. Key length must be 24 bytes.
-    TripleDESOFB              = 13;  // 3DES-OFB cipher. Key length must be 24 bytes.
-    RC4                       = 14;  // RC4 cipher. Key length must be 5 to 256 bytes.
+    CommonKeyCryptTypeUnknown = 0;  // Unknown crypt type.
+    AESGCM                    = 1;  // AES-GCM cipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.
+    AESCBC                    = 2;  // AES-CBC cipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.
+    AESCFB                    = 3;  // AES-CFB cipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.
+    AESCTR                    = 4;  // AES-CTR cipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.
+    AESOFB                    = 5;  // AES-OFB cipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.
 }
 
 message PasswordCryptSpec {
