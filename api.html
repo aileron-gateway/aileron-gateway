@@ -2846,7 +2846,8 @@ Default values are used when nothing is set. </p></td>
 DefaultLogger is the reference to a Logger object
 that will be used from other resources by default.
 Object must implement Logger interface.
-Default Logger is used when not set. </p></td>
+If not set, pre-defined logger is used.
+Default is not set. </p></td>
                 </tr>
               
                 <tr>
@@ -2854,12 +2855,12 @@ Default Logger is used when not set. </p></td>
                   <td><a href="#kernel.Reference">kernel.Reference</a></td>
                   <td>repeated</td>
                   <td><p>[OPTIONAL]
-Loggers is the list of references to Logger objects.
-The specified loggers can be referred from other resources
+Loggers is the list of references to logger objects.
+Specified loggers can be referred from other resources
 by the name &#34;&lt;group&gt;/&lt;version&gt;/&lt;kind&gt;/&lt;namespace&gt;/&lt;name&gt;&#34;
 from their metadata field
 for example &#34;core/v1/SLogger/myNamespace/myLogger&#34;.
-Objects must implement Logger interface.
+Objects must implement logger interface.
 Default is not set. </p></td>
                 </tr>
               
@@ -4012,7 +4013,7 @@ Default is [1,048,576] bytes or 1MiB. </p></td>
                   <td><a href="#int32">int32</a></td>
                   <td>repeated</td>
                   <td><p>[OPTIONAL]
-RetryStatuses is the list of HTTP status codes that should be retried.
+RetryStatusCodes is the list of HTTP status codes that should be retried.
 Only networking layer errors are retried when this field is not set.
 Default is not set. </p></td>
                 </tr>
@@ -14779,7 +14780,7 @@ SaltLen is the salt length in bytes.
 Random bytes read by a random reader of crypt/rand is
 used for generating a specified length of random salt.
 Salts are appended to the resulting hash value.
-Default value is used if not set or set to zeto.
+Default value is used if not set or set to zero.
 Default is [32]. </p></td>
                 </tr>
               
@@ -14818,7 +14819,7 @@ Default is [4]. </p></td>
                   <td></td>
                   <td><p>[OPTIONAL]
 KeyLen is the hashed key length.
-Default value is used if not set or set to zeto.
+Default value is used if not set or set to zero.
 Default is [32]. </p></td>
                 </tr>
               
@@ -14876,7 +14877,7 @@ SaltLen is the salt length in bytes.
 Random bytes read by a random reader of crypt/rand is
 used for generating a specified length of random salt.
 Salts are appended to the resulting hash value.
-Default value is used if not set or set to zeto.
+Default value is used if not set or set to zero.
 Default is [32]. </p></td>
                 </tr>
               
@@ -14886,7 +14887,7 @@ Default is [32]. </p></td>
                   <td></td>
                   <td><p>[OPTIONAL]
 Iter is the iteration count parameter for PBKDF2.
-Default value is used if not set or set to zeto.
+Default value is used if not set or set to zero.
 Default is [4096]. </p></td>
                 </tr>
               
@@ -14896,7 +14897,7 @@ Default is [4096]. </p></td>
                   <td></td>
                   <td><p>[OPTIONAL]
 KeyLen is the hashed key length.
-Default value is used if not set or set to zeto.
+Default value is used if not set or set to zero.
 Default is [32]. </p></td>
                 </tr>
               
@@ -14987,7 +14988,7 @@ SaltLen is the salt length in bytes.
 Random bytes read by a random reader of crypt/rand is
 used for generating a specified length of random salt.
 Salts are appended to the resulting hash value.
-Default value is used if not set or set to zeto.
+Default value is used if not set or set to zero.
 Default is [32]. </p></td>
                 </tr>
               
@@ -14997,7 +14998,7 @@ Default is [32]. </p></td>
                   <td></td>
                   <td><p>[OPTIONAL]
 N is the &#34;N&#34; parameter for SCrypt algorith.
-Default value is used if not set or set to zeto.
+Default value is used if not set or set to zero.
 Default is [32768]. </p></td>
                 </tr>
               
@@ -15007,7 +15008,7 @@ Default is [32768]. </p></td>
                   <td></td>
                   <td><p>[OPTIONAL]
 R is the &#34;r&#34; parameter for SCrypt algorith.
-Default value is used if not set or set to zeto.
+Default value is used if not set or set to zero.
 Default is [8]. </p></td>
                 </tr>
               
@@ -15017,7 +15018,7 @@ Default is [8]. </p></td>
                   <td></td>
                   <td><p>[OPTIONAL]
 P is the &#34;p&#34; parameter for SCrypt algorith.
-Default value is used if not set or set to zeto.
+Default value is used if not set or set to zero.
 Default is [1]. </p></td>
                 </tr>
               
@@ -15027,7 +15028,7 @@ Default is [1]. </p></td>
                   <td></td>
                   <td><p>[OPTIONAL]
 KeyLen is the hashed key length.
-Default value is used if not set or set to zeto.
+Default value is used if not set or set to zero.
 Default is [32]. </p></td>
                 </tr>
               
@@ -15057,85 +15058,85 @@ Default is [32]. </p></td>
               <tr>
                 <td>AESGCM</td>
                 <td>1</td>
-                <td><p>AES-GCM chipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.</p></td>
+                <td><p>AES-GCM cipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.</p></td>
               </tr>
             
               <tr>
                 <td>AESCBC</td>
                 <td>2</td>
-                <td><p>AES-CBC chipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.</p></td>
+                <td><p>AES-CBC cipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.</p></td>
               </tr>
             
               <tr>
                 <td>AESCFB</td>
                 <td>3</td>
-                <td><p>AES-CFB chipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.</p></td>
+                <td><p>AES-CFB cipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.</p></td>
               </tr>
             
               <tr>
                 <td>AESCTR</td>
                 <td>4</td>
-                <td><p>AES-CTR chipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.</p></td>
+                <td><p>AES-CTR cipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.</p></td>
               </tr>
             
               <tr>
                 <td>AESOFB</td>
                 <td>5</td>
-                <td><p>AES-OFB chipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.</p></td>
+                <td><p>AES-OFB cipher. Key length must be 16, 24, 32 bytes for AES-128, AES-192, AES-256.</p></td>
               </tr>
             
               <tr>
                 <td>DESCBC</td>
                 <td>6</td>
-                <td><p>DES-CBC chipher. Key length must be 8 bytes.</p></td>
+                <td><p>DES-CBC cipher. Key length must be 8 bytes.</p></td>
               </tr>
             
               <tr>
                 <td>DESCFB</td>
                 <td>7</td>
-                <td><p>DES-CFB chipher. Key length must be 8 bytes.</p></td>
+                <td><p>DES-CFB cipher. Key length must be 8 bytes.</p></td>
               </tr>
             
               <tr>
                 <td>DESCTR</td>
                 <td>8</td>
-                <td><p>DES-CTR chipher. Key length must be 8 bytes.</p></td>
+                <td><p>DES-CTR cipher. Key length must be 8 bytes.</p></td>
               </tr>
             
               <tr>
                 <td>DESOFB</td>
                 <td>9</td>
-                <td><p>DES-OFB chipher. Key length must be 8 bytes.</p></td>
+                <td><p>DES-OFB cipher. Key length must be 8 bytes.</p></td>
               </tr>
             
               <tr>
                 <td>TripleDESCBC</td>
                 <td>10</td>
-                <td><p>3DES-CBC chipher. Key length must be 24 bytes.</p></td>
+                <td><p>3DES-CBC cipher. Key length must be 24 bytes.</p></td>
               </tr>
             
               <tr>
                 <td>TripleDESCFB</td>
                 <td>11</td>
-                <td><p>3DES-CFB chipher. Key length must be 24 bytes.</p></td>
+                <td><p>3DES-CFB cipher. Key length must be 24 bytes.</p></td>
               </tr>
             
               <tr>
                 <td>TripleDESCTR</td>
                 <td>12</td>
-                <td><p>3DES-CTR chipher. Key length must be 24 bytes.</p></td>
+                <td><p>3DES-CTR cipher. Key length must be 24 bytes.</p></td>
               </tr>
             
               <tr>
                 <td>TripleDESOFB</td>
                 <td>13</td>
-                <td><p>3DES-OFB chipher. Key length must be 24 bytes.</p></td>
+                <td><p>3DES-OFB cipher. Key length must be 24 bytes.</p></td>
               </tr>
             
               <tr>
                 <td>RC4</td>
                 <td>14</td>
-                <td><p>RC4 chipher. Key length must be 5 to 256 bytes.</p></td>
+                <td><p>RC4 cipher. Key length must be 5 to 256 bytes.</p></td>
               </tr>
             
           </tbody>
