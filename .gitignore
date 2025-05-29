@@ -1,7 +1,5 @@
 # Ignore files.
 /aileron
-
-# Ignore files with extension.
 *.exe
 *.so
 *.test
@@ -13,16 +11,15 @@
 /*.mk
 /*.html
 
-# For convenience.
+# Ignore directories.
 work/
 study/
 temp/
 tmp/
+.vscode/
+.idea/
 
-# Ignore IDE directory.
-.vscode
-.idea
-
+# Exclude.
 !test/
 !testdata/
 !.gitkeep
