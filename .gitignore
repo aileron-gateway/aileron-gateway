@@ -24,8 +24,6 @@
 /*.html
 
 # Ignore directories.
-protovalidate/
-site/
 work/
 study/
 temp/
