@@ -49,8 +49,11 @@ func (s *runner) Run(sigCtx context.Context) error {
 		msg := fmt.Sprintf("server shutting down %s with graceful period %.0f seconds.", s.svr.Addr(), s.timeout.Seconds())
 		s.lg.Info(ctx, msg)
 		if err := s.svr.Shutdown(shutdownCtx); err != nil && err != http.ErrServerClosed {
-			msg := "shut down failure. caused by %s" + err.Error()
+			msg := "shut down failure. caused by " + err.Error()
 			s.lg.Info(ctx, msg) // May be shutdown timeout. We do not treat this as ERROR.
+		}
+		if close, ok := s.svr.(interface{ Close() error }); ok {
+			close.Close() // Just in case.
 		}
 		serverClosed <- struct{}{}
 	}(sigCtx)
@@ -83,7 +86,9 @@ func (s *http2Server) Shutdown(ctx context.Context) error {
 	// No need to care the type of returned error
 	// even it is http.ErrServerClosed.
 	// The returned error will be handled by the runner.
-	return s.svr.Shutdown(ctx)
+	err := s.svr.Shutdown(ctx)
+	s.svr.Close()
+	return err
 }
 
 func (s *http2Server) Serve() error {
@@ -105,7 +110,9 @@ func (s *http3Server) Shutdown(ctx context.Context) error {
 	// even if it is http.ErrServerClosed.
 	// The returned error will be handled by the runner.
 	// TODO: Change to graceful shutdown when it is implemented in the quic package.
-	return s.svr.Close()
+	err := s.svr.Close()
+	s.svr.Close()
+	return err
 }
 
 func (s *http3Server) Serve() error {
