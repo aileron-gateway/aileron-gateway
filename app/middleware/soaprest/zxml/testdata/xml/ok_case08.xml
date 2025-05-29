@@ -1,5 +1,0 @@
-<!-- An element with non-default namespace -->
-<alice xmlns:ns="http://xyz.com/">
-  <bob>charlie</bob>
-  <ns:david>edgar</ns:david>
-</alice>

@@ -1,6 +1,0 @@
-<!-- Child element has an attribute -->
-<alice>
-  <bob foo="bar">
-    <david>edgar</david>
-  </bob>
-</alice>

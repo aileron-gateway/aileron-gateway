@@ -1,6 +1,0 @@
-<!-- Child element has non-default namespace -->
-<alice>
-  <ns:bob xmlns:ns="http://xyz.com/">
-    <ns:david>edgar</ns:david>
-  </ns:bob>
-</alice>

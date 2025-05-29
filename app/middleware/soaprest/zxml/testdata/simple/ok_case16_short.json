@@ -1,9 +1,0 @@
-{
-  "alice": {
-    "ns:bob": {
-      "@ns:foo": "bar",
-      "@xmlns:ns": "http://xyz.com/",
-      "ns:david": "edgar"
-    }
-  }
-}

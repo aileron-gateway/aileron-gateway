@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<alice>
-  <ns:bob xmlns:ns="http://abc.com/" ns:foo="bar">bob text</ns:bob>
-  <ns:david xmlns:ns="http://xyz.com/" ns:foo="bar">david text</ns:david>
-</alice>

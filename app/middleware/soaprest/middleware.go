@@ -10,9 +10,9 @@ import (
 	"net/http"
 
 	"github.com/aileron-gateway/aileron-gateway/app"
-	"github.com/aileron-gateway/aileron-gateway/app/middleware/soaprest/zxml"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
+	"github.com/aileron-projects/go/zencoding/zxml"
 )
 
 type soapREST struct {

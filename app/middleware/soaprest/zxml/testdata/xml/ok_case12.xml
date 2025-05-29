@@ -1,6 +1,0 @@
-<!-- An nested element -->
-<alice>
-  <bob>
-    <david>edgar</david>
-  </bob>
-</alice>
