@@ -5,7 +5,7 @@ on:
   workflow_call: {}
 
 jobs:
-  test:
+  test-stable:
     runs-on: ${{ matrix.os }}-latest
     timeout-minutes: 10
     strategy:
@@ -16,14 +16,10 @@ jobs:
           - macos
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
       - uses: actions/setup-go@v5
         with:
           go-version: stable
-      - name: make test
-        run: |
-          set +o pipefail
-          make test
+      - run: make test
       - uses: codecov/codecov-action@v4
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
@@ -36,7 +32,53 @@ jobs:
           flags: unit
       - uses: actions/upload-artifact@v4
         with:
-          name: unit-test-${{ matrix.os }}
+          name: unit-test-${{ matrix.os }}-stable
+          path: |
+            _output/**
+            api.html
+          retention-days: 7
+
+  test-oldstable:
+    runs-on: ${{ matrix.os }}-latest
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        os:
+          - ubuntu
+          # - windows
+          - macos
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: oldstable
+      - run: make test
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-${{ matrix.os }}-oldstable
+          path: |
+            _output/**
+            api.html
+          retention-days: 7
+
+  test-minimum:
+    runs-on: ${{ matrix.os }}-latest
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        os:
+          - ubuntu
+          # - windows
+          - macos
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: "go.mod"
+      - run: make test
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-${{ matrix.os }}-minimum
           path: |
             _output/**
             api.html
@@ -63,13 +105,10 @@ jobs:
           - "mipsle" # Can be removed.
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
       - uses: actions/setup-go@v5
         with:
           go-version: stable
       - run: |
-          # See https://launchpad.net/~canonical-server
-          # sudo add-apt-repository -y ppa:canonical-server/server-backports
           sudo apt-get -y update
           sudo apt-get -y install qemu-user
       - name: make test
