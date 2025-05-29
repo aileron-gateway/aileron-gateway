@@ -56,51 +56,7 @@ Configuration yaml to run a server with access logging becomes as follows.
 ```yaml
 # config.yaml
 
-apiVersion: core/v1
-kind: Entrypoint
-spec:
-  runners:
-    - apiVersion: core/v1
-      kind: HTTPServer
-
----
-apiVersion: core/v1
-kind: HTTPServer
-spec:
-  addr: ":8080"
-  virtualHosts:
-    - middleware:
-        - apiVersion: core/v1
-          kind: HTTPLogger
-      handlers:
-        - handler:
-            apiVersion: core/v1
-            kind: ReverseProxyHandler
-
----
-apiVersion: core/v1
-kind: ReverseProxyHandler
-spec:
-  tripperwares:
-    - apiVersion: core/v1
-      kind: HTTPLogger
-  loadBalancers:
-    - pathMatcher:
-        match: "/"
-        matchType: Prefix
-      upstreams:
-        - url: http://httpbin.org
-
----
-apiVersion: core/v1
-kind: HTTPLogger
-spec:
-  request:
-    headers:
-      - name: "*" # Log all request headers.
-  response:
-    headers:
-      - name: "*" # Log all response headers.
+{{% remote "https://raw.githubusercontent.com/aileron-gateway/aileron-gateway/refs/heads/update-examples/examples/access-logging/config.yaml" %}}
 ```
 
 The config tells:
