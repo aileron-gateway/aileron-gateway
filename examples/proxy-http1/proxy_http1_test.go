@@ -28,8 +28,7 @@ const (
 	keyFile  = "./pki/key.pem"
 )
 
-func runHTTP1(t *testing.T, ctx context.Context) {
-
+func runHTTP1(t *testing.T) *http.Server {
 	svr := &http.Server{
 		Addr: ":10001",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -37,18 +36,13 @@ func runHTTP1(t *testing.T, ctx context.Context) {
 		}),
 		TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler)),
 	}
-
 	log.Println("HTTP 1 server listens on", svr.Addr)
 	go func() {
 		if err := svr.ListenAndServeTLS(certFile, keyFile); err != nil && err != http.ErrServerClosed {
 			t.Error(err)
 		}
 	}()
-
-	<-ctx.Done()
-	if err := svr.Shutdown(context.Background()); err != nil {
-		t.Error(err)
-	}
+	return svr
 }
 
 func TestProxyHTTP1(t *testing.T) {
@@ -68,11 +62,12 @@ func TestProxyHTTP1(t *testing.T) {
 		ResponseHeaderTimeout: 3 * time.Second,
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	go runHTTP1(t, ctx)
+	svr := runHTTP1(t)
+	defer svr.Close()
 	time.Sleep(1 * time.Second) // Wait the server to start up.
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	var resp *http.Response
 	go func() {
 		req, _ := http.NewRequest(http.MethodGet, "https://localhost:8443/test", nil)

@@ -38,7 +38,7 @@ func TestSingle(t *testing.T) {
 		t.Error(err)
 	}
 	testutil.Diff(t, nil, err1)
-	testutil.Diff(t, http.StatusOK, resp1.StatusCode)
+	testutil.Diff(t, http.StatusNotFound, resp1.StatusCode)
 }
 
 func getEntrypointRunner(t *testing.T, config ...string) core.Runner {

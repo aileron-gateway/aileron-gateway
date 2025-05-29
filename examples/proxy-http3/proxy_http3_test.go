@@ -29,25 +29,20 @@ const (
 	keyFile  = "./pki/key.pem"
 )
 
-func runHTTP3(t *testing.T, ctx context.Context) {
+func runHTTP3(t *testing.T) *http3.Server {
 	svr := &http3.Server{
 		Addr: ":10003",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "OK")
 		}),
 	}
-
 	log.Println("HTTP 3 server listens on", svr.Addr)
 	go func() {
 		if err := svr.ListenAndServeTLS(certFile, keyFile); err != nil && err != http.ErrServerClosed {
 			t.Error(err)
 		}
 	}()
-
-	<-ctx.Done()
-	if err := svr.Shutdown(context.Background()); err != nil {
-		t.Error(err)
-	}
+	return svr
 }
 
 func TestProxyHTTP3(t *testing.T) {
@@ -65,11 +60,12 @@ func TestProxyHTTP3(t *testing.T) {
 		},
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	go runHTTP3(t, ctx)
+	svr := runHTTP3(t)
+	defer svr.Close()
 	time.Sleep(1 * time.Second) // Wait the server to start up.
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	var resp *http.Response
 	go func() {
 		req, _ := http.NewRequest(http.MethodGet, "https://localhost:8443/test", nil)
