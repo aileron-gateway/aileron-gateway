@@ -36,7 +36,7 @@ jobs:
           flags: unit
       - uses: actions/upload-artifact@v4
         with:
-          name: unit-test-${{ matrix.os }}
+          name: unit-test-${{ matrix.os }}-stable
           path: |
             _output/**
             api.html
@@ -63,7 +63,7 @@ jobs:
           make test
       - uses: actions/upload-artifact@v4
         with:
-          name: unit-test-${{ matrix.os }}
+          name: unit-test-${{ matrix.os }}-oldstable
           path: |
             _output/**
             api.html
@@ -90,7 +90,7 @@ jobs:
           make test
       - uses: actions/upload-artifact@v4
         with:
-          name: unit-test-${{ matrix.os }}
+          name: unit-test-${{ matrix.os }}-minimum
           path: |
             _output/**
             api.html
