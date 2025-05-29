@@ -1,6 +1,6 @@
 # Ignore files without extension.
 /*
-!*.*
+!/*.*
 !Makefile
 !LICENSE
 !Dockerfile
