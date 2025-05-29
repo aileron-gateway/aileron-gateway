@@ -117,21 +117,12 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.Prot
 		return nil, core.ErrCoreGenCreateObject.WithStack(err, map[string]any{"kind": kind})
 	}
 
-	if c.Spec.WaitAll {
-		return &waitGroup{
-			lg:           lg,
-			runners:      runners,
-			initializers: initializers,
-			finalizers:   finalizers,
-		}, nil
-	} else {
-		return &channelGroup{
-			lg:           lg,
-			runners:      runners,
-			initializers: initializers,
-			finalizers:   finalizers,
-		}, nil
-	}
+	return &channelGroup{
+		lg:           lg,
+		runners:      runners,
+		initializers: initializers,
+		finalizers:   finalizers,
+	}, nil
 }
 
 // appendInitializer append the target to the given initializer slice
