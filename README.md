@@ -119,7 +119,9 @@ Go:
 
 - Current Stable (Latest patch version of `go 1.(N).x`)
 - Previous Stable (Latest patch version of `go 1.(N-1).x`)
-- Minimum Requirement (Currently `go 1.23.0`)
+- Minimum Requirement (`go 1.(N-2).0`)
+  - Declared in the [go.mod](go.mod)
+  - go.mod is manually updated
 
 Where `N` is the current latest minor version.
 See the Go official release page [Stable versions](https://go.dev/dl/).

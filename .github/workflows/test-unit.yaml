@@ -20,10 +20,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: stable
-      - name: make test
-        run: |
-          set +o pipefail
-          make test
+      - run: make test
       - uses: codecov/codecov-action@v4
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
@@ -57,10 +54,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: oldstable
-      - name: make test
-        run: |
-          set +o pipefail
-          make test
+      - run: make test
       - uses: actions/upload-artifact@v4
         with:
           name: unit-test-${{ matrix.os }}-oldstable
@@ -83,11 +77,8 @@ jobs:
       - uses: actions/download-artifact@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: "1.23.0"
-      - name: make test
-        run: |
-          set +o pipefail
-          make test
+          go-version-file: "go.mod"
+      - run: make test
       - uses: actions/upload-artifact@v4
         with:
           name: unit-test-${{ matrix.os }}-minimum
