@@ -152,9 +152,7 @@ func TestExportHTTP(t *testing.T) {
 	m, err := api.ReferTypedObject[core.Tripperware](server, ref)
 	testutil.DiffError(t, nil, nil, err)
 
-	mockTransport := &mockRoundTripper{}
-	rt := m.Tripperware(mockTransport)
-
+	rt := m.Tripperware(&mockRoundTripper{})
 	// Perform GET requests.
 	for i := 0; i < 5; i++ {
 		r := httptest.NewRequest(http.MethodGet, "http://metrics.com/get", nil)
@@ -169,17 +167,7 @@ func TestExportHTTP(t *testing.T) {
 	}
 
 	time.Sleep(2 * time.Second)
-	t.Log(msg)
-
-	metrics := ""
-	for _, m := range msg.ResourceMetrics[0].ScopeMetrics[1].Metrics {
-		if m.Name == "http_client_requests_total" {
-			for _, p := range m.Data.(*v1.Metric_Sum).Sum.DataPoints {
-				metrics += p.String() + "\n"
-			}
-		}
-	}
-
+	metrics := msg.String()
 	t.Log(metrics)
 	testutil.Diff(t, true, strings.Contains(metrics, `value:{string_value:"GET"}`))
 	testutil.Diff(t, true, strings.Contains(metrics, `value:{string_value:"POST"}`))
