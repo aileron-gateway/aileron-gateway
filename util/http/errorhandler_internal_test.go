@@ -384,7 +384,7 @@ func TestNewErrorMessage(t *testing.T) {
 	actCheckError := tb.Action("error", "check that an error was returned")
 	table := tb.Build()
 
-	tpl, _ := txtutil.NewTemplate(txtutil.TplText, "test", "")
+	tpl, _ := txtutil.NewTemplate(txtutil.TplText, "test")
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
@@ -751,8 +751,8 @@ func TestErrorMessage_Content(t *testing.T) {
 	actCheckMatched := tb.Action("check matched", "check that the input matched to a message")
 	table := tb.Build()
 
-	tpl1, _ := txtutil.NewTemplate(txtutil.TplText, "test1", "")
-	tpl2, _ := txtutil.NewTemplate(txtutil.TplText, "test2", "")
+	tpl1, _ := txtutil.NewTemplate(txtutil.TplText, "test1")
+	tpl2, _ := txtutil.NewTemplate(txtutil.TplText, "test2")
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
@@ -913,7 +913,7 @@ func TestDefaultErrorHandler_ServeHTTPError(t *testing.T) {
 
 	testErrKind := errorutil.NewKind("E0001", "ErrTest", "This is a test error kind")
 	testErr := testErrKind.WithoutStack(nil, nil)
-	tpl, _ := txtutil.NewTemplate(txtutil.TplGoText, "{{.code}}.{{.kind}}", "")
+	tpl, _ := txtutil.NewTemplate(txtutil.TplGoText, "{{.code}}.{{.kind}}")
 
 	debugLogger := log.NewJSONSLogger(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})
 

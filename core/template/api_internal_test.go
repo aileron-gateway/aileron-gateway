@@ -155,7 +155,7 @@ func TestCreate(t *testing.T) {
 	actCheckNoError := tb.Action("check no error", "check that there is no error returned")
 	table := tb.Build()
 
-	tpl, _ := txtutil.NewTemplate(txtutil.TplGoText, "{{.test}}", "")
+	tpl, _ := txtutil.NewTemplate(txtutil.TplGoText, "{{.test}}")
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{

@@ -5,8 +5,6 @@ package txtutil
 
 import (
 	"bytes"
-	"encoding/hex"
-	"hash/fnv"
 	htpl "html/template"
 	"strconv"
 	ttpl "text/template"
@@ -37,7 +35,7 @@ type Template interface {
 // tplFallback is the static content that will be returned for fallback
 // when embedding external information to the template failed.
 // tplFallback will be ignored when the template type is TplText.
-func NewTemplate(typ TemplateType, tpl, tplFallback string) (Template, error) {
+func NewTemplate(typ TemplateType, tpl string) (Template, error) {
 	switch typ {
 	case TplText:
 		return &textTemplate{
@@ -45,25 +43,23 @@ func NewTemplate(typ TemplateType, tpl, tplFallback string) (Template, error) {
 		}, nil
 
 	case TplGoText:
-		name := hex.EncodeToString(fnv.New32().Sum([]byte(tpl)))
-		template, err := ttpl.New(name).Parse(tpl)
+		template, err := ttpl.New("").Parse(tpl)
 		if err != nil {
 			return nil, (&er.Error{Package: ErrPkg, Type: ErrTypeTemplate, Description: ErrDscTemplate, Detail: "GoText `" + tpl + "`"}).Wrap(err)
 		}
 		return &goTextTemplate{
 			tpl:      template,
-			fallback: []byte(tplFallback),
+			fallback: nil,
 		}, nil
 
 	case TplGoHTML:
-		name := hex.EncodeToString(fnv.New32().Sum([]byte(tpl)))
-		template, err := htpl.New(name).Parse(tpl)
+		template, err := htpl.New("").Parse(tpl)
 		if err != nil {
 			return nil, (&er.Error{Package: ErrPkg, Type: ErrTypeTemplate, Description: ErrDscTemplate, Detail: "GoHTML `" + tpl + "`"}).Wrap(err)
 		}
 		return &goHTMLTemplate{
 			tpl:      template,
-			fallback: []byte(tplFallback),
+			fallback: nil,
 		}, nil
 
 	default:

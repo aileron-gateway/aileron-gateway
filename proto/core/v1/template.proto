@@ -101,12 +101,4 @@ message MIMEContentSpec {
     // It does not matter wheather the path is relative or absolute.
     // Default is not set.
     string TemplateFile = 6 [json_name = "templateFile"];
-
-    // [OPTIONAL]
-    // FallbackText is the response body that will be used for fallback.
-    // This text will be used when generating response body
-    // with GoText, GoHTML failed.
-    // The value is not used when the TemplateType is Text.
-    // Default is not set.
-    string FallbackText = 7 [json_name = "fallbackText"];
 }

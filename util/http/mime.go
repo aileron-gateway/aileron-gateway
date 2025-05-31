@@ -52,7 +52,7 @@ func NewMIMEContent(spec *v1.MIMEContentSpec) (*MIMEContent, error) {
 		kernel.TemplateType_GoText: txtutil.TplGoText,
 		kernel.TemplateType_GoHTML: txtutil.TplGoHTML,
 	}[spec.TemplateType]
-	tpl, err := txtutil.NewTemplate(typ, body, spec.FallbackText)
+	tpl, err := txtutil.NewTemplate(typ, body)
 	if err != nil {
 		return nil, err // Return err as-is.
 	}
