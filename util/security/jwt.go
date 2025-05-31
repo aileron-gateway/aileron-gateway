@@ -491,7 +491,6 @@ func (h *JWTHandler) keyFunc(t *jwt.Token) (any, error) {
 			return nil, ErrWrongAlg
 		}
 	}
-
 	return key.key, nil
 }
 

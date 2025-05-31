@@ -148,7 +148,6 @@ func (c *oauthContext) validOauthClaims(ctx context.Context, tokens *OAuthTokens
 	}
 
 	now := time.Now().Unix()
-
 	// Validate the access token if exists.
 	// Skip validation when the access token has not expired yet.
 	if tokens.AT != "" && !(c.skipUnexpiredAT && (now < tokens.ATExp)) && !skipATValidation {
@@ -224,7 +223,6 @@ func (c *oauthContext) validOauthClaims(ctx context.Context, tokens *OAuthTokens
 			c.lg.Debug(ctx, "ID token validation succeeded", attr.Name(), attr.Map())
 		}
 	}
-
 	return nil
 }
 
