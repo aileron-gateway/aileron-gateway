@@ -2,7 +2,6 @@ syntax = "proto3";
 package app.v1;
 
 import "buf/validate/validate.proto";
-import "kernel/encoding.proto";
 import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
@@ -41,26 +40,21 @@ message TrackingMiddlewareSpec {
     kernel.Reference ErrorHandler = 1 [json_name = "errorHandler"];
 
     // [OPTIONAL]
-    // Encoding is the type of encoding used to generate IDs.
-    // Default is [Base32HexEscaped].
-    kernel.EncodingType Encoding = 2 [json_name = "encoding"];
-
-    // [OPTIONAL]
     // RequestIDProxyName is the HTTP header name to proxy request ID.
     // If not set, request ID is not proxied.
     // Default is not set.
-    string RequestIDProxyName = 3 [json_name = "requestIDProxyName", (buf.validate.field).string.pattern = "^[0-9a-zA-Z-_]*$"];
+    string RequestIDProxyName = 2 [json_name = "requestIDProxyName", (buf.validate.field).string.pattern = "^[0-9a-zA-Z-_]*$"];
 
     // [OPTIONAL]
     // TraceIDProxyName is the HTTP header name to proxy trace ID.
     // If not set, trace ID is not proxied.
     // Default is not set.
-    string TraceIDProxyName = 4 [json_name = "traceIDProxyName", (buf.validate.field).string.pattern = "^[0-9a-zA-Z-_]*$"];
+    string TraceIDProxyName = 3 [json_name = "traceIDProxyName", (buf.validate.field).string.pattern = "^[0-9a-zA-Z-_]*$"];
 
     // [OPTIONAL]
     // TraceIDExtractName is the HTTP header name to extrace
     // a trace ID from the request headers.
     // If not set, a newly generated trace ID is always used.
     // Default is not set.
-    string TraceIDExtractName = 5 [json_name = "traceIDExtractName", (buf.validate.field).string.pattern = "^[0-9a-zA-Z-_]*$"];
+    string TraceIDExtractName = 4 [json_name = "traceIDExtractName", (buf.validate.field).string.pattern = "^[0-9a-zA-Z-_]*$"];
 }

@@ -2,7 +2,7 @@ syntax = "proto3";
 package app.v1;
 
 import "buf/validate/validate.proto";
-import "kernel/crypt.proto";
+import "kernel/commonkey.proto";
 import "kernel/encoding.proto";
 import "kernel/hash.proto";
 import "kernel/resource.proto";

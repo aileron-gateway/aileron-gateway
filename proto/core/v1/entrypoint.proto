@@ -1,7 +1,6 @@
 syntax = "proto3";
 package core.v1;
 
-import "buf/validate/validate.proto";
 import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/core/v1";

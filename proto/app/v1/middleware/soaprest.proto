@@ -3,7 +3,6 @@ package app.v1;
 
 import "buf/validate/validate.proto";
 import "kernel/resource.proto";
-import "kernel/txtutil.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
 

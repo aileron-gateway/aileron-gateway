@@ -2,7 +2,7 @@ syntax = "proto3";
 package app;
 
 import "buf/validate/validate.proto";
-import "kernel/crypt.proto";
+import "kernel/commonkey.proto";
 import "kernel/hash.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";

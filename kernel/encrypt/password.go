@@ -5,7 +5,6 @@ package encrypt
 
 import (
 	"cmp"
-	"crypto/md5"
 	"crypto/rand"
 	"crypto/sha1"
 	"crypto/sha256"
@@ -176,7 +175,6 @@ func NewPBKDF2(spec *k.PBKDF2Spec) (*PBKDF2, error) {
 		k.HashAlg_SHA3_256:       sha3.New256,
 		k.HashAlg_SHA3_384:       sha3.New384,
 		k.HashAlg_SHA3_512:       sha3.New512,
-		k.HashAlg_MD5:            md5.New,
 	}
 	hashFunc, ok := funcs[spec.HashAlg]
 	if !ok {

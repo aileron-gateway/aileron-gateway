@@ -786,7 +786,7 @@ func TestNewStringReplacer(t *testing.T) {
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Hash{
 						Hash: &k.HashReplacer{
-							Alg: k.HashAlg_MD5,
+							Alg: k.HashAlg_SHA256,
 						},
 					},
 				},
@@ -807,7 +807,7 @@ func TestNewStringReplacer(t *testing.T) {
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Hash{
 						Hash: &k.HashReplacer{
-							Alg:      k.HashAlg_MD5,
+							Alg:      k.HashAlg_SHA256,
 							Encoding: k.EncodingType_Base16,
 						},
 					},
@@ -815,10 +815,10 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 			&action{
 				inout: map[string]string{
-					"":             "d41d8cd98f00b204e9800998ecf8427e",
-					"123-456-7890": "2813448ce6316cb70b38fa29c8c64130",
-					"foo=bar":      "06ad47d8e64bd28de537b62ff85357c4",
-					"alice,bob":    "b3701cb1cb2d196ad68d6969ab0fbf2c",
+					"":             "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+					"123-456-7890": "29ec0a06044bedff0bec4d81516da5843c93b7b4cb8b3ec0bf379a78085747bd",
+					"foo=bar":      "3ba8907e7a252327488df390ed517c45b96dead033600219bdca7107d1d3f88a",
+					"alice,bob":    "f0e50e8fced90be1bda596553cfabf29ecee566958f394452b6d401b192f6dce",
 				},
 			},
 		),
@@ -831,7 +831,7 @@ func TestNewStringReplacer(t *testing.T) {
 					Replacers: &k.ReplacerSpec_Hash{
 						Hash: &k.HashReplacer{
 							Pattern:  `([4-6]{3}|foo|alice)`,
-							Alg:      k.HashAlg_MD5,
+							Alg:      k.HashAlg_SHA256,
 							Encoding: k.EncodingType_Base16,
 						},
 					},
@@ -840,9 +840,9 @@ func TestNewStringReplacer(t *testing.T) {
 			&action{
 				inout: map[string]string{
 					"":             "",
-					"123-456-7890": "123-250cf8b51c773f3f8dc8b4be867a9a02-7890",
-					"foo=bar":      "acbd18db4cc2f85cedef654fccc4a4d8=bar",
-					"alice,bob":    "6384e2b2184bcbf58eccf10ca7a6563c,bob",
+					"123-456-7890": "123-b3a8e0e1f9ab1bfe3a36f231f676f78bb30a519d2b21e6c530c0eee8ebb4a5d0-7890",
+					"foo=bar":      "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae=bar",
+					"alice,bob":    "2bd806c97f0e00af1a1fc3328fa763a9269723c8db8fac4f93af71db186d6e90,bob",
 				},
 			},
 		),
@@ -1325,7 +1325,7 @@ func TestNewStringReplacer(t *testing.T) {
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_HMAC{
 						HMAC: &k.HMACReplacer{
-							Alg: k.HashAlg_MD5,
+							Alg: k.HashAlg_SHA256,
 						},
 					},
 				},
@@ -1346,7 +1346,7 @@ func TestNewStringReplacer(t *testing.T) {
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_HMAC{
 						HMAC: &k.HMACReplacer{
-							Alg:      k.HashAlg_MD5,
+							Alg:      k.HashAlg_SHA256,
 							Encoding: k.EncodingType_Base16,
 							Key:      "Invalid Hex Key",
 						},
@@ -2211,7 +2211,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Hash{
 						Hash: &k.HashReplacer{
-							Alg: k.HashAlg_MD5,
+							Alg: k.HashAlg_SHA256,
 						},
 					},
 				},
@@ -2232,7 +2232,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Hash{
 						Hash: &k.HashReplacer{
-							Alg:      k.HashAlg_MD5,
+							Alg:      k.HashAlg_SHA256,
 							Encoding: k.EncodingType_Base16,
 						},
 					},
@@ -2240,10 +2240,10 @@ func TestNewBytesReplacer(t *testing.T) {
 			},
 			&action{
 				inout: map[string]string{
-					"":             "d41d8cd98f00b204e9800998ecf8427e",
-					"123-456-7890": "2813448ce6316cb70b38fa29c8c64130",
-					"foo=bar":      "06ad47d8e64bd28de537b62ff85357c4",
-					"alice,bob":    "b3701cb1cb2d196ad68d6969ab0fbf2c",
+					"":             "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+					"123-456-7890": "29ec0a06044bedff0bec4d81516da5843c93b7b4cb8b3ec0bf379a78085747bd",
+					"foo=bar":      "3ba8907e7a252327488df390ed517c45b96dead033600219bdca7107d1d3f88a",
+					"alice,bob":    "f0e50e8fced90be1bda596553cfabf29ecee566958f394452b6d401b192f6dce",
 				},
 			},
 		),
@@ -2256,7 +2256,7 @@ func TestNewBytesReplacer(t *testing.T) {
 					Replacers: &k.ReplacerSpec_Hash{
 						Hash: &k.HashReplacer{
 							Pattern:  `([4-6]{3}|foo|alice)`,
-							Alg:      k.HashAlg_MD5,
+							Alg:      k.HashAlg_SHA256,
 							Encoding: k.EncodingType_Base16,
 						},
 					},
@@ -2265,9 +2265,9 @@ func TestNewBytesReplacer(t *testing.T) {
 			&action{
 				inout: map[string]string{
 					"":             "",
-					"123-456-7890": "123-250cf8b51c773f3f8dc8b4be867a9a02-7890",
-					"foo=bar":      "acbd18db4cc2f85cedef654fccc4a4d8=bar",
-					"alice,bob":    "6384e2b2184bcbf58eccf10ca7a6563c,bob",
+					"123-456-7890": "123-b3a8e0e1f9ab1bfe3a36f231f676f78bb30a519d2b21e6c530c0eee8ebb4a5d0-7890",
+					"foo=bar":      "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae=bar",
+					"alice,bob":    "2bd806c97f0e00af1a1fc3328fa763a9269723c8db8fac4f93af71db186d6e90,bob",
 				},
 			},
 		),
@@ -2750,7 +2750,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_HMAC{
 						HMAC: &k.HMACReplacer{
-							Alg: k.HashAlg_MD5,
+							Alg: k.HashAlg_SHA256,
 						},
 					},
 				},
@@ -2771,7 +2771,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_HMAC{
 						HMAC: &k.HMACReplacer{
-							Alg:      k.HashAlg_MD5,
+							Alg:      k.HashAlg_SHA256,
 							Encoding: k.EncodingType_Base16,
 							Key:      "Invalid Hex Key",
 						},

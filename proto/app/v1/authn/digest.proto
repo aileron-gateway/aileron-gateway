@@ -3,7 +3,8 @@ package app.v1;
 
 import "buf/validate/validate.proto";
 import "kernel/encoding.proto";
-import "kernel/crypt.proto";
+import "kernel/commonkey.proto";
+import "kernel/password.proto";
 import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";

@@ -8,20 +8,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/aileron-gateway/aileron-gateway/app"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/uid"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
-)
-
-// Mock functions to simulate NewRequestID and NewTraceID behavior.
-var (
-	mockNewRequestID = func() (string, error) {
-		return "mock-request-id", nil
-	}
-	mockNewTraceID = func(_ string) (string, error) {
-		return "mock-trace-id", nil
-	}
 )
 
 func TestMiddleware(t *testing.T) {
@@ -29,8 +18,6 @@ func TestMiddleware(t *testing.T) {
 		trcExtractHeader string
 		requestID        string
 		traceID          string
-		newReqIDFunc     func() (string, error)
-		newTrcIDFunc     func(string) (string, error)
 	}
 
 	type action struct {
@@ -48,10 +35,8 @@ func TestMiddleware(t *testing.T) {
 			[]string{},
 			[]string{},
 			&condition{
-				requestID:    "mock-request-id",
-				traceID:      "mock-trace-id",
-				newReqIDFunc: mockNewRequestID,
-				newTrcIDFunc: mockNewTraceID,
+				requestID: "mock-request-id",
+				traceID:   "mock-trace-id",
 			},
 			&action{
 				statusCode: http.StatusOK,
@@ -65,43 +50,9 @@ func TestMiddleware(t *testing.T) {
 				requestID:        "mock-request-id",
 				traceID:          "existing-trace-id",
 				trcExtractHeader: "X-Trace-ID",
-				newReqIDFunc:     mockNewRequestID,
-				newTrcIDFunc:     mockNewTraceID,
 			},
 			&action{
 				statusCode: http.StatusOK,
-			},
-		),
-		gen(
-			"error generating request ID",
-			[]string{},
-			[]string{},
-			&condition{
-				requestID: "",
-				traceID:   "",
-				newReqIDFunc: func() (string, error) {
-					return "", app.ErrAppMiddleGenID.WithStack(nil, map[string]any{"type": "request"})
-				},
-				newTrcIDFunc: mockNewTraceID,
-			},
-			&action{
-				statusCode: http.StatusInternalServerError,
-			},
-		),
-		gen(
-			"error generating trace ID",
-			[]string{},
-			[]string{},
-			&condition{
-				requestID:    "",
-				traceID:      "",
-				newReqIDFunc: mockNewRequestID,
-				newTrcIDFunc: func(s string) (string, error) {
-					return "", app.ErrAppMiddleGenID.WithStack(nil, map[string]any{"type": "trace"})
-				},
-			},
-			&action{
-				statusCode: http.StatusInternalServerError,
 			},
 		),
 	}
@@ -116,8 +67,6 @@ func TestMiddleware(t *testing.T) {
 				reqProxyHeader:   "X-Request-ID",
 				trcProxyHeader:   "X-Trace-ID",
 				trcExtractHeader: tt.C().trcExtractHeader,
-				newReqID:         tt.C().newReqIDFunc,
-				newTrcID:         tt.C().newTrcIDFunc,
 			}
 
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -128,15 +77,14 @@ func TestMiddleware(t *testing.T) {
 			resp := httptest.NewRecorder()
 
 			h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				testutil.Diff(t, tt.C().requestID, uid.IDFromContext(r.Context()))
-				if tt.C().traceID != "" {
+				testutil.Diff(t, true, uid.IDFromContext(r.Context()) != "")
+				if tt.C().trcExtractHeader != "" {
 					h := utilhttp.ProxyHeaderFromContext(r.Context())
 					testutil.Diff(t, tt.C().traceID, h.Get("X-Trace-ID"))
 				}
 				w.WriteHeader(http.StatusOK)
 			})
 			tr.Middleware(h).ServeHTTP(resp, req)
-
 			testutil.Diff(t, tt.A().statusCode, resp.Code)
 		})
 	}

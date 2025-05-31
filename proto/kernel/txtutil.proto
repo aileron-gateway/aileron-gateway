@@ -4,7 +4,7 @@ package kernel;
 import "buf/validate/validate.proto";
 import "kernel/encoding.proto";
 import "kernel/hash.proto";
-import "kernel/crypt.proto";
+import "kernel/commonkey.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/kernel";
 
