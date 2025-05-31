@@ -6,25 +6,12 @@ import "kernel/resource.proto";
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/core/v1";
 
 // Entrypoint resource definition.
+// apiVersion="core/v1", kind="Entrypoint".
 message Entrypoint {
-    // [REQUIRED]
-    // APIVersion is the Entrypoint api version.
-    // Value must be "core/v1".
-    string APIVersion = 1 [json_name = "apiVersion"];
-
-    // [REQUIRED]
-    // Kind is the kind of this object.
-    // This value must be "Entrypoint".
-    string Kind = 2 [json_name = "kind"];
-
-    // [OPTIONAL]
-    // Metadata is the Entrypoint metadata.
-    // Name and Namespace must not be set for the Entrypoint.
-    kernel.Metadata Metadata = 3 [json_name = "metadata"];
-
-    // [OPTIONAL]
-    // Spec is the Entrypoint specification.
-    EntrypointSpec Spec = 4 [json_name = "spec"];
+    string          APIVersion = 1 [json_name = "apiVersion"];
+    string          Kind       = 2 [json_name = "kind"];
+    kernel.Metadata Metadata   = 3 [json_name = "metadata"];
+    EntrypointSpec  Spec       = 4 [json_name = "spec"];
 }
 
 // EntrypointSpec is the Entrypoint specification.

@@ -50,42 +50,7 @@ Configuration yaml to run a server with CORS middleware becomes as follows.
 ```yaml
 # config.yaml
 
-apiVersion: core/v1
-kind: Entrypoint
-spec:
-  runners:
-    - apiVersion: core/v1
-      kind: HTTPServer
-
----
-apiVersion: core/v1
-kind: HTTPServer
-spec:
-  addr: ":8080"
-  virtualHosts:
-    - middleware:
-        - apiVersion: app/v1
-          kind: CORSMiddleware
-      handlers:
-        - handler:
-            apiVersion: app/v1
-            kind: EchoHandler
-
----
-apiVersion: app/v1
-kind: EchoHandler
-
----
-apiVersion: app/v1
-kind: CORSMiddleware
-spec:
-  corsPolicy:
-    allowedOrigins:
-      - "http://localhost:8080"
-      - "http://example.com"
-    allowedMethods:
-      - GET
-      - HEAD
+{{% example-file "config.yaml" %}}
 ```
 
 The config tells:

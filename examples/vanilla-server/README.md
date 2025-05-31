@@ -55,43 +55,7 @@ Config for a single server would be more simple than this (See the config-single
 ```yaml
 # config-multiple.yaml
 
-apiVersion: core/v1
-kind: Entrypoint
-spec:
-  runners:
-    - apiVersion: core/v1
-      kind: HTTPServer
-      name: server1
-    - apiVersion: core/v1
-      kind: HTTPServer
-      name: server2
-    - apiVersion: core/v1
-      kind: HTTPServer
-      name: server3
-
----
-apiVersion: core/v1
-kind: HTTPServer
-metadata:
-  name: server1
-spec:
-  addr: ":8081"
-
----
-apiVersion: core/v1
-kind: HTTPServer
-metadata:
-  name: server2
-spec:
-  addr: ":8082"
-
----
-apiVersion: core/v1
-kind: HTTPServer
-metadata:
-  name: server3
-spec:
-  addr: ":8083"
+{{% example-file "config-multiple.yaml" %}}
 ```
 
 The config tells:

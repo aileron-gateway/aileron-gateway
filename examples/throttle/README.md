@@ -51,44 +51,7 @@ Configuration yaml to run a echo server with throttle middleware would becomes a
 ```yaml
 # config.yaml
 
-apiVersion: core/v1
-kind: Entrypoint
-spec:
-  runners:
-    - apiVersion: core/v1
-      kind: HTTPServer
-
----
-apiVersion: core/v1
-kind: HTTPServer
-spec:
-  addr: ":8080"
-  virtualHosts:
-    - middleware:
-        - apiVersion: app/v1
-          kind: ThrottleMiddleware
-      handlers:
-        - handler:
-            apiVersion: app/v1
-            kind: EchoHandler
-
----
-apiVersion: app/v1
-kind: EchoHandler
-
----
-apiVersion: app/v1
-kind: ThrottleMiddleware
-spec:
-  apiThrottlers:
-    - methods: []
-      matcher:
-        matchType: Regex
-        patterns:
-          - ".*"
-      fixedWindow:
-        windowSize: 1000
-        limit: 10
+{{% example-file "config.yaml" %}}
 ```
 
 The config tells:

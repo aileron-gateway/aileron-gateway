@@ -55,44 +55,7 @@ Configuration yaml to run a reverse-proxy server would becomes as follows.
 ```yaml
 # config.yaml
 
-apiVersion: core/v1
-kind: Entrypoint
-spec:
-  runners:
-    - apiVersion: core/v1
-      kind: HTTPServer
-
----
-apiVersion: core/v1
-kind: HTTPServer
-spec:
-  addr: ":8080"
-  virtualHosts:
-    - middleware:
-        - apiVersion: app/v1
-          kind: TrackingMiddleware
-      handlers:
-        - handler:
-            apiVersion: core/v1
-            kind: ReverseProxyHandler
-
----
-apiVersion: core/v1
-kind: ReverseProxyHandler
-spec:
-  loadBalancers:
-    - pathMatcher:
-        match: "/"
-        matchType: Prefix
-      upstreams:
-        - url: http://httpbin.org
-
----
-apiVersion: app/v1
-kind: TrackingMiddleware
-spec:
-  requestIDProxyName: X-Aileron-Request-ID
-  traceIDProxyName: X-Aileron-Trace-ID
+{{% example-file "config.yaml" %}}
 ```
 
 The config tells:

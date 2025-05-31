@@ -6,30 +6,13 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
 
-// OPAAuthzMiddleware is the definition of the OPAAuthzMiddleware object.
-// OPAAuthzMiddleware implements interface of the authorization handler.
-// See https://www.openpolicyagent.org/ for about OPA.
+// OPAAuthzMiddleware resource definition.
+// apiVersion="app/v1", kind="OPAAuthzMiddleware".
 message OPAAuthzMiddleware {
-    // [REQUIRED]
-    // APIVersion is the defined version of the authorization handler.
-    // This value must be "app/v1".
-    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "app/v1"];
-
-    // [REQUIRED]
-    // Kind is the kind of this object.
-    // This value must be "OPAAuthzMiddleware".
-    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "OPAAuthzMiddleware"];
-
-    // [OPTIONAL]
-    // Metadata is the metadata of the http logger object.
-    // If not set, both name and namespace in the metadata
-    // are treated as "default".
-    kernel.Metadata Metadata = 3 [json_name = "metadata"];
-
-    // [OPTIONAL]
-    // Spec is the specification of the authorization handler.
-    // Default values are used when nothing is set.
-    OPAAuthzMiddlewareSpec Spec = 4 [json_name = "spec"];
+    string                 APIVersion = 1 [json_name = "apiVersion"];
+    string                 Kind       = 2 [json_name = "kind"];
+    kernel.Metadata        Metadata   = 3 [json_name = "metadata"];
+    OPAAuthzMiddlewareSpec Spec       = 4 [json_name = "spec"];
 }
 
 // OPAAuthzMiddlewareSpec is the specifications of the OPAAuthzMiddleware object.

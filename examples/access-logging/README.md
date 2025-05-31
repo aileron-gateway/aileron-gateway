@@ -56,7 +56,7 @@ Configuration yaml to run a server with access logging becomes as follows.
 ```yaml
 # config.yaml
 
-{{% example "config.yaml" %}}
+{{% example-file "config.yaml" %}}
 ```
 
 The config tells:

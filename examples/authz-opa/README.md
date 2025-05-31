@@ -49,39 +49,7 @@ Configuration yaml to run a server with access logging becomes as follows.
 ```yaml
 # config.yaml
 
-apiVersion: core/v1
-kind: Entrypoint
-spec:
-  runners:
-    - apiVersion: core/v1
-      kind: HTTPServer
-
----
-apiVersion: core/v1
-kind: HTTPServer
-spec:
-  addr: ":8080"
-  virtualHosts:
-    - middleware:
-        - apiVersion: app/v1
-          kind: OPAAuthzMiddleware
-      handlers:
-        - handler:
-            apiVersion: app/v1
-            kind: EchoHandler
-
----
-apiVersion: app/v1
-kind: EchoHandler
-
----
-apiVersion: app/v1
-kind: OPAAuthzMiddleware
-spec:
-  regos:
-    - queryParameter: "data.example.authz.allow"
-      policyFiles:
-        - ./policy.rego
+{{% example-file "config.yaml" %}}
 ```
 
 The config tells:

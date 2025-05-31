@@ -50,38 +50,7 @@ Configuration yaml to run a server with CSRF middleware becomes as follows.
 ```yaml
 # config.yaml
 
-apiVersion: core/v1
-kind: Entrypoint
-spec:
-  runners:
-    - apiVersion: core/v1
-      kind: HTTPServer
-
----
-apiVersion: core/v1
-kind: HTTPServer
-spec:
-  addr: ":8080"
-  virtualHosts:
-    - handlers:
-        - middleware:
-            - apiVersion: app/v1
-              kind: CSRFMiddleware
-          handler:
-            apiVersion: app/v1
-            kind: EchoHandler
-
----
-apiVersion: app/v1
-kind: EchoHandler
-
----
-apiVersion: app/v1
-kind: CSRFMiddleware
-spec:
-  customRequestHeader:
-    headerName: "__csrfToken"
-    allowedPattern: "^localhost$"
+{{% example-file "config.yaml" %}}
 ```
 
 The config tells:

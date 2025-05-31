@@ -9,29 +9,13 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
 
-// DigestAuthnMiddleware is the definition of the DigestAuthnMiddleware object.
-// DigestAuthnMiddleware implements interface of the AuthenticationHandler.
+// DigestAuthnMiddleware resource definition.
+// apiVersion="app/v1", kind="DigestAuthnMiddleware".
 message DigestAuthnMiddleware {
-    // [REQUIRED]
-    // APIVersion is the defined version of the midleware.
-    // This value must be "app/v1".
-    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "app/v1"];
-
-    // [REQUIRED]
-    // Kind is the kind of this object.
-    // This value must be "OAuthAuthenticationHandler".
-    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "DigestAuthnMiddleware"];
-
-    // [OPTIONAL]
-    // Metadata is the metadata of the http logger object.
-    // If not set, both name and namespace in the metadata
-    // are treated as "default".
-    kernel.Metadata Metadata = 3 [json_name = "metadata"];
-
-    // [OPTIONAL]
-    // Spec is the specification of the middleware.
-    // Default values are used when nothing is set.
-    DigestAuthnMiddlewareSpec Spec = 4 [json_name = "spec"];
+    string                    APIVersion = 1 [json_name = "apiVersion"];
+    string                    Kind       = 2 [json_name = "kind"];
+    kernel.Metadata           Metadata   = 3 [json_name = "metadata"];
+    DigestAuthnMiddlewareSpec Spec       = 4 [json_name = "spec"];
 }
 
 // DigestAuthnMiddlewareSpec is the specifications for the DigestAuthnMiddleware object.

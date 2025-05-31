@@ -7,32 +7,16 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
 
-// OAuthAuthenticationHandler is the definition of the OAuthAuthenticationHandler object.
-// OAuthAuthenticationHandler implements interface of the AuthenticationHandler.
+// OAuthAuthenticationHandler resource definition.
+// apiVersion="app/v1", kind="OAuthAuthenticationHandler".
 message OAuthAuthenticationHandler {
-    // [REQUIRED]
-    // APIVersion is the defined version of the midleware.
-    // This value must be "app/v1".
-    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "app/v1"];
-
-    // [REQUIRED]
-    // Kind is the kind of this object.
-    // This value must be "OAuthAuthenticationHandler".
-    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "OAuthAuthenticationHandler"];
-
-    // [OPTIONAL]
-    // Metadata is the metadata of the http logger object.
-    // If not set, both name and namespace in the metadata
-    // are treated as "default".
-    kernel.Metadata Metadata = 3 [json_name = "metadata"];
-
-    // [OPTIONAL]
-    // Spec is the specification of the authentication handler.
-    // Default values are used when nothing is set.
-    OAuthAuthenticationHandlerSpec Spec = 4 [json_name = "spec"];
+    string                         APIVersion = 1 [json_name = "apiVersion"];
+    string                         Kind       = 2 [json_name = "kind"];
+    kernel.Metadata                Metadata   = 3 [json_name = "metadata"];
+    OAuthAuthenticationHandlerSpec Spec       = 4 [json_name = "spec"];
 }
 
-// OAuthAuthenticationHandlerStatus is the specifications for the OAuthAuthenticationHandler object.
+// OAuthAuthenticationHandlerSpec is the specifications for the OAuthAuthenticationHandler object.
 message OAuthAuthenticationHandlerSpec {
     // [OPTIONAL]
     // Logger is the reference to a Logger object.
@@ -68,7 +52,7 @@ message OAuthAuthenticationHandlerSpec {
     // [REQUIRED]
     // Handlers are the options of OAuth authentication handlers.
     oneof Handlers {
-        option (buf.validate.oneof).required              = true;
+        option(buf.validate.oneof).required               = true;
         AuthorizationCodeHandler AuthorizationCodeHandler = 10 [json_name = "authorizationCodeHandler"];
         ClientCredentialsHandler ClientCredentialsHandler = 11 [json_name = "clientCredentialsHandler"];
         ResourceServerHandler    ResourceServerHandler    = 12 [json_name = "resourceServerHandler"];
@@ -219,12 +203,12 @@ message AuthorizationRequestObject {
     // [OPTIONAL]
     // Exp specifies the remaining time in seconds before the request object expires.
     // Default is [0].
-    int64 Exp = 3 [json_name = "exp", (buf.validate.field).int64 = { gte: 0 }];
+    int64 Exp = 3 [json_name = "exp", (buf.validate.field).int64 = {gte : 0}];
 
     // [OPTIONAL]
     // NbfLeeway compensates for clock skew by adding a grace period in seconds to the nbf claim.
     // Default is [0].
-    int64 Nbf = 4 [json_name = "nbf", (buf.validate.field).int64 = { gte: 0 }];
+    int64 Nbf = 4 [json_name = "nbf", (buf.validate.field).int64 = {gte : 0}];
 
     // [OPTIONAL]
     // Disablecache set to true adds a Base64URL-encoded SHA-256 hash to request_uri to disable caching.
