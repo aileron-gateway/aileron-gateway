@@ -23,23 +23,13 @@ const (
 )
 
 // Entrypoint resource definition.
+// apiVersion="core/v1", kind="Entrypoint".
 type Entrypoint struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// [REQUIRED]
-	// APIVersion is the Entrypoint api version.
-	// Value must be "core/v1".
-	APIVersion string `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"`
-	// [REQUIRED]
-	// Kind is the kind of this object.
-	// This value must be "Entrypoint".
-	Kind string `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`
-	// [OPTIONAL]
-	// Metadata is the Entrypoint metadata.
-	// Name and Namespace must not be set for the Entrypoint.
-	Metadata *kernel.Metadata `protobuf:"bytes,3,opt,name=Metadata,json=metadata,proto3" json:"Metadata,omitempty"`
-	// [OPTIONAL]
-	// Spec is the Entrypoint specification.
-	Spec          *EntrypointSpec `protobuf:"bytes,4,opt,name=Spec,json=spec,proto3" json:"Spec,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	APIVersion    string                 `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"`
+	Kind          string                 `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`
+	Metadata      *kernel.Metadata       `protobuf:"bytes,3,opt,name=Metadata,json=metadata,proto3" json:"Metadata,omitempty"`
+	Spec          *EntrypointSpec        `protobuf:"bytes,4,opt,name=Spec,json=spec,proto3" json:"Spec,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
