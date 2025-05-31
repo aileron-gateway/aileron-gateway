@@ -32,7 +32,7 @@ style OPAAuthzMiddleware stroke:#77dd77,stroke-width:2px
 
 In this example, following directory structure and files are supposed.
 
-Resources are available at [examples/authz-opa/](https://github.com/aileron-gateway/aileron-gateway/tree/main/examples/authz-opa).
+Resources are available at [examples/authz-opa/]({{% github-url "" %}}).
 If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt

@@ -36,16 +36,15 @@ style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
 
 In this example, following directory structure and files are supposed.
 
-Resources are available at [examples/proxy-websocket/](https://github.com/aileron-gateway/aileron-gateway/tree/main/examples/proxy-websocket).
+Resources are available at [examples/proxy-websocket/]({{% github-url "" %}}).
 If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt
-proxy-websocket/   ----- Working directory.
-├── aileron        ----- AILERON Gateway binary (aileron.exe on windows).
-├── config.yaml    ----- AILERON Gateway config file.
-├── server.go      ----- Sample websocket server/client.
-├── index.html     ----- WebSocket client test page used by server.go.
-└── Taskfile.yaml  ----- (Optional) Config file for the go-task.
+proxy-websocket/  ----- Working directory.
+├── aileron       ----- AILERON Gateway binary (aileron.exe on windows).
+├── config.yaml   ----- AILERON Gateway config file.
+├── server.go     ----- Sample websocket server/client.
+└── index.html    ----- WebSocket client test page used by server.go.
 ```
 
 ## Config
@@ -82,15 +81,13 @@ style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
 
 ## Run
 
-### (Option 1) Directory run the binary
-
 First run the AILERON Gateway with the sample config as follows.
 
 ```bash
 ./aileron -f ./config.yaml
 ```
 
-We also runs the upstream websocket server using [server.go](server.go).
+We also run the upstream websocket server using [server.go](server.go).
 
 Run the server with this command.
 The server will listens on the port `:9090` by default.
@@ -98,23 +95,6 @@ The server will listens on the port `:9090` by default.
 ```bash
 go run server.go
 ```
-
-### (Option 2) Use taskfile
-
-`Taskfile.yaml` is available to run the example.
-Install [go-task](https://taskfile.dev/) and run the following command.
-
-```bash
-task
-```
-
-or with arbitrary binary path.
-
-```bash
-task AILERON_CMD="./path/to/aileron/binary"
-```
-
-This runs both AILERON Gateway and the upstream server.
 
 ## Check
 

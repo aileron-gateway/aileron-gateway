@@ -28,15 +28,14 @@ style TemplateHandler stroke:#ff6961,stroke-width:2px
 
 In this example, following directory structure and files are supposed.
 
-Resources are available at [examples/template/](https://github.com/aileron-gateway/aileron-gateway/tree/main/examples/template).
+Resources are available at [examples/template/]({{% github-url "" %}}).
 If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt
 template/          ----- Working directory.
 ├── aileron        ----- AILERON Gateway binary (aileron.exe on windows).
 ├── config.yaml    ----- AILERON Gateway config file.
-├── template.html  ----- A example template for the TemplateHandler.
-└── Taskfile.yaml  ----- (Optional) Config file for the go-task.
+└── template.html  ----- A example template for the TemplateHandler.
 ```
 
 ## Config
@@ -66,33 +65,18 @@ graph TD
   HTTPServer["🟪 **HTTPServer**</br>default/default"]
   TemplateHandler["🟥</br>**TemplateHandler**</br>default/default"]
 
-Entrypoint --> HTTPServer
-HTTPServer --> TemplateHandler
+Entrypoint --"Runner"--> HTTPServer
+HTTPServer --"HTTP Handler"--> TemplateHandler
 
 style TemplateHandler stroke:#ff6961,stroke-width:2px
 ```
 
 ## Run
 
-### (Option 1) Directory run the binary
+Run the AILERON Gateway with command:
 
 ```bash
 ./aileron -f ./config.yaml
-```
-
-### (Option 2) Use taskfile
-
-`Taskfile.yaml` is available to run the example.
-Install [go-task](https://taskfile.dev/) and run the following command.
-
-```bash
-task
-```
-
-or with arbitrary binary path.
-
-```bash
-task AILERON_CMD="./path/to/aileron/binary"
 ```
 
 ## Check

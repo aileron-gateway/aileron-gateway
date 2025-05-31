@@ -28,15 +28,17 @@ style StaticHandler stroke:#ff6961,stroke-width:2px
 
 In this example, following directory structure and files are supposed.
 
-Resources are available at [examples/static/](https://github.com/aileron-gateway/aileron-gateway/tree/main/examples/static).
+Resources are available at [examples/static/]({{% github-url "" %}}).
 If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt
-template/          ----- Working directory.
-├── aileron        ----- AILERON Gateway binary (aileron.exe on windows).
-├── config.yaml    ----- AILERON Gateway config file.
-├── root/          ----- Root directory that contains served contents.
-└── Taskfile.yaml  ----- (Optional) Config file for the go-task.
+template/           ----- Working directory.
+├── aileron         ----- AILERON Gateway binary (aileron.exe on windows).
+├── config.yaml     ----- AILERON Gateway config file.
+└── root/           ----- Root directory that contains served contents.
+    ├── hello.html  ----- Example content.
+    ├── hello.json  ----- Example content.
+    └── hello.xml   ----- Example content.
 ```
 
 ## Config
@@ -63,33 +65,18 @@ graph TD
   HTTPServer["🟪 **HTTPServer**</br>default/default"]
   StaticHandler["🟥</br>**StaticHandler**</br>default/default"]
 
-Entrypoint --> HTTPServer
-HTTPServer --> StaticHandler
+Entrypoint --"Runner"--> HTTPServer
+HTTPServer --"HTTP Handler"--> StaticHandler
 
 style StaticHandler stroke:#ff6961,stroke-width:2px
 ```
 
 ## Run
 
-### (Option 1) Directory run the binary
+Run the AILERON Gateway with command:
 
 ```bash
 ./aileron -f ./config.yaml
-```
-
-### (Option 2) Use taskfile
-
-`Taskfile.yaml` is available to run the example.
-Install [go-task](https://taskfile.dev/) and run the following command.
-
-```bash
-task
-```
-
-or with arbitrary binary path.
-
-```bash
-task AILERON_CMD="./path/to/aileron/binary"
 ```
 
 ## Check

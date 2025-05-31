@@ -32,7 +32,7 @@ style BodyLimitMiddleware stroke:#77dd77,stroke-width:2px
 
 In this example, following directory structure and files are supposed.
 
-Resources are available at [examples/bodylimit/](https://github.com/aileron-gateway/aileron-gateway/tree/main/examples/bodylimit).
+Resources are available at [examples/bodylimit/]({{% github-url "" %}}).
 If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt

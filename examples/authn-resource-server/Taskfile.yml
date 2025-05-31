@@ -1,6 +1,0 @@
-version: '3'
-env:
-  AILERON_CMD: "./aileron"
-tasks:
-  default:
-    cmd: "{{.AILERON_CMD}} -f ./config-introspection.yaml"

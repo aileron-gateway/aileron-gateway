@@ -37,7 +37,7 @@ style CompressionMiddleware stroke:#77dd77,stroke-width:2px
 
 In this example, following directory structure and files are supposed.
 
-Resources are available at [examples/compressoin/](https://github.com/aileron-gateway/aileron-gateway/tree/main/examples/compressoin).
+Resources are available at [examples/compressoin/]({{% github-url "" %}}).
 If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt

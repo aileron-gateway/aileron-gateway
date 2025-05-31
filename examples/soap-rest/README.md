@@ -40,15 +40,14 @@ style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
 
 In this example, following directory structure and files are supposed.
 
-Resources are available at [examples/soap-rest/](https://github.com/aileron-gateway/aileron-gateway/tree/main/examples/soap-rest).
+Resources are available at [examples/soap-rest/]({{% github-url "" %}}).
 If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt
 soap-rest/         ----- Working directory.
 ├── aileron        ----- AILERON Gateway binary (aileron.exe on windows).
 ├── config.yaml    ----- AILERON Gateway config file.
-├── echo.go        ----- A simple echo server.
-└── Taskfile.yaml  ----- (Optional) Config file for the go-task.
+└── echo.go        ----- A simple echo server.
 ```
 
 ## Config
@@ -77,9 +76,9 @@ graph TD
   SOAPRESTMiddleware["🟩 **SOAPRESTMiddleware**</br>default/default"]
   ReverseProxyHandler["🟥 **ReverseProxyHandler**</br>default/default"]
 
-Entrypoint --> HTTPServer
-HTTPServer --> ReverseProxyHandler
-HTTPServer --> SOAPRESTMiddleware
+Entrypoint --"Runner"--> HTTPServer
+HTTPServer --"HTTP Handler"--> ReverseProxyHandler
+HTTPServer --"Middleware"--> SOAPRESTMiddleware
 ReverseProxyHandler
 
 style SOAPRESTMiddleware stroke:#77dd77,stroke-width:2px
@@ -87,8 +86,6 @@ style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
 ```
 
 ## Run
-
-### (Option 1) Directory run the binary
 
 Before running the AILERON Gateway, start a simple echo server using [./echo.go](./echo.go).
 This required `go` command.
@@ -102,24 +99,6 @@ Then, run the AILERON Gateway in another terminal with the command.
 
 ```bash
 ./aileron -f ./config.yaml
-```
-
-### (Option 2) Use taskfile
-
-`Taskfile.yaml` is available to run the example.
-Install [go-task](https://taskfile.dev/) and run the following command.
-
-This runs both echo server and AILERON Gateway.
-Note that it also requires `go` command to run the echo server.
-
-```bash
-task
-```
-
-or with arbitrary binary path.
-
-```bash
-task AILERON_CMD="./path/to/aileron/binary"
 ```
 
 ## Check

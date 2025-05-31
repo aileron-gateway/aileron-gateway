@@ -50,7 +50,7 @@ style Upstream4 stroke:#888
 
 In this example, following directory structure and files are supposed.
 
-Resources are available at [examples/proxy-loadbalancing/](https://github.com/aileron-gateway/aileron-gateway/tree/main/examples/proxy-loadbalancing).
+Resources are available at [examples/proxy-loadbalancing/]({{% github-url "" %}}).
 If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt
@@ -61,8 +61,7 @@ proxy-loadbalancing/         ----- Working directory.
 ├── config-random.yaml       ----- Config that uses (Weighted) Random algorithm.
 ├── config-ring-hash.yaml    ----- Config that uses Ring Hash algorithm.
 ├── config-round-robin.yaml  ----- Config that uses (Weighted) Round Robin algorithm.
-├── server.go                ----- Example upstream servers. 5 servers are run.
-└── Taskfile.yaml            ----- (Optional) Config file for the go-task.
+└── server.go                ----- Example upstream servers. 5 servers are run.
 ```
 
 ## Config
@@ -90,8 +89,8 @@ graph TD
   HTTPServer["🟪 **HTTPServer**</br>default/default"]
   ReverseProxyHandler["🟥 **ReverseProxyHandler**</br>default/default"]
 
-  Entrypoint --> HTTPServer
-  HTTPServer --> ReverseProxyHandler
+  Entrypoint --"Runner"--> HTTPServer
+  HTTPServer --"HTTP Handler"--> ReverseProxyHandler
   ReverseProxyHandler
 
 style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
@@ -99,34 +98,26 @@ style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
 
 ## Run
 
-### (Option 1) Directory run the binary
+First run the upstream servers.
+The [server.go](server.go) runs 5 servers.
+
+```bash
+go run server.go
+```
+
+Then, run the AILERON Gateway on another terminal.
 
 ```bash
 ./aileron -f ./config-round-robin.yaml
 ```
 
-Or
+or with other load balancing algorithm.
 
 - Direct Hash: `./aileron -f ./config-direct-hash.yaml`
 - Maglev: `./aileron -f ./config-maglev.yaml`
 - Random: `./aileron -f ./config-random.yaml`
 - Ring Hash: `./aileron -f ./config-ring-hash.yaml`
 - Round Robin: `./aileron -f ./config-round-robin.yaml`
-
-### (Option 2) Use taskfile
-
-`Taskfile.yaml` is available to run the example.
-Install [go-task](https://taskfile.dev/) and run the following command.
-
-```bash
-task
-```
-
-or with arbitrary binary path.
-
-```bash
-task AILERON_CMD="./path/to/aileron/binary"
-```
 
 ## Check
 
