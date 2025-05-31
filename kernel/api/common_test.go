@@ -669,7 +669,7 @@ func TestParseID(t *testing.T) {
 			[]string{cndTemplate},
 			[]string{actCheckID, actCheckNoError},
 			&condition{
-				msg: &k.Template{
+				msg: &k.Resource{
 					APIVersion: "test1",
 					Kind:       "test2",
 					Metadata: &k.Metadata{

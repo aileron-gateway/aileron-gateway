@@ -22,7 +22,7 @@ type MyResource struct {
 
 func (r *MyResource) Default() protoreflect.ProtoMessage {
 	// Use template message for this example.
-	return &k.Template{
+	return &k.Resource{
 		APIVersion: "factory/v1",
 		Kind:       "MyResource",
 		Metadata: &k.Metadata{
@@ -33,7 +33,7 @@ func (r *MyResource) Default() protoreflect.ProtoMessage {
 }
 
 func (r *MyResource) Create(a api.API[*api.Request, *api.Response], msg protoreflect.ProtoMessage) (any, error) {
-	c := msg.(*k.Template)
+	c := msg.(*k.Resource)
 	// Just return the namespace and name values in the manifest
 	// because the kernel.Template message does not contain any meaningful fields
 	// that can be used in this example test.

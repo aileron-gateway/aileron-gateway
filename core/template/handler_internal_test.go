@@ -32,10 +32,10 @@ func TestHandler_ServeHTTP(t *testing.T) {
 	tb.Name(t.Name())
 	table := tb.Build()
 
-	tpl0, _ := txtutil.NewTemplate(txtutil.TplGoText, "", "")
-	tpl1, _ := txtutil.NewTemplate(txtutil.TplGoText, "{{.proto}} {{.host}} {{.method}} {{.path}}", "")
-	tpl2, _ := txtutil.NewTemplate(txtutil.TplGoText, "{{.header.Foo}}", "")
-	tpl3, _ := txtutil.NewTemplate(txtutil.TplGoText, "{{.query.foo}}", "")
+	tpl0, _ := txtutil.NewTemplate(txtutil.TplGoText, "")
+	tpl1, _ := txtutil.NewTemplate(txtutil.TplGoText, "{{.proto}} {{.host}} {{.method}} {{.path}}")
+	tpl2, _ := txtutil.NewTemplate(txtutil.TplGoText, "{{.header.Foo}}")
+	tpl3, _ := txtutil.NewTemplate(txtutil.TplGoText, "{{.query.foo}}")
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{

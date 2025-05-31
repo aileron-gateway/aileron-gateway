@@ -15,11 +15,9 @@ endif
 PROTO_PATH += --proto_path ./
 PROTOC_OPTS += --plugin=protoc-gen-go=$(shell which protoc-gen-go)
 PROTOC_OPTS += --go_out=../ --go_opt=module="github.com/aileron-gateway/aileron-gateway"
-PROTOC_OPTS += --plugin=protoc-gen-doc=$(shell which protoc-gen-doc)
-PROTOC_OPTS += --doc_out=../ --doc_opt=html,api.html
 
 .PHONY: proto
-proto: protoc-gen-go protoc-gen-doc
+proto: protoc-gen-go
 	protoc $(PROTO_PATH) $(PROTOC_OPTS) $(shell find ./ -type f -name "*.proto" -not -path "./buf/*")
 	@git update-index --assume-unchanged $(shell find ../apis/ -type f)
 
@@ -41,12 +39,6 @@ proto-lint: protolint
 protoc-gen-go:
 ifeq (, $(shell which protoc-gen-go 2>/dev/null))
 	go install "google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.4"
-endif
-
-.PHONY: protoc-gen-doc
-protoc-gen-doc:
-ifeq (,$(shell which protoc-gen-doc 2>/dev/null))
-	go install "github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc@latest"
 endif
 
 .PHONY: protolint

@@ -5,29 +5,13 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
 
-// HeaderCertMiddleware is the definition of the HeaderCertMiddleware object.
-// HeaderCertMiddleware implements interface of the middleware.
+// HeaderCertMiddleware resource definition.
+// apiVersion="app/v1", kind="HeaderCertMiddleware".
 message HeaderCertMiddleware {
-    // [REQUIRED]
-    // APIVersion is the defined version of the midleware.
-    // This value must be "app/v1".
-    string                          APIVersion = 1 [json_name = "apiVersion"];
-    
-    // [REQUIRED]
-    // Kind is the kind of this object.
-    // This value must be "HeaderPolicyMiddleware".
-    string                          Kind       = 2 [json_name = "kind"];
-    
-    // [OPTIONAL]
-    // Metadata is the metadata of the middleware object.
-    // If not set, both name and namespace in the metadata
-    // are treated as "default".
-    kernel.Metadata                 Metadata   = 3 [json_name = "metadata"];
-    
-    // [REQUIRED]
-    // Spec is the specification of the middleware.
-    // Default values are used when nothing is set.
-    HeaderCertMiddlewareSpec        Spec       = 4 [json_name = "spec"];
+    string                   APIVersion = 1 [json_name = "apiVersion"];
+    string                   Kind       = 2 [json_name = "kind"];
+    kernel.Metadata          Metadata   = 3 [json_name = "metadata"];
+    HeaderCertMiddlewareSpec Spec       = 4 [json_name = "spec"];
 }
 
 // HeaderCertMiddlewareSpec is the specification for the HeaderCertMiddleware object.
@@ -36,21 +20,20 @@ message HeaderCertMiddlewareSpec {
     // ErrorHandler is the reference to a ErrorHandler object.
     // Referred object must implement ErrorHandler interface.
     // Default error handler is used when not set.
-    kernel.Reference    ErrorHandler        = 1 [json_name = "errorHandler"];
-    
+    kernel.Reference ErrorHandler = 1 [json_name = "errorHandler"];
+
     // [REQUIRED]
     // RootCAs is the list of the paths for root certificates.
     // Default is not set.
-    repeated string     RootCAs             = 2 [json_name = "rootCAs"];
+    repeated string RootCAs = 2 [json_name = "rootCAs"];
 
     // [OPTIONAL]
     // CertHeader specifies the header name for the client certificate.
     // Default is "X-SSL-Client-Cert".
-    string              CertHeader          = 3 [json_name = "certHeader"];
+    string CertHeader = 3 [json_name = "certHeader"];
 
     // [OPTIONAL]
     // FingerprintHeader specifies the header name for the fingerprint.
     // Default is not set.
-    string              FingerprintpHeader  = 4 [json_name = "fingerprintHeader"];
+    string FingerprintpHeader = 4 [json_name = "fingerprintHeader"];
 }
-

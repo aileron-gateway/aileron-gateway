@@ -111,17 +111,16 @@ $ curl http://localhost:8080/get
 
 Operating System:
 
-- `Linux` ([ubuntu-latest](https://github.com/actions/runner-images))
-- `Windows` ([windows-latest](https://github.com/actions/runner-images))
-- `macOS` ([macos-latest](https://github.com/actions/runner-images))
+- `Linux`: [ubuntu-latest](https://github.com/actions/runner-images)
+- `Windows`: [windows-latest](https://github.com/actions/runner-images)
+- `macOS`: [macos-latest](https://github.com/actions/runner-images)
 
 Go:
 
-- Current Stable (Latest patch version of `go 1.(N).x`)
-- Previous Stable (Latest patch version of `go 1.(N-1).x`)
-- Minimum Requirement (`go 1.(N-2).0`)
+- Current Stable: `go 1.(N).x`
+- Previous Stable: `go 1.(N-1).x`
+- Minimum Requirement: `go 1.(N-2).0`
   - Declared in the [go.mod](go.mod)
-  - go.mod is manually updated
 
 Where `N` is the current latest minor version.
 See the Go official release page [Stable versions](https://go.dev/dl/).

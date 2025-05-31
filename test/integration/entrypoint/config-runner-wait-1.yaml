@@ -1,8 +1,0 @@
-apiVersion: core/v1
-kind: Entrypoint
-spec:
-  waitAll: true
-  runners:
-    - apiVersion: container/v1
-      kind: TestRunner
-      name: test

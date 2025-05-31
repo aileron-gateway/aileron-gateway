@@ -155,7 +155,7 @@ func TestCreate(t *testing.T) {
 	actCheckNoError := tb.Action("check no error", "check that there is no error returned")
 	table := tb.Build()
 
-	tpl, _ := txtutil.NewTemplate(txtutil.TplGoText, "{{.test}}", "")
+	tpl, _ := txtutil.NewTemplate(txtutil.TplGoText, "{{.test}}")
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
@@ -189,7 +189,7 @@ func TestCreate(t *testing.T) {
 								MIMEType:     "text/plain",
 								StatusCode:   http.StatusOK,
 								Header:       map[string]string{"foo": "bar"},
-								TemplateType: k.TemplateType_GoText,
+								TemplateType: v1.TemplateType_GoText,
 								Template:     `{{.test}}`,
 							},
 						},
@@ -244,7 +244,7 @@ func TestCreate(t *testing.T) {
 					Spec: &v1.TemplateHandlerSpec{
 						MIMEContents: []*v1.MIMEContentSpec{
 							{
-								TemplateType: k.TemplateType_GoText,
+								TemplateType: v1.TemplateType_GoText,
 								Template:     `[0-9a-z`,
 							},
 						},

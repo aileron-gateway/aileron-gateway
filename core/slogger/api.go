@@ -40,7 +40,7 @@ var Resource api.Resource = &API{
 				OutputTimeFormat: time.DateTime,
 				DateFormat:       "2006-01-02",
 				TimeFormat:       "15:04:05.000",
-				Level:            kernel.LogLevel_Info,
+				Level:            v1.LogLevel_Info,
 				LogOutput: &v1.LogOutputSpec{
 					OutputTarget: v1.OutputTarget_Stdout,
 					RotateSize:   1024, // = 1024 MiB = 1 GiB
@@ -90,7 +90,7 @@ func (*API) Create(_ api.API[*api.Request, *api.Response], msg protoreflect.Prot
 	}
 
 	opts := &slog.HandlerOptions{
-		Level:       log.LvToSLogLevel(log.Level(c.Spec.Level)),
+		Level:       log.LvToSLogLevel(Level(c.Spec.Level)),
 		ReplaceAttr: repl.replaceAttr,
 	}
 
@@ -164,4 +164,32 @@ func newFileWriter(spec *v1.LogOutputSpec, loc *time.Location) (*kio.LogicalFile
 	go job.Start()
 
 	return lf, nil
+}
+
+// Level convert v1.LogLevel to logger.LogLevel.
+//
+// conversions:
+//   - v1.LogLevel_Trace >- logger.LvTrace
+//   - v1.LogLevel_Debug >- logger.LvDebug
+//   - v1.LogLevel_Info >- logger.LvInfo
+//   - v1.LogLevel_Warn >- logger.LvWarn
+//   - v1.LogLevel_Error >- logger.LvError
+//   - v1.LogLevel_Fatal >- logger.LvFatal
+func Level(level v1.LogLevel) log.LogLevel {
+	switch {
+	case level <= v1.LogLevel_Trace:
+		return log.LvTrace
+	case level <= v1.LogLevel_Debug:
+		return log.LvDebug
+	case level <= v1.LogLevel_Info:
+		return log.LvInfo
+	case level <= v1.LogLevel_Warn:
+		return log.LvWarn
+	case level <= v1.LogLevel_Error:
+		return log.LvError
+	case level <= v1.LogLevel_Fatal:
+		return log.LvFatal
+	default:
+		return log.LvFatal
+	}
 }

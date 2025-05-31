@@ -11,7 +11,6 @@ import (
 	"testing"
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
-	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
 	"github.com/aileron-gateway/aileron-gateway/util/resilience"
@@ -587,9 +586,9 @@ func TestDirectHashLB(t *testing.T) {
 	url1 := &url.URL{Scheme: "http", Host: "test.com", Path: "/foo", RawPath: "/foo", RawQuery: "bar1=baz1"}
 	// url2 := &url.URL{Scheme: "http", Host: "test.com", Path: "/foo", RawPath: "/foo", RawQuery: "bar2=baz2"}
 	url3 := &url.URL{Scheme: "http", Host: "test.com", Path: "/foo", RawPath: "/foo", RawQuery: "bar3=baz3"}
-	hasher1 := resilience.NewHTTPHasher(&v1.HTTPHasherSpec{HasherType: v1.HTTPHasherType_Header, Key: "test", HashAlg: kernel.HashAlg_FNV1a_32})
-	hasher2 := resilience.NewHTTPHasher(&v1.HTTPHasherSpec{HasherType: v1.HTTPHasherType_Header, Key: "foo", HashAlg: kernel.HashAlg_FNV1a_32})
-	hasher3 := resilience.NewHTTPHasher(&v1.HTTPHasherSpec{HasherType: v1.HTTPHasherType_Header, Key: "test", HashAlg: kernel.HashAlg_FNV1a_128})
+	hasher1 := resilience.NewHTTPHasher(&v1.HTTPHasherSpec{HasherType: v1.HTTPHasherType_Header, Key: "test"})
+	hasher2 := resilience.NewHTTPHasher(&v1.HTTPHasherSpec{HasherType: v1.HTTPHasherType_Header, Key: "foo"})
+	hasher3 := resilience.NewHTTPHasher(&v1.HTTPHasherSpec{HasherType: v1.HTTPHasherType_Header, Key: "test"})
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
@@ -720,8 +719,8 @@ func TestDirectHashLB(t *testing.T) {
 				hashers:   []resilience.HTTPHasher{hasher2, hasher3, hasher1},
 			},
 			&action{
-				upstream: []upstream{ups1},
-				url:      []*url.URL{url1},
+				upstream: []upstream{ups3},
+				url:      []*url.URL{url3},
 				matched:  []bool{true},
 			},
 		),
@@ -898,11 +897,11 @@ func TestMaglevLB(t *testing.T) {
 	ups2 := &noopUpstream{rawURL: "http://test2.com", weight: 1, parsedURL: &url.URL{Scheme: "http", Host: "test.com", RawQuery: "bar2=baz2"}}
 	ups3 := &noopUpstream{rawURL: "http://test3.com", weight: 1, parsedURL: &url.URL{Scheme: "http", Host: "test.com", RawQuery: "bar3=baz3"}}
 	url1 := &url.URL{Scheme: "http", Host: "test.com", Path: "/foo", RawPath: "/foo", RawQuery: "bar1=baz1"}
-	url2 := &url.URL{Scheme: "http", Host: "test.com", Path: "/foo", RawPath: "/foo", RawQuery: "bar2=baz2"}
+	// url2 := &url.URL{Scheme: "http", Host: "test.com", Path: "/foo", RawPath: "/foo", RawQuery: "bar2=baz2"}
 	url3 := &url.URL{Scheme: "http", Host: "test.com", Path: "/foo", RawPath: "/foo", RawQuery: "bar3=baz3"}
-	hasher1 := resilience.NewHTTPHasher(&v1.HTTPHasherSpec{HasherType: v1.HTTPHasherType_Header, Key: "test", HashAlg: kernel.HashAlg_FNV1a_32})
-	hasher2 := resilience.NewHTTPHasher(&v1.HTTPHasherSpec{HasherType: v1.HTTPHasherType_Header, Key: "foo", HashAlg: kernel.HashAlg_FNV1a_32})
-	hasher3 := resilience.NewHTTPHasher(&v1.HTTPHasherSpec{HasherType: v1.HTTPHasherType_Header, Key: "test", HashAlg: kernel.HashAlg_FNV1a_128})
+	hasher1 := resilience.NewHTTPHasher(&v1.HTTPHasherSpec{HasherType: v1.HTTPHasherType_Header, Key: "test"})
+	hasher2 := resilience.NewHTTPHasher(&v1.HTTPHasherSpec{HasherType: v1.HTTPHasherType_Header, Key: "foo"})
+	hasher3 := resilience.NewHTTPHasher(&v1.HTTPHasherSpec{HasherType: v1.HTTPHasherType_Header, Key: "test"})
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
@@ -1033,8 +1032,8 @@ func TestMaglevLB(t *testing.T) {
 				hashers:   []resilience.HTTPHasher{hasher2, hasher3, hasher1},
 			},
 			&action{
-				upstream: []upstream{ups2},
-				url:      []*url.URL{url2},
+				upstream: []upstream{ups3},
+				url:      []*url.URL{url3},
 				matched:  []bool{true},
 			},
 		),
@@ -1077,8 +1076,8 @@ func TestMaglevLB(t *testing.T) {
 				hashers: []resilience.HTTPHasher{hasher2, hasher3, hasher1},
 			},
 			&action{
-				upstream: []upstream{ups2},
-				url:      []*url.URL{url2},
+				upstream: []upstream{ups3},
+				url:      []*url.URL{url3},
 				matched:  []bool{true},
 			},
 		),

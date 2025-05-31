@@ -6,8 +6,6 @@ package log
 import (
 	"cmp"
 	"strings"
-
-	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 )
 
 type LogLevel int
@@ -50,32 +48,4 @@ func LevelFromText(lv string) LogLevel {
 		Error: LvError,
 		Fatal: LvFatal,
 	}[lv], LvInfo)
-}
-
-// Level convert v1.LogLevel to logger.LogLevel.
-//
-// conversions:
-//   - v1.LogLevel_Trace >- logger.LvTrace
-//   - v1.LogLevel_Debug >- logger.LvDebug
-//   - v1.LogLevel_Info >- logger.LvInfo
-//   - v1.LogLevel_Warn >- logger.LvWarn
-//   - v1.LogLevel_Error >- logger.LvError
-//   - v1.LogLevel_Fatal >- logger.LvFatal
-func Level(level k.LogLevel) LogLevel {
-	switch {
-	case level <= k.LogLevel_Trace:
-		return LvTrace
-	case level <= k.LogLevel_Debug:
-		return LvDebug
-	case level <= k.LogLevel_Info:
-		return LvInfo
-	case level <= k.LogLevel_Warn:
-		return LvWarn
-	case level <= k.LogLevel_Error:
-		return LvError
-	case level <= k.LogLevel_Fatal:
-		return LvFatal
-	default:
-		return LvFatal
-	}
 }

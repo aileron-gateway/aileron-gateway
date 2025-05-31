@@ -94,7 +94,7 @@ func (a *ExtensionAPI) Serve(ctx context.Context, req *Request) (*Response, erro
 		AllowPartial:   true,
 		DiscardUnknown: true,
 	}
-	msg, err := ProtoMessage(req.Format, req.Content, &k.Template{}, opt)
+	msg, err := ProtoMessage(req.Format, req.Content, &k.Resource{}, opt)
 	if err != nil {
 		return nil, err // Return err as-is.
 	}

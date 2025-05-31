@@ -5,7 +5,7 @@
 !core/
 !kernel/
 !util/
-!_example/
+!examples/
 !go.mod
 !go.sum
 !Makefile

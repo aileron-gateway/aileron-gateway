@@ -7,29 +7,13 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/core/v1";
 
-// ErrorHandler is the definition of the ErrorHandler object.
-// ErrorHandler implements interface of error handler.
+// ErrorHandler resource definition.
+// apiVersion="core/v1", kind="ErrorHandler".
 message ErrorHandler {
-    // [REQUIRED]
-    // APIVersion is the defined version of the error handler.
-    // This value must be "core/v1".
-    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "core/v1"];
-
-    // [REQUIRED]
-    // Kind is the kind of this object.
-    // This value must be "ErrorHandler".
-    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "ErrorHandler"];
-
-    // [OPTIONAL]
-    // Metadata is the metadata of the error handler object.
-    // If not set, both name and namespace in the metadata
-    // are treated as "default".
-    kernel.Metadata Metadata = 3 [json_name = "metadata"];
-
-    // [OPTIONAL]
-    // Spec is the specification of the error handler .
-    // Default values are used when nothing is set.
-    ErrorHandlerSpec Spec = 4 [json_name = "spec"];
+    string           APIVersion = 1 [json_name = "apiVersion"];
+    string           Kind       = 2 [json_name = "kind"];
+    kernel.Metadata  Metadata   = 3 [json_name = "metadata"];
+    ErrorHandlerSpec Spec       = 4 [json_name = "spec"];
 }
 
 // ErrorHandlerSpec is the specifications for the ErrorHandler object.

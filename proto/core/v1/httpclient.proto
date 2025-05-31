@@ -8,29 +8,13 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/core/v1";
 
-// HTTPClient is the definition of the HTTPClient object.
-// HTTPClient implements interface of the roundtripper.
+// HTTPClient resource definition.
+// apiVersion="core/v1", kind="HTTPClient".
 message HTTPClient {
-    // [REQUIRED]
-    // APIVersion is the defined version of the roundtripper.
-    // This value must be "core/v1".
-    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "core/v1"];
-
-    // [REQUIRED]
-    // Kind is the kind of this object.
-    // This value must be "HTTPClient".
-    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "HTTPClient"];
-
-    // [OPTIONAL]
-    // Metadata is the metadata of the HTTP client object.
-    // If not set, both name and namespace in the metadata
-    // are treated as "default".
-    kernel.Metadata Metadata = 3 [json_name = "metadata"];
-
-    // [OPTIONAL]
-    // Spec is the specification of the roundtripper.
-    // Default values are used when nothing is set.
-    HTTPClientSpec Spec = 4 [json_name = "spec"];
+    string          APIVersion = 1 [json_name = "apiVersion"];
+    string          Kind       = 2 [json_name = "kind"];
+    kernel.Metadata Metadata   = 3 [json_name = "metadata"];
+    HTTPClientSpec  Spec       = 4 [json_name = "spec"];
 }
 
 // HTTPClientSpec is the specifications for the HTTPClient object.

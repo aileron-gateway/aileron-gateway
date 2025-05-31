@@ -8,7 +8,6 @@ spec:
       lbAlgorithm: DirectHash
       hashers:
         - hasherType: Query
-          hashAlg: FNV1a_32
           key: proxy
       upstreams:
         - url: http://127.0.0.1:10001

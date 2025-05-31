@@ -58,44 +58,7 @@ Configuration yaml to run a reverse-proxy server would becomes as follows.
 ```yaml
 # config.yaml
 
-apiVersion: core/v1
-kind: Entrypoint
-spec:
-  runners:
-    - apiVersion: core/v1
-      kind: HTTPServer
-
----
-apiVersion: core/v1
-kind: HTTPServer
-spec:
-  addr: ":8080"
-  virtualHosts:
-    - middleware:
-        - apiVersion: app/v1
-          kind: SOAPRESTMiddleware
-      handlers:
-        - handler:
-            apiVersion: core/v1
-            kind: ReverseProxyHandler
-
----
-apiVersion: core/v1
-kind: ReverseProxyHandler
-spec:
-  loadBalancers:
-    - pathMatcher:
-        match: ".*"
-        matchType: Regex
-      upstreams:
-        - url: http://localhost:9090/
-
----
-apiVersion: app/v1
-kind: SOAPRESTMiddleware
-spec:
-  simple:
-    trimSpace: true
+{{% example-file "config.yaml" %}}
 ```
 
 The config tells:

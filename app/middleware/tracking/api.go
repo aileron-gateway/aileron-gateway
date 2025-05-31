@@ -10,8 +10,6 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/encoder"
-	"github.com/aileron-gateway/aileron-gateway/kernel/uid"
 	httputil "github.com/aileron-gateway/aileron-gateway/util/http"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -31,9 +29,7 @@ var Resource api.Resource = &API{
 				Namespace: "default",
 				Name:      "default",
 			},
-			Spec: &v1.TrackingMiddlewareSpec{
-				Encoding: kernel.EncodingType_Base32HexEscaped,
-			},
+			Spec: &v1.TrackingMiddlewareSpec{},
 		},
 	},
 }
@@ -52,38 +48,10 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.Prot
 		return nil, core.ErrCoreGenCreateObject.WithStack(err, map[string]any{"kind": kind})
 	}
 
-	t := &tracker{
-		eh: eh,
-
+	return &tracker{
+		eh:               eh,
 		reqProxyHeader:   textproto.CanonicalMIMEHeaderKey(c.Spec.RequestIDProxyName),
 		trcProxyHeader:   textproto.CanonicalMIMEHeaderKey(c.Spec.TraceIDProxyName),
 		trcExtractHeader: textproto.CanonicalMIMEHeaderKey(c.Spec.TraceIDExtractName),
-
-		newReqID: NewRequestID,
-		newTrcID: NewTraceID,
-	}
-
-	if t.newReqID == nil {
-		t.newReqID = newReqIDFunc(c.Spec.Encoding)
-	}
-	if t.newTrcID == nil {
-		t.newTrcID = newTraceID
-	}
-
-	return t, nil
-}
-
-func newReqIDFunc(e kernel.EncodingType) func() (string, error) {
-	enc, _ := encoder.EncoderDecoder(e)
-	return func() (string, error) {
-		id, err := uid.NewHostedID()
-		if err != nil {
-			return "", err
-		}
-		return enc(id), nil
-	}
-}
-
-func newTraceID(reqID string) (string, error) {
-	return reqID, nil
+	}, nil
 }

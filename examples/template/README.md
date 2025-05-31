@@ -46,45 +46,7 @@ Configuration yaml to run a server with template handler would becomes as follow
 ```yaml
 # config.yaml
 
-apiVersion: core/v1
-kind: Entrypoint
-spec:
-  runners:
-    - apiVersion: core/v1
-      kind: HTTPServer
-
----
-apiVersion: core/v1
-kind: HTTPServer
-spec:
-  addr: ":8080"
-  virtualHosts:
-    - handlers:
-        - handler:
-            apiVersion: core/v1
-            kind: TemplateHandler
-
----
-apiVersion: core/v1
-kind: TemplateHandler
-spec:
-  mimeContents:
-    - mimeType: text/plain
-      statusCode: 500
-      templateType: Text
-      template: |
-        Hello! AILERON Gateway!
-    - mimeType: application/json
-      statusCode: 500
-      templateType: GoText
-      template: |
-        {
-          "hello": "AILERON Gateway!"
-        }
-    - mimeType: text/html
-      statusCode: 500
-      templateType: GoHTML
-      templateFile: ./template.html
+{{% example-file "config.yaml" %}}
 ```
 
 The config tells:

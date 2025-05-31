@@ -2,7 +2,6 @@ syntax = "proto3";
 package core.v1;
 
 import "buf/validate/validate.proto";
-import "kernel/hash.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/core/v1";
 
@@ -184,19 +183,6 @@ message HTTPHasherSpec {
     HTTPHasherType HasherType = 1 [json_name = "hasherType"];
 
     // [OPTIONAL]
-    // HashAlg is the algorithm used by the hasher.
-    // This field is used by hash-based load balancers.
-    // Non hash-based load balancers ignore this field.
-    // Currently,  RingHash, Maglev and DirectHash
-    // are the hash-based load balancer.
-    // A lightweight and non-cryptgraphic algorithm is recommended for
-    // better performance.
-    // FNV1_32 or FNV1a_32 are recommended algorithms.
-    // If not set, default algorithm is used.
-    // Default is ["FNV1a_32"].
-    kernel.HashAlg HashAlg = 2 [json_name = "hashAlg"];
-
-    // [OPTIONAL]
     // Key is the data source key.
     // This is the header name for Header hasher,
     // query parameter name for Query hasher
@@ -205,7 +191,7 @@ message HTTPHasherSpec {
     // This field is optional but set non empty string for
     // Header, Query and PathParam hashers.
     // Default is not set.
-    string Key = 3 [json_name = "key"];
+    string Key = 2 [json_name = "key"];
 
     // [OPTIONAL]
     // Keys are the data source keys.
@@ -214,7 +200,7 @@ message HTTPHasherSpec {
     // This field is optional but should be set atleast 1
     // for MultiHeader hashers.
     // Default is not set.
-    repeated string Keys = 4 [json_name = "keys"];
+    repeated string Keys = 3 [json_name = "keys"];
 }
 
 // HTTPHasherType is the hashing method types

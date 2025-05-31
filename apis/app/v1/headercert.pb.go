@@ -22,26 +22,13 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// HeaderCertMiddleware is the definition of the HeaderCertMiddleware object.
-// HeaderCertMiddleware implements interface of the middleware.
+// HeaderCertMiddleware resource definition.
+// apiVersion="app/v1", kind="HeaderCertMiddleware".
 type HeaderCertMiddleware struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// [REQUIRED]
-	// APIVersion is the defined version of the midleware.
-	// This value must be "app/v1".
-	APIVersion string `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"`
-	// [REQUIRED]
-	// Kind is the kind of this object.
-	// This value must be "HeaderPolicyMiddleware".
-	Kind string `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`
-	// [OPTIONAL]
-	// Metadata is the metadata of the middleware object.
-	// If not set, both name and namespace in the metadata
-	// are treated as "default".
-	Metadata *kernel.Metadata `protobuf:"bytes,3,opt,name=Metadata,json=metadata,proto3" json:"Metadata,omitempty"`
-	// [REQUIRED]
-	// Spec is the specification of the middleware.
-	// Default values are used when nothing is set.
+	state         protoimpl.MessageState    `protogen:"open.v1"`
+	APIVersion    string                    `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"`
+	Kind          string                    `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`
+	Metadata      *kernel.Metadata          `protobuf:"bytes,3,opt,name=Metadata,json=metadata,proto3" json:"Metadata,omitempty"`
 	Spec          *HeaderCertMiddlewareSpec `protobuf:"bytes,4,opt,name=Spec,json=spec,proto3" json:"Spec,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache

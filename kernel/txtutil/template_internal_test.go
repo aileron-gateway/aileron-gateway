@@ -16,10 +16,9 @@ import (
 
 func TestNewTemplate(t *testing.T) {
 	type condition struct {
-		typ      TemplateType
-		tpl      string
-		fallback string
-		info     map[string]any
+		typ  TemplateType
+		tpl  string
+		info map[string]any
 	}
 
 	type action struct {
@@ -45,10 +44,9 @@ func TestNewTemplate(t *testing.T) {
 			[]string{cndText, cndValid},
 			[]string{actCheckResult, actCheckNoError},
 			&condition{
-				typ:      TplText,
-				tpl:      "test {{.tag}}",
-				fallback: "fallback",
-				info:     map[string]any{"tag": "template"},
+				typ:  TplText,
+				tpl:  "test {{.tag}}",
+				info: map[string]any{"tag": "template"},
 			},
 			&action{
 				result: "test {{.tag}}",
@@ -59,10 +57,9 @@ func TestNewTemplate(t *testing.T) {
 			[]string{cndGoText, cndValid},
 			[]string{actCheckResult, actCheckNoError},
 			&condition{
-				typ:      TplGoText,
-				tpl:      "test {{.tag}}",
-				fallback: "fallback",
-				info:     map[string]any{"tag": "template"},
+				typ:  TplGoText,
+				tpl:  "test {{.tag}}",
+				info: map[string]any{"tag": "template"},
 			},
 			&action{
 				result: "test template",
@@ -73,10 +70,9 @@ func TestNewTemplate(t *testing.T) {
 			[]string{cndGoHTML, cndValid},
 			[]string{actCheckResult, actCheckNoError},
 			&condition{
-				typ:      TplGoHTML,
-				tpl:      "test {{.tag}}",
-				fallback: "fallback",
-				info:     map[string]any{"tag": "template"},
+				typ:  TplGoHTML,
+				tpl:  "test {{.tag}}",
+				info: map[string]any{"tag": "template"},
 			},
 			&action{
 				result: "test template",
@@ -87,10 +83,9 @@ func TestNewTemplate(t *testing.T) {
 			[]string{},
 			[]string{actCheckError},
 			&condition{
-				typ:      TplGoText,
-				tpl:      "test {{.tag}",
-				fallback: "fallback",
-				info:     map[string]any{"tag": "template"},
+				typ:  TplGoText,
+				tpl:  "test {{.tag}",
+				info: map[string]any{"tag": "template"},
 			},
 			&action{
 				err: &er.Error{
@@ -105,10 +100,9 @@ func TestNewTemplate(t *testing.T) {
 			[]string{},
 			[]string{actCheckError},
 			&condition{
-				typ:      TplGoHTML,
-				tpl:      "test {{.tag}",
-				fallback: "fallback",
-				info:     map[string]any{"tag": "template"},
+				typ:  TplGoHTML,
+				tpl:  "test {{.tag}",
+				info: map[string]any{"tag": "template"},
 			},
 			&action{
 				err: &er.Error{
@@ -123,10 +117,9 @@ func TestNewTemplate(t *testing.T) {
 			[]string{},
 			[]string{actCheckError},
 			&condition{
-				typ:      TemplateType(999),
-				tpl:      "test {{.tag}}",
-				fallback: "fallback",
-				info:     map[string]any{"tag": "template"},
+				typ:  TemplateType(999),
+				tpl:  "test {{.tag}}",
+				info: map[string]any{"tag": "template"},
 			},
 			&action{
 				err: &er.Error{
@@ -143,7 +136,7 @@ func TestNewTemplate(t *testing.T) {
 	for _, tt := range table.Entries() {
 		tt := tt
 		t.Run(tt.Name(), func(t *testing.T) {
-			tpl, err := NewTemplate(tt.C().typ, tt.C().tpl, tt.C().fallback)
+			tpl, err := NewTemplate(tt.C().typ, tt.C().tpl)
 			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
 			if err != nil {
 				testutil.Diff(t, nil, tpl)

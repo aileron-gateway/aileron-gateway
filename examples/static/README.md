@@ -46,32 +46,7 @@ Configuration yaml to run a server with template handler would becomes as follow
 ```yaml
 # config.yaml
 
-apiVersion: core/v1
-kind: Entrypoint
-spec:
-  runners:
-    - apiVersion: core/v1
-      kind: HTTPServer
-
----
-apiVersion: core/v1
-kind: HTTPServer
-spec:
-  addr: ":8080"
-  virtualHosts:
-    - handlers:
-        - handler:
-            apiVersion: core/v1
-            kind: StaticFileHandler
-
----
-apiVersion: core/v1
-kind: StaticFileHandler
-spec:
-  rootDir: "./root/"
-  enableListing: true
-  header: # Additional response headers.
-    Cache-Control: no-cache
+{{% example-file "config.yaml" %}}
 ```
 
 The config tells:

@@ -5,24 +5,15 @@ package mac
 
 import (
 	"crypto/hmac"
-	"crypto/md5"
 	"crypto/sha1"
 	"crypto/sha256"
 	"crypto/sha512"
 	"hash"
-	"hash/crc32"
-	"hash/crc64"
-	"hash/fnv"
 
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"golang.org/x/crypto/blake2b"
 	"golang.org/x/crypto/blake2s"
 	"golang.org/x/crypto/sha3"
-)
-
-var (
-	crc64ISOTable  = crc64.MakeTable(crc64.ISO)
-	crc64ECMATable = crc64.MakeTable(crc64.ECMA)
 )
 
 // HMACFunc is the function of Hash-based Message Authentication Code.
@@ -46,16 +37,6 @@ const (
 	AlgSHA3_512
 	AlgSHAKE128
 	AlgSHAKE256
-	AlgCRC32
-	AlgCRC64ISO
-	AlgCRC64ECMA
-	AlgMD5
-	AlgFNV1_32
-	AlgFNV1a_32 //lint:ignore ST1003 should not use underscores in Go names; const AlgFNV1a_32 should be AlgFNV1a32
-	AlgFNV1_64
-	AlgFNV1a_64 //lint:ignore ST1003 should not use underscores in Go names; const AlgFNV1a_64 should be AlgFNV1a64
-	AlgFNV1_128
-	AlgFNV1a_128   //lint:ignore ST1003 should not use underscores in Go names; const AlgFNV1a_128 should be AlgFNV1a128
 	AlgBLAKE2s_256 //lint:ignore ST1003 should not use underscores in Go names; const AlgBLAKE2s_256 should be AlgBLAKE2s256
 	AlgBLAKE2b_256 //lint:ignore ST1003 should not use underscores in Go names; const AlgBLAKE2b_256 should be AlgBLAKE2b256
 	AlgBLAKE2b_384 //lint:ignore ST1003 should not use underscores in Go names; const AlgBLAKE2b_384 should be AlgBLAKE2b384
@@ -76,16 +57,6 @@ const (
 	SizeSHA3_512    = 64
 	SizeSHAKE128    = 32
 	SizeSHAKE256    = 64
-	SizeMD5         = 16
-	SizeFNV1_32     = 4
-	SizeFNV1a_32    = 4 //lint:ignore ST1003 should not use underscores in Go names; const SizeFNV1a_32 should be SizeFNV1a32
-	SizeFNV1_64     = 8
-	SizeFNV1a_64    = 8 //lint:ignore ST1003 should not use underscores in Go names; const SizeFNV1a_64 should be SizeFNV1a64
-	SizeFNV1_128    = 16
-	SizeFNV1a_128   = 16 //lint:ignore ST1003 should not use underscores in Go names; const SizeFNV1a_128 should be SizeFNV1a128
-	SizeCRC32       = 4
-	SizeCRC64ISO    = 8
-	SizeCRC64ECMA   = 8
 	SizeBLAKE2s_256 = 32 //lint:ignore ST1003 should not use underscores in Go names; const SizeBLAKE2s_256 should be SizeBLAKE2s256
 	SizeBLAKE2b_256 = 32 //lint:ignore ST1003 should not use underscores in Go names; const SizeBLAKE2b_256 should be SizeBLAKE2b256
 	SizeBLAKE2b_384 = 48 //lint:ignore ST1003 should not use underscores in Go names; const SizeBLAKE2b_384 should be SizeBLAKE2b384
@@ -106,16 +77,6 @@ var HashSize = map[k.HashAlg]int{
 	k.HashAlg_SHA3_512:    SizeSHA3_512,
 	k.HashAlg_SHAKE128:    SizeSHAKE128,
 	k.HashAlg_SHAKE256:    SizeSHAKE256,
-	k.HashAlg_MD5:         SizeMD5,
-	k.HashAlg_FNV1_32:     SizeFNV1_32,
-	k.HashAlg_FNV1a_32:    SizeFNV1a_32,
-	k.HashAlg_FNV1_64:     SizeFNV1_64,
-	k.HashAlg_FNV1a_64:    SizeFNV1a_64,
-	k.HashAlg_FNV1_128:    SizeFNV1_128,
-	k.HashAlg_FNV1a_128:   SizeFNV1a_128,
-	k.HashAlg_CRC32:       SizeCRC32,
-	k.HashAlg_CRC64ISO:    SizeCRC64ISO,
-	k.HashAlg_CRC64ECMA:   SizeCRC64ECMA,
 	k.HashAlg_BLAKE2s_256: SizeBLAKE2s_256,
 	k.HashAlg_BLAKE2b_256: SizeBLAKE2b_256,
 	k.HashAlg_BLAKE2b_384: SizeBLAKE2b_384,
@@ -139,13 +100,6 @@ func FromAlgorithm(a Algorithm) HMACFunc {
 		AlgSHA3_512:    SHA3_512,
 		AlgSHAKE128:    SHAKE128,
 		AlgSHAKE256:    SHAKE256,
-		AlgMD5:         MD5,
-		AlgFNV1_32:     FNV1_32,
-		AlgFNV1a_32:    FNV1a_32,
-		AlgFNV1_64:     FNV1_64,
-		AlgFNV1a_64:    FNV1a_64,
-		AlgFNV1_128:    FNV1_128,
-		AlgFNV1a_128:   FNV1a_128,
 		AlgBLAKE2s_256: BLAKE2s_256,
 		AlgBLAKE2b_256: BLAKE2b_256,
 		AlgBLAKE2b_384: BLAKE2b_384,
@@ -171,13 +125,6 @@ func FromHashAlg(t k.HashAlg) HMACFunc {
 		k.HashAlg_SHA3_512:    SHA3_512,
 		k.HashAlg_SHAKE128:    SHAKE128,
 		k.HashAlg_SHAKE256:    SHAKE256,
-		k.HashAlg_MD5:         MD5,
-		k.HashAlg_FNV1_32:     FNV1_32,
-		k.HashAlg_FNV1a_32:    FNV1a_32,
-		k.HashAlg_FNV1_64:     FNV1_64,
-		k.HashAlg_FNV1a_64:    FNV1a_64,
-		k.HashAlg_FNV1_128:    FNV1_128,
-		k.HashAlg_FNV1a_128:   FNV1a_128,
 		k.HashAlg_BLAKE2s_256: BLAKE2s_256,
 		k.HashAlg_BLAKE2b_256: BLAKE2b_256,
 		k.HashAlg_BLAKE2b_384: BLAKE2b_384,
@@ -300,113 +247,6 @@ func SHAKE256(msg, key []byte) []byte {
 	mac := hmac.New(func() hash.Hash { return sha3.NewShake256() }, key)
 	mac.Write(msg)
 	return mac.Sum(make([]byte, 0, SizeSHAKE256))
-}
-
-// MD5 returns the HMAC (keyed-hash message authentication code) using md5.
-// [16]byte slice is returned.
-func MD5(msg, key []byte) []byte {
-	mac := hmac.New(md5.New, key)
-	mac.Write(msg)
-	return mac.Sum(make([]byte, 0, SizeMD5))
-}
-
-// FNV1_32 returns the HMAC (keyed-hash message authentication code) using FNV1/32.
-// Because FNV is not cryptography safe, do not use this for protecting sensitive data.
-// [4]byte slice is returned.
-//
-//lint:ignore ST1003 should not use ALL_CAPS in Go names; use CamelCase instead
-func FNV1_32(msg, key []byte) []byte {
-	mac := hmac.New(func() hash.Hash { return fnv.New32() }, key)
-	mac.Write(msg)
-	return mac.Sum(make([]byte, 0, SizeFNV1_32))
-}
-
-// FNV1a_32 returns the HMAC (keyed-hash message authentication code) using FNV1a/32.
-// Because FNV is not cryptography safe, do not use this for protecting sensitive data.
-// [4]byte slice is returned.
-//
-//lint:ignore ST1003 should not use underscores in Go names; func FNV1a_32 should be FNV1a32
-func FNV1a_32(msg, key []byte) []byte {
-	mac := hmac.New(func() hash.Hash { return fnv.New32a() }, key)
-	mac.Write(msg)
-	return mac.Sum(make([]byte, 0, SizeFNV1a_32))
-}
-
-// FNV1_64 returns the HMAC (keyed-hash message authentication code) using FNV1/64.
-// Because FNV is not cryptography safe, do not use this for protecting sensitive data.
-// [8]byte slice is returned.
-//
-//lint:ignore ST1003 should not use ALL_CAPS in Go names; use CamelCase instead
-func FNV1_64(msg, key []byte) []byte {
-	mac := hmac.New(func() hash.Hash { return fnv.New64() }, key)
-	mac.Write(msg)
-	return mac.Sum(make([]byte, 0, SizeFNV1_64))
-}
-
-// FNV1a_64 returns the HMAC (keyed-hash message authentication code) using FNV1a/64.
-// Because FNV is not cryptography safe, do not use this for protecting sensitive data.
-// [8]byte slice is returned.
-//
-//lint:ignore ST1003 should not use underscores in Go names; func FNV1a_64 should be FNV1a64
-func FNV1a_64(msg, key []byte) []byte {
-	mac := hmac.New(func() hash.Hash { return fnv.New64a() }, key)
-	mac.Write(msg)
-	return mac.Sum(make([]byte, 0, SizeFNV1a_64))
-}
-
-// FNV1_128 returns the HMAC (keyed-hash message authentication code) using FNV1/128.
-// Because FNV is not cryptography safe, do not use this for protecting sensitive data.
-// [16]byte slice is returned.
-//
-//lint:ignore ST1003 should not use ALL_CAPS in Go names; use CamelCase instead
-func FNV1_128(msg, key []byte) []byte {
-	mac := hmac.New(fnv.New128, key)
-	mac.Write(msg)
-	return mac.Sum(make([]byte, 0, SizeFNV1_128))
-}
-
-// FNV1a_128 returns the HMAC (keyed-hash message authentication code) using FNV1a/128.
-// Because FNV is not cryptography safe, do not use this for protecting sensitive data.
-// [16]byte slice is returned.
-//
-//lint:ignore ST1003 should not use ALL_CAPS in Go names; use CamelCase instead
-func FNV1a_128(msg, key []byte) []byte {
-	mac := hmac.New(fnv.New128a, key)
-	mac.Write(msg)
-	return mac.Sum(make([]byte, 0, SizeFNV1a_128))
-}
-
-// CRC32 returns the HMAC (keyed-hash message authentication code) using CRC32.
-// Because CRC32 is not cryptography safe, do not use this for protecting sensitive data.
-// [4]byte slice is returned.
-func CRC32(msg, key []byte) []byte {
-	mac := hmac.New(func() hash.Hash {
-		return crc32.New(crc32.IEEETable)
-	}, key)
-	mac.Write(msg)
-	return mac.Sum(make([]byte, 0, SizeCRC32))
-}
-
-// CRC64ISO returns the HMAC (keyed-hash message authentication code) using CRC64ISO.
-// Because CRC64 is not cryptography safe, do not use this for protecting sensitive data.
-// [8]byte slice is returned.
-func CRC64ISO(msg, key []byte) []byte {
-	mac := hmac.New(func() hash.Hash {
-		return crc64.New(crc64ISOTable)
-	}, key)
-	mac.Write(msg)
-	return mac.Sum(make([]byte, 0, SizeCRC64ISO))
-}
-
-// CRC64ECMA returns the HMAC (keyed-hash message authentication code) using CRC64ECMA.
-// Because CRC64 is not cryptography safe, do not use this for protecting sensitive data.
-// [8]byte slice is returned.
-func CRC64ECMA(msg, key []byte) []byte {
-	mac := hmac.New(func() hash.Hash {
-		return crc64.New(crc64ECMATable)
-	}, key)
-	mac.Write(msg)
-	return mac.Sum(make([]byte, 0, SizeCRC64ECMA))
 }
 
 // BLAKE2s_256 returns the HMAC (keyed-hash message authentication code) using BLAKE2s/256.

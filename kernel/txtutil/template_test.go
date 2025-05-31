@@ -11,7 +11,7 @@ import (
 
 func ExampleTemplate_Content_one() {
 	tplString := `this is the text template`
-	tpl, err := txtutil.NewTemplate(txtutil.TplText, tplString, "")
+	tpl, err := txtutil.NewTemplate(txtutil.TplText, tplString)
 	if err != nil {
 		panic("handle error here")
 	}
@@ -24,7 +24,7 @@ func ExampleTemplate_Content_one() {
 
 func ExampleTemplate_Content_two() {
 	tplString := `this is the {{.name}} template`
-	tpl, err := txtutil.NewTemplate(txtutil.TplGoText, tplString, "")
+	tpl, err := txtutil.NewTemplate(txtutil.TplGoText, tplString)
 	if err != nil {
 		panic("handle error here")
 	}
@@ -41,7 +41,7 @@ func ExampleTemplate_Content_two() {
 
 func ExampleTemplate_Content_three() {
 	tplString := `this is the {{.name}} template`
-	tpl, err := txtutil.NewTemplate(txtutil.TplGoHTML, tplString, "")
+	tpl, err := txtutil.NewTemplate(txtutil.TplGoHTML, tplString)
 	if err != nil {
 		panic("handle error here")
 	}

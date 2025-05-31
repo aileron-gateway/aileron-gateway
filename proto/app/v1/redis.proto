@@ -1,7 +1,6 @@
 syntax = "proto3";
 package app.v1;
 
-import "buf/validate/validate.proto";
 import "kernel/network.proto";
 import "kernel/resource.proto";
 
@@ -11,12 +10,12 @@ message RedisClient {
     // [REQUIRED]
     // APIVersion is the defined version of the midleware.
     // This value must be "app/v1".
-    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "app/v1"];
+    string APIVersion = 1 [json_name = "apiVersion"];
 
     // [REQUIRED]
     // Kind is the kind of this object.
     // This value must be "RedisClient".
-    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "RedisClient"];
+    string Kind = 2 [json_name = "kind"];
 
     // [OPTIONAL]
     // Metadata is the metadata of the http logger object.

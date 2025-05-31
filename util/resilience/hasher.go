@@ -4,14 +4,12 @@
 package resilience
 
 import (
-	"cmp"
 	"encoding/binary"
+	"hash/fnv"
 	"net/http"
 	"net/textproto"
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
-	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
-	"github.com/aileron-gateway/aileron-gateway/kernel/hash"
 )
 
 // HTTPHasher calculate the hash value from a HTTP request.
@@ -40,53 +38,47 @@ func NewHTTPHashers(specs []*v1.HTTPHasherSpec) []HTTPHasher {
 	return hs
 }
 
+func fnv1a32(b []byte) []byte {
+	h := fnv.New32a()
+	h.Write(b)
+	return h.Sum(nil)
+}
+
 // NewHTTPHasher returns a new instance of hasher.
 // nil is returned when nil was given as the spec.
 func NewHTTPHasher(spec *v1.HTTPHasherSpec) HTTPHasher {
 	if spec == nil {
 		return nil
 	}
-
-	hashFunc := hash.FromHashAlg(cmp.Or(spec.HashAlg, kernel.HashAlg_FNV1a_32))
-
 	var h HTTPHasher
 	switch spec.HasherType {
 	case v1.HTTPHasherType_ClientAddr:
-		h = &clientAddrHasher{
-			hashFunc: hashFunc,
-		}
+		h = &clientAddrHasher{}
 	case v1.HTTPHasherType_Header:
 		h = &headerHasher{
-			name:     textproto.CanonicalMIMEHeaderKey(spec.Key),
-			hashFunc: hashFunc,
+			name: textproto.CanonicalMIMEHeaderKey(spec.Key),
 		}
 	case v1.HTTPHasherType_MultiHeader:
 		for i := range spec.Keys {
 			spec.Keys[i] = textproto.CanonicalMIMEHeaderKey(spec.Keys[i])
 		}
 		h = &multiHeaderHasher{
-			names:    spec.Keys,
-			hashFunc: hashFunc,
+			names: spec.Keys,
 		}
 	case v1.HTTPHasherType_Cookie:
 		h = &cookieHasher{
-			name:     spec.Key,
-			hashFunc: hashFunc,
+			name: spec.Key,
 		}
 	case v1.HTTPHasherType_Query:
 		h = &queryHasher{
-			name:     spec.Key,
-			hashFunc: hashFunc,
+			name: spec.Key,
 		}
 	case v1.HTTPHasherType_PathParam:
 		h = &pathParamHasher{
-			name:     spec.Key,
-			hashFunc: hashFunc,
+			name: spec.Key,
 		}
 	default:
-		h = &clientAddrHasher{
-			hashFunc: hashFunc,
-		}
+		h = &clientAddrHasher{}
 	}
 	return h
 }
@@ -95,16 +87,10 @@ func NewHTTPHasher(spec *v1.HTTPHasherSpec) HTTPHasher {
 // Hash is calculated like hashFunc(r.RemoteAddr).
 // This hashing always works.
 type clientAddrHasher struct {
-	// hashFunc is the hash function that returns a hash value of the given bytes.
-	// HashFunc must return at least 2 bytes because iw will be parsed as Uint32.
-	// HashFunc should return the bytes in BigEndian bytes order
-	// as most of the hash functions do.
-	// hashFunc MUST NOT be nil.
-	hashFunc hash.HashFunc
 }
 
 func (h *clientAddrHasher) Hash(r *http.Request) (int, bool) {
-	v := h.hashFunc([]byte(r.RemoteAddr))
+	v := fnv1a32([]byte(r.RemoteAddr))
 	return int(binary.BigEndian.Uint32(v) >> 1), true // Shift 1 bit to make the value positive.
 }
 
@@ -115,12 +101,6 @@ type headerHasher struct {
 	// name is the header name.
 	// If header value was not found, this hasher will fails.
 	name string
-	// hashFunc is the hash function that returns a hash value of the given bytes.
-	// HashFunc must return at least 2 bytes because iw will be parsed as Uint32.
-	// HashFunc should return the bytes in BigEndian bytes order
-	// as most of the hash functions do.
-	// hashFunc MUST NOT be nil.
-	hashFunc hash.HashFunc
 }
 
 func (h *headerHasher) Hash(r *http.Request) (int, bool) {
@@ -128,7 +108,7 @@ func (h *headerHasher) Hash(r *http.Request) (int, bool) {
 	if len(v) == 0 {
 		return -1, false
 	}
-	sum := h.hashFunc([]byte(v[0]))
+	sum := fnv1a32([]byte(v[0]))
 	return int(binary.BigEndian.Uint32(sum) >> 1), true // Shift 1 bit to make the value positive.
 }
 
@@ -140,12 +120,6 @@ type multiHeaderHasher struct {
 	// names is the list of header names.
 	// If all header values were not found, this hasher will fails.
 	names []string
-	// hashFunc is the hash function that returns a hash value of the given bytes.
-	// HashFunc must return at least 2 bytes because iw will be parsed as Uint32.
-	// HashFunc should return the bytes in BigEndian bytes order
-	// as most of the hash functions do.
-	// hashFunc MUST NOT be nil.
-	hashFunc hash.HashFunc
 }
 
 func (h *multiHeaderHasher) Hash(r *http.Request) (int, bool) {
@@ -159,7 +133,7 @@ func (h *multiHeaderHasher) Hash(r *http.Request) (int, bool) {
 	if v == "" {
 		return -1, false
 	}
-	sum := h.hashFunc([]byte(v))
+	sum := fnv1a32([]byte(v))
 	return int(binary.BigEndian.Uint32(sum) >> 1), true // Shift 1 bit to make the value positive.
 }
 
@@ -170,12 +144,6 @@ type cookieHasher struct {
 	// name is the cookie name.
 	// If cookie value was not found, this hasher will fails.
 	name string
-	// hashFunc is the hash function that returns a hash value of the given bytes.
-	// HashFunc must return at least 2 bytes because iw will be parsed as Uint32.
-	// HashFunc should return the bytes in BigEndian bytes order
-	// as most of the hash functions do.
-	// hashFunc MUST NOT be nil.
-	hashFunc hash.HashFunc
 }
 
 func (h *cookieHasher) Hash(r *http.Request) (int, bool) {
@@ -187,7 +155,7 @@ func (h *cookieHasher) Hash(r *http.Request) (int, bool) {
 	if v == "" {
 		return -1, false
 	}
-	sum := h.hashFunc([]byte(v))
+	sum := fnv1a32([]byte(v))
 	return int(binary.BigEndian.Uint32(sum) >> 1), true // Shift 1 bit to make the value positive.
 }
 
@@ -198,12 +166,6 @@ type queryHasher struct {
 	// name is the query name.
 	// If query value was not found, this hasher will fails.
 	name string
-	// hashFunc is the hash function that returns a hash value of the given bytes.
-	// HashFunc must return at least 2 bytes because iw will be parsed as Uint32.
-	// HashFunc should return the bytes in BigEndian bytes order
-	// as most of the hash functions do.
-	// hashFunc MUST NOT be nil.
-	hashFunc hash.HashFunc
 }
 
 func (h *queryHasher) Hash(r *http.Request) (int, bool) {
@@ -211,7 +173,7 @@ func (h *queryHasher) Hash(r *http.Request) (int, bool) {
 	if v == "" {
 		return -1, false
 	}
-	sum := h.hashFunc([]byte(v))
+	sum := fnv1a32([]byte(v))
 	return int(binary.BigEndian.Uint32(sum) >> 1), true // Shift 1 bit to make the value positive.
 }
 
@@ -221,12 +183,6 @@ type pathParamHasher struct {
 	// name is the path param name.
 	// If param value was not found, this hasher will fails.
 	name string
-	// hashFunc is the hash function that returns a hash value of the given bytes.
-	// HashFunc must return at least 2 bytes because iw will be parsed as Uint32.
-	// HashFunc should return the bytes in BigEndian bytes order
-	// as most of the hash functions do.
-	// hashFunc MUST NOT be nil.
-	hashFunc hash.HashFunc
 }
 
 func (h *pathParamHasher) Hash(r *http.Request) (int, bool) {
@@ -234,6 +190,6 @@ func (h *pathParamHasher) Hash(r *http.Request) (int, bool) {
 	if v == "" {
 		return -1, false
 	}
-	sum := h.hashFunc([]byte(v))
+	sum := fnv1a32([]byte(v))
 	return int(binary.BigEndian.Uint32(sum) >> 1), true // Shift 1 bit to make the value positive.
 }

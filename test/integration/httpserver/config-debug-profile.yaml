@@ -2,6 +2,4 @@ apiVersion: core/v1
 kind: HTTPServer
 spec:
   addr: ":12345"
-  profile:
-    enable: true
-    pathPrefix: /debug/test
+  enableProfile: true

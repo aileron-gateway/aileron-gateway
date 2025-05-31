@@ -120,8 +120,6 @@ RULES
  build       : build binary.
  test        : run unit tests.
  integration : run integration tests.
- e2e         : run e2e tests.
- example     : test examples in _example.
  lint        : lint with golang-lint.
  spell       : spell check with misspell.
  vuln        : vulnerbility check with govulncheck.
@@ -147,5 +145,5 @@ endef
 export HELP_MESSAGE
 
 .PHONY: help
-help: 
+help:
 	@echo "$${HELP_MESSAGE}"
