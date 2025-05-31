@@ -11,7 +11,6 @@ import (
 	"net/http/pprof"
 	"runtime/debug"
 	"slices"
-	"strings"
 	"time"
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
@@ -52,14 +51,6 @@ var Resource api.Resource = &API{
 					IdleTimeout:       10, // In second.
 					MaxHeaderBytes:    1 << 13,
 				},
-				Profile: &v1.ProfileSpec{
-					Enable:     false,
-					PathPrefix: "/debug/pprof",
-				},
-				Expvar: &v1.ExpvarSpec{
-					Enable: false,
-					Path:   "/debug/vars",
-				},
 			},
 		},
 	},
@@ -95,8 +86,8 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.Prot
 	}
 
 	mux := &http.ServeMux{}
-	registerProfile(mux, c.Spec.Profile)
-	registerExpvar(mux, c.Spec.Expvar)
+	registerProfile(mux, c.Spec.EnableProfile)
+	registerExpvar(mux, c.Spec.EnableExpvar)
 
 	nfh := notFoundHandler(eh)
 	handlers, err := registerHandlers(a, mux, c.Spec.VirtualHosts, nfh)
@@ -250,30 +241,28 @@ func newHTTP3Server(addr string, h http.Handler, c *v1.HTTP3Config) (*http3Serve
 // Given argument must not be nil. This function panics when a nil was given as any argument.
 // See https://pkg.go.dev/net/http/pprof.
 // This function registers profile handlers to the mux with these paths.
-//   - pprof.Index for PathPrefix+"/"
-//   - pprof.Cmdline for PathPrefix+"/cmdline"
-//   - pprof.Profile for PathPrefix+"/profile"
-//   - pprof.Symbol for PathPrefix+"/symbol"
-//   - pprof.Trace for PathPrefix+"/trace"
-func registerProfile(mux Mux, spec *v1.ProfileSpec) {
+//   - pprof.Index for "/debug/pprof/"
+//   - pprof.Cmdline for "/debug/pprof/cmdline"
+//   - pprof.Profile for "/debug/pprof/profile"
+//   - pprof.Symbol for "/debug/pprof/symbol"
+//   - pprof.Trace for "/debug/pprof/trace"
+func registerProfile(mux Mux, enabled bool) {
 	http.DefaultServeMux = &http.ServeMux{}
-	if spec == nil || !spec.Enable {
-		return // Profiling disabled.
+	if enabled {
+		mux.Handle("GET /debug/pprof/", http.HandlerFunc(pprof.Index))
+		mux.Handle("GET /debug/pprof/cmdline", http.HandlerFunc(pprof.Cmdline))
+		mux.Handle("GET /debug/pprof/profile", http.HandlerFunc(pprof.Profile))
+		mux.Handle("GET /debug/pprof/symbol", http.HandlerFunc(pprof.Symbol))
+		mux.Handle("GET /debug/pprof/trace", http.HandlerFunc(pprof.Trace))
 	}
-	mux.Handle("GET "+strings.TrimSuffix(spec.PathPrefix, "/")+"/", http.HandlerFunc(pprof.Index))
-	mux.Handle("GET "+strings.TrimSuffix(spec.PathPrefix, "/")+"/cmdline", http.HandlerFunc(pprof.Cmdline))
-	mux.Handle("GET "+strings.TrimSuffix(spec.PathPrefix, "/")+"/profile", http.HandlerFunc(pprof.Profile))
-	mux.Handle("GET "+strings.TrimSuffix(spec.PathPrefix, "/")+"/symbol", http.HandlerFunc(pprof.Symbol))
-	mux.Handle("GET "+strings.TrimSuffix(spec.PathPrefix, "/")+"/trace", http.HandlerFunc(pprof.Trace))
 }
 
 // registerExpvar registers expvar handlers to the server if specified.
 // Given argument must not be nil. This function panics when a nil was given as any argument.
 // See https://pkg.go.dev/expvar
-func registerExpvar(mux Mux, spec *v1.ExpvarSpec) {
+func registerExpvar(mux Mux, enabled bool) {
 	http.DefaultServeMux = &http.ServeMux{}
-	if spec == nil || !spec.Enable {
-		return // Expvar disabled.
+	if enabled {
+		mux.Handle("GET /debug/vars", expvar.Handler())
 	}
-	mux.Handle("GET "+spec.Path, expvar.Handler())
 }

@@ -74,14 +74,6 @@ func TestMutate(t *testing.T) {
 							IdleTimeout:       10,
 							MaxHeaderBytes:    1 << 13,
 						},
-						Profile: &v1.ProfileSpec{
-							Enable:     false,
-							PathPrefix: "/debug/pprof",
-						},
-						Expvar: &v1.ExpvarSpec{
-							Enable: false,
-							Path:   "/debug/vars",
-						},
 					},
 				},
 			},
@@ -133,7 +125,6 @@ func TestMutate(t *testing.T) {
 				cmpopts.IgnoreUnexported(v1.HTTPConfig{}, v1.HTTP2Config{}, v1.HTTP3Config{}),
 				cmpopts.IgnoreUnexported(k.ListenConfig{}, k.TLSConfig{}),
 				cmpopts.IgnoreUnexported(v1.VirtualHostSpec{}),
-				cmpopts.IgnoreUnexported(v1.ProfileSpec{}, v1.ExpvarSpec{}),
 			}
 			testutil.Diff(t, tt.A().manifest, manifest, opts...)
 		})
@@ -1006,7 +997,7 @@ func (m *testMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func TestRegisterProfile(t *testing.T) {
 	type condition struct {
-		spec *v1.ProfileSpec
+		enabled bool
 	}
 
 	type action struct {
@@ -1014,38 +1005,18 @@ func TestRegisterProfile(t *testing.T) {
 		handler http.Handler
 	}
 
-	cndProfileEnabled := "profile enabled"
-	cndRegisterIndex := "register index"
-	cndRegisterCmdline := "register cmdline"
-	cndRegisterProfile := "register profile"
-	cndRegisterSymbol := "register symbol"
-	cndRegisterTrace := "register trace"
-	actCheckHandler := "check registered handler"
-	actCheckNoHandler := "check no handler"
-
 	tb := testutil.NewTableBuilder[*condition, *action]()
 	tb.Name(t.Name())
-	tb.Condition(cndProfileEnabled, "registering the profile is enabled")
-	tb.Condition(cndRegisterIndex, "register index")
-	tb.Condition(cndRegisterCmdline, "register cmdline")
-	tb.Condition(cndRegisterProfile, "register profile")
-	tb.Condition(cndRegisterSymbol, "register symbol")
-	tb.Condition(cndRegisterTrace, "register trace")
-	tb.Action(actCheckHandler, "check that the handler was registered")
-	tb.Action(actCheckNoHandler, "check that there is no handler registered")
 	table := tb.Build()
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"index handler",
-			[]string{cndProfileEnabled, cndRegisterIndex},
-			[]string{actCheckHandler},
+			[]string{},
+			[]string{},
 			&condition{
-				spec: &v1.ProfileSpec{
-					Enable:     true,
-					PathPrefix: "/debug/pprof",
-				},
+				enabled: true,
 			},
 			&action{
 				path:    "GET /debug/pprof/",
@@ -1054,13 +1025,10 @@ func TestRegisterProfile(t *testing.T) {
 		),
 		gen(
 			"cmdline handler",
-			[]string{cndProfileEnabled, cndRegisterCmdline},
-			[]string{actCheckHandler},
+			[]string{},
+			[]string{},
 			&condition{
-				spec: &v1.ProfileSpec{
-					Enable:     true,
-					PathPrefix: "/debug/pprof",
-				},
+				enabled: true,
 			},
 			&action{
 				path:    "GET /debug/pprof/cmdline",
@@ -1069,13 +1037,10 @@ func TestRegisterProfile(t *testing.T) {
 		),
 		gen(
 			"profile handler",
-			[]string{cndProfileEnabled, cndRegisterProfile},
-			[]string{actCheckHandler},
+			[]string{},
+			[]string{},
 			&condition{
-				spec: &v1.ProfileSpec{
-					Enable:     true,
-					PathPrefix: "/debug/pprof",
-				},
+				enabled: true,
 			},
 			&action{
 				path:    "GET /debug/pprof/profile",
@@ -1084,13 +1049,10 @@ func TestRegisterProfile(t *testing.T) {
 		),
 		gen(
 			"symbol handler",
-			[]string{cndProfileEnabled, cndRegisterSymbol},
-			[]string{actCheckHandler},
+			[]string{},
+			[]string{},
 			&condition{
-				spec: &v1.ProfileSpec{
-					Enable:     true,
-					PathPrefix: "/debug/pprof",
-				},
+				enabled: true,
 			},
 			&action{
 				path:    "GET /debug/pprof/symbol",
@@ -1099,13 +1061,10 @@ func TestRegisterProfile(t *testing.T) {
 		),
 		gen(
 			"trace handler",
-			[]string{cndProfileEnabled, cndRegisterTrace},
-			[]string{actCheckHandler},
+			[]string{},
+			[]string{},
 			&condition{
-				spec: &v1.ProfileSpec{
-					Enable:     true,
-					PathPrefix: "/debug/pprof",
-				},
+				enabled: true,
 			},
 			&action{
 				path:    "GET /debug/pprof/trace",
@@ -1113,89 +1072,11 @@ func TestRegisterProfile(t *testing.T) {
 			},
 		),
 		gen(
-			"index handler with host",
-			[]string{cndProfileEnabled, cndRegisterIndex},
-			[]string{actCheckHandler},
-			&condition{
-				spec: &v1.ProfileSpec{
-					Enable:     true,
-					PathPrefix: "localhost/debug/pprof",
-				},
-			},
-			&action{
-				path:    "GET localhost/debug/pprof/",
-				handler: http.HandlerFunc(pprof.Index),
-			},
-		),
-		gen(
-			"cmdline handler with host",
-			[]string{cndProfileEnabled, cndRegisterCmdline},
-			[]string{actCheckHandler},
-			&condition{
-				spec: &v1.ProfileSpec{
-					Enable:     true,
-					PathPrefix: "localhost/debug/pprof",
-				},
-			},
-			&action{
-				path:    "GET localhost/debug/pprof/cmdline",
-				handler: http.HandlerFunc(pprof.Cmdline),
-			},
-		),
-		gen(
-			"profile handler with host",
-			[]string{cndProfileEnabled, cndRegisterProfile},
-			[]string{actCheckHandler},
-			&condition{
-				spec: &v1.ProfileSpec{
-					Enable:     true,
-					PathPrefix: "localhost/debug/pprof",
-				},
-			},
-			&action{
-				path:    "GET localhost/debug/pprof/profile",
-				handler: http.HandlerFunc(pprof.Profile),
-			},
-		),
-		gen(
-			"symbol handler with host",
-			[]string{cndProfileEnabled, cndRegisterSymbol},
-			[]string{actCheckHandler},
-			&condition{
-				spec: &v1.ProfileSpec{
-					Enable:     true,
-					PathPrefix: "localhost/debug/pprof",
-				},
-			},
-			&action{
-				path:    "GET localhost/debug/pprof/symbol",
-				handler: http.HandlerFunc(pprof.Symbol),
-			},
-		),
-		gen(
-			"trace handler with host",
-			[]string{cndProfileEnabled, cndRegisterTrace},
-			[]string{actCheckHandler},
-			&condition{
-				spec: &v1.ProfileSpec{
-					Enable:     true,
-					PathPrefix: "localhost/debug/pprof",
-				},
-			},
-			&action{
-				path:    "GET localhost/debug/pprof/trace",
-				handler: http.HandlerFunc(pprof.Trace),
-			},
-		),
-		gen(
 			"profile disabled",
 			[]string{},
-			[]string{actCheckNoHandler},
+			[]string{},
 			&condition{
-				spec: &v1.ProfileSpec{
-					Enable:     false,
-					PathPrefix: "/debug/pprof",
-				},
+				enabled: false,
 			},
 			&action{
 				path:    "GET /debug/pprof/",
@@ -1212,8 +1093,7 @@ func TestRegisterProfile(t *testing.T) {
 			mux := &testMux{
 				hs: map[string]http.Handler{},
 			}
-
-			registerProfile(mux, tt.C().spec)
+			registerProfile(mux, tt.C().enabled)
 			h := mux.hs[tt.A().path]
 			testutil.Diff(t, tt.A().handler, h, cmp.Comparer(testutil.ComparePointer[http.Handler]))
 		})
@@ -1222,36 +1102,24 @@ func TestRegisterProfile(t *testing.T) {
 
 func TestRegisterExpvar(t *testing.T) {
 	type condition struct {
-		spec *v1.ExpvarSpec
+		enabled bool
 	}
-
 	type action struct {
 		path    string
 		handler http.Handler
 	}
-
-	cndProfileEnabled := "enabled"
-	actCheckHandler := "check registered handler"
-	actCheckNoHandler := "check no handler"
-
 	tb := testutil.NewTableBuilder[*condition, *action]()
 	tb.Name(t.Name())
-	tb.Condition(cndProfileEnabled, "registering the expvar is enabled")
-	tb.Action(actCheckHandler, "check that the handler was registered")
-	tb.Action(actCheckNoHandler, "check that there is no handler registered")
 	table := tb.Build()
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"register",
-			[]string{cndProfileEnabled},
-			[]string{actCheckHandler},
+			[]string{},
+			[]string{},
 			&condition{
-				spec: &v1.ExpvarSpec{
-					Enable: true,
-					Path:   "/debug/vars",
-				},
+				enabled: true,
 			},
 			&action{
 				path:    "GET /debug/vars",
@@ -1259,29 +1127,11 @@ func TestRegisterExpvar(t *testing.T) {
 			},
 		),
 		gen(
-			"host",
-			[]string{cndProfileEnabled},
-			[]string{actCheckHandler},
-			&condition{
-				spec: &v1.ExpvarSpec{
-					Enable: true,
-					Path:   "localhost/debug/vars",
-				},
-			},
-			&action{
-				path:    "GET localhost/debug/vars",
-				handler: expvar.Handler(),
-			},
-		),
-		gen(
 			"disabled",
 			[]string{},
-			[]string{actCheckNoHandler},
+			[]string{},
 			&condition{
-				spec: &v1.ExpvarSpec{
-					Enable: false,
-					Path:   "/debug/vars",
-				},
+				enabled: false,
 			},
 			&action{
 				path:    "GET /debug/vars",
@@ -1298,8 +1148,7 @@ func TestRegisterExpvar(t *testing.T) {
 			mux := &testMux{
 				hs: map[string]http.Handler{},
 			}
-
-			registerExpvar(mux, tt.C().spec)
+			registerExpvar(mux, tt.C().enabled)
 			h := mux.hs[tt.A().path]
 			testutil.Diff(t, tt.A().handler, h, cmp.Comparer(testutil.ComparePointer[http.Handler]))
 		})
