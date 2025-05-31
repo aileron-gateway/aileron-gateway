@@ -4,9 +4,9 @@ package core.v1;
 import "buf/validate/validate.proto";
 import "core/v1/http.proto";
 import "core/v1/resilience.proto";
+import "kernel/matcher.proto";
 import "kernel/network.proto";
 import "kernel/resource.proto";
-import "kernel/txtutil.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/core/v1";
 

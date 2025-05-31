@@ -189,7 +189,7 @@ func TestCreate(t *testing.T) {
 								MIMEType:     "text/plain",
 								StatusCode:   http.StatusOK,
 								Header:       map[string]string{"foo": "bar"},
-								TemplateType: k.TemplateType_GoText,
+								TemplateType: v1.TemplateType_GoText,
 								Template:     `{{.test}}`,
 							},
 						},
@@ -244,7 +244,7 @@ func TestCreate(t *testing.T) {
 					Spec: &v1.TemplateHandlerSpec{
 						MIMEContents: []*v1.MIMEContentSpec{
 							{
-								TemplateType: k.TemplateType_GoText,
+								TemplateType: v1.TemplateType_GoText,
 								Template:     `[0-9a-z`,
 							},
 						},

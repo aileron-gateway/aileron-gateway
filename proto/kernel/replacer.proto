@@ -8,73 +8,6 @@ import "kernel/commonkey.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/kernel";
 
-// MatchType is the matching methods of string or bytes data.
-// See https://pkg.go.dev/strings for string matching, https://pkg.go.dev/bytes for bytes matching.
-// https://pkg.go.dev/regexp and https://pkg.go.dev/regexp/syntax for regular expression matching.
-enum MatchType {
-    // Exact is the exact matching method type.
-    Exact = 0;
-    // Prefix is the prefix matching method type.
-    // See https://pkg.go.dev/strings#HasPrefix for string matching.
-    // See https://pkg.go.dev/bytes#HasPrefix for bytes matching.
-    Prefix = 1;
-    // Suffix is the suffix matching method type.
-    // See https://pkg.go.dev/strings#HasSuffix for string matching.
-    // See https://pkg.go.dev/bytes#HasSuffix for bytes matching.
-    Suffix = 2;
-    // Contains is the containing matching method type.
-    // See https://pkg.go.dev/strings#Contains for string matching.
-    // See https://pkg.go.dev/bytes#Contains for bytes matching.
-    Contains = 3;
-    // Path is the path matching method type.
-    // See https://pkg.go.dev/path#Match for string and bytes matching.
-    Path = 4;
-    // FilePath is the file path matching method type.
-    // See https://pkg.go.dev/path/filepath#Match for string and bytes matching.
-    FilePath = 5;
-    // Regex is the regular expression matching method type.
-    // See  https://pkg.go.dev/regexp#Match and https://pkg.go.dev/regexp/syntax
-    // for string and bytes matching.
-    Regex = 6;
-    // RegexPOSIX is the POSIX regular expression matching method type.
-    // See  https://pkg.go.dev/regexp#Match and https://pkg.go.dev/regexp/syntax
-    // for string and bytes matching.
-    RegexPOSIX = 7;
-}
-
-// MatcherSpec is the string or bytes matching specification.
-message MatcherSpec {
-    // [OPTIONAL]
-    // Patterns is the list of matching patterns.
-    // Values must have appropriate expressions for the specified match type.
-    // Default is not set.
-    repeated string Patterns = 1 [json_name = "patterns", (buf.validate.field).repeated.unique = true];
-
-    // [OPTIONAL]
-    // MatchType is the matching method type.
-    // Default is [Exact].
-    MatchType MatchType = 2 [json_name = "matchType"];
-}
-
-// ReplaceType is the replacing methods of string or bytes data.
-enum ReplaceType {
-    Fixed      = 0;
-    Value      = 1;
-    Left       = 2;
-    Right      = 3;
-    Trim       = 4;
-    TrimLeft   = 5;
-    TrimRight  = 6;
-    TrimPrefix = 7;
-    TrimSuffix = 8;
-    Encode     = 9;
-    Hash       = 10;
-    Regexp     = 11;
-    Expand     = 12;
-    Encrypt    = 13;
-    HMAC       = 14;
-}
-
 message ReplacerSpec {
     oneof Replacers {
         // Fixed is the fixed value replacer.
@@ -130,6 +63,25 @@ message ReplacerSpec {
         // to hmac hash values.
         HMACReplacer HMAC = 15 [json_name = "hmac"];
     }
+}
+
+// ReplaceType is the replacing methods of string or bytes data.
+enum ReplaceType {
+    Fixed      = 0;
+    Value      = 1;
+    Left       = 2;
+    Right      = 3;
+    Trim       = 4;
+    TrimLeft   = 5;
+    TrimRight  = 6;
+    TrimPrefix = 7;
+    TrimSuffix = 8;
+    Encode     = 9;
+    Hash       = 10;
+    Regexp     = 11;
+    Expand     = 12;
+    Encrypt    = 13;
+    HMAC       = 14;
 }
 
 message FixedReplacer {
@@ -322,11 +274,4 @@ message HMACReplacer {
     // Key is the hex encoded key string for HMAC.
     // Default is not set.
     string Key = 5 [json_name = "key", (buf.validate.field).required = true];
-}
-
-// TemplateType is the type of template document.
-enum TemplateType {
-    Text   = 0;  // Text is a standard text type. Content will be used as it is.
-    GoText = 1;  // GoText is Go's text template type. See https://pkg.go.dev/text/template.
-    GoHTML = 2;  // GoHTML is Go's HTML template type. See https://pkg.go.dev/html/template.
 }

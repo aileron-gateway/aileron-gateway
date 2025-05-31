@@ -424,7 +424,7 @@ func TestNewErrorMessage(t *testing.T) {
 					HeaderTemplate: map[string]string{"Code": "{{code}}"},
 					MIMEContents: []*v1.MIMEContentSpec{
 						{
-							TemplateType: k.TemplateType_Text,
+							TemplateType: v1.TemplateType_Text,
 							Template:     "test",
 							MIMEType:     "text/plain",
 						},

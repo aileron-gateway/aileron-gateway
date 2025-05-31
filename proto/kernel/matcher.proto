@@ -1,0 +1,54 @@
+syntax = "proto3";
+package kernel;
+
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/aileron-gateway/aileron-gateway/apis/kernel";
+
+// MatcherSpec is the string or bytes matching specification.
+message MatcherSpec {
+    // [OPTIONAL]
+    // Patterns is the list of matching patterns.
+    // Values must have appropriate expressions for the specified match type.
+    // Default is not set.
+    repeated string Patterns = 1 [json_name = "patterns", (buf.validate.field).repeated.unique = true];
+
+    // [OPTIONAL]
+    // MatchType is the matching method type.
+    // Default is [Exact].
+    MatchType MatchType = 2 [json_name = "matchType"];
+}
+
+// MatchType is the matching methods of string or bytes data.
+// See https://pkg.go.dev/strings for string matching, https://pkg.go.dev/bytes for bytes matching.
+// https://pkg.go.dev/regexp and https://pkg.go.dev/regexp/syntax for regular expression matching.
+enum MatchType {
+    // Exact is the exact matching method type.
+    Exact = 0;
+    // Prefix is the prefix matching method type.
+    // See https://pkg.go.dev/strings#HasPrefix for string matching.
+    // See https://pkg.go.dev/bytes#HasPrefix for bytes matching.
+    Prefix = 1;
+    // Suffix is the suffix matching method type.
+    // See https://pkg.go.dev/strings#HasSuffix for string matching.
+    // See https://pkg.go.dev/bytes#HasSuffix for bytes matching.
+    Suffix = 2;
+    // Contains is the containing matching method type.
+    // See https://pkg.go.dev/strings#Contains for string matching.
+    // See https://pkg.go.dev/bytes#Contains for bytes matching.
+    Contains = 3;
+    // Path is the path matching method type.
+    // See https://pkg.go.dev/path#Match for string and bytes matching.
+    Path = 4;
+    // FilePath is the file path matching method type.
+    // See https://pkg.go.dev/path/filepath#Match for string and bytes matching.
+    FilePath = 5;
+    // Regex is the regular expression matching method type.
+    // See  https://pkg.go.dev/regexp#Match and https://pkg.go.dev/regexp/syntax
+    // for string and bytes matching.
+    Regex = 6;
+    // RegexPOSIX is the POSIX regular expression matching method type.
+    // See  https://pkg.go.dev/regexp#Match and https://pkg.go.dev/regexp/syntax
+    // for string and bytes matching.
+    RegexPOSIX = 7;
+}
