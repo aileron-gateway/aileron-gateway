@@ -9,7 +9,6 @@ import (
 	"expvar"
 	"net/http"
 	"net/http/pprof"
-	"runtime/debug"
 	"slices"
 	"time"
 
@@ -124,8 +123,6 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.Prot
 		}
 		runner.svr = svr
 	} else {
-		println("===================== ", c.Spec.Addr)
-		debug.PrintStack()
 		svr, err := newHTTP2Server(c.Spec.Addr, handler, c.Spec.HTTPConfig, c.Spec.HTTP2Config)
 		if err != nil {
 			return nil, err
