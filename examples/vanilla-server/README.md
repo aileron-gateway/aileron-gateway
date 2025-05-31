@@ -55,7 +55,7 @@ Config for a single server would be more simple than this (See the config-single
 ```yaml
 # config-multiple.yaml
 
-{{% example-file "config-multiple.yaml" %}}
+{{% github-raw "config-multiple.yaml" %}}
 ```
 
 The config tells:

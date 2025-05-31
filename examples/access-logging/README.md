@@ -39,7 +39,7 @@ style HTTPLoggerT stroke:#89CFF0,stroke-width:2px
 
 In this example, following directory structure and files are supposed.
 
-Resources are available at [examples/access-logging/]({{% github-url "examples/access-logging/" %}}).
+Resources are available at [examples/access-logging/]({{% github-url "" %}}).
 If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt
@@ -55,7 +55,7 @@ Configuration yaml to run a server with access logging becomes as follows.
 ```yaml
 # config.yaml
 
-{{% github-raw "examples/access-logging/config.yaml" %}}
+{{% github-raw "config.yaml" %}}
 ```
 
 The config tells:

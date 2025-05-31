@@ -54,7 +54,7 @@ Configuration yaml to run a server with access logging becomes as follows.
 ```yaml
 # config.yaml
 
-{{% example-file "config.yaml" %}}
+{{% github-raw "config.yaml" %}}
 ```
 
 The config tells:

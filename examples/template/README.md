@@ -46,7 +46,7 @@ Configuration yaml to run a server with template handler would becomes as follow
 ```yaml
 # config.yaml
 
-{{% example-file "config.yaml" %}}
+{{% github-raw "config.yaml" %}}
 ```
 
 The config tells:

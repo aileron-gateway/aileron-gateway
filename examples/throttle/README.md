@@ -51,7 +51,7 @@ Configuration yaml to run a echo server with throttle middleware would becomes a
 ```yaml
 # config.yaml
 
-{{% example-file "config.yaml" %}}
+{{% github-raw "config.yaml" %}}
 ```
 
 The config tells:

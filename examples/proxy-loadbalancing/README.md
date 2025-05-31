@@ -72,7 +72,7 @@ Configuration yaml to run a reverse-proxy server for round-robin loadbalancer wo
 ```yaml
 # config-round-robin.yaml
 
-{{% example-file "config-round-robin.yaml" %}}
+{{% github-raw "config-round-robin.yaml" %}}
 ```
 
 The config tells:

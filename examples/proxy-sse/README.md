@@ -54,7 +54,7 @@ This config is almost the same as plain reverse-proxy except for the upstream ur
 ```yaml
 # config.yaml
 
-{{% example-file "config.yaml" %}}
+{{% github-raw "config.yaml" %}}
 ```
 
 The config tells:
