@@ -56,6 +56,8 @@ Configuration yaml to run a reverse-proxy server would becomes as follows.
 
 ```
 
+{{% github-raw "config.yaml" %}}
+
 The config tells:
 
 - Start a `HTTPServer` with port 8080.
