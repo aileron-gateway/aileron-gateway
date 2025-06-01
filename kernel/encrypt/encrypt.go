@@ -20,20 +20,11 @@ type DecryptFunc func(key []byte, ciphertext []byte) (plaintext []byte, err erro
 // This function returns nil when encrypter was not found.
 func EncrypterFromType(t k.CommonKeyCryptType) EncryptFunc {
 	typeToEnc := map[k.CommonKeyCryptType]EncryptFunc{
-		k.CommonKeyCryptType_AESGCM:       EncryptAESGCM,
-		k.CommonKeyCryptType_AESCBC:       EncryptAESCBC,
-		k.CommonKeyCryptType_AESCFB:       EncryptAESCFB,
-		k.CommonKeyCryptType_AESCTR:       EncryptAESCTR,
-		k.CommonKeyCryptType_AESOFB:       EncryptAESOFB,
-		k.CommonKeyCryptType_DESCBC:       EncryptDESCBC,
-		k.CommonKeyCryptType_DESCFB:       EncryptDESCFB,
-		k.CommonKeyCryptType_DESCTR:       EncryptDESCTR,
-		k.CommonKeyCryptType_DESOFB:       EncryptDESOFB,
-		k.CommonKeyCryptType_TripleDESCBC: EncryptTripleDESCBC,
-		k.CommonKeyCryptType_TripleDESCFB: EncryptTripleDESCFB,
-		k.CommonKeyCryptType_TripleDESCTR: EncryptTripleDESCTR,
-		k.CommonKeyCryptType_TripleDESOFB: EncryptTripleDESOFB,
-		k.CommonKeyCryptType_RC4:          EncryptRC4,
+		k.CommonKeyCryptType_AESGCM: EncryptAESGCM,
+		k.CommonKeyCryptType_AESCBC: EncryptAESCBC,
+		k.CommonKeyCryptType_AESCFB: EncryptAESCFB,
+		k.CommonKeyCryptType_AESCTR: EncryptAESCTR,
+		k.CommonKeyCryptType_AESOFB: EncryptAESOFB,
 	}
 	return typeToEnc[t]
 }
@@ -42,20 +33,11 @@ func EncrypterFromType(t k.CommonKeyCryptType) EncryptFunc {
 // This function returns nil when decrypter was not found.
 func DecrypterFromType(t k.CommonKeyCryptType) DecryptFunc {
 	typeToDec := map[k.CommonKeyCryptType]DecryptFunc{
-		k.CommonKeyCryptType_AESGCM:       DecryptAESGCM,
-		k.CommonKeyCryptType_AESCBC:       DecryptAESCBC,
-		k.CommonKeyCryptType_AESCFB:       DecryptAESCFB,
-		k.CommonKeyCryptType_AESCTR:       DecryptAESCTR,
-		k.CommonKeyCryptType_AESOFB:       DecryptAESOFB,
-		k.CommonKeyCryptType_DESCBC:       DecryptDESCBC,
-		k.CommonKeyCryptType_DESCFB:       DecryptDESCFB,
-		k.CommonKeyCryptType_DESCTR:       DecryptDESCTR,
-		k.CommonKeyCryptType_DESOFB:       DecryptDESOFB,
-		k.CommonKeyCryptType_TripleDESCBC: DecryptTripleDESCBC,
-		k.CommonKeyCryptType_TripleDESCFB: DecryptTripleDESCFB,
-		k.CommonKeyCryptType_TripleDESCTR: DecryptTripleDESCTR,
-		k.CommonKeyCryptType_TripleDESOFB: DecryptTripleDESOFB,
-		k.CommonKeyCryptType_RC4:          DecryptRC4,
+		k.CommonKeyCryptType_AESGCM: DecryptAESGCM,
+		k.CommonKeyCryptType_AESCBC: DecryptAESCBC,
+		k.CommonKeyCryptType_AESCFB: DecryptAESCFB,
+		k.CommonKeyCryptType_AESCTR: DecryptAESCTR,
+		k.CommonKeyCryptType_AESOFB: DecryptAESOFB,
 	}
 	return typeToDec[t]
 }

@@ -1,36 +1,21 @@
 syntax = "proto3";
 package app.v1;
 
-import "app/v1/encoding.proto";
 import "buf/validate/validate.proto";
 import "core/v1/http.proto";
+import "kernel/commonkey.proto";
+import "kernel/hash.proto";
 import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
 
-// SessionMiddleware is the definition of the SessionMiddleware object.
-// SessionMiddleware implements interface of the middleware.
+// SessionMiddleware resource definition.
+// apiVersion="app/v1", kind="SessionMiddleware".
 message SessionMiddleware {
-    // [REQUIRED]
-    // APIVersion is the defined version of the midleware.
-    // This value must be "app/v1".
-    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "app/v1"];
-
-    // [REQUIRED]
-    // Kind is the kind of this object.
-    // This value must be "SessionMiddleware"
-    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "SessionMiddleware"];
-
-    // [OPTIONAL]
-    // Metadata is the metadata of the http logger object.
-    // If not set, both name and namespace in the metadata
-    // are treated as "default".
-    kernel.Metadata Metadata = 3 [json_name = "metadata"];
-
-    // [OPTIONAL]
-    // Spec is the specification of the middleware.
-    // Default values are used when nothing is set.
-    SessionMiddlewareSpec Spec = 4 [json_name = "spec"];
+    string                APIVersion = 1 [json_name = "apiVersion"];
+    string                Kind       = 2 [json_name = "kind"];
+    kernel.Metadata       Metadata   = 3 [json_name = "metadata"];
+    SessionMiddlewareSpec Spec       = 4 [json_name = "spec"];
 }
 
 // SessionMiddlewareSpec is the status of the SessionMiddleware object.
@@ -83,4 +68,49 @@ message SessionMiddlewareSpec {
     // This tracer is used for tracing the saving of the session data to the session storage
     // except for cookie storage.
     kernel.Reference Tracer = 8 [json_name = "tracer"];
+}
+
+// SecureEncoderSpec is the specification of a secure encoder.
+message SecureEncoderSpec {
+    // [OPTIONAL]
+    // HashAlg is the algorithm to calculate hash value by HMAC.
+    // Default is SHA256, or HMAC-Sha256.
+    kernel.HashAlg HashAlg = 1 [json_name = "hashAlg"];
+
+    // [OPTIONAL]
+    // HMACSecret is the Base64 encoded secret for HMAC.
+    // The secret should be at least 64 bytes with enough entropy.
+    // Use for example https://generate.plus/en/base64.
+    // Default value is Base64(sha512(hostname + uid + gid)) but do not use it in production.
+    string HMACSecret = 2 [json_name = "hmacSecret", (buf.validate.field).string.pattern = "[0-9a-zA-Z+/=]+"];
+
+    // [OPTIONAL]
+    // CommonKeyCryptType is the algorithm used for encrypting the data.
+    // Set CryptSecret using at production.
+    // Default is [AESGCM].
+    kernel.CommonKeyCryptType CommonKeyCryptType = 3 [json_name = "commonKeyCryptType"];
+
+    // [OPTIONAL]
+    // CryptSecret is the Base64 encoded secret for common key encryption.
+    // The secret length depends on the crypt algorithms.
+    // Use for example https://generate.plus/en/base64.
+    // Default value is Base64(sha256(hostname + uid + gid)) but do not use it in production.
+    string CryptSecret = 4 [json_name = "cryptSecret", (buf.validate.field).string.pattern = "[0-9a-zA-Z+/=]+"];
+
+    // [OPTIONAL]
+    // EnableCompression compress the encoded values by Gzip.
+    bool EnableCompression = 6 [json_name = "enableCompression"];
+
+    // [OPTIONAL]
+    // DisableHMAC is the flag to disable HMAC hashing.
+    // Disabling HMAC slightly increase the performance but it is not recommended
+    // from the stand point of security.
+    // Never disable HMAC when using the encoder for cookie values or something exposed to clients.
+    bool DisableHMAC = 7 [json_name = "disableHMAC"];
+
+    //  [OPTIONAL] DisableEncryption is the flag to disable common key encryption.
+    // Disabling encryption slightly increase the performance but it is not recommended
+    // from the stand point of security.
+    // Never disable encryption when using the encoder for cookie values or something exposed to clients.
+    bool DisableEncryption = 8 [json_name = "disableEncryption"];
 }

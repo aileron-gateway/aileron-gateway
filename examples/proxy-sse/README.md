@@ -36,14 +36,13 @@ style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
 
 In this example, following directory structure and files are supposed.
 
-Resources are available at [examples/proxy-sse/](https://github.com/aileron-gateway/aileron-gateway/tree/main/examples/proxy-sse).
+Example resources are available at [examples/proxy-sse/]({{% github-url "" %}}).
 If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt
 proxy-sse/         ----- Working directory.
 ├── aileron        ----- AILERON Gateway binary (aileron.exe on windows).
-├── config.yaml    ----- AILERON Gateway config file.
-└── Taskfile.yaml  ----- (Optional) Config file for the go-task.
+└── config.yaml    ----- AILERON Gateway config file.
 ```
 
 ## Config
@@ -54,34 +53,7 @@ This config is almost the same as plain reverse-proxy except for the upstream ur
 ```yaml
 # config.yaml
 
-apiVersion: core/v1
-kind: Entrypoint
-spec:
-  runners:
-    - apiVersion: core/v1
-      kind: HTTPServer
-
----
-apiVersion: core/v1
-kind: HTTPServer
-spec:
-  addr: ":8080"
-  virtualHosts:
-    - handlers:
-        - handler:
-            apiVersion: core/v1
-            kind: ReverseProxyHandler
-
----
-apiVersion: core/v1
-kind: ReverseProxyHandler
-spec:
-  loadBalancers:
-    - pathMatcher:
-        match: "/"
-        matchType: Prefix
-      upstreams:
-        - url: http://sse.dev/
+{{% github-raw "config.yaml" %}}
 ```
 
 The config tells:
@@ -100,8 +72,8 @@ graph TD
   HTTPServer["🟪 **HTTPServer**</br>default/default"]
   ReverseProxyHandler["🟥 **ReverseProxyHandler**</br>default/default"]
 
-Entrypoint --> HTTPServer
-HTTPServer --> ReverseProxyHandler
+Entrypoint --"Runner"--> HTTPServer
+HTTPServer --"HTTP Handler"--> ReverseProxyHandler
 ReverseProxyHandler
 
 style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
@@ -109,25 +81,10 @@ style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
 
 ## Run
 
-### (Option 1) Directory run the binary
+Run the AILERON Gateway with:
 
 ```bash
 ./aileron -f ./config.yaml
-```
-
-### (Option 2) Use taskfile
-
-`Taskfile.yaml` is available to run the example.
-Install [go-task](https://taskfile.dev/) and run the following command.
-
-```bash
-task
-```
-
-or with arbitrary binary path.
-
-```bash
-task AILERON_CMD="./path/to/aileron/binary"
 ```
 
 ## Check

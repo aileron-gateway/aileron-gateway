@@ -9,7 +9,6 @@ import (
 	"os"
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
-	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
 	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
 )
@@ -47,12 +46,12 @@ func NewMIMEContent(spec *v1.MIMEContentSpec) (*MIMEContent, error) {
 		body = string(b)
 	}
 
-	typ := map[kernel.TemplateType]txtutil.TemplateType{
-		kernel.TemplateType_Text:   txtutil.TplText,
-		kernel.TemplateType_GoText: txtutil.TplGoText,
-		kernel.TemplateType_GoHTML: txtutil.TplGoHTML,
+	typ := map[v1.TemplateType]txtutil.TemplateType{
+		v1.TemplateType_Text:   txtutil.TplText,
+		v1.TemplateType_GoText: txtutil.TplGoText,
+		v1.TemplateType_GoHTML: txtutil.TplGoHTML,
 	}[spec.TemplateType]
-	tpl, err := txtutil.NewTemplate(typ, body, spec.FallbackText)
+	tpl, err := txtutil.NewTemplate(typ, body)
 	if err != nil {
 		return nil, err // Return err as-is.
 	}

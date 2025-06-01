@@ -2,24 +2,24 @@ syntax = "proto3";
 package app.v1;
 
 import "buf/validate/validate.proto";
-import "kernel/resource.proto";
 import "core/v1/http.proto";
-import "kernel/txtutil.proto";
+import "kernel/matcher.proto";
+import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
 
-// TimeoutMiddleware is the definition of the TimeoutMiddleware object.
-// TimeoutMiddleware implements interface of the middleware.
+// TimeoutMiddleware resource definition.
+// apiVersion="app/v1", kind="TimeoutMiddleware".
 message TimeoutMiddleware {
     // [REQUIRED]
     // APIVersion is the defined version of the midleware.
     // This value must be "app/v1".
-    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "app/v1"];
+    string APIVersion = 1 [json_name = "apiVersion"];
 
     // [REQUIRED]
     // Kind is the kind of this object.
     // This value must be "TimeoutMiddleware".
-    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "TimeoutMiddleware"];
+    string Kind = 2 [json_name = "kind"];
 
     // [OPTIONAL]
     // Metadata is the metadata of the http logger object.

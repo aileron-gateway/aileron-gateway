@@ -37,14 +37,13 @@ style CompressionMiddleware stroke:#77dd77,stroke-width:2px
 
 In this example, following directory structure and files are supposed.
 
-Resources are available at [examples/compressoin/](https://github.com/aileron-gateway/aileron-gateway/tree/main/examples/compressoin).
+Example resources are available at [examples/compressoin/]({{% github-url "" %}}).
 If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt
-access-logging/    ----- Working directory.
-├── aileron        ----- AILERON Gateway binary (aileron.exe on windows).
-├── config.yaml    ----- AILERON Gateway config file.
-└── Taskfile.yaml  ----- (Optional) Config file for the go-task.
+access-logging/  ----- Working directory.
+├── aileron      ----- AILERON Gateway binary (aileron.exe on windows).
+└── config.yaml  ----- AILERON Gateway config file.
 ```
 
 ## Config
@@ -54,43 +53,7 @@ Configuration yaml to run a server with access logging becomes as follows.
 ```yaml
 # config.yaml
 
-apiVersion: core/v1
-kind: Entrypoint
-spec:
-  runners:
-    - apiVersion: core/v1
-      kind: HTTPServer
-
----
-apiVersion: core/v1
-kind: HTTPServer
-spec:
-  addr: ":8080"
-  virtualHosts:
-    - middleware:
-        - apiVersion: app/v1
-          kind: CompressionMiddleware
-      handlers:
-        - handler:
-            apiVersion: core/v1
-            kind: ReverseProxyHandler
-
----
-apiVersion: core/v1
-kind: ReverseProxyHandler
-spec:
-  loadBalancers:
-    - pathMatcher:
-        match: "/"
-        matchType: Prefix
-      upstreams:
-        - url: http://httpbin.org
-
----
-apiVersion: app/v1
-kind: CompressionMiddleware
-spec:
-  minimumSize: 10 # bytes
+{{% github-raw "config.yaml" %}}
 ```
 
 The config tells:
@@ -119,25 +82,10 @@ style CompressionMiddleware stroke:#77dd77,stroke-width:2px
 
 ## Run
 
-### (Option 1) Directory run the binary
+Run the command to start AILERON Gateway.
 
 ```bash
 ./aileron -f ./config.yaml
-```
-
-### (Option 2) Use taskfile
-
-`Taskfile.yaml` is available to run the example.
-Install [go-task](https://taskfile.dev/) and run the following command.
-
-```bash
-task
-```
-
-or with arbitrary binary path.
-
-```bash
-task AILERON_CMD="./path/to/aileron/binary"
 ```
 
 ## Check

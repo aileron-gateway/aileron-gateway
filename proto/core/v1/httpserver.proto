@@ -9,28 +9,13 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/core/v1";
 
-// HTTPServer is the definition of the HTTPServer object.
+// HTTPServer resource definition.
+// apiVersion="core/v1", kind="HTTPServer".
 message HTTPServer {
-    // [REQUIRED]
-    // APIVersion is the defined version of the server.
-    // This value must be "core/v1".
-    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "core/v1"];
-
-    // [REQUIRED]
-    // Kind is the kind of this object.
-    // This value must be "HTTPServer".
-    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "HTTPServer"];
-
-    // [OPTIONAL]
-    // Metadata is the metadata of the server object.
-    // If not set, both name and namespace in the metadata
-    // are treated as "default".
-    kernel.Metadata Metadata = 3 [json_name = "metadata"];
-
-    // [OPTIONAL]
-    // Spec is the specification of the server.
-    // Default values are used when nothing is set.
-    HTTPServerSpec Spec = 4 [json_name = "spec"];
+    string          APIVersion = 1 [json_name = "apiVersion"];
+    string          Kind       = 2 [json_name = "kind"];
+    kernel.Metadata Metadata   = 3 [json_name = "metadata"];
+    HTTPServerSpec  Spec       = 4 [json_name = "spec"];
 }
 
 // HTTPServerSpec is the specifications for the HTTPServer object.
@@ -94,18 +79,25 @@ message HTTPServerSpec {
     repeated VirtualHostSpec VirtualHosts = 8 [json_name = "virtualHosts"];
 
     // [OPTIONAL]
-    // Profile enables profile endpoint for the server.
+    // EnableProfile enables profile endpoint for the server.
+    // If true, following endpoints are registered to the server.
+    //   - pprof.Index at "GET /debug/pprof/"
+    //   - pprof.Cmdline at "GET /debug/pprof/cmdline"
+    //   - pprof.Profile at "GET /debug/pprof/profile"
+    //   - pprof.Symbol at "GET /debug/pprof/symbol"
+    //   - pprof.Trace at "GET /debug/pprof/trace"
     // See https://pkg.go.dev/net/http/pprof.
-    // This feature is disabled by default.
-    // Default is not set.
-    ProfileSpec Profile = 9 [json_name = "profile"];
+    // DO NOT enable this on production environment.
+    // Default is [false].
+    bool EnableProfile = 9 [json_name = "enableProfile"];
 
     // [OPTIONAL]
-    // Expvar enables expvar endpoint for the server.
+    // EnableExpvar enables expvar endpoint for the server.
+    // The endpoint is "GET /debug/vars".
     // See https://pkg.go.dev/expvar.
-    // This feature is disabled by default.
-    // Default is not set.
-    ExpvarSpec Expvar = 10 [json_name = "expvar"];
+    // DO NOT enable this on production environment.
+    // Default is [false].
+    bool EnableExpvar = 10 [json_name = "enableExpvar"];
 }
 
 // HTTPConfig is the configuration for a HTTP 1/2 server.
@@ -335,39 +327,4 @@ message VirtualHostSpec {
     // This is optional but specify at least 1 handler to serve some apis.
     // Default is not set.
     repeated core.v1.HTTPHandlerSpec Handlers = 5 [json_name = "handlers"];
-}
-
-// ProfileSpec is the specification for profile endpoints.
-message ProfileSpec {
-    // [OPTIONAL]
-    // Enable enables profile endpoints.
-    // This is intended for debugging.
-    // Default is [false].
-    bool Enable = 1 [json_name = "enable"];
-
-    // [OPTIONAL]
-    // PathPrefix is the path prefix of the profile endpoints.
-    // This prefix can contain hostname.
-    // For example, "localhost/debug/pprof".
-    // Available HTTP methods are restricted to GET only.
-    // Default is ["/debug/pprof"]
-    string PathPrefix = 2 [json_name = "pathPrefix"];
-}
-
-// ExpvarSpec is the specification for  endpoints.
-// See https://pkg.go.dev/expvar.
-message ExpvarSpec {
-    // [OPTIONAL]
-    // Enable enables expvar endpoints.
-    // This is intended for debugging.
-    // Default is [false].
-    bool Enable = 1 [json_name = "enable"];
-
-    // [OPTIONAL]
-    // Path is the path of the expvar endpoints.
-    // This prefix can contains method or hostname.
-    // For example, "localhost/debug/vars".
-    // Available HTTP methods are restricted to GET only.
-    // Default is ["/debug/var"]
-    string Path = 2 [json_name = "path"];
 }

@@ -1,0 +1,65 @@
+syntax = "proto3";
+package app.v1;
+
+import "kernel/network.proto";
+import "kernel/resource.proto";
+
+option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
+
+message RedisClient {
+    // [REQUIRED]
+    // APIVersion is the defined version of the midleware.
+    // This value must be "app/v1".
+    string APIVersion = 1 [json_name = "apiVersion"];
+
+    // [REQUIRED]
+    // Kind is the kind of this object.
+    // This value must be "RedisClient".
+    string Kind = 2 [json_name = "kind"];
+
+    // [OPTIONAL]
+    // Metadata is the metadata of the http logger object.
+    // If not set, both name and namespace in the metadata
+    // are treated as "default".
+    kernel.Metadata Metadata = 3 [json_name = "metadata"];
+
+    // [OPTIONAL]
+    // Spec is the specification of the storage.
+    // Default values are used when nothing is set.
+    RedisClientSpec Spec = 4 [json_name = "spec"];
+}
+
+// RedisClientSpec is the spec for redis universal client.
+// See https://pkg.go.dev/github.com/go-redis/redis#UniversalOptions for details.
+message RedisClientSpec {
+    repeated string  Addrs                 = 1 [json_name = "addrs"];
+    string           Name                  = 2 [json_name = "name"];
+    int32            DB                    = 3 [json_name = "db"];
+    string           Username              = 4 [json_name = "username"];
+    string           Password              = 5 [json_name = "password"];
+    string           SentinelUsername      = 6 [json_name = "sentinelUsername"];
+    string           SentinelPassword      = 7 [json_name = "sentinelPassword"];
+    int32            MaxRetries            = 8 [json_name = "maxRetries"];
+    int32            MinRetryBackoff       = 9 [json_name = "minRetryBackoff"];
+    int32            MaxRetryBackoff       = 10 [json_name = "maxRetryBackoff"];
+    int32            DialTimeout           = 11 [json_name = "dialTimeout"];
+    int32            ReadTimeout           = 12 [json_name = "readTimeout"];
+    int32            WriteTimeout          = 13 [json_name = "writeTimeout"];
+    bool             ContextTimeoutEnabled = 14 [json_name = "contextTimeoutEnabled"];
+    bool             PoolFIFO              = 15 [json_name = "poolFIFO"];
+    int32            PoolSize              = 16 [json_name = "poolSize"];
+    int32            PoolTimeout           = 17 [json_name = "poolTimeout"];
+    int32            MinIdleConns          = 18 [json_name = "minIdleConns"];
+    int32            MaxIdleConns          = 19 [json_name = "maxIdleConns"];
+    int32            ConnMaxIdleTime       = 20 [json_name = "connMaxIdleTime"];
+    int32            ConnMaxLifetime       = 21 [json_name = "connMaxLifetime"];
+    kernel.TLSConfig TLSConfig             = 22 [json_name = "tlsConfig"];
+    int32            MaxRedirects          = 23 [json_name = "maxRedirects"];
+    bool             ReadOnly              = 24 [json_name = "readOnly"];
+    bool             RouteByLatency        = 25 [json_name = "routeByLatency"];
+    bool             RouteRandomly         = 26 [json_name = "routeRandomly"];
+    string           MasterName            = 27 [json_name = "masterName"];
+
+    int64 Timeout    = 28 [json_name = "timeout"];
+    int64 Expiration = 29 [json_name = "expiration"];
+}

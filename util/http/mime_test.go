@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
-	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
@@ -57,9 +56,8 @@ func TestNewTemplate(t *testing.T) {
 				spec: &v1.MIMEContentSpec{
 					MIMEType:     "text/plain",
 					StatusCode:   http.StatusOK,
-					TemplateType: k.TemplateType_Text,
+					TemplateType: v1.TemplateType_Text,
 					Template:     "test {{.tag}}",
-					FallbackText: "fallback",
 				},
 				info: map[string]any{"tag": "template"},
 			},
@@ -78,9 +76,8 @@ func TestNewTemplate(t *testing.T) {
 				spec: &v1.MIMEContentSpec{
 					MIMEType:     "text/plain",
 					StatusCode:   0,
-					TemplateType: k.TemplateType_Text,
+					TemplateType: v1.TemplateType_Text,
 					Template:     "test {{.tag}}",
-					FallbackText: "fallback",
 				},
 				info: map[string]any{"tag": "template"},
 			},
@@ -100,9 +97,8 @@ func TestNewTemplate(t *testing.T) {
 					MIMEType:     "text/plain",
 					StatusCode:   http.StatusOK,
 					Header:       map[string]string{"foo": "bar", "alice": "bob"},
-					TemplateType: k.TemplateType_Text,
+					TemplateType: v1.TemplateType_Text,
 					Template:     "test {{.tag}}",
-					FallbackText: "fallback",
 				},
 				info: map[string]any{"tag": "template"},
 			},
@@ -121,9 +117,8 @@ func TestNewTemplate(t *testing.T) {
 				spec: &v1.MIMEContentSpec{
 					MIMEType:     "text/plain",
 					StatusCode:   http.StatusOK,
-					TemplateType: k.TemplateType_GoText,
+					TemplateType: v1.TemplateType_GoText,
 					Template:     "test {{.tag}}",
-					FallbackText: "fallback",
 				},
 				info: map[string]any{"tag": "template"},
 			},
@@ -142,9 +137,8 @@ func TestNewTemplate(t *testing.T) {
 				spec: &v1.MIMEContentSpec{
 					MIMEType:     "text/plain",
 					StatusCode:   http.StatusOK,
-					TemplateType: k.TemplateType_GoHTML,
+					TemplateType: v1.TemplateType_GoHTML,
 					Template:     "test {{.tag}}",
-					FallbackText: "fallback",
 				},
 				info: map[string]any{"tag": "template"},
 			},
@@ -163,9 +157,8 @@ func TestNewTemplate(t *testing.T) {
 				spec: &v1.MIMEContentSpec{
 					MIMEType:     "text/plain",
 					StatusCode:   http.StatusOK,
-					TemplateType: k.TemplateType_GoText,
+					TemplateType: v1.TemplateType_GoText,
 					Template:     "test {{.tag}",
-					FallbackText: "fallback",
 				},
 				info: map[string]any{"tag": "template"},
 			},
@@ -185,9 +178,8 @@ func TestNewTemplate(t *testing.T) {
 				spec: &v1.MIMEContentSpec{
 					MIMEType:     "text/plain",
 					StatusCode:   http.StatusOK,
-					TemplateType: k.TemplateType_GoHTML,
+					TemplateType: v1.TemplateType_GoHTML,
 					Template:     "test {{.tag}",
-					FallbackText: "fallback",
 				},
 				info: map[string]any{"tag": "template"},
 			},
@@ -207,7 +199,7 @@ func TestNewTemplate(t *testing.T) {
 				spec: &v1.MIMEContentSpec{
 					MIMEType:     "",
 					StatusCode:   http.StatusOK,
-					TemplateType: k.TemplateType_GoText,
+					TemplateType: v1.TemplateType_GoText,
 					Template:     "test",
 				},
 				info: map[string]any{"tag": "template"},
@@ -228,9 +220,8 @@ func TestNewTemplate(t *testing.T) {
 				spec: &v1.MIMEContentSpec{
 					MIMEType:     "invalid/text/plain",
 					StatusCode:   http.StatusOK,
-					TemplateType: k.TemplateType_GoText,
+					TemplateType: v1.TemplateType_GoText,
 					Template:     "test {{.tag}}",
-					FallbackText: "fallback",
 				},
 				info: map[string]any{"tag": "template"},
 			},
@@ -250,9 +241,8 @@ func TestNewTemplate(t *testing.T) {
 				spec: &v1.MIMEContentSpec{
 					MIMEType:     "text/plain",
 					StatusCode:   http.StatusOK,
-					TemplateType: k.TemplateType_Text,
+					TemplateType: v1.TemplateType_Text,
 					TemplateFile: testDir + "ut/core/utilhttp/template.txt",
-					FallbackText: "fallback",
 				},
 				info: map[string]any{"tag": "template"},
 			},
@@ -271,9 +261,8 @@ func TestNewTemplate(t *testing.T) {
 				spec: &v1.MIMEContentSpec{
 					MIMEType:     "text/plain",
 					StatusCode:   http.StatusOK,
-					TemplateType: k.TemplateType_Text,
+					TemplateType: v1.TemplateType_Text,
 					TemplateFile: testDir + "ut/core/utilhttp/not-exist.txt",
-					FallbackText: "fallback",
 				},
 				info: map[string]any{"tag": "template"},
 			},

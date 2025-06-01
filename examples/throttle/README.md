@@ -34,14 +34,13 @@ style EchoHandler stroke:#ff6961,stroke-width:2px
 
 In this example, following directory structure and files are supposed.
 
-Resources are available at [examples/throttle/](https://github.com/aileron-gateway/aileron-gateway/tree/main/examples/throttle).
+Example resources are available at [examples/throttle/]({{% github-url "" %}}).
 If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt
 throttle/          ----- Working directory.
 ├── aileron        ----- AILERON Gateway binary (aileron.exe on windows).
-├── config.yaml    ----- AILERON Gateway config file.
-└── Taskfile.yaml  ----- (Optional) Config file for the go-task.
+└── config.yaml    ----- AILERON Gateway config file.
 ```
 
 ## Config
@@ -51,44 +50,7 @@ Configuration yaml to run a echo server with throttle middleware would becomes a
 ```yaml
 # config.yaml
 
-apiVersion: core/v1
-kind: Entrypoint
-spec:
-  runners:
-    - apiVersion: core/v1
-      kind: HTTPServer
-
----
-apiVersion: core/v1
-kind: HTTPServer
-spec:
-  addr: ":8080"
-  virtualHosts:
-    - middleware:
-        - apiVersion: app/v1
-          kind: ThrottleMiddleware
-      handlers:
-        - handler:
-            apiVersion: app/v1
-            kind: EchoHandler
-
----
-apiVersion: app/v1
-kind: EchoHandler
-
----
-apiVersion: app/v1
-kind: ThrottleMiddleware
-spec:
-  apiThrottlers:
-    - methods: []
-      matcher:
-        matchType: Regex
-        patterns:
-          - ".*"
-      fixedWindow:
-        windowSize: 1000
-        limit: 10
+{{% github-raw "config.yaml" %}}
 ```
 
 The config tells:
@@ -109,9 +71,9 @@ graph TD
   ThrottleMiddleware["🟩</br>**ThrottleMiddleware**</br>default/default"]
   EchoHandler["🟥</br>**EchoHandler**</br>default/default"]
 
-Entrypoint --> HTTPServer
-HTTPServer --> EchoHandler
-HTTPServer --> ThrottleMiddleware
+Entrypoint --"Runner"--> HTTPServer
+HTTPServer --"HTTP Handler"--> EchoHandler
+HTTPServer --"Middleware"--> ThrottleMiddleware
 
 style ThrottleMiddleware stroke:#77dd77,stroke-width:2px
 style EchoHandler stroke:#ff6961,stroke-width:2px
@@ -119,25 +81,10 @@ style EchoHandler stroke:#ff6961,stroke-width:2px
 
 ## Run
 
-### (Option 1) Directory run the binary
+Run the AILERON Gateway with command:
 
 ```bash
 ./aileron -f ./config.yaml
-```
-
-### (Option 2) Use taskfile
-
-`Taskfile.yaml` is available to run the example.
-Install [go-task](https://taskfile.dev/) and run the following command.
-
-```bash
-task
-```
-
-or with arbitrary binary path.
-
-```bash
-task AILERON_CMD="./path/to/aileron/binary"
 ```
 
 ## Check

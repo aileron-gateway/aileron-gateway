@@ -88,7 +88,7 @@ func newAuthorizationCodeHandler(bh *baseHandler, spec *v1.AuthorizationCodeHand
 		callbackPath:        u.Path,
 		callbackURL:         spec.CallbackURL,
 		redirectPath:        spec.RedirectPath,
-		redirectPathPattern: regexp.MustCompile(cmp.Or(spec.RedirectPathPattern, "^$")),
+		redirectPathPattern: regexp.MustCompile(cmp.Or(spec.RedirectPathPattern, "^/.*$")),
 		redirectToLogin:     spec.RedirectToLogin,
 		unauthorizeAny:      spec.UnauthorizeAny,
 		restoreRequest:      spec.RestoreRequest,
@@ -143,7 +143,8 @@ func (h *authorizationCodeHandler) ServeAuthn(w http.ResponseWriter, r *http.Req
 	}
 
 	oauthTokens := &OAuthTokens{}
-	if err := ss.Extract(authzCodeSessionKey, oauthTokens); err == nil { // OAuthTokens was found in the session.
+	err := ss.Extract(authzCodeSessionKey, oauthTokens)
+	if err == nil { // OAuthTokens was found in the session.
 		oc := h.oauthContextFromName(oauthTokens.Context)
 		err := oc.validOauthClaims(r.Context(), oauthTokens, maxAgeValidation(h.maxAge))
 		if err != nil {
@@ -291,7 +292,6 @@ func (h *authorizationCodeHandler) handleLogin(w http.ResponseWriter, r *http.Re
 		"response_type": []string{"code"},
 		"client_id":     []string{oc.client.id},
 	}
-
 	optParams := url.Values{
 		"redirect_uri": []string{h.callbackURL},
 	}
@@ -349,7 +349,6 @@ func (h *authorizationCodeHandler) handleLogin(w http.ResponseWriter, r *http.Re
 	w.Header().Set("Location", oc.provider.authorizationEP+"?"+baseParams.Encode()+"&"+csrfParams.Encode()+"&scope="+url.PathEscape(oc.client.scope)+"&"+optParams.Encode())
 	w.WriteHeader(http.StatusFound)
 	w.Write(nil)
-
 	return nil
 }
 
@@ -399,23 +398,19 @@ func (h *authorizationCodeHandler) handleCallback(r *http.Request, oc *oauthCont
 	// https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html
 	// https://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html
 	// https://openid.net/specs/openid-financial-api-jarm.html
-
 	if !h.csrf.stateDisabled && s.State != state {
 		err := app.ErrAppAuthnInvalidParameters.WithStack(nil, map[string]any{"name": "CSRF", "reason": "state mismatch. " + s.State + " != " + r.URL.Query().Get("state")})
 		return r, nil, utilhttp.NewHTTPError(err, http.StatusUnauthorized)
 	}
-
 	if code == "" {
 		err := app.ErrAppAuthnInvalidParameters.WithStack(nil, map[string]any{"name": "callback", "reason": "authorization code not found in query"})
 		return r, nil, utilhttp.NewHTTPError(err, http.StatusUnauthorized)
 	}
-
 	params := map[string]string{
 		"grant_type":   "authorization_code",
 		"code":         code,
 		"redirect_uri": h.callbackURL,
 	}
-
 	if s.Verifier != "" {
 		params["code_verifier"] = s.Verifier
 	}
@@ -444,7 +439,6 @@ func (h *authorizationCodeHandler) handleCallback(r *http.Request, oc *oauthCont
 	// such as authorization middleware can use them.
 	ctx := oc.contextWithToken(r.Context(), tokens)
 	r = r.WithContext(ctx)
-
 	return r, tokens, nil
 }
 

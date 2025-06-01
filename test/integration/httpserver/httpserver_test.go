@@ -128,7 +128,7 @@ func TestDebugExpvar(t *testing.T) {
 		ForceAttemptHTTP2: false,
 	}
 
-	r1 := httptest.NewRequest(http.MethodGet, "http://127.0.0.1:12345/debug/test", nil)
+	r1 := httptest.NewRequest(http.MethodGet, "http://127.0.0.1:12345/debug/vars", nil)
 	w1, err := h1t.RoundTrip(r1)
 	testutil.DiffError(t, nil, nil, err)
 	testutil.Diff(t, http.StatusOK, w1.StatusCode)
@@ -170,35 +170,34 @@ func TestDebugProfile(t *testing.T) {
 	}
 
 	// Index
-	r1 := httptest.NewRequest(http.MethodGet, "http://127.0.0.1:12345/debug/test/", nil)
+	r1 := httptest.NewRequest(http.MethodGet, "http://127.0.0.1:12345/debug/pprof/", nil)
 	w1, err := h1t.RoundTrip(r1)
 	testutil.DiffError(t, nil, nil, err)
 	testutil.Diff(t, http.StatusOK, w1.StatusCode)
 
 	// Cmdline
-	r2 := httptest.NewRequest(http.MethodGet, "http://127.0.0.1:12345/debug/test/cmdline", nil)
+	r2 := httptest.NewRequest(http.MethodGet, "http://127.0.0.1:12345/debug/pprof/cmdline", nil)
 	w2, err := h1t.RoundTrip(r2)
 	testutil.DiffError(t, nil, nil, err)
 	testutil.Diff(t, http.StatusOK, w2.StatusCode)
 
 	// Profile
-	r3 := httptest.NewRequest(http.MethodGet, "http://127.0.0.1:12345/debug/test/heap", nil)
+	r3 := httptest.NewRequest(http.MethodGet, "http://127.0.0.1:12345/debug/pprof/heap", nil)
 	w3, err := h1t.RoundTrip(r3)
 	testutil.DiffError(t, nil, nil, err)
 	testutil.Diff(t, http.StatusOK, w3.StatusCode)
 
 	// Symbol
-	r4 := httptest.NewRequest(http.MethodGet, "http://127.0.0.1:12345/debug/test/symbol", nil)
+	r4 := httptest.NewRequest(http.MethodGet, "http://127.0.0.1:12345/debug/pprof/symbol", nil)
 	w4, err := h1t.RoundTrip(r4)
 	testutil.DiffError(t, nil, nil, err)
 	testutil.Diff(t, http.StatusOK, w4.StatusCode)
 
 	// Trace
-	r5 := httptest.NewRequest(http.MethodGet, "http://127.0.0.1:12345/debug/test/trace", nil)
+	r5 := httptest.NewRequest(http.MethodGet, "http://127.0.0.1:12345/debug/pprof/trace", nil)
 	w5, err := h1t.RoundTrip(r5)
 	testutil.DiffError(t, nil, nil, err)
 	testutil.Diff(t, http.StatusOK, w5.StatusCode)
-
 }
 
 func TestHTTP(t *testing.T) {

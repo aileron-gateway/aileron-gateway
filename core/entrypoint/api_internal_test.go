@@ -292,34 +292,7 @@ func TestCreate(t *testing.T) {
 			},
 		),
 		gen(
-			"create with normal runner/waitgroup",
-			[]string{},
-			[]string{actCheckExpected, actCheckNoError},
-			&condition{
-				manifest: &v1.Entrypoint{
-					Metadata: &k.Metadata{},
-					Spec: &v1.EntrypointSpec{
-						Runners: []*k.Reference{
-							testResourceRef("nilRunner"),
-						},
-						WaitAll: true,
-					},
-				},
-			},
-			&action{
-				expect: &waitGroup{
-					lg: log.GlobalLogger(log.DefaultLoggerName),
-					runners: []core.Runner{
-						&testRunner{},
-					},
-					initializers: []core.Initializer{},
-					finalizers:   []core.Finalizer{},
-				},
-				err: nil,
-			},
-		),
-		gen(
-			"create with finalizers/channelgroup",
+			"create with finalizers",
 			[]string{},
 			[]string{actCheckExpected, actCheckNoError},
 			&condition{
@@ -337,34 +310,6 @@ func TestCreate(t *testing.T) {
 					runners:      []core.Runner{&testRunner{}},
 					initializers: []core.Initializer{},
 					finalizers:   []core.Finalizer{&testFinalizer{name: "nil"}},
-				},
-				err: nil,
-			},
-		),
-		gen(
-			"create with finalizers/waitgroup",
-			[]string{},
-			[]string{actCheckExpected, actCheckNoError},
-			&condition{
-				manifest: &v1.Entrypoint{
-					Metadata: &k.Metadata{},
-					Spec: &v1.EntrypointSpec{
-						Runners:    []*k.Reference{testResourceRef("nilRunner")},
-						Finalizers: []*k.Reference{testResourceRef("nilFinalizer")},
-						WaitAll:    true,
-					},
-				},
-			},
-			&action{
-				expect: &waitGroup{
-					lg: log.GlobalLogger(log.DefaultLoggerName),
-					runners: []core.Runner{
-						&testRunner{},
-					},
-					initializers: []core.Initializer{},
-					finalizers: []core.Finalizer{
-						&testFinalizer{name: "nil"},
-					},
 				},
 				err: nil,
 			},
@@ -486,7 +431,7 @@ func TestCreate(t *testing.T) {
 			opts := []cmp.Option{
 				cmp.Comparer(testutil.ComparePointer[log.Logger]),
 				cmp.AllowUnexported(utilhttp.DefaultErrorHandler{}),
-				cmp.AllowUnexported(channelGroup{}, waitGroup{}),
+				cmp.AllowUnexported(channelGroup{}),
 				cmp.AllowUnexported(testRunner{}, testFinalizer{}),
 				cmp.AllowUnexported(sync.WaitGroup{}, atomic.Uint64{}),
 				cmpopts.EquateErrors(),

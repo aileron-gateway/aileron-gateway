@@ -190,14 +190,14 @@ type testResource struct {
 }
 
 func (r *testResource) Default() protoreflect.ProtoMessage {
-	return &k.Template{}
+	return &k.Resource{}
 }
 
 func (r *testResource) Create(a API[*Request, *Response], msg protoreflect.ProtoMessage) (any, error) {
 	if msg == nil {
 		return nil, r.err
 	}
-	c := msg.(*k.Template)
+	c := msg.(*k.Resource)
 	return c.Metadata.Namespace + " " + c.Metadata.Name, r.err
 }
 
@@ -416,7 +416,7 @@ func TestFactoryAPI_post(t *testing.T) {
 			},
 			&action{
 				protoStore: map[string]protoreflect.ProtoMessage{
-					"test1/test2/test3/test4": &k.Template{
+					"test1/test2/test3/test4": &k.Resource{
 						APIVersion: "test1",
 						Kind:       "test2",
 						Metadata: &k.Metadata{
@@ -532,7 +532,7 @@ func TestFactoryAPI_post(t *testing.T) {
 
 			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
 			testutil.Diff(t, tt.A().objStore, a.objStore)
-			testutil.Diff(t, tt.A().protoStore, a.protoStore, cmpopts.IgnoreUnexported(k.Template{}, k.Metadata{}))
+			testutil.Diff(t, tt.A().protoStore, a.protoStore, cmpopts.IgnoreUnexported(k.Resource{}, k.Metadata{}))
 		})
 	}
 }
@@ -585,7 +585,7 @@ func TestFactoryAPI_get(t *testing.T) {
 			&condition{
 				a: &FactoryAPI{
 					protoStore: map[string]protoreflect.ProtoMessage{
-						"test1/test2/test3/test4": &k.Template{
+						"test1/test2/test3/test4": &k.Resource{
 							APIVersion: "test1",
 							Kind:       "test2",
 							Metadata: &k.Metadata{
@@ -607,7 +607,7 @@ func TestFactoryAPI_get(t *testing.T) {
 			&action{
 				obj: "test3 test4",
 				protoStore: map[string]protoreflect.ProtoMessage{
-					"test1/test2/test3/test4": &k.Template{
+					"test1/test2/test3/test4": &k.Resource{
 						APIVersion: "test1",
 						Kind:       "test2",
 						Metadata: &k.Metadata{
@@ -626,7 +626,7 @@ func TestFactoryAPI_get(t *testing.T) {
 			&condition{
 				a: &FactoryAPI{
 					protoStore: map[string]protoreflect.ProtoMessage{
-						"test1/test2/test3/test4": &k.Template{
+						"test1/test2/test3/test4": &k.Resource{
 							APIVersion: "test1",
 							Kind:       "test2",
 							Metadata: &k.Metadata{
@@ -648,7 +648,7 @@ func TestFactoryAPI_get(t *testing.T) {
 			&action{
 				obj: "test3 test4",
 				protoStore: map[string]protoreflect.ProtoMessage{
-					"test1/test2/test3/test4": &k.Template{
+					"test1/test2/test3/test4": &k.Resource{
 						APIVersion: "test1",
 						Kind:       "test2",
 						Metadata: &k.Metadata{
@@ -667,7 +667,7 @@ func TestFactoryAPI_get(t *testing.T) {
 			&condition{
 				a: &FactoryAPI{
 					protoStore: map[string]protoreflect.ProtoMessage{
-						"test1/test2/test3/test4": &k.Template{
+						"test1/test2/test3/test4": &k.Resource{
 							APIVersion: "test1",
 							Kind:       "test2",
 							Metadata: &k.Metadata{
@@ -689,7 +689,7 @@ func TestFactoryAPI_get(t *testing.T) {
 			&action{
 				obj: "<<< Do not check this value because single space and double spaces are randomly used for marshalling ProtoMessage to JSON >>>",
 				protoStore: map[string]protoreflect.ProtoMessage{
-					"test1/test2/test3/test4": &k.Template{
+					"test1/test2/test3/test4": &k.Resource{
 						APIVersion: "test1",
 						Kind:       "test2",
 						Metadata: &k.Metadata{
@@ -707,7 +707,7 @@ func TestFactoryAPI_get(t *testing.T) {
 			&condition{
 				a: &FactoryAPI{
 					protoStore: map[string]protoreflect.ProtoMessage{
-						"test1/test2/test3/test4": &k.Template{
+						"test1/test2/test3/test4": &k.Resource{
 							APIVersion: "test1",
 							Kind:       "test2",
 							Metadata: &k.Metadata{
@@ -729,7 +729,7 @@ func TestFactoryAPI_get(t *testing.T) {
 			&action{
 				obj: []byte("apiVersion: test1\nkind: test2\nmetadata:\n  logger: \"\"\n  name: test4\n  namespace: test3\nspec: null\n"),
 				protoStore: map[string]protoreflect.ProtoMessage{
-					"test1/test2/test3/test4": &k.Template{
+					"test1/test2/test3/test4": &k.Resource{
 						APIVersion: "test1",
 						Kind:       "test2",
 						Metadata: &k.Metadata{
@@ -748,7 +748,7 @@ func TestFactoryAPI_get(t *testing.T) {
 			&condition{
 				a: &FactoryAPI{
 					protoStore: map[string]protoreflect.ProtoMessage{
-						"test1/test2/test3/test4": &k.Template{
+						"test1/test2/test3/test4": &k.Resource{
 							APIVersion: "test1",
 							Kind:       "test2",
 							Metadata: &k.Metadata{
@@ -768,7 +768,7 @@ func TestFactoryAPI_get(t *testing.T) {
 				},
 			},
 			&action{
-				obj: &k.Template{
+				obj: &k.Resource{
 					APIVersion: "test1",
 					Kind:       "test2",
 					Metadata: &k.Metadata{
@@ -777,7 +777,7 @@ func TestFactoryAPI_get(t *testing.T) {
 					},
 				},
 				protoStore: map[string]protoreflect.ProtoMessage{
-					"test1/test2/test3/test4": &k.Template{
+					"test1/test2/test3/test4": &k.Resource{
 						APIVersion: "test1",
 						Kind:       "test2",
 						Metadata: &k.Metadata{
@@ -804,7 +804,7 @@ func TestFactoryAPI_get(t *testing.T) {
 				},
 			},
 			&action{
-				obj: &k.Template{},
+				obj: &k.Resource{},
 			},
 		),
 		gen(
@@ -888,14 +888,14 @@ func TestFactoryAPI_get(t *testing.T) {
 
 			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
 			testutil.Diff(t, tt.A().objStore, a.objStore)
-			testutil.Diff(t, tt.A().protoStore, a.protoStore, cmpopts.IgnoreUnexported(k.Template{}, k.Metadata{}))
+			testutil.Diff(t, tt.A().protoStore, a.protoStore, cmpopts.IgnoreUnexported(k.Resource{}, k.Metadata{}))
 
 			// Because JSON does not ensure the order of objects init,
 			// except the check for JSON returned by the get method.
 			// Note that the protoreflect package intentionally use single space " " and double space "  " randomly
 			// when marshalling ProtoMessage to JSON.
 			if tt.C().req.Params != nil && tt.C().req.Params[KeyAccept] != string(FormatJSON) {
-				testutil.Diff(t, tt.A().obj, obj, cmpopts.IgnoreUnexported(k.Template{}, k.Metadata{}))
+				testutil.Diff(t, tt.A().obj, obj, cmpopts.IgnoreUnexported(k.Resource{}, k.Metadata{}))
 			}
 		})
 	}

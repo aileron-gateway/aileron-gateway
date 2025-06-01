@@ -4,35 +4,19 @@ package core.v1;
 import "buf/validate/validate.proto";
 import "core/v1/http.proto";
 import "core/v1/resilience.proto";
+import "kernel/matcher.proto";
 import "kernel/network.proto";
 import "kernel/resource.proto";
-import "kernel/txtutil.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/core/v1";
 
-// ReverseProxyHandler is the definition of the ReverseProxyHandler object.
-// ReverseProxyHandler implements interface of the http handler.
+// ReverseProxyHandler resource definition.
+// apiVersion="core/v1", kind="ReverseProxyHandler".
 message ReverseProxyHandler {
-    // [REQUIRED]
-    // APIVersion is the defined version of the handler.
-    // This value must be "core/v1".
-    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "core/v1"];
-
-    // [REQUIRED]
-    // Kind is the kind of this object.
-    // This value must be "ReverseProxyHandler".
-    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "ReverseProxyHandler"];
-
-    // [OPTIONAL]
-    // Metadata is the metadata of the proxy object.
-    // If not set, both name and namespace in the metadata
-    // are treated as "default".
-    kernel.Metadata Metadata = 3 [json_name = "metadata"];
-
-    // [OPTIONAL]
-    // Spec is the specification of the handler.
-    // Default values are used when nothing is set.
-    ReverseProxyHandlerSpec Spec = 4 [json_name = "spec"];
+    string                  APIVersion = 1 [json_name = "apiVersion"];
+    string                  Kind       = 2 [json_name = "kind"];
+    kernel.Metadata         Metadata   = 3 [json_name = "metadata"];
+    ReverseProxyHandlerSpec Spec       = 4 [json_name = "spec"];
 }
 
 // ReverseProxyHandlerSpec is the specifications for the ReverseProxyHandler object.

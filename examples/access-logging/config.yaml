@@ -12,7 +12,7 @@ spec:
   addr: ":8080"
   virtualHosts:
     - middleware:
-        - apiVersion: core/v1
+        - apiVersion: core/v1 # Use as server-side middleware
           kind: HTTPLogger
       handlers:
         - handler:
@@ -24,7 +24,7 @@ apiVersion: core/v1
 kind: ReverseProxyHandler
 spec:
   tripperwares:
-    - apiVersion: core/v1
+    - apiVersion: core/v1 # Use as client-side middleware
       kind: HTTPLogger
   loadBalancers:
     - pathMatcher:
@@ -37,10 +37,9 @@ spec:
 apiVersion: core/v1
 kind: HTTPLogger
 spec:
-  journal: false
   request:
     headers:
-      - name: "*" # Log all headers.
+      - name: "*" # Log all request headers.
   response:
     headers:
-      - name: "*" # Log all headers.
+      - name: "*" # Log all response headers.

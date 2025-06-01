@@ -36,15 +36,14 @@ style Downstream stroke:#888
 
 In this example, following directory structure and files are supposed.
 
-Resources are available at [examples/vanilla-server/](https://github.com/aileron-gateway/aileron-gateway/tree/main/examples/vanilla-server).
+Example resources are available at [examples/vanilla-server/]({{% github-url "" %}}).
 If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt
 vanilla-server/           ----- Working directory.
 ├── aileron               ----- AILERON Gateway binary (aileron.exe on windows).
 ├── config-single.yaml    ----- AILERON Gateway config file for single server.
-├── config-multiple.yaml  ----- AILERON Gateway config file for multiple servers.
-└── Taskfile.yaml         ----- (Optional) Config file for the go-task.
+└── config-multiple.yaml  ----- AILERON Gateway config file for multiple servers.
 ```
 
 ## Config
@@ -55,43 +54,7 @@ Config for a single server would be more simple than this (See the config-single
 ```yaml
 # config-multiple.yaml
 
-apiVersion: core/v1
-kind: Entrypoint
-spec:
-  runners:
-    - apiVersion: core/v1
-      kind: HTTPServer
-      name: server1
-    - apiVersion: core/v1
-      kind: HTTPServer
-      name: server2
-    - apiVersion: core/v1
-      kind: HTTPServer
-      name: server3
-
----
-apiVersion: core/v1
-kind: HTTPServer
-metadata:
-  name: server1
-spec:
-  addr: ":8081"
-
----
-apiVersion: core/v1
-kind: HTTPServer
-metadata:
-  name: server2
-spec:
-  addr: ":8082"
-
----
-apiVersion: core/v1
-kind: HTTPServer
-metadata:
-  name: server3
-spec:
-  addr: ":8083"
+{{% github-raw "config-multiple.yaml" %}}
 ```
 
 The config tells:
@@ -109,32 +72,17 @@ graph TD
   HTTPServer2["🟪 **HTTPServer**</br>default/server2"]
   HTTPServer3["🟪 **HTTPServer**</br>default/server3"]
 
-  Entrypoint --> HTTPServer1
-  Entrypoint --> HTTPServer2
-  Entrypoint --> HTTPServer3
+  Entrypoint --"Runner"--> HTTPServer1
+  Entrypoint --"Runner"--> HTTPServer2
+  Entrypoint --"Runner"--> HTTPServer3
 ```
 
 ## Run
 
-### (Option 1) Directory run the binary
+Run the AILERON Gateway with command:
 
 ```bash
 ./aileron -f ./config-multiple.yaml
-```
-
-### (Option 2) Use taskfile
-
-`Taskfile.yaml` is available to run the example.
-Install [go-task](https://taskfile.dev/) and run the following command.
-
-```bash
-task
-```
-
-or with arbitrary binary path.
-
-```bash
-task AILERON_CMD="./path/to/aileron/binary"
 ```
 
 ## Check

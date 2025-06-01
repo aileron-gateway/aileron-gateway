@@ -4,33 +4,16 @@ package core.v1;
 import "buf/validate/validate.proto";
 import "core/v1/http.proto";
 import "kernel/resource.proto";
-import "kernel/txtutil.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/core/v1";
 
-// TemplateHandler is the definition of the TemplateHandler object.
-// TemplateHandler implements interface of the http handler.
+// TemplateHandler resource definition.
+// apiVersion="core/v1", kind="TemplateHandler".
 message TemplateHandler {
-    // [REQUIRED]
-    // APIVersion is the defined version of the handler.
-    // This value must be "core/v1".
-    string APIVersion = 1 [json_name = "apiVersion", (buf.validate.field).string.const = "core/v1"];
-
-    // [REQUIRED]
-    // Kind is the kind of this object.
-    // This value must be "TemplateHandler".
-    string Kind = 2 [json_name = "kind", (buf.validate.field).string.const = "TemplateHandler"];
-
-    // [OPTIONAL]
-    // Metadata is the metadata of the handler object.
-    // If not set, both name and namespace in the metadata
-    // are treated as "default".
-    kernel.Metadata Metadata = 3 [json_name = "metadata"];
-
-    // [OPTIONAL]
-    // Spec is the specification of the handler.
-    // Default values are used when nothing is set.
-    TemplateHandlerSpec Spec = 4 [json_name = "spec"];
+    string              APIVersion = 1 [json_name = "apiVersion"];
+    string              Kind       = 2 [json_name = "kind"];
+    kernel.Metadata     Metadata   = 3 [json_name = "metadata"];
+    TemplateHandlerSpec Spec       = 4 [json_name = "spec"];
 }
 
 // TemplateHandlerSpec is the specifications for the TemplateHandler object.
@@ -87,7 +70,7 @@ message MIMEContentSpec {
     // [OPTIONAL]
     // TemplateType is the template engine type of this content.
     // Default is [Text].
-    kernel.TemplateType TemplateType = 4 [json_name = "templateType"];
+    TemplateType TemplateType = 4 [json_name = "templateType"];
 
     // [OPTIONAL]
     // Template is the template text to generate response body.
@@ -101,12 +84,11 @@ message MIMEContentSpec {
     // It does not matter wheather the path is relative or absolute.
     // Default is not set.
     string TemplateFile = 6 [json_name = "templateFile"];
+}
 
-    // [OPTIONAL]
-    // FallbackText is the response body that will be used for fallback.
-    // This text will be used when generating response body
-    // with GoText, GoHTML failed.
-    // The value is not used when the TemplateType is Text.
-    // Default is not set.
-    string FallbackText = 7 [json_name = "fallbackText"];
+// TemplateType is the type of template document.
+enum TemplateType {
+    Text   = 0;  // Text is a standard text type. Content will be used as it is.
+    GoText = 1;  // GoText is Go's text template type. See https://pkg.go.dev/text/template.
+    GoHTML = 2;  // GoHTML is Go's HTML template type. See https://pkg.go.dev/html/template.
 }

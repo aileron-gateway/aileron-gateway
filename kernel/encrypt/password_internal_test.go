@@ -707,7 +707,7 @@ func TestNewPBKDF2(t *testing.T) {
 			[]string{},
 			[]string{},
 			&condition{
-				spec: &k.PBKDF2Spec{HashAlg: k.HashAlg_FNV1_32},
+				spec: &k.PBKDF2Spec{HashAlg: k.HashAlg(999)},
 			},
 			&action{
 				c: nil,

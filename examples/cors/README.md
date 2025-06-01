@@ -33,14 +33,13 @@ style CORSMiddleware stroke:#77dd77,stroke-width:2px
 
 In this example, following directory structure and files are supposed.
 
-Resources are available at [examples/cors/](https://github.com/aileron-gateway/aileron-gateway/tree/main/examples/cors).
+Example resources are available at [examples/cors/]({{% github-url "" %}}).
 If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt
-access-logging/    ----- Working directory.
-├── aileron        ----- AILERON Gateway binary (aileron.exe on windows).
-├── config.yaml    ----- AILERON Gateway config file.
-└── Taskfile.yaml  ----- (Optional) Config file for the go-task.
+cors/             ----- Working directory.
+├── aileron       ----- AILERON Gateway binary (aileron.exe on windows).
+└── config.yaml   ----- AILERON Gateway config file.
 ```
 
 ## Config
@@ -50,42 +49,7 @@ Configuration yaml to run a server with CORS middleware becomes as follows.
 ```yaml
 # config.yaml
 
-apiVersion: core/v1
-kind: Entrypoint
-spec:
-  runners:
-    - apiVersion: core/v1
-      kind: HTTPServer
-
----
-apiVersion: core/v1
-kind: HTTPServer
-spec:
-  addr: ":8080"
-  virtualHosts:
-    - middleware:
-        - apiVersion: app/v1
-          kind: CORSMiddleware
-      handlers:
-        - handler:
-            apiVersion: app/v1
-            kind: EchoHandler
-
----
-apiVersion: app/v1
-kind: EchoHandler
-
----
-apiVersion: app/v1
-kind: CORSMiddleware
-spec:
-  corsPolicy:
-    allowedOrigins:
-      - "http://localhost:8080"
-      - "http://example.com"
-    allowedMethods:
-      - GET
-      - HEAD
+{{% github-raw "config.yaml" %}}
 ```
 
 The config tells:
@@ -105,9 +69,9 @@ graph TD
   EchoHandler["🟥 **EchoHandler**</br>default/default"]
   CORSMiddleware["🟩 **CORSMiddleware**</br>default/default"]
 
-Entrypoint --> HTTPServer
-HTTPServer --> EchoHandler
-HTTPServer --> CORSMiddleware
+Entrypoint --"Runner"--> HTTPServer
+HTTPServer --"HTTP Handler"--> EchoHandler
+HTTPServer --"Middleware"--> CORSMiddleware
 
 style EchoHandler stroke:#ff6961,stroke-width:2px
 style CORSMiddleware stroke:#77dd77,stroke-width:2px
@@ -115,25 +79,10 @@ style CORSMiddleware stroke:#77dd77,stroke-width:2px
 
 ## Run
 
-### (Option 1) Directory run the binary
+Run the AILEROn Gateway with command:
 
 ```bash
 ./aileron -f ./config.yaml
-```
-
-### (Option 2) Use taskfile
-
-`Taskfile.yaml` is available to run the example.
-Install [go-task](https://taskfile.dev/) and run the following command.
-
-```bash
-task
-```
-
-or with arbitrary binary path.
-
-```bash
-task AILERON_CMD="./path/to/aileron/binary"
 ```
 
 ## Check

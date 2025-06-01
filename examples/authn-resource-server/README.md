@@ -37,14 +37,14 @@ style CompressionMiddleware stroke:#77dd77,stroke-width:2px
 
 In this example, following directory structure and files are supposed.
 
-Resources are available at [examples/compressoin/](https://github.com/aileron-gateway/aileron-gateway/tree/main/examples/compressoin).
+Example resources are available at [examples/authn-resource-server/]({{% github-url "" %}}).
 If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt
-access-logging/    ----- Working directory.
-├── aileron        ----- AILERON Gateway binary (aileron.exe on windows).
-├── config.yaml    ----- AILERON Gateway config file.
-└── Taskfile.yaml  ----- (Optional) Config file for the go-task.
+authn-resource-server/   ----- Working directory.
+├── aileron              ----- AILERON Gateway binary (aileron.exe on windows).
+├── config.yaml          ----- AILERON Gateway config file.
+└── docker-compose.yaml  ----- Docker compose file to run
 ```
 
 ## Config
@@ -54,43 +54,7 @@ Configuration yaml to run a server with access logging becomes as follows.
 ```yaml
 # config.yaml
 
-apiVersion: core/v1
-kind: Entrypoint
-spec:
-  runners:
-    - apiVersion: core/v1
-      kind: HTTPServer
-
----
-apiVersion: core/v1
-kind: HTTPServer
-spec:
-  addr: ":8080"
-  virtualHosts:
-    - middleware:
-        - apiVersion: app/v1
-          kind: CompressionMiddleware
-      handlers:
-        - handler:
-            apiVersion: core/v1
-            kind: ReverseProxyHandler
-
----
-apiVersion: core/v1
-kind: ReverseProxyHandler
-spec:
-  loadBalancers:
-    - pathMatcher:
-        match: "/"
-        matchType: Prefix
-      upstreams:
-        - url: http://httpbin.org
-
----
-apiVersion: app/v1
-kind: CompressionMiddleware
-spec:
-  minimumSize: 10 # bytes
+{{% github-raw "config.yaml" %}}
 ```
 
 The config tells:
@@ -109,9 +73,9 @@ graph TD
   ReverseProxyHandler["🟥 **ReverseProxyHandler**</br>default/default"]
   CompressionMiddleware["🟩 **CompressionMiddleware**</br>default/default"]
 
-Entrypoint --> HTTPServer
-HTTPServer --> ReverseProxyHandler
-HTTPServer --> CompressionMiddleware
+Entrypoint --"Runner"--> HTTPServer
+HTTPServer --"HTTP Handler"--> ReverseProxyHandler
+HTTPServer --"Middleware"--> CompressionMiddleware
 
 style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
 style CompressionMiddleware stroke:#77dd77,stroke-width:2px
@@ -119,120 +83,19 @@ style CompressionMiddleware stroke:#77dd77,stroke-width:2px
 
 ## Run
 
-### (Option 1) Directory run the binary
+First, start keycloak for testing.
+
+```bash
+docker compose up
+```
+
+Run the AILERON Gateway with the command:
 
 ```bash
 ./aileron -f ./config.yaml
 ```
 
-### (Option 2) Use taskfile
-
-`Taskfile.yaml` is available to run the example.
-Install [go-task](https://taskfile.dev/) and run the following command.
-
-```bash
-task
-```
-
-or with arbitrary binary path.
-
-```bash
-task AILERON_CMD="./path/to/aileron/binary"
-```
-
 ## Check
-
-Send HTTP requests with `Accept-Encoding` header.
-**gzip** and **br** are allowed.
-
-If response body size is known and the size is larger than the minimumSize, response body will be returned in compressed.
-
-```bash
-$ curl -H "Accept-Encoding: gzip" http://localhost:8080/get --compressed -v
-
-> GET /get HTTP/1.1
-> Host: localhost:8080
-> User-Agent: curl/8.12.1
-> Accept: */*
-> Accept-Encoding: gzip
-
-< HTTP/1.1 200 OK
-< Access-Control-Allow-Credentials: true
-< Access-Control-Allow-Origin: *
-< Content-Encoding: gzip
-< Content-Type: application/json
-< Date: Fri, 23 May 2025 08:54:21 GMT
-< Server: gunicorn/19.9.0
-< Vary: Accept-Encoding
-< Content-Length: 243
-
-{
-  "args": {},
-  "headers": {
-    "Accept": "*/*",
-    "Accept-Encoding": "gzip",
-    "Host": "httpbin.org",
-    "User-Agent": "curl/8.12.1",
-    "X-Amzn-Trace-Id": "Root=1-683037bd-00743c0b507b2b1b1d6ba521",
-    "X-Forwarded-Host": "localhost:8080"
-  },
-  "origin": "::1, 106.73.5.65",
-  "url": "http://localhost:8080/get"
-}
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Resource Server Example
-
-This folder is the example of a resource server.
-
-## Pre-requisite
-
-This example uses [keycloak](https://www.keycloak.org/) as authorization server.
-
-Keycloak with necessary configuration and data is in [../../_devtools/keycloak/](../../_devtools/keycloak/).
-So, an instance of keycloak should be run with `docker-compose`.
-
-- Run keycloak: `docker-compose up`
-- Stop keycloak: `docker-compose down`
-
-## Run
-
-To run this example, run the command below.
-Note that the [Pre-requisite](#pre-requisite) have to be met beforehand.
-
-```bash
-./aileron -f _example/authn-resource-server/
-```
-
-## Test
 
 First, we try to send a HTTP request without any tokens.
 An unauthorized response will be returned for such a request as shown below.
