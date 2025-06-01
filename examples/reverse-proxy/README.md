@@ -6,6 +6,7 @@ This example runs a reverse-proxy server.
 A revere-proxy server, which is the very basic feature in API Gateways, proxy requests from client to upstream services.
 
 ```mermaid
+
 block-beta
   columns 6
   Downstream:1
@@ -25,6 +26,7 @@ ReverseProxyHandler --> Upstream
 style Downstream stroke:#888
 style Upstream stroke:#888
 style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
+
 ```
 
 **Legend**:
