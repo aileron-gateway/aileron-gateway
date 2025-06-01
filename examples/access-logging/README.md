@@ -1,8 +1,12 @@
-# Access Logging Middleware/Tripperware
-
 ## Overview
 
-This example shows how to apply access logging.
+This example shows access logging.
+Access logging is the feature to log server-side requests and responses and client-side requests and responses.
+
+In the AILERON Gateway, HTTP requests and response logging is done by `HTTPLogger` API.
+Because `HTTPLogger` works both as server-side middleware and client-side middleware, it can be used for both server-side and client-side access logger.
+
+This is an overview how this example runs the AILERON Gateway and uses its features.
 
 ```mermaid
 block-beta
@@ -18,10 +22,10 @@ block-beta
   space:1
   Upstream:1
 
-Downstream --> HTTPServer
 HTTPServer --> Downstream
+Downstream --"request"--> HTTPServer
 Upstream --> HTTPLoggerT
-HTTPLoggerT --> Upstream
+HTTPLoggerT --"Proxy request"--> Upstream
 
 style Downstream stroke:#888
 style Upstream stroke:#888
@@ -39,13 +43,13 @@ style HTTPLoggerT stroke:#89CFF0,stroke-width:2px
 
 In this example, following directory structure and files are supposed.
 
-Resources are available at [examples/access-logging/]({{% github-url "" %}}).
+Example resources are available at [examples/access-logging/]({{% github-url "" %}}).
 If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt
-access-logging/    ----- Working directory.
-├── aileron        ----- AILERON Gateway binary (aileron.exe on windows).
-└── config.yaml    ----- AILERON Gateway config file.
+access-logging/  ----- Working directory.
+├── aileron      ----- AILERON Gateway binary (aileron.exe on windows).
+└── config.yaml  ----- AILERON Gateway config file.
 ```
 
 ## Config
@@ -61,10 +65,11 @@ Configuration yaml to run a server with access logging becomes as follows.
 The config tells:
 
 - Start a `HTTPServer` with port 8080.
-- ReverseProxy is applied for the path having prefix `/` (matches all).
-- Upstream service is [http://httpbin.org](http://httpbin.org).
-- Apply `HTTPLogger` as middleware for server-side.
-- Apply `HTTPLogger` as tripperware for client-side.
+- ReverseProxy is applied for the path having prefix `/`.
+  - Upstream service is [http://httpbin.org](http://httpbin.org).
+- Use `HTTPLogger` with all request and response header logging.
+  - Apply `HTTPLogger` as server-side middleware.
+  - Apply `HTTPLogger` as client-side middleware (tripperware) .
 
 Note that the HTTPLogger is used as both middleware and tripperware here.
 Defined two HTTPLogger if different configuration is necessary for middleware and tripperware.
@@ -88,7 +93,7 @@ style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
 
 ## Run
 
-Just run the following command.
+Just run the following command to start the AILERON Gateway.
 
 ```bash
 ./aileron -f ./config.yaml
@@ -96,8 +101,11 @@ Just run the following command.
 
 ## Check
 
-After running the server, send a HTTP requests like below.
+After starting up the server, send HTTP requests like below.
 Access logs will be output on the terminal.
+
+Make sure the internet access is available because this examples uses [http://httpbin.org/](http://httpbin.org/) as proxy upstream.
+Use `http_proxy` and `https_proxy` environmental variable as described in [ProxyFromEnvironment](https://pkg.go.dev/net/http#ProxyFromEnvironment) if you are working behind a http proxy.
 
 ```bash
 $ curl http://localhost:8080/get

@@ -1,0 +1,7 @@
+default: true
+MD013: false # Line length
+MD033: false # Inline HTML
+MD041: false # First line heading
+MD010: # Hard tabs
+  spaces_per_tab: 2
+  code_blocks: true

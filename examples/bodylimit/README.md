@@ -32,14 +32,13 @@ style BodyLimitMiddleware stroke:#77dd77,stroke-width:2px
 
 In this example, following directory structure and files are supposed.
 
-Resources are available at [examples/bodylimit/]({{% github-url "" %}}).
+Example resources are available at [examples/bodylimit/]({{% github-url "" %}}).
 If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt
-access-logging/    ----- Working directory.
-├── aileron        ----- AILERON Gateway binary (aileron.exe on windows).
-├── config.yaml    ----- AILERON Gateway config file.
-└── Taskfile.yaml  ----- (Optional) Config file for the go-task.
+access-logging/  ----- Working directory.
+├── aileron      ----- AILERON Gateway binary (aileron.exe on windows).
+└── config.yaml  ----- AILERON Gateway config file.
 ```
 
 ## Config
@@ -67,9 +66,9 @@ graph TD
   EchoHandler["🟥 **EchoHandler**</br>default/default"]
   BodyLimitMiddleware["🟩 **BodyLimitMiddleware**</br>default/default"]
 
-Entrypoint --> HTTPServer
-HTTPServer --> EchoHandler
-HTTPServer --> BodyLimitMiddleware
+Entrypoint --"Runner"--> HTTPServer
+HTTPServer --"HTTP Handler"--> EchoHandler
+HTTPServer --"Middleware"--> BodyLimitMiddleware
 
 style EchoHandler stroke:#ff6961,stroke-width:2px
 style BodyLimitMiddleware stroke:#77dd77,stroke-width:2px
@@ -77,25 +76,10 @@ style BodyLimitMiddleware stroke:#77dd77,stroke-width:2px
 
 ## Run
 
-### (Option 1) Directory run the binary
+Run the AILEROn Gateway with the command:
 
 ```bash
 ./aileron -f ./config.yaml
-```
-
-### (Option 2) Use taskfile
-
-`Taskfile.yaml` is available to run the example.
-Install [go-task](https://taskfile.dev/) and run the following command.
-
-```bash
-task
-```
-
-or with arbitrary binary path.
-
-```bash
-task AILERON_CMD="./path/to/aileron/binary"
 ```
 
 ## Check
@@ -126,7 +110,7 @@ $ curl http://localhost:8080 -d "1234567890"
 --------------------------
 ```
 
-Lastrly, send HTTP requests with body `maxSize (10 bytes) < size`.
+Lastly, send HTTP requests with body `maxSize (10 bytes) < size`.
 Because the actual body size exceeds the maxSize, requests should not be allowed.
 
 ```bash

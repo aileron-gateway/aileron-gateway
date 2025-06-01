@@ -45,7 +45,7 @@ style AuthenticationMiddleware stroke:#77dd77,stroke-width:2px
 
 In this example, following directory structure and files are supposed.
 
-Resources are available at [examples/authn-authorization-code/]({{% github-url "" %}}).
+Example resources are available at [examples/authn-authorization-code/]({{% github-url "" %}}).
 If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt
@@ -86,10 +86,10 @@ graph TD
   AuthenticationMiddleware["🟩 **Authentication</br>Middleware**</br>default/default"]
   OAuthAuthenticationHandler["🟪 **OAuth</br>AuthenticationHandler**</br>default/default"]
 
-  Entrypoint --> HTTPServer
-  HTTPServer --> ReverseProxyHandler
-  HTTPServer --> AuthenticationMiddleware
-  AuthenticationMiddleware --> OAuthAuthenticationHandler
+  Entrypoint --"Runner"--> HTTPServer
+  HTTPServer --"HTTP Handler"--> ReverseProxyHandler
+  HTTPServer --"Middleware"--> AuthenticationMiddleware
+  AuthenticationMiddleware --"AuthN Handler"--> OAuthAuthenticationHandler
 
 style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
 style AuthenticationMiddleware stroke:#77dd77,stroke-width:2px
@@ -126,6 +126,10 @@ Next, start the AILERON Gateway.
 ## Check
 
 Access to the AILERON Gateway with some path such as [http://localhost:8080/example](http://localhost:8080/example) from a browser.
+
+Make sure the internet access is available because this examples uses [http://httpbin.org/](http://httpbin.org/) as proxy upstream.
+Browser will be redirected to the upstream server after login succeeded.
+Use `http_proxy` and `https_proxy` environmental variable as described in [ProxyFromEnvironment](https://pkg.go.dev/net/http#ProxyFromEnvironment) if you are working behind a http proxy.
 
 It will shows
 

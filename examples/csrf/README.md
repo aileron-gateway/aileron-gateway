@@ -33,14 +33,13 @@ style CSRFMiddleware stroke:#77dd77,stroke-width:2px
 
 In this example, following directory structure and files are supposed.
 
-Resources are available at [examples/cors/]({{% github-url "" %}}).
+Example resources are available at [examples/cors/]({{% github-url "" %}}).
 If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt
-access-logging/    ----- Working directory.
-├── aileron        ----- AILERON Gateway binary (aileron.exe on windows).
-├── config.yaml    ----- AILERON Gateway config file.
-└── Taskfile.yaml  ----- (Optional) Config file for the go-task.
+csrf/            ----- Working directory.
+├── aileron      ----- AILERON Gateway binary (aileron.exe on windows).
+└── config.yaml  ----- AILERON Gateway config file.
 ```
 
 ## Config
@@ -71,9 +70,9 @@ graph TD
   EchoHandler["🟥 **EchoHandler**</br>default/default"]
   CSRFMiddleware["🟩 **CSRFMiddleware**</br>default/default"]
 
-Entrypoint --> HTTPServer
-HTTPServer --> EchoHandler
-HTTPServer --> CSRFMiddleware
+Entrypoint --"Runner"--> HTTPServer
+HTTPServer --"HTTP Handler"--> EchoHandler
+HTTPServer --"Middleware"--> CSRFMiddleware
 
 style EchoHandler stroke:#ff6961,stroke-width:2px
 style CSRFMiddleware stroke:#77dd77,stroke-width:2px
@@ -81,25 +80,10 @@ style CSRFMiddleware stroke:#77dd77,stroke-width:2px
 
 ## Run
 
-### (Option 1) Directory run the binary
+Run the AILERON Gateway with command:
 
 ```bash
 ./aileron -f ./config.yaml
-```
-
-### (Option 2) Use taskfile
-
-`Taskfile.yaml` is available to run the example.
-Install [go-task](https://taskfile.dev/) and run the following command.
-
-```bash
-task
-```
-
-or with arbitrary binary path.
-
-```bash
-task AILERON_CMD="./path/to/aileron/binary"
 ```
 
 ## Check

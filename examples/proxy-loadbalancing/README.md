@@ -50,7 +50,7 @@ style Upstream4 stroke:#888
 
 In this example, following directory structure and files are supposed.
 
-Resources are available at [examples/proxy-loadbalancing/]({{% github-url "" %}}).
+Example resources are available at [examples/proxy-loadbalancing/]({{% github-url "" %}}).
 If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt
