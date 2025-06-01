@@ -19,6 +19,8 @@ Visit [our website](https://aileron-gateway.github.io/) to get more information.
 
 ## Key Features
 
+![features.svg](docs/images/features.svg)
+
 - Networking
   - Routing: Path based, query value based, header value based, etc.
   - LoadBalancing: RoundRobin, Random, Maglev, RingHash, etc.
@@ -26,13 +28,22 @@ Visit [our website](https://aileron-gateway.github.io/) to get more information.
   - [OAuth2](https://oauth.net/2/) / [OpenID Connect](https://openid.net/developers/how-connect-works/)
   - [Financial-grade API](https://openid.net/wg/fapi/)
   - [OpenPolicyAgent](https://www.openpolicyagent.org/)
-  - [Casbin](https://casbin.org/)
 - Observability for cloud native environment.
   - Metrics: [Prometheus](https://prometheus.io/)
   - Tracing: [OpenTelemetry](https://opentelemetry.io/)
   - Profiling: [Profiling](https://go.dev/blog/pprof) endpoint.
 
-![features.svg](docs/features.svg)
+## Integration
+
+We integrate and leverage the following products and specifications.
+
+<p align="center" float="left">
+  <img src="docs/images/openid.png" height="100" hspace="30"/>
+  <img src="docs/images/oauth_logo.svg" height="100" hspace="30"/>
+  </br>
+  <img src="docs/images/opa.svg" height="100" hspace="30"/> 
+  <img src="docs/images/otel.svg" height="100" hspace="30"/> 
+</p>
 
 ## Install AILERON Gateway
 
