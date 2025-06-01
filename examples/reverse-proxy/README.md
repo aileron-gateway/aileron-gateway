@@ -53,6 +53,7 @@ Configuration yaml to run a reverse-proxy server would becomes as follows.
 # config.yaml
 
 {{% github-raw "config.yaml" %}}
+
 ```
 
 The config tells:
