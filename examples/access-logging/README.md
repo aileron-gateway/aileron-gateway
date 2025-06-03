@@ -42,8 +42,6 @@ style HTTPLoggerT stroke:#89CFF0,stroke-width:2px
 - 🟪 `#9370DB` Other resources.
 
 In this example, following directory structure and files are supposed.
-
-Example resources are available at [examples/access-logging/]({{% github-url "" %}}).
 If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt
@@ -59,7 +57,51 @@ Configuration yaml to run a server with access logging becomes as follows.
 ```yaml
 # config.yaml
 
-{{% github-raw "config.yaml" %}}
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  runners:
+    - apiVersion: core/v1
+      kind: HTTPServer
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+spec:
+  addr: ":8080"
+  virtualHosts:
+    - middleware:
+        - apiVersion: core/v1 # Use as server-side middleware
+          kind: HTTPLogger
+      handlers:
+        - handler:
+            apiVersion: core/v1
+            kind: ReverseProxyHandler
+
+---
+apiVersion: core/v1
+kind: ReverseProxyHandler
+spec:
+  tripperwares:
+    - apiVersion: core/v1 # Use as client-side middleware
+      kind: HTTPLogger
+  loadBalancers:
+    - pathMatcher:
+        match: "/"
+        matchType: Prefix
+      upstreams:
+        - url: http://httpbin.org
+
+---
+apiVersion: core/v1
+kind: HTTPLogger
+spec:
+  request:
+    headers:
+      - name: "*" # Log all request headers.
+  response:
+    headers:
+      - name: "*" # Log all response headers.
 ```
 
 The config tells:

@@ -31,8 +31,6 @@ style BodyLimitMiddleware stroke:#77dd77,stroke-width:2px
 - 🟪 `#9370DB` Other resources.
 
 In this example, following directory structure and files are supposed.
-
-Example resources are available at [examples/bodylimit/]({{% github-url "" %}}).
 If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt
@@ -48,7 +46,38 @@ Configuration yaml to run a server with access logging becomes as follows.
 ```yaml
 # config.yaml
 
-{{% github-raw "config.yaml" %}}
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  runners:
+    - apiVersion: core/v1
+      kind: HTTPServer
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+spec:
+  addr: ":8080"
+  virtualHosts:
+    - middleware:
+        - apiVersion: app/v1
+          kind: BodyLimitMiddleware
+      handlers:
+        - handler:
+            apiVersion: app/v1
+            kind: EchoHandler
+
+---
+apiVersion: app/v1
+kind: EchoHandler
+
+---
+apiVersion: app/v1
+kind: BodyLimitMiddleware
+spec:
+  maxSize: 10 # bytes
+  memLimit: 5 # bytes
+  tempPath: "./"
 ```
 
 The config tells:

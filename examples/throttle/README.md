@@ -33,8 +33,6 @@ style EchoHandler stroke:#ff6961,stroke-width:2px
 - 🟪 `#9370DB` Other resources.
 
 In this example, following directory structure and files are supposed.
-
-Example resources are available at [examples/throttle/]({{% github-url "" %}}).
 If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt
@@ -50,7 +48,43 @@ Configuration yaml to run a echo server with throttle middleware would becomes a
 ```yaml
 # config.yaml
 
-{{% github-raw "config.yaml" %}}
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  runners:
+    - apiVersion: core/v1
+      kind: HTTPServer
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+spec:
+  addr: ":8080"
+  virtualHosts:
+    - middleware:
+        - apiVersion: app/v1
+          kind: ThrottleMiddleware
+      handlers:
+        - handler:
+            apiVersion: app/v1
+            kind: EchoHandler
+
+---
+apiVersion: app/v1
+kind: EchoHandler
+
+---
+apiVersion: app/v1
+kind: ThrottleMiddleware
+spec:
+  apiThrottlers:
+    - matcher:
+        matchType: Regex
+        patterns:
+          - ".*"
+      fixedWindow:
+        windowSize: 1000
+        limit: 10
 ```
 
 The config tells:

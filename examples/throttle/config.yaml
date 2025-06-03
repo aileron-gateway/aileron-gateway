@@ -28,22 +28,18 @@ apiVersion: app/v1
 kind: ThrottleMiddleware
 spec:
   apiThrottlers:
-    - methods: []
-      matcher:
+    - matcher:
         matchType: Regex
         patterns:
           - ".*"
       # fixedWindow:
       #   windowSize: 1000
       #   limit: 10
-
       # maxConnections:
       #   maxConns: 5
-
-      # tokenBucket:
-      #   bucketSize: 20
-      #   fillRate: 10
-
-      leakyBucket:
-        bucketSize: 10
-        leakRate: 1000_000_000
+      tokenBucket:
+        bucketSize: 20
+        fillRate: 10
+      # leakyBucket:
+      #   bucketSize: 10
+      #   leakRate: 1000_000_000

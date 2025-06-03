@@ -34,8 +34,6 @@ style OPAAuthzMiddleware stroke:#77dd77,stroke-width:2px
 - 🟪 `#9370DB` Other resources.
 
 In this example, following directory structure and files are supposed.
-
-Example resources are available at [examples/authz-opa/]({{% github-url "" %}}).
 If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt
@@ -51,7 +49,39 @@ Configuration yaml to run a server with access logging becomes as follows.
 ```yaml
 # config.yaml
 
-{{% github-raw "config.yaml" %}}
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  runners:
+    - apiVersion: core/v1
+      kind: HTTPServer
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+spec:
+  addr: ":8080"
+  virtualHosts:
+    - middleware:
+        - apiVersion: app/v1
+          kind: OPAAuthzMiddleware
+      handlers:
+        - handler:
+            apiVersion: app/v1
+            kind: EchoHandler
+
+---
+apiVersion: app/v1
+kind: EchoHandler
+
+---
+apiVersion: app/v1
+kind: OPAAuthzMiddleware
+spec:
+  regos:
+    - queryParameter: "data.example.authz.allow"
+      policyFiles:
+        - ./policy.rego
 ```
 
 The config tells:
@@ -67,7 +97,16 @@ Otherwise, forbidden.
 ```opa
 # policy.rego
 
-{{% github-raw "policy.rego" %}}
+package example.authz
+
+import future.keywords.if
+
+default allow := false
+
+allow if {
+    input.header["Foo"][0] == "bar"
+    input.method == "POST"
+}
 ```
 
 This graph shows the resource dependencies of the configuration.

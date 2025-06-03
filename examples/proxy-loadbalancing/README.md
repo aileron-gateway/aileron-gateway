@@ -49,8 +49,6 @@ style Upstream4 stroke:#888
 - 🟪 `#9370DB` Other resources.
 
 In this example, following directory structure and files are supposed.
-
-Example resources are available at [examples/proxy-loadbalancing/]({{% github-url "" %}}).
 If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt
@@ -71,7 +69,39 @@ Configuration yaml to run a reverse-proxy server for round-robin loadbalancer wo
 ```yaml
 # config-round-robin.yaml
 
-{{% github-raw "config-round-robin.yaml" %}}
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  runners:
+    - apiVersion: core/v1
+      kind: HTTPServer
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+spec:
+  addr: ":8080"
+  virtualHosts:
+    - handlers:
+        - handler:
+            apiVersion: core/v1
+            kind: ReverseProxyHandler
+
+---
+apiVersion: core/v1
+kind: ReverseProxyHandler
+spec:
+  loadBalancers:
+    - pathMatcher:
+        match: "/"
+        matchType: Prefix
+      lbAlgorithm: RoundRobin # RoundRobin load balancer (Default).
+      upstreams:
+        - url: http://localhost:8001
+        - url: http://localhost:8002
+        - url: http://localhost:8003
+        - url: http://localhost:8004
+        - url: http://localhost:8005
 ```
 
 The config tells:
