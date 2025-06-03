@@ -6,6 +6,7 @@ This example runs a reverse-proxy server.
 A revere-proxy server, which is the very basic feature in API Gateways, proxy requests from client to upstream services.
 
 ```mermaid
+
 block-beta
   columns 6
   Downstream:1
@@ -25,6 +26,7 @@ ReverseProxyHandler --> Upstream
 style Downstream stroke:#888
 style Upstream stroke:#888
 style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
+
 ```
 
 **Legend**:
@@ -35,8 +37,6 @@ style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
 - 🟪 `#9370DB` Other resources.
 
 In this example, following directory structure and files are supposed.
-
-Example resources are available at [examples/reverse-proxy/]({{% github-url "" %}}).
 If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt
@@ -52,7 +52,34 @@ Configuration yaml to run a reverse-proxy server would becomes as follows.
 ```yaml
 # config.yaml
 
-{{% github-raw "config.yaml" %}}
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  runners:
+    - apiVersion: core/v1
+      kind: HTTPServer
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+spec:
+  addr: ":8080"
+  virtualHosts:
+    - handlers:
+        - handler:
+            apiVersion: core/v1
+            kind: ReverseProxyHandler
+
+---
+apiVersion: core/v1
+kind: ReverseProxyHandler
+spec:
+  loadBalancers:
+    - pathMatcher:
+        match: "/"
+        matchType: Prefix
+      upstreams:
+        - url: http://httpbin.org
 ```
 
 The config tells:

@@ -27,8 +27,6 @@ style TemplateHandler stroke:#ff6961,stroke-width:2px
 - 🟪 `#9370DB` Other resources.
 
 In this example, following directory structure and files are supposed.
-
-Example resources are available at [examples/template/]({{% github-url "" %}}).
 If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt
@@ -45,7 +43,45 @@ Configuration yaml to run a server with template handler would becomes as follow
 ```yaml
 # config.yaml
 
-{{% github-raw "config.yaml" %}}
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  runners:
+    - apiVersion: core/v1
+      kind: HTTPServer
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+spec:
+  addr: ":8080"
+  virtualHosts:
+    - handlers:
+        - handler:
+            apiVersion: core/v1
+            kind: TemplateHandler
+
+---
+apiVersion: core/v1
+kind: TemplateHandler
+spec:
+  mimeContents:
+    - mimeType: text/plain
+      statusCode: 500
+      templateType: Text
+      template: |
+        Hello! AILERON Gateway!
+    - mimeType: application/json
+      statusCode: 500
+      templateType: GoText
+      template: |
+        {
+          "hello": "AILERON Gateway!"
+        }
+    - mimeType: text/html
+      statusCode: 500
+      templateType: GoHTML
+      templateFile: ./template.html
 ```
 
 The config tells:

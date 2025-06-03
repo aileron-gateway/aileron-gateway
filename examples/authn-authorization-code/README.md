@@ -44,8 +44,6 @@ style AuthenticationMiddleware stroke:#77dd77,stroke-width:2px
 - 🟪 `#9370DB` Other resources.
 
 In this example, following directory structure and files are supposed.
-
-Example resources are available at [examples/authn-authorization-code/]({{% github-url "" %}}).
 If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt
@@ -63,7 +61,89 @@ Configuration yaml to run a server with authentication middleware.
 ```yaml
 # config.yaml
 
-{{% github-raw "config.yaml" %}}
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  runners:
+    - apiVersion: core/v1
+      kind: HTTPServer
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+spec:
+  addr: ":8080"
+  virtualHosts:
+    - middleware:
+        - apiVersion: app/v1
+          kind: SessionMiddleware
+        - apiVersion: app/v1
+          kind: AuthenticationMiddleware
+      handlers:
+        - handler:
+            apiVersion: core/v1
+            kind: ReverseProxyHandler
+
+---
+apiVersion: core/v1
+kind: ReverseProxyHandler
+spec:
+  loadBalancers:
+    - pathMatcher:
+        match: "/"
+        matchType: Prefix
+      upstreams:
+        - url: http://httpbin.org
+
+---
+apiVersion: app/v1
+kind: SessionMiddleware
+spec:
+  secureEncoder:
+    enableCompression: false
+    disableHMAC: true
+    disableEncryption: true
+
+---
+apiVersion: app/v1
+kind: AuthenticationMiddleware
+spec:
+  handlers:
+    - apiVersion: app/v1
+      kind: OAuthAuthenticationHandler
+
+---
+apiVersion: app/v1
+kind: OAuthAuthenticationHandler
+spec:
+  authorizationCodeHandler:
+    redirectPath: "/anything"
+    loginPath: "/auth/login"
+    callbackURL: "http://localhost:8080/auth/callback"
+    redirectToLogin: true
+  contexts:
+    - name: default
+      atProxyHeader: "X-Access-Token"
+      idtProxyHeader: "X-ID-Token"
+      provider:
+        issuer: "http://localhost:18080/realms/aileron"
+        baseURL: "http://localhost:18080"
+        endpoints:
+          discovery: "/realms/aileron/.well-known/openid-configuration"
+      tokenRedeemer:
+        clientAuthMethod: BasicAuth
+      client:
+        id: "aileron_authorization_code"
+        secret: "KWYPBgrTEEGZNH6wZsP2zyK14LZHJi77"
+        scopes:
+          - openid
+          - profile
+      jwtHandler:
+        publicKeys:
+          - keyID: QJQdUdHaY_OXC8BfO-3tqVV0s64nvrFSffyfqONNeYk
+            algorithm: RS256
+            keyType: PUBLIC
+            keyFilePath: ./keycloak/keys/public.pem
 ```
 
 The config tells:
@@ -113,9 +193,6 @@ keycloak  | 2025-05-31 15:54:25,508 INFO  [io.quarkus] (main) Keycloak 26.2.4 on
 
 Keycloak admin console should be accessible at [http://localhost:18080/admin](http://localhost:18080/admin).
 Admin console can be logged in with `ID: admin` and `Password: password`.
-See [keycloak/README.md]({{% github-url "keycloak/README.md" %}}) for more detail about the keycloak.
-
-{{% github-raw-image src="images/admin-console.png" %}}
 
 Next, start the AILERON Gateway.
 
@@ -131,9 +208,7 @@ Make sure the internet access is available because this examples uses [http://ht
 Browser will be redirected to the upstream server after login succeeded.
 Use `http_proxy` and `https_proxy` environmental variable as described in [ProxyFromEnvironment](https://pkg.go.dev/net/http#ProxyFromEnvironment) if you are working behind a http proxy.
 
-It will shows
-
-{{% github-raw-image src="images/sign-in.png" %}}
+It will shows sigin-in page.
 
 Then, sing in with one of the pre-configured users.
 
@@ -142,6 +217,4 @@ Then, sing in with one of the pre-configured users.
 | test1 | password1 | <test1@example.com> |
 | test2 | password2 | <test2@example.com> |
 
-Page will be redirected to the path `/anything` if authentication succeeded.
-
-{{% github-raw-image src="images/sign-in-success.png" %}}
+Page will be redirected to the path `/anything` after authentication succeeded.

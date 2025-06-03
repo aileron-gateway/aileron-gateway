@@ -35,8 +35,6 @@ style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
 - 🟪 `#9370DB` Other resources.
 
 In this example, following directory structure and files are supposed.
-
-Example resources are available at [examples/proxy-sse/]({{% github-url "" %}}).
 If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt
@@ -53,7 +51,34 @@ This config is almost the same as plain reverse-proxy except for the upstream ur
 ```yaml
 # config.yaml
 
-{{% github-raw "config.yaml" %}}
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  runners:
+    - apiVersion: core/v1
+      kind: HTTPServer
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+spec:
+  addr: ":8080"
+  virtualHosts:
+    - handlers:
+        - handler:
+            apiVersion: core/v1
+            kind: ReverseProxyHandler
+
+---
+apiVersion: core/v1
+kind: ReverseProxyHandler
+spec:
+  loadBalancers:
+    - pathMatcher:
+        match: "/"
+        matchType: Prefix
+      upstreams:
+        - url: http://sse.dev/
 ```
 
 The config tells:
