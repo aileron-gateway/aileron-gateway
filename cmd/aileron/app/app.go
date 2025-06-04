@@ -17,6 +17,7 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/encoder"
 	"github.com/aileron-gateway/aileron-gateway/kernel/io"
+	"github.com/aileron-projects/go/zos"
 	"github.com/spf13/pflag"
 )
 
@@ -108,7 +109,7 @@ func LoadEnvFiles(paths []string) error {
 		return ErrAppMainLoadEnv.WithStack(err, nil)
 	}
 	for k, v := range envs {
-		if err := io.LoadEnv(false, v); err != nil {
+		if _, err := zos.LoadEnv(v); err != nil {
 			return ErrAppMainLoadEnv.WithStack(err, map[string]any{"path": k})
 		}
 	}

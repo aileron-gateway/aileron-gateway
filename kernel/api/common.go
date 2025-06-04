@@ -16,7 +16,7 @@ import (
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/kernel/encoder"
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
-	"github.com/aileron-gateway/aileron-gateway/kernel/io"
+	"github.com/aileron-projects/go/zos"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -235,7 +235,10 @@ func ProtoMessage(format Format, content any, defaultMsg protoreflect.ProtoMessa
 				Detail:      fmt.Sprintf("convert from %T to []byte", content),
 			}
 		}
-		b = io.ResolveEnv(b)
+		b, err = zos.EnvSubst2(b)
+		if err != nil {
+			break
+		}
 		err = encoder.UnmarshalProtoFromJSON(b, src, opt)
 		proto.Merge(msg, src)
 	case FormatYAML:
@@ -249,7 +252,10 @@ func ProtoMessage(format Format, content any, defaultMsg protoreflect.ProtoMessa
 				Detail:      fmt.Sprintf("convert from %T to []byte", content),
 			}
 		}
-		b = io.ResolveEnv(b)
+		b, err = zos.EnvSubst2(b)
+		if err != nil {
+			break
+		}
 		err = encoder.UnmarshalProtoFromYAML(b, src, opt)
 		proto.Merge(msg, src)
 	case FormatProtoMessage:
