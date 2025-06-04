@@ -4,11 +4,7 @@
 package httpproxy
 
 import (
-	"io"
-	"net"
-	"net/http"
 	"net/url"
-	"time"
 
 	"github.com/aileron-gateway/aileron-gateway/util/resilience"
 )
@@ -63,8 +59,6 @@ func (t *noopUpstream) notify(_ int, _ error) {
 // lbUpstream is a load balancer upstream with circuit breaker.
 // This implements proxy.upstream interface.
 type lbUpstream struct {
-	circuitBreaker
-
 	// upstream is the url of this upstream server.
 	weight    int
 	rawURL    string
@@ -73,12 +67,6 @@ type lbUpstream struct {
 	// passiveEnabled enables passive health checking.
 	// Enabling this reflect the result of actual request.
 	passiveEnabled bool
-
-	// initialDelay is the delay duration to starting the active health checking.
-	initialDelay time.Duration
-	// interval is the interval duration to send health checking request
-	// when active health checking.
-	interval time.Duration
 
 	// closer is the close channel.
 	closer chan struct{}
@@ -94,6 +82,10 @@ func (t *lbUpstream) Weight() int {
 
 func (t *lbUpstream) Hint() int {
 	return 0 // Currently not used.
+}
+
+func (t *lbUpstream) Active() bool {
+	return true
 }
 
 // url returns the proxy url for this upstream.
@@ -115,15 +107,6 @@ func (t *lbUpstream) notify(status int, err error) {
 // feedback feedbacks the upstream health status to this object.
 // Use this for active health check result.
 func (t *lbUpstream) feedback(status int, err error) {
-	if err != nil {
-		t.countFailure()
-		return
-	}
-	if status >= 500 {
-		t.countFailure()
-	} else {
-		t.countSuccess()
-	}
 }
 
 // close breaks health checking loop.
@@ -136,6 +119,7 @@ func (t *lbUpstream) close() {
 
 // activeCheck actively check server health status by HTTP.
 // The second argument of req should be reusable.
+/*
 func (t *lbUpstream) activeCheckHTTP(rt http.RoundTripper, req *http.Request) {
 	if t.closer == nil {
 		t.closer = make(chan struct{}, 1)
@@ -171,10 +155,12 @@ func (t *lbUpstream) activeCheckHTTP(rt http.RoundTripper, req *http.Request) {
 		}
 	}
 }
+*/
 
 // activeCheck actively check server health status by TCP or UDP.
 // Checkout the link below for available network and address format.
 // https://pkg.go.dev/net#Dial
+/*
 func (t *lbUpstream) activeCheck(nw, addr string) {
 	if t.closer == nil {
 		t.closer = make(chan struct{}, 1)
@@ -210,3 +196,4 @@ func (t *lbUpstream) activeCheck(nw, addr string) {
 		}
 	}
 }
+*/

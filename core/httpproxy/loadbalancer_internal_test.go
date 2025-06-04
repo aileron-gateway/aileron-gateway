@@ -413,12 +413,6 @@ func TestNonHashLB(t *testing.T) {
 
 	tb := testutil.NewTableBuilder[*condition, *action]()
 	tb.Name(t.Name())
-	cndPathNotMatch := tb.Condition("path not match", "path matches")
-	cndNoUpstream := tb.Condition("no upstream", "load balancer has no upstream")
-	cndSingleUpstream := tb.Condition("single upstream", "set single upstream")
-	cndMultiUpstream := tb.Condition("multi upstreams", "set multiple upstreams")
-	cndInactiveUpstream := tb.Condition("inactive upstreams", "upstream is inactive")
-	actNoUpstream := tb.Action("no upstream", "check that no upstream returned")
 	table := tb.Build()
 
 	ups1 := &noopUpstream{rawURL: "http://test1.com", weight: 1, parsedURL: &url.URL{Scheme: "http", Host: "test.com", RawQuery: "bar1=baz1"}}
@@ -430,8 +424,8 @@ func TestNonHashLB(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"no upstream",
-			[]string{cndNoUpstream},
-			[]string{actNoUpstream},
+			[]string{},
+			[]string{},
 			&condition{
 				upstreams: []upstream{},
 				matcher:   func(s string) (string, bool) { return s, true },
@@ -444,7 +438,7 @@ func TestNonHashLB(t *testing.T) {
 		),
 		gen(
 			"single upstream",
-			[]string{cndSingleUpstream},
+			[]string{},
 			[]string{},
 			&condition{
 				upstreams: []upstream{ups1},
@@ -458,7 +452,7 @@ func TestNonHashLB(t *testing.T) {
 		),
 		gen(
 			"multiple upstream",
-			[]string{cndMultiUpstream},
+			[]string{},
 			[]string{},
 			&condition{
 				upstreams: []upstream{ups1, ups2},
@@ -471,54 +465,9 @@ func TestNonHashLB(t *testing.T) {
 			},
 		),
 		gen(
-			"single upstream/inactive",
-			[]string{cndInactiveUpstream},
-			[]string{actNoUpstream},
-			&condition{
-				upstreams: []upstream{
-					&lbUpstream{
-						circuitBreaker: &circuitBreakerController{status: opened},
-						rawURL:         "http://inactive.com",
-						parsedURL:      &url.URL{Scheme: "http", Host: "inactive.com"},
-					},
-				},
-				matcher: func(s string) (string, bool) { return s, true },
-			},
-			&action{
-				upstream: []upstream{nil, nil, nil}, // Check 3 times
-				url:      []*url.URL{nil, nil, nil},
-				matched:  []bool{true, true, true},
-			},
-		),
-		gen(
-			"multiple upstream/inactive",
-			[]string{cndInactiveUpstream},
-			[]string{actNoUpstream},
-			&condition{
-				upstreams: []upstream{
-					&lbUpstream{
-						circuitBreaker: &circuitBreakerController{status: opened},
-						rawURL:         "http://inactive1.com",
-						parsedURL:      &url.URL{Scheme: "http", Host: "inactive1.com"},
-					},
-					&lbUpstream{
-						circuitBreaker: &circuitBreakerController{status: opened},
-						rawURL:         "http://inactive2.com",
-						parsedURL:      &url.URL{Scheme: "http", Host: "inactive2.com"},
-					},
-				},
-				matcher: func(s string) (string, bool) { return s, true },
-			},
-			&action{
-				upstream: []upstream{nil, nil, nil}, // Check 3 times
-				url:      []*url.URL{nil, nil, nil},
-				matched:  []bool{true, true, true},
-			},
-		),
-		gen(
 			"path not match",
-			[]string{cndPathNotMatch},
-			[]string{actNoUpstream},
+			[]string{},
+			[]string{},
 			&condition{
 				upstreams: []upstream{ups1, ups2},
 				matcher:   func(string) (string, bool) { return "", false },
@@ -572,12 +521,6 @@ func TestDirectHashLB(t *testing.T) {
 
 	tb := testutil.NewTableBuilder[*condition, *action]()
 	tb.Name(t.Name())
-	cndPathNotMatch := tb.Condition("path not match", "path matches")
-	cndNoUpstream := tb.Condition("no upstream", "load balancer has no upstream")
-	cndSingleUpstream := tb.Condition("single upstream", "set single upstream")
-	cndMultiUpstream := tb.Condition("multi upstreams", "set multiple upstreams")
-	cndInactiveUpstream := tb.Condition("inactive upstreams", "upstream is inactive")
-	actNoUpstream := tb.Action("no upstream", "check that no upstream returned")
 	table := tb.Build()
 
 	ups1 := &noopUpstream{rawURL: "http://test1.com", weight: 1, parsedURL: &url.URL{Scheme: "http", Host: "test.com", RawQuery: "bar1=baz1"}}
@@ -594,8 +537,8 @@ func TestDirectHashLB(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"no upstream/no hasher",
-			[]string{cndNoUpstream},
-			[]string{actNoUpstream},
+			[]string{},
+			[]string{},
 			&condition{
 				upstreams: []upstream{},
 				matcher:   func(s string) (string, bool) { return s, true },
@@ -608,7 +551,7 @@ func TestDirectHashLB(t *testing.T) {
 		),
 		gen(
 			"single upstream/no hasher",
-			[]string{cndSingleUpstream},
+			[]string{},
 			[]string{},
 			&condition{
 				upstreams: []upstream{ups1},
@@ -622,7 +565,7 @@ func TestDirectHashLB(t *testing.T) {
 		),
 		gen(
 			"multiple upstream/no hasher",
-			[]string{cndMultiUpstream},
+			[]string{},
 			[]string{},
 			&condition{
 				upstreams: []upstream{ups1, ups2, ups3},
@@ -636,8 +579,8 @@ func TestDirectHashLB(t *testing.T) {
 		),
 		gen(
 			"no upstream/single hasher",
-			[]string{cndNoUpstream},
-			[]string{actNoUpstream},
+			[]string{},
+			[]string{},
 			&condition{
 				upstreams: []upstream{},
 				matcher:   func(s string) (string, bool) { return s, true },
@@ -651,7 +594,7 @@ func TestDirectHashLB(t *testing.T) {
 		),
 		gen(
 			"single upstream/single hasher",
-			[]string{cndSingleUpstream},
+			[]string{},
 			[]string{},
 			&condition{
 				upstreams: []upstream{ups1},
@@ -666,7 +609,7 @@ func TestDirectHashLB(t *testing.T) {
 		),
 		gen(
 			"multiple upstream/single hasher",
-			[]string{cndMultiUpstream},
+			[]string{},
 			[]string{},
 			&condition{
 				upstreams: []upstream{ups1, ups2, ups3},
@@ -681,8 +624,8 @@ func TestDirectHashLB(t *testing.T) {
 		),
 		gen(
 			"no upstream/multiple hasher",
-			[]string{cndNoUpstream},
-			[]string{actNoUpstream},
+			[]string{},
+			[]string{},
 			&condition{
 				upstreams: []upstream{},
 				matcher:   func(s string) (string, bool) { return s, true },
@@ -696,7 +639,7 @@ func TestDirectHashLB(t *testing.T) {
 		),
 		gen(
 			"single upstream/multiple hasher",
-			[]string{cndSingleUpstream},
+			[]string{},
 			[]string{},
 			&condition{
 				upstreams: []upstream{ups1},
@@ -711,7 +654,7 @@ func TestDirectHashLB(t *testing.T) {
 		),
 		gen(
 			"multiple upstream/multiple hasher",
-			[]string{cndMultiUpstream},
+			[]string{},
 			[]string{},
 			&condition{
 				upstreams: []upstream{ups1, ups2, ups3},
@@ -725,81 +668,9 @@ func TestDirectHashLB(t *testing.T) {
 			},
 		),
 		gen(
-			"single upstream/inactive upstream",
-			[]string{cndSingleUpstream, cndInactiveUpstream},
-			[]string{},
-			&condition{
-				upstreams: []upstream{
-					&lbUpstream{
-						weight:         1,
-						circuitBreaker: &circuitBreakerController{status: opened},
-						rawURL:         "http://inactive.com",
-						parsedURL:      &url.URL{Scheme: "http", Host: "inactive"},
-					},
-				},
-				matcher: func(s string) (string, bool) { return s, true },
-				hashers: []resilience.HTTPHasher{hasher1},
-			},
-			&action{
-				upstream: []upstream{nil},
-				url:      []*url.URL{nil},
-				matched:  []bool{true},
-			},
-		),
-		gen(
-			"multiple upstream/1 inactive upstream",
-			[]string{cndMultiUpstream, cndInactiveUpstream},
-			[]string{},
-			&condition{
-				upstreams: []upstream{
-					&lbUpstream{
-						weight:         1,
-						circuitBreaker: &circuitBreakerController{status: opened},
-						rawURL:         "http://inactive.com",
-						parsedURL:      &url.URL{Scheme: "http", Host: "inactive"},
-					},
-					ups2, ups3},
-				matcher: func(s string) (string, bool) { return s, true },
-				hashers: []resilience.HTTPHasher{hasher2, hasher3, hasher1},
-			},
-			&action{
-				upstream: []upstream{ups3},
-				url:      []*url.URL{url3},
-				matched:  []bool{true},
-			},
-		),
-		gen(
-			"multiple upstream/2 inactive upstream",
-			[]string{cndMultiUpstream, cndInactiveUpstream},
-			[]string{},
-			&condition{
-				upstreams: []upstream{
-					&lbUpstream{
-						weight:         1,
-						circuitBreaker: &circuitBreakerController{status: opened},
-						rawURL:         "http://inactive1.com",
-						parsedURL:      &url.URL{Scheme: "http", Host: "inactive1"},
-					},
-					&lbUpstream{
-						weight:         1,
-						circuitBreaker: &circuitBreakerController{status: opened},
-						rawURL:         "http://inactive2.com",
-						parsedURL:      &url.URL{Scheme: "http", Host: "inactive2"},
-					},
-					ups3},
-				matcher: func(s string) (string, bool) { return s, true },
-				hashers: []resilience.HTTPHasher{hasher2, hasher3, hasher1},
-			},
-			&action{
-				upstream: []upstream{ups3},
-				url:      []*url.URL{url3},
-				matched:  []bool{true},
-			},
-		),
-		gen(
 			"path not match",
-			[]string{cndPathNotMatch},
-			[]string{actNoUpstream},
+			[]string{},
+			[]string{},
 			&condition{
 				upstreams: []upstream{ups1},
 				matcher:   func(string) (string, bool) { return "", false },
@@ -812,7 +683,7 @@ func TestDirectHashLB(t *testing.T) {
 		),
 		gen(
 			"hasher failed",
-			[]string{cndMultiUpstream},
+			[]string{},
 			[]string{},
 			&condition{
 				upstreams: []upstream{ups1, ups2, ups3},
@@ -827,7 +698,7 @@ func TestDirectHashLB(t *testing.T) {
 		),
 		gen(
 			"all hashers failed",
-			[]string{cndMultiUpstream},
+			[]string{},
 			[]string{},
 			&condition{
 				upstreams: []upstream{ups1, ups2, ups3},
@@ -841,7 +712,6 @@ func TestDirectHashLB(t *testing.T) {
 			},
 		),
 	}
-
 	testutil.Register(table, testCases...)
 
 	for _, tt := range table.Entries() {
@@ -885,12 +755,6 @@ func TestMaglevLB(t *testing.T) {
 
 	tb := testutil.NewTableBuilder[*condition, *action]()
 	tb.Name(t.Name())
-	cndPathNotMatch := tb.Condition("path not match", "path matches")
-	cndNoUpstream := tb.Condition("no upstream", "load balancer has no upstream")
-	cndSingleUpstream := tb.Condition("single upstream", "set single upstream")
-	cndMultiUpstream := tb.Condition("multi upstreams", "set multiple upstreams")
-	cndInactiveUpstream := tb.Condition("inactive upstreams", "upstream is inactive")
-	actNoUpstream := tb.Action("no upstream", "check that no upstream returned")
 	table := tb.Build()
 
 	ups1 := &noopUpstream{rawURL: "http://test1.com", weight: 1, parsedURL: &url.URL{Scheme: "http", Host: "test.com", RawQuery: "bar1=baz1"}}
@@ -907,8 +771,8 @@ func TestMaglevLB(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"no upstream/no hasher",
-			[]string{cndNoUpstream},
-			[]string{actNoUpstream},
+			[]string{},
+			[]string{},
 			&condition{
 				upstreams: []upstream{},
 				matcher:   func(s string) (string, bool) { return s, true },
@@ -921,7 +785,7 @@ func TestMaglevLB(t *testing.T) {
 		),
 		gen(
 			"single upstream/no hasher",
-			[]string{cndSingleUpstream},
+			[]string{},
 			[]string{},
 			&condition{
 				upstreams: []upstream{ups1},
@@ -935,7 +799,7 @@ func TestMaglevLB(t *testing.T) {
 		),
 		gen(
 			"multiple upstream/no hasher",
-			[]string{cndMultiUpstream},
+			[]string{},
 			[]string{},
 			&condition{
 				upstreams: []upstream{ups1, ups2, ups3},
@@ -949,8 +813,8 @@ func TestMaglevLB(t *testing.T) {
 		),
 		gen(
 			"no upstream/single hasher",
-			[]string{cndNoUpstream},
-			[]string{actNoUpstream},
+			[]string{},
+			[]string{},
 			&condition{
 				upstreams: []upstream{},
 				matcher:   func(s string) (string, bool) { return s, true },
@@ -964,7 +828,7 @@ func TestMaglevLB(t *testing.T) {
 		),
 		gen(
 			"single upstream/single hasher",
-			[]string{cndSingleUpstream},
+			[]string{},
 			[]string{},
 			&condition{
 				upstreams: []upstream{ups1},
@@ -979,7 +843,7 @@ func TestMaglevLB(t *testing.T) {
 		),
 		gen(
 			"multiple upstream/single hasher",
-			[]string{cndMultiUpstream},
+			[]string{},
 			[]string{},
 			&condition{
 				upstreams: []upstream{ups1, ups2, ups3},
@@ -994,8 +858,8 @@ func TestMaglevLB(t *testing.T) {
 		),
 		gen(
 			"no upstream/multiple hasher",
-			[]string{cndNoUpstream},
-			[]string{actNoUpstream},
+			[]string{},
+			[]string{},
 			&condition{
 				upstreams: []upstream{},
 				matcher:   func(s string) (string, bool) { return s, true },
@@ -1009,7 +873,7 @@ func TestMaglevLB(t *testing.T) {
 		),
 		gen(
 			"single upstream/multiple hasher",
-			[]string{cndSingleUpstream},
+			[]string{},
 			[]string{},
 			&condition{
 				upstreams: []upstream{ups1},
@@ -1024,7 +888,7 @@ func TestMaglevLB(t *testing.T) {
 		),
 		gen(
 			"multiple upstream/multiple hasher",
-			[]string{cndMultiUpstream},
+			[]string{},
 			[]string{},
 			&condition{
 				upstreams: []upstream{ups1, ups2, ups3},
@@ -1038,81 +902,9 @@ func TestMaglevLB(t *testing.T) {
 			},
 		),
 		gen(
-			"single upstream/inactive upstream",
-			[]string{cndSingleUpstream, cndInactiveUpstream},
-			[]string{},
-			&condition{
-				upstreams: []upstream{
-					&lbUpstream{
-						weight:         1,
-						circuitBreaker: &circuitBreakerController{status: opened},
-						rawURL:         "http://inactive.com",
-						parsedURL:      &url.URL{Scheme: "http", Host: "inactive.com"},
-					},
-				},
-				matcher: func(s string) (string, bool) { return s, true },
-				hashers: []resilience.HTTPHasher{hasher1},
-			},
-			&action{
-				upstream: []upstream{nil},
-				url:      []*url.URL{nil},
-				matched:  []bool{true},
-			},
-		),
-		gen(
-			"multiple upstream/1 inactive upstream",
-			[]string{cndMultiUpstream, cndInactiveUpstream},
-			[]string{},
-			&condition{
-				upstreams: []upstream{
-					&lbUpstream{
-						weight:         1,
-						circuitBreaker: &circuitBreakerController{status: opened},
-						rawURL:         "http://inactive.com",
-						parsedURL:      &url.URL{Scheme: "http", Host: "inactive.com"},
-					},
-					ups2, ups3},
-				matcher: func(s string) (string, bool) { return s, true },
-				hashers: []resilience.HTTPHasher{hasher2, hasher3, hasher1},
-			},
-			&action{
-				upstream: []upstream{ups3},
-				url:      []*url.URL{url3},
-				matched:  []bool{true},
-			},
-		),
-		gen(
-			"multiple upstream/2 inactive upstream",
-			[]string{cndMultiUpstream, cndInactiveUpstream},
-			[]string{},
-			&condition{
-				upstreams: []upstream{
-					&lbUpstream{
-						weight:         1,
-						circuitBreaker: &circuitBreakerController{status: opened},
-						rawURL:         "http://inactive1.com",
-						parsedURL:      &url.URL{Scheme: "http", Host: "inactive1.com"},
-					},
-					&lbUpstream{
-						weight:         1,
-						circuitBreaker: &circuitBreakerController{status: opened},
-						rawURL:         "http://inactive2.com",
-						parsedURL:      &url.URL{Scheme: "http", Host: "inactive2.com"},
-					},
-					ups3},
-				matcher: func(s string) (string, bool) { return s, true },
-				hashers: []resilience.HTTPHasher{hasher2, hasher3, hasher1},
-			},
-			&action{
-				upstream: []upstream{ups3},
-				url:      []*url.URL{url3},
-				matched:  []bool{true},
-			},
-		),
-		gen(
 			"path not match",
-			[]string{cndPathNotMatch},
-			[]string{actNoUpstream},
+			[]string{},
+			[]string{},
 			&condition{
 				upstreams: []upstream{ups1},
 				matcher:   func(string) (string, bool) { return "", false },
@@ -1125,7 +917,7 @@ func TestMaglevLB(t *testing.T) {
 		),
 		gen(
 			"hasher failed",
-			[]string{cndMultiUpstream},
+			[]string{},
 			[]string{},
 			&condition{
 				upstreams: []upstream{ups1, ups2, ups3},
@@ -1140,7 +932,7 @@ func TestMaglevLB(t *testing.T) {
 		),
 		gen(
 			"all hashers failed",
-			[]string{cndMultiUpstream},
+			[]string{},
 			[]string{},
 			&condition{
 				upstreams: []upstream{ups1, ups2, ups3},

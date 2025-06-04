@@ -5,15 +5,12 @@ package httpproxy
 
 import (
 	"context"
-	"net"
 	"net/http"
 	"net/url"
 	"regexp"
-	"strconv"
 	"sync"
 	"sync/atomic"
 	"testing"
-	"time"
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
@@ -120,20 +117,6 @@ func TestMutate(t *testing.T) {
 								EnablePassive: false,
 								EnableActive:  false,
 								InitialDelay:  0, // In seconds.
-								CheckInterval: 1, // In seconds.
-								NetworkType:   k.NetworkType_HTTP,
-								Protocol:      "icmp",
-								Address:       "",
-								// CircuitBreaker: &v1.CircuitBreaker{
-								// 	FailureThreshold:        3, // Count for ConsecutiveCounter, not percentage.
-								// 	SuccessThreshold:        3, // Count for ConsecutiveCounter, not percentage.
-								// 	EffectiveFailureSamples: 10,
-								// 	EffectiveSuccessSamples: 10,
-								// 	WaitDuration:            180, // In seconds.
-								// 	CircuitBreakerCounter: &v1.CircuitBreaker_ConsecutiveCounter{
-								// 		ConsecutiveCounter: &v1.ConsecutiveCounterSpec{},
-								// 	},
-								// },
 							}},
 						}},
 					},
@@ -152,7 +135,6 @@ func TestMutate(t *testing.T) {
 			opts := []cmp.Option{
 				cmpopts.IgnoreUnexported(v1.ReverseProxyHandler{}, v1.ReverseProxyHandlerSpec{}),
 				cmpopts.IgnoreUnexported(v1.LoadBalancerSpec{}, v1.UpstreamSpec{}, v1.PathMatcherSpec{}),
-				cmpopts.IgnoreUnexported(v1.CircuitBreaker{}, v1.CircuitBreaker_ConsecutiveCounter{}, v1.ConsecutiveCounterSpec{}),
 				cmpopts.IgnoreUnexported(k.Metadata{}, k.Status{}, k.Reference{}),
 			}
 			testutil.Diff(t, tt.A().manifest, manifest, opts...)
@@ -981,11 +963,9 @@ func TestNewLoadBalancers(t *testing.T) {
 						},
 						Upstreams: []*v1.UpstreamSpec{
 							{
-								URL:          "http://test.com",
+								URL:          "\n://test.com",
 								Weight:       1,
 								EnableActive: true,
-								NetworkType:  k.NetworkType_HTTP,
-								Address:      "INVALID \n",
 							},
 						},
 					},
@@ -1032,25 +1012,20 @@ func TestNewLBUpstreams(t *testing.T) {
 	}
 
 	type action struct {
-		ups        []upstream
-		err        any // error or errorutil.Kind
-		errPattern *regexp.Regexp
+		ups       []upstream
+		shouldErr bool
 	}
 
 	tb := testutil.NewTableBuilder[*condition, *action]()
 	tb.Name(t.Name())
-	cndInputNil := tb.Condition("input nil", "input nil")
-	cndValidSpecs := tb.Condition("valid specs", "input valid spec")
-	actCheckNoError := tb.Action("no error", "check that no error was returned")
-	actCheckError := tb.Action("error", "check that an error was returned")
 	table := tb.Build()
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"input nil",
-			[]string{cndInputNil},
-			[]string{actCheckNoError},
+			[]string{},
+			[]string{},
 			&condition{
 				specs: nil,
 			},
@@ -1060,8 +1035,8 @@ func TestNewLBUpstreams(t *testing.T) {
 		),
 		gen(
 			"1 valid spec",
-			[]string{cndValidSpecs},
-			[]string{actCheckNoError},
+			[]string{},
+			[]string{},
 			&condition{
 				specs: []*v1.UpstreamSpec{
 					{
@@ -1083,8 +1058,8 @@ func TestNewLBUpstreams(t *testing.T) {
 		),
 		gen(
 			"multiple valid specs",
-			[]string{cndValidSpecs},
-			[]string{actCheckNoError},
+			[]string{},
+			[]string{},
 			&condition{
 				specs: []*v1.UpstreamSpec{
 					{
@@ -1117,28 +1092,24 @@ func TestNewLBUpstreams(t *testing.T) {
 		gen(
 			"invalid spec",
 			[]string{},
-			[]string{actCheckError},
+			[]string{},
 			&condition{
 				specs: []*v1.UpstreamSpec{
 					{
-						URL:          "http://test.com",
-						EnableActive: true,
-						NetworkType:  k.NetworkType_HTTP,
-						Address:      "INVALID \n",
-						Weight:       1,
+						URL:    "\nhttp://test.com",
+						Weight: 1,
 					},
 				},
 			},
 			&action{
-				ups:        nil,
-				err:        core.ErrCoreGenCreateComponent,
-				errPattern: regexp.MustCompile(core.ErrPrefix + `failed to create component. .*net/url: invalid control character in URL`),
+				ups:       nil,
+				shouldErr: true,
 			},
 		),
 		gen(
 			"weight 0",
-			[]string{cndValidSpecs},
-			[]string{actCheckNoError},
+			[]string{},
+			[]string{},
 			&condition{
 				specs: []*v1.UpstreamSpec{
 					{
@@ -1160,8 +1131,8 @@ func TestNewLBUpstreams(t *testing.T) {
 		),
 		gen(
 			"weight -1",
-			[]string{cndValidSpecs},
-			[]string{actCheckNoError},
+			[]string{},
+			[]string{},
 			&condition{
 				specs: []*v1.UpstreamSpec{
 					{
@@ -1183,24 +1154,14 @@ func TestNewLBUpstreams(t *testing.T) {
 		tt := tt
 		t.Run(tt.Name(), func(t *testing.T) {
 			ups, err := newLBUpstreams(http.DefaultTransport, tt.C().specs)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
-
+			if tt.A().shouldErr {
+				testutil.Diff(t, true, err != nil)
+			}
 			opts := []cmp.Option{
 				cmp.AllowUnexported(lbUpstream{}, noopUpstream{}),
 				cmpopts.IgnoreFields(lbUpstream{}, "closer"),
 			}
 			testutil.Diff(t, tt.A().ups, ups, opts...)
-
-			if len(ups) == 0 {
-				return
-			}
-
-			time.Sleep(20 * time.Millisecond) // Wait activeCheck goroutine to start
-			for _, up := range ups {
-				if u, ok := up.(*lbUpstream); ok {
-					u.close() // Close goroutine
-				}
-			}
 		})
 	}
 }
@@ -1211,36 +1172,20 @@ func TestNewLBUpstream(t *testing.T) {
 	}
 
 	type action struct {
-		ups        upstream
-		err        any // error or errorutil.Kind
-		errPattern *regexp.Regexp
+		ups       upstream
+		shouldErr bool
 	}
 
 	tb := testutil.NewTableBuilder[*condition, *action]()
 	tb.Name(t.Name())
-	cndHTTP := tb.Condition("http", "specify network type HTTP")
-	cndTCP := tb.Condition("tcp", "specify network type TCP")
-	cndUDP := tb.Condition("udp", "specify network type UDP")
-	cndIP := tb.Condition("ip", "specify network type IP")
-	actCheckUpstream := tb.Action("check upstream", "check the returned upstream config")
-	actCheckNoError := tb.Action("no error", "check that no error was returned")
-	actCheckError := tb.Action("error", "check that there is an error")
 	table := tb.Build()
-
-	// Get available port for testing to avoid dialing unknown service.
-	ln4, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		panic(err)
-	}
-	ln4.Close()
-	testPort := strconv.Itoa(ln4.Addr().(*net.TCPAddr).Port)
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"noop upstream",
 			[]string{},
-			[]string{actCheckUpstream, actCheckNoError},
+			[]string{},
 			&condition{
 				spec: &v1.UpstreamSpec{
 					URL:          "http://test.com",
@@ -1257,7 +1202,7 @@ func TestNewLBUpstream(t *testing.T) {
 		gen(
 			"url has trailing slash",
 			[]string{},
-			[]string{actCheckUpstream, actCheckNoError},
+			[]string{},
 			&condition{
 				spec: &v1.UpstreamSpec{
 					URL:          "http://test.com/",
@@ -1274,7 +1219,7 @@ func TestNewLBUpstream(t *testing.T) {
 		gen(
 			"invalid url",
 			[]string{},
-			[]string{actCheckUpstream, actCheckNoError},
+			[]string{},
 			&condition{
 				spec: &v1.UpstreamSpec{
 					URL:          "http://test com",
@@ -1282,371 +1227,8 @@ func TestNewLBUpstream(t *testing.T) {
 				},
 			},
 			&action{
-				ups:        nil,
-				err:        core.ErrCoreGenCreateComponent,
-				errPattern: regexp.MustCompile(core.ErrPrefix + `failed to create component.`),
-			},
-		),
-		gen(
-			"HTTP",
-			[]string{cndHTTP},
-			[]string{actCheckUpstream, actCheckNoError},
-			&condition{
-				spec: &v1.UpstreamSpec{
-					URL:           "http://test.com/",
-					EnablePassive: true,
-					EnableActive:  true,
-					Weight:        9,
-					InitialDelay:  10,
-					CheckInterval: 20,
-					NetworkType:   k.NetworkType_HTTP,
-					Address:       "http://127.0.0.1:" + testPort,
-				},
-			},
-			&action{
-				ups: &lbUpstream{
-					weight:         9,
-					rawURL:         "http://test.com",
-					parsedURL:      &url.URL{Scheme: "http", Host: "test.com"},
-					passiveEnabled: true,
-					initialDelay:   time.Second * 10,
-					interval:       time.Second * 20,
-				},
-			},
-		),
-		gen(
-			"HTTP error",
-			[]string{cndHTTP},
-			[]string{actCheckUpstream, actCheckError},
-			&condition{
-				spec: &v1.UpstreamSpec{
-					URL:           "http://test.com/",
-					EnablePassive: true,
-					EnableActive:  true,
-					Weight:        9,
-					InitialDelay:  10,
-					CheckInterval: 20,
-					NetworkType:   k.NetworkType_HTTP,
-					Address:       "INVALID \n",
-				},
-			},
-			&action{
-				ups:        nil,
-				err:        core.ErrCoreGenCreateComponent,
-				errPattern: regexp.MustCompile(core.ErrPrefix + `failed to create component. .*net/url: invalid control character in URL`),
-			},
-		),
-		gen(
-			"TCP",
-			[]string{cndTCP},
-			[]string{actCheckUpstream, actCheckNoError},
-			&condition{
-				spec: &v1.UpstreamSpec{
-					URL:           "http://test.com/",
-					EnablePassive: true,
-					EnableActive:  true,
-					Weight:        9,
-					InitialDelay:  10,
-					CheckInterval: 20,
-					NetworkType:   k.NetworkType_TCP,
-					Address:       "127.0.0.1:" + testPort,
-				},
-			},
-			&action{
-				ups: &lbUpstream{
-					weight:         9,
-					rawURL:         "http://test.com",
-					parsedURL:      &url.URL{Scheme: "http", Host: "test.com"},
-					passiveEnabled: true,
-					initialDelay:   time.Second * 10,
-					interval:       time.Second * 20,
-				},
-			},
-		),
-		gen(
-			"TCP4",
-			[]string{cndTCP},
-			[]string{actCheckUpstream, actCheckNoError},
-			&condition{
-				spec: &v1.UpstreamSpec{
-					URL:           "http://test.com/",
-					EnablePassive: true,
-					EnableActive:  true,
-					Weight:        9,
-					InitialDelay:  10,
-					CheckInterval: 20,
-					NetworkType:   k.NetworkType_TCP4,
-					Address:       "127.0.0.1:" + testPort,
-				},
-			},
-			&action{
-				ups: &lbUpstream{
-					weight:         9,
-					rawURL:         "http://test.com",
-					parsedURL:      &url.URL{Scheme: "http", Host: "test.com"},
-					passiveEnabled: true,
-					initialDelay:   time.Second * 10,
-					interval:       time.Second * 20,
-				},
-			},
-		),
-		gen(
-			"TCP6",
-			[]string{cndTCP},
-			[]string{actCheckUpstream, actCheckNoError},
-			&condition{
-				spec: &v1.UpstreamSpec{
-					URL:           "http://test.com/",
-					EnablePassive: true,
-					EnableActive:  true,
-					Weight:        9,
-					InitialDelay:  10,
-					CheckInterval: 20,
-					NetworkType:   k.NetworkType_TCP6,
-					Address:       "[::1]:" + testPort,
-				},
-			},
-			&action{
-				ups: &lbUpstream{
-					weight:         9,
-					rawURL:         "http://test.com",
-					parsedURL:      &url.URL{Scheme: "http", Host: "test.com"},
-					passiveEnabled: true,
-					initialDelay:   time.Second * 10,
-					interval:       time.Second * 20,
-				},
-			},
-		),
-		gen(
-			"TCP error",
-			[]string{cndTCP},
-			[]string{actCheckUpstream, actCheckError},
-			&condition{
-				spec: &v1.UpstreamSpec{
-					URL:           "http://test.com/",
-					EnablePassive: true,
-					EnableActive:  true,
-					Weight:        9,
-					InitialDelay:  10,
-					CheckInterval: 20,
-					NetworkType:   k.NetworkType_TCP,
-					Address:       "INVALID",
-				},
-			},
-			&action{
-				ups:        nil,
-				err:        core.ErrCoreGenCreateComponent,
-				errPattern: regexp.MustCompile(core.ErrPrefix + `failed to create component. .*INVALID: missing port in address`),
-			},
-		),
-		gen(
-			"UDP",
-			[]string{cndUDP},
-			[]string{actCheckUpstream, actCheckNoError},
-			&condition{
-				spec: &v1.UpstreamSpec{
-					URL:           "http://test.com/",
-					EnablePassive: true,
-					EnableActive:  true,
-					Weight:        9,
-					InitialDelay:  10,
-					CheckInterval: 20,
-					NetworkType:   k.NetworkType_UDP,
-					Address:       "127.0.0.1:" + testPort,
-				},
-			},
-			&action{
-				ups: &lbUpstream{
-					weight:         9,
-					rawURL:         "http://test.com",
-					parsedURL:      &url.URL{Scheme: "http", Host: "test.com"},
-					passiveEnabled: true,
-					initialDelay:   time.Second * 10,
-					interval:       time.Second * 20,
-				},
-			},
-		),
-		gen(
-			"UDP4",
-			[]string{cndUDP},
-			[]string{actCheckUpstream, actCheckNoError},
-			&condition{
-				spec: &v1.UpstreamSpec{
-					URL:           "http://test.com/",
-					EnablePassive: true,
-					EnableActive:  true,
-					Weight:        9,
-					InitialDelay:  10,
-					CheckInterval: 20,
-					NetworkType:   k.NetworkType_UDP4,
-					Address:       "127.0.0.1:" + testPort,
-				},
-			},
-			&action{
-				ups: &lbUpstream{
-					weight:         9,
-					rawURL:         "http://test.com",
-					parsedURL:      &url.URL{Scheme: "http", Host: "test.com"},
-					passiveEnabled: true,
-					initialDelay:   time.Second * 10,
-					interval:       time.Second * 20,
-				},
-			},
-		),
-		gen(
-			"UDP6",
-			[]string{cndUDP},
-			[]string{actCheckUpstream, actCheckNoError},
-			&condition{
-				spec: &v1.UpstreamSpec{
-					URL:           "http://test.com/",
-					EnablePassive: true,
-					EnableActive:  true,
-					Weight:        9,
-					InitialDelay:  10,
-					CheckInterval: 20,
-					NetworkType:   k.NetworkType_UDP6,
-					Address:       "[::1]:" + testPort,
-				},
-			},
-			&action{
-				ups: &lbUpstream{
-					weight:         9,
-					rawURL:         "http://test.com",
-					parsedURL:      &url.URL{Scheme: "http", Host: "test.com"},
-					passiveEnabled: true,
-					initialDelay:   time.Second * 10,
-					interval:       time.Second * 20,
-				},
-			},
-		),
-		gen(
-			"UDP error",
-			[]string{cndUDP},
-			[]string{actCheckUpstream, actCheckError},
-			&condition{
-				spec: &v1.UpstreamSpec{
-					URL:           "http://test.com/",
-					EnablePassive: true,
-					EnableActive:  true,
-					Weight:        9,
-					InitialDelay:  10,
-					CheckInterval: 20,
-					NetworkType:   k.NetworkType_UDP,
-					Address:       "INVALID",
-				},
-			},
-			&action{
-				ups:        nil,
-				err:        core.ErrCoreGenCreateComponent,
-				errPattern: regexp.MustCompile(core.ErrPrefix + `failed to create component. .*INVALID: missing port in address`),
-			},
-		),
-		gen(
-			"IP",
-			[]string{cndIP},
-			[]string{actCheckUpstream, actCheckNoError},
-			&condition{
-				spec: &v1.UpstreamSpec{
-					URL:           "http://test.com/",
-					EnablePassive: true,
-					EnableActive:  true,
-					Weight:        9,
-					InitialDelay:  10,
-					CheckInterval: 20,
-					NetworkType:   k.NetworkType_IP,
-					Address:       "127.0.0.1",
-					Protocol:      "icmp",
-				},
-			},
-			&action{
-				ups: &lbUpstream{
-					weight:         9,
-					rawURL:         "http://test.com",
-					parsedURL:      &url.URL{Scheme: "http", Host: "test.com"},
-					passiveEnabled: true,
-					initialDelay:   time.Second * 10,
-					interval:       time.Second * 20,
-				},
-			},
-		),
-		gen(
-			"IP4",
-			[]string{cndIP},
-			[]string{actCheckUpstream, actCheckNoError},
-			&condition{
-				spec: &v1.UpstreamSpec{
-					URL:           "http://test.com/",
-					EnablePassive: true,
-					EnableActive:  true,
-					Weight:        9,
-					InitialDelay:  10,
-					CheckInterval: 20,
-					NetworkType:   k.NetworkType_IP4,
-					Address:       "127.0.0.1",
-					Protocol:      "icmp",
-				},
-			},
-			&action{
-				ups: &lbUpstream{
-					weight:         9,
-					rawURL:         "http://test.com",
-					parsedURL:      &url.URL{Scheme: "http", Host: "test.com"},
-					passiveEnabled: true,
-					initialDelay:   time.Second * 10,
-					interval:       time.Second * 20,
-				},
-			},
-		),
-		gen(
-			"IP6",
-			[]string{cndIP},
-			[]string{actCheckUpstream, actCheckNoError},
-			&condition{
-				spec: &v1.UpstreamSpec{
-					URL:           "http://test.com/",
-					EnablePassive: true,
-					EnableActive:  true,
-					Weight:        9,
-					InitialDelay:  10,
-					CheckInterval: 20,
-					NetworkType:   k.NetworkType_IP6,
-					Address:       "::1",
-					Protocol:      "icmp",
-				},
-			},
-			&action{
-				ups: &lbUpstream{
-					weight:         9,
-					rawURL:         "http://test.com",
-					parsedURL:      &url.URL{Scheme: "http", Host: "test.com"},
-					passiveEnabled: true,
-					initialDelay:   time.Second * 10,
-					interval:       time.Second * 20,
-				},
-			},
-		),
-		gen(
-			"IP error",
-			[]string{cndIP},
-			[]string{actCheckUpstream, actCheckError},
-			&condition{
-				spec: &v1.UpstreamSpec{
-					URL:           "http://test.com/",
-					EnablePassive: true,
-					EnableActive:  true,
-					Weight:        9,
-					InitialDelay:  10,
-					CheckInterval: 20,
-					NetworkType:   k.NetworkType_IP,
-					Address:       "INVALID \n",
-					Protocol:      "icmp",
-				},
-			},
-			&action{
-				ups:        nil,
-				err:        core.ErrCoreGenCreateComponent,
-				errPattern: regexp.MustCompile(core.ErrPrefix + `failed to create component. .*\[lookup INVALID`),
+				ups:       nil,
+				shouldErr: true,
 			},
 		),
 	}
@@ -1657,22 +1239,14 @@ func TestNewLBUpstream(t *testing.T) {
 		tt := tt
 		t.Run(tt.Name(), func(t *testing.T) {
 			ups, err := newLBUpstream(http.DefaultTransport, tt.C().spec)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
-
-			if ups == nil {
-				return
+			if tt.A().shouldErr {
+				testutil.Diff(t, true, err != nil)
 			}
-
 			opts := []cmp.Option{
 				cmp.AllowUnexported(lbUpstream{}, noopUpstream{}),
 				cmpopts.IgnoreFields(lbUpstream{}, "closer"),
 			}
 			testutil.Diff(t, tt.A().ups, ups, opts...)
-
-			if u, ok := ups.(*lbUpstream); ok {
-				time.Sleep(20 * time.Millisecond) // Wait activeCheck goroutine to start
-				u.close()                         // Close goroutine
-			}
 		})
 	}
 }

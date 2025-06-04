@@ -252,148 +252,34 @@ message UpstreamSpec {
     // [OPTIONAL]
     // EnablePassive enables passive health check.
     // Default is [false].
+    // NOTE: This fiels is not used for now.
     bool EnablePassive = 3 [json_name = "enablePassive"];
 
     // [OPTIONAL]
     // EnableActive enables active health check.
     // Default is [false].
+    // NOTE: This fiels is not used for now.
     bool EnableActive = 4 [json_name = "enableActive"];
 
     // [OPTIONAL]
     // InitialDelay is the wait time in seconds until to start active health checking after starts.
     // Note that this field is used only when the active health checking is configured.
     // Default is [0].
+    // NOTE: This fiels is not used for now.
     int32 InitialDelay = 7 [json_name = "initialDelay"];
 
     // [OPTIONAL]
-    // CheckInterval is the interval of active health check in seconds.
+    // HealthCheckInterval is the interval of active health check in seconds.
     // Note that this field is used only when the active health checking is configured.
     // Default is [1].
-    int32 CheckInterval = 8 [json_name = "checkInterval"];
+    // NOTE: This fiels is not used for now.
+    int32 HealthCheckInterval = 8 [json_name = "healthCheckInterval"];
 
     // [OPTIONAL]
-    // NetworkType is network type used for active health cheking.
-    // Note that this field is used only when the active health checking is configured.
-    // Default is [HTTP].
-    kernel.NetworkType NetworkType = 9 [json_name = "networkType"];
-
-    // [OPTIONAL]
-    // Protocol is the protocol number or a protocol name used for health checking.
-    // This field is used when "IP", "IP4" or "IP6" is selected as the network type.
-    // See https://pkg.go.dev/net#Dial for more detail.
-    // Default is ["icmp"].
-    string Protocol = 10 [json_name = "protocol"];
-
-    // [OPTIONAL]
-    // Address is the target IP address or URL for active health checking.
-    // For example, specify a url "http://example.com/healthy" for HTTP network type,
-    // "127.0.0.1:8080" for TCP and UDP type, "127.0.0.1" for IP type.
-    // See https://pkg.go.dev/net#Dial for more detail.
+    // Address is the active health check target URL or address.
+    // For example, specify a url "http://example.com/healthy" for HTTP network type
+    // and "tcp://127.0.0.1:8080" for TCP.
     // Default is not set.
-    string Address = 11 [json_name = "address"];
-
-    // [OPTIONAL]
-    // [This feature is disabled now]
-    // CircuitBreaker is circuit breaker specification for health checking.
-    // Default values are used when not specified.
-    CircuitBreaker CircuitBreaker = 12 [json_name = "circuitBreaker"];
-}
-
-// CircuitBreaker is the specification of CircuitBreaker object.
-message CircuitBreaker {
-    // [OPTIONAL]
-    // FailureThreshold is the threshold to consider upstream unhealthy.
-    // The unit of the value differs depending on  the count algorithm.
-    // The unit is count for ConsecutiveCounter and percentage 0-100 for others.
-    // Default is [5].
-    int32 FailureThreshold = 1 [json_name = "failureThreshold", (buf.validate.field).int32 = {gte : 0}];
-
-    // [OPTIONAL]
-    // SuccessThreshold is the threshold to consider upstream healthy.
-    // The unit of the value differs depending on  the count algorithm.
-    // The unit is count for ConsecutiveCounter and percentage 0-100 for others.
-    // Default is [80].
-    int32 SuccessThreshold = 2 [json_name = "successThreshold", (buf.validate.field).int32 = {gte : 0}];
-
-    // [OPTIONAL]
-    // EffectiveFailureSamples is the number of health check samples that is
-    // considered to be meaningful for calculating failure rate.
-    // The default value of 20 means that the initial 20 requests are
-    // accepted after the status of circuit breaker changed to closed
-    // inspite of the failure rate.
-    // Ths value will be ignored for ConsecutiveCounter.
-    // Default is [20].
-    int32 EffectiveFailureSamples = 3 [json_name = "effectiveFailureSamples", (buf.validate.field).int32 = {gte : 0}];
-
-    // [OPTIONAL]
-    // EffectiveSuccessSamples is the number of health check samples that is
-    // considered to be meaningful for calculating success rate
-    // when the status of circuit breaker is .
-    // The default value of 20 means that the initial 20 requests are
-    // accepted after the status of circuit breaker changed to closed
-    // inspite of the failure rate.
-    // Ths value will be ignored for ConsecutiveCounter.
-    // Default is [20].
-    int32 EffectiveSuccessSamples = 4 [json_name = "effectiveSuccessSamples", (buf.validate.field).int32 = {gte : 0}];
-
-    // [OPTIONAL]
-    // WaitDuration is wait time to reset success and failure count
-    // of circuit breaker in seconds.
-    // Default is [180], or 3 minutes.
-    int32 WaitDuration = 5 [json_name = "waitDuration", (buf.validate.field).int32 = {gte : 1}];
-
-    // [OPTIONAL]
-    // CircuitBreakerCounter is the success and failure counter of health cheking for circuit breaker.
-    // ConsecutiveCounter is set by default.
-    // Currently, these configs do not work.
-    oneof CircuitBreakerCounter {
-        ConsecutiveCounterSpec             ConsecutiveCounter             = 6 [json_name = "consecutiveCounter"];
-        CountBasedFixedWindowCounterSpec   CountBasedFixedWindowCounter   = 7 [json_name = "countBasedFixedWindowCounter"];
-        TimeBasedFixedWindowCounterSpec    TimeBasedFixedWindowCounter    = 8 [json_name = "timeBasedFixedWindowCounter"];
-        CountBasedSlidingWindowCounterSpec CountBasedSlidingWindowCounter = 9 [json_name = "countBasedSlidingWindowCounter"];
-        TimeBasedSlidingWindowCounterSpec  TimeBasedSlidingWindowCounter  = 10 [json_name = "timeBasedSlidingWindowCounter"];
-    }
-}
-
-// ConsecutiveCounterSpec is the specification of the circuit breaker counter
-// with consecutive counting algorithm.
-message ConsecutiveCounterSpec {
-}
-
-// CountBasedFixedWindowCounterSpec is the specification of the circuit breaker counter
-// with count-based fixed window algorithm.
-message CountBasedFixedWindowCounterSpec {
-    // [REQUIRED]
-    // This value must be grater than or equal to effectiveFailureSamples and effectiveSuccessSamples.
-    int32 Samples = 1 [json_name = "samples", (buf.validate.field).int32.gte = 1];
-}
-
-// TimeBasedFixedWindowCounterSpec is the specification of the circuit breaker counter
-// with time-based fixed window algorithm.
-message TimeBasedFixedWindowCounterSpec {
-    // [OPTIONAL]
-    // Window width in seconds.
-    // Default is [5].
-    int32 WindowWidth = 1 [json_name = "windowWidth", (buf.validate.field).int32.gte = 1];
-}
-
-// CountBasedSlidingWindowCounterSpec is the specification of the circuit breaker counter
-// with count-based sliding window algorithm.
-message CountBasedSlidingWindowCounterSpec {
-    // [REQUIRED]
-    // This value must be grater than or equal to effectiveFailureSamples and effectiveSuccessSamples.
-    int32 Samples = 1 [json_name = "samples", (buf.validate.field).int32.gte = 1];
-    // [REQUIRED]
-    int32 HistoryLimit = 2 [json_name = "historyLimit", (buf.validate.field).int32.gte = 1];
-}
-
-// TimeBasedSlidingWindowCounterSpec is the specification of the circuit breaker counter
-// with time-based sliding window algorithm.
-message TimeBasedSlidingWindowCounterSpec {
-    // [OPTIONAL]
-    // Window width in seconds.
-    // Default is [5].
-    int32 WindowWidth = 1 [json_name = "windowWidth", (buf.validate.field).int32.gte = 1];
-    // [REQUIRED]
-    int32 HistoryLimit = 2 [json_name = "historyLimit", (buf.validate.field).int32.gte = 1];
+    // NOTE: This fiels is not used for now.
+    string HealthCheckAddr = 9 [json_name = "healthCheckAddr"];
 }
