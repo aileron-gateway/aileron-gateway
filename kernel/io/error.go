@@ -6,19 +6,8 @@ package io
 const (
 	ErrPkg = "io"
 
-	ErrTypeEnv  = "env"
 	ErrTypeFile = "file"
 	ErrTypeLF   = "logical file"
-
-	// ErrDscSetEnv is a error description.
-	// This description indicates the failure of
-	// setting environmental variable.
-	ErrDscSetEnv = "setting environmental variable failed."
-
-	// ErrDscLoadEnv is a error description.
-	// This description indicates the failure of
-	// loading environmental variable.
-	ErrDscLoadEnv = "loading environmental variable failed."
 
 	// ErrDscReadFile is a error description.
 	// This description indicates the failure of

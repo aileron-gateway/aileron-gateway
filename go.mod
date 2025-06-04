@@ -4,7 +4,7 @@ go 1.23.0
 
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.6-20250425153114-8976f5be98c1.1
-	github.com/aileron-projects/go v0.0.0-alpha.6
+	github.com/aileron-projects/go v0.0.0-alpha.9
 	github.com/andybalholm/brotli v1.1.1
 	github.com/bufbuild/protovalidate-go v0.10.1
 	github.com/golang-jwt/jwt/v5 v5.2.2
