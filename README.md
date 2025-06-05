@@ -93,7 +93,7 @@ Config paths can be `relative` or `absolute`, `file path` or `directory path`, `
 A reverse proxy server will listen on the port `:8080`.
 
 ```bash
-$ aileron -f _example/reverse-proxy/
+$ aileron -f examples/reverse-proxy/
 
 {"time":"2025-03-15 18:20:12","level":"INFO","msg":"server started. listening on [::]:8080","datetime":{"date":"2025-03-15","time":"18:20:12.556","zone":"Local"},"location":{"file":"httpserver/server.go","func":"httpserver.(*runner).Run","line":56}}
 ```
@@ -156,10 +156,10 @@ using [QEMU User space emulator](https://www.qemu.org/docs/master/user/main.html
 ## Release Cycle
 
 - Versions follow [Semantic Versioning](https://semver.org/).
-  - `vZ.Y.Z`
-  - `vZ.Y.Z-rc.N`
-  - `vZ.Y.Z-beta.N`
-  - `vZ.Y.Z-alpha.N`
+  - `vX.Y.Z`
+  - `vX.Y.Z-rc.N`
+  - `vX.Y.Z-beta.N`
+  - `vX.Y.Z-alpha.N`
 - Minor release (update `Y`) is twice a year.
 - Patch release (update `Z`) is almost once a month.
 
