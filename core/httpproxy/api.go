@@ -219,7 +219,7 @@ func newLBUpstreams(rt http.RoundTripper, specs []*v1.UpstreamSpec) ([]upstream,
 // newLBUpstream returns a new upstream object from given spec.
 // The given argument rt and spec must not be nil.
 // This function panics if a nil value was given.
-func newLBUpstream(rt http.RoundTripper, spec *v1.UpstreamSpec) (upstream, error) {
+func newLBUpstream(_ http.RoundTripper, spec *v1.UpstreamSpec) (upstream, error) {
 	rawURL := strings.TrimSuffix(spec.URL, "/")
 	parsedURL, err := url.Parse(rawURL)
 	if err != nil {
