@@ -5,12 +5,10 @@ package httpproxy
 
 import (
 	"errors"
-	"net"
 	"net/http"
 	"net/url"
 	"slices"
 	"strings"
-	"time"
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
@@ -50,34 +48,17 @@ type API struct {
 
 func (*API) Mutate(msg protoreflect.ProtoMessage) protoreflect.ProtoMessage {
 	c := msg.(*v1.ReverseProxyHandler)
-
 	for _, spec := range c.Spec.LoadBalancers {
 		for j, t := range spec.Upstreams {
 			baseSpec := &v1.UpstreamSpec{
 				Weight:        1,
 				EnablePassive: false, // Passive health check.
 				EnableActive:  false, // Active health check.
-				InitialDelay:  0,     // Delay until stating health check in seconds.
-				CheckInterval: 1,     // Health check interval in seconds.
-				NetworkType:   kernel.NetworkType_HTTP,
-				Protocol:      "icmp",
-				Address:       "",
-				// CircuitBreaker: &v1.CircuitBreaker{
-				// 	FailureThreshold:        3, // Count for ConsecutiveCounter, not percentage.
-				// 	SuccessThreshold:        3, // Count for ConsecutiveCounter, not percentage.
-				// 	EffectiveFailureSamples: 10,
-				// 	EffectiveSuccessSamples: 10,
-				// 	WaitDuration:            180, // In seconds.
-				// 	CircuitBreakerCounter: &v1.CircuitBreaker_ConsecutiveCounter{
-				// 		ConsecutiveCounter: &v1.ConsecutiveCounterSpec{},
-				// 	},
-				// },
 			}
 			proto.Merge(baseSpec, t)
 			spec.Upstreams[j] = baseSpec
 		}
 	}
-
 	return c
 }
 
@@ -220,89 +201,33 @@ func newLBUpstreams(rt http.RoundTripper, specs []*v1.UpstreamSpec) ([]upstream,
 	if len(specs) == 0 {
 		return nil, nil
 	}
-	ts := []upstream{}
+	ts := make([]upstream, 0, len(specs))
 	for _, spec := range specs {
 		if spec.Weight < 0 {
 			continue
 		}
-		if spec.Weight == 0 {
-			spec.Weight = 1
-		}
+		spec.Weight = max(1, spec.Weight)
 		t, err := newLBUpstream(rt, spec)
 		if err != nil {
 			return nil, err
 		}
 		ts = append(ts, t)
 	}
-	return slices.Clip(ts), nil
+	return ts, nil
 }
 
 // newLBUpstream returns a new upstream object from given spec.
 // The given argument rt and spec must not be nil.
 // This function panics if a nil value was given.
-func newLBUpstream(rt http.RoundTripper, spec *v1.UpstreamSpec) (upstream, error) {
+func newLBUpstream(_ http.RoundTripper, spec *v1.UpstreamSpec) (upstream, error) {
 	rawURL := strings.TrimSuffix(spec.URL, "/")
 	parsedURL, err := url.Parse(rawURL)
 	if err != nil {
-		return nil, core.ErrCoreGenCreateComponent.WithStack(err, nil)
+		return nil, err
 	}
-
-	// If active health check is not enabled,
-	// there is no need to use circuit breaker.
-	// Just return noop upstream.
-	if !spec.EnableActive {
-		return &noopUpstream{
-			weight:    int(spec.Weight),
-			rawURL:    rawURL,
-			parsedURL: parsedURL,
-		}, nil
-	}
-
-	tt := &lbUpstream{
-		circuitBreaker: newCircuitBreaker(spec.CircuitBreaker),
-		weight:         int(spec.Weight),
-		rawURL:         rawURL,
-		parsedURL:      parsedURL,
-		passiveEnabled: spec.EnablePassive,
-		interval:       time.Second * time.Duration(spec.CheckInterval),
-		initialDelay:   time.Second * time.Duration(spec.InitialDelay),
-	}
-
-	var t upstream = tt
-	nw := network.NetworkType(spec.NetworkType)
-
-	switch spec.NetworkType {
-	case kernel.NetworkType_HTTP:
-		r, err := http.NewRequest(http.MethodGet, spec.Address, nil)
-		if err != nil {
-			return nil, core.ErrCoreGenCreateComponent.WithStack(err, nil)
-		}
-		go tt.activeCheckHTTP(rt, r)
-
-	case kernel.NetworkType_TCP, kernel.NetworkType_TCP4, kernel.NetworkType_TCP6:
-		addr, err := net.ResolveTCPAddr(nw, spec.Address)
-		if err != nil {
-			return nil, core.ErrCoreGenCreateComponent.WithStack(err, nil)
-		}
-		go tt.activeCheck(nw, addr.String())
-
-	case kernel.NetworkType_UDP, kernel.NetworkType_UDP4, kernel.NetworkType_UDP6:
-		addr, err := net.ResolveUDPAddr(nw, spec.Address)
-		if err != nil {
-			return nil, core.ErrCoreGenCreateComponent.WithStack(err, nil)
-		}
-		go tt.activeCheck(nw, addr.String())
-
-	case kernel.NetworkType_IP, kernel.NetworkType_IP4, kernel.NetworkType_IP6:
-		if spec.Protocol != "" {
-			nw = nw + ":" + spec.Protocol
-		}
-		addr, err := net.ResolveIPAddr(nw, spec.Address)
-		if err != nil {
-			return nil, core.ErrCoreGenCreateComponent.WithStack(err, nil)
-		}
-		go tt.activeCheck(nw, addr.String())
-	}
-
-	return t, nil
+	return &noopUpstream{
+		weight:    int(spec.Weight),
+		rawURL:    rawURL,
+		parsedURL: parsedURL,
+	}, nil
 }

@@ -131,14 +131,6 @@ func TestReverseProxy_ServeHTTP(t *testing.T) {
 	rlb := &resilience.RoundRobinLB[upstream]{}
 	rlb.Add(ups)
 
-	inactive := &lbUpstream{
-		circuitBreaker: &testCircuitBreaker{
-			activeStatus: false,
-		},
-	}
-	inactiveRlb := &resilience.RoundRobinLB[upstream]{}
-	inactiveRlb.Add(inactive)
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
@@ -337,32 +329,6 @@ func TestReverseProxy_ServeHTTP(t *testing.T) {
 				status:     http.StatusNotFound,
 				written:    "",
 				err:        core.ErrCoreProxyNoUpstream,
-				errPattern: regexp.MustCompile(``),
-			},
-		),
-		gen(
-			"upstream not available",
-			[]string{},
-			[]string{},
-			&condition{
-				proxy: &reverseProxy{
-					lg: log.GlobalLogger(log.DefaultLoggerName),
-					eh: &testErrorHandler{},
-					lbs: []loadBalancer{
-						&nonHashLB{
-							lbMatcher: &lbMatcher{
-								pathMatchers: []matcherFunc{func(string) (string, bool) { return "", true }},
-							},
-							LoadBalancer: inactiveRlb,
-						},
-					},
-					rt: &testRoundTripper{},
-				},
-			},
-			&action{
-				status:     http.StatusBadGateway,
-				written:    "",
-				err:        core.ErrCoreProxyUnavailable,
 				errPattern: regexp.MustCompile(``),
 			},
 		),

@@ -611,46 +611,34 @@ type UpstreamSpec struct {
 	// [OPTIONAL]
 	// EnablePassive enables passive health check.
 	// Default is [false].
+	// NOTE: This fiels is not used for now.
 	EnablePassive bool `protobuf:"varint,3,opt,name=EnablePassive,json=enablePassive,proto3" json:"EnablePassive,omitempty"`
 	// [OPTIONAL]
 	// EnableActive enables active health check.
 	// Default is [false].
+	// NOTE: This fiels is not used for now.
 	EnableActive bool `protobuf:"varint,4,opt,name=EnableActive,json=enableActive,proto3" json:"EnableActive,omitempty"`
 	// [OPTIONAL]
 	// InitialDelay is the wait time in seconds until to start active health checking after starts.
 	// Note that this field is used only when the active health checking is configured.
 	// Default is [0].
+	// NOTE: This fiels is not used for now.
 	InitialDelay int32 `protobuf:"varint,7,opt,name=InitialDelay,json=initialDelay,proto3" json:"InitialDelay,omitempty"`
 	// [OPTIONAL]
-	// CheckInterval is the interval of active health check in seconds.
+	// HealthCheckInterval is the interval of active health check in seconds.
 	// Note that this field is used only when the active health checking is configured.
 	// Default is [1].
-	CheckInterval int32 `protobuf:"varint,8,opt,name=CheckInterval,json=checkInterval,proto3" json:"CheckInterval,omitempty"`
+	// NOTE: This fiels is not used for now.
+	HealthCheckInterval int32 `protobuf:"varint,8,opt,name=HealthCheckInterval,json=healthCheckInterval,proto3" json:"HealthCheckInterval,omitempty"`
 	// [OPTIONAL]
-	// NetworkType is network type used for active health cheking.
-	// Note that this field is used only when the active health checking is configured.
-	// Default is [HTTP].
-	NetworkType kernel.NetworkType `protobuf:"varint,9,opt,name=NetworkType,json=networkType,proto3,enum=kernel.NetworkType" json:"NetworkType,omitempty"`
-	// [OPTIONAL]
-	// Protocol is the protocol number or a protocol name used for health checking.
-	// This field is used when "IP", "IP4" or "IP6" is selected as the network type.
-	// See https://pkg.go.dev/net#Dial for more detail.
-	// Default is ["icmp"].
-	Protocol string `protobuf:"bytes,10,opt,name=Protocol,json=protocol,proto3" json:"Protocol,omitempty"`
-	// [OPTIONAL]
-	// Address is the target IP address or URL for active health checking.
-	// For example, specify a url "http://example.com/healthy" for HTTP network type,
-	// "127.0.0.1:8080" for TCP and UDP type, "127.0.0.1" for IP type.
-	// See https://pkg.go.dev/net#Dial for more detail.
+	// Address is the active health check target URL or address.
+	// For example, specify a url "http://example.com/healthy" for HTTP network type
+	// and "tcp://127.0.0.1:8080" for TCP.
 	// Default is not set.
-	Address string `protobuf:"bytes,11,opt,name=Address,json=address,proto3" json:"Address,omitempty"`
-	// [OPTIONAL]
-	// [This feature is disabled now]
-	// CircuitBreaker is circuit breaker specification for health checking.
-	// Default values are used when not specified.
-	CircuitBreaker *CircuitBreaker `protobuf:"bytes,12,opt,name=CircuitBreaker,json=circuitBreaker,proto3" json:"CircuitBreaker,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// NOTE: This fiels is not used for now.
+	HealthCheckAddr string `protobuf:"bytes,9,opt,name=HealthCheckAddr,json=healthCheckAddr,proto3" json:"HealthCheckAddr,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *UpstreamSpec) Reset() {
@@ -718,496 +706,18 @@ func (x *UpstreamSpec) GetInitialDelay() int32 {
 	return 0
 }
 
-func (x *UpstreamSpec) GetCheckInterval() int32 {
+func (x *UpstreamSpec) GetHealthCheckInterval() int32 {
 	if x != nil {
-		return x.CheckInterval
+		return x.HealthCheckInterval
 	}
 	return 0
 }
 
-func (x *UpstreamSpec) GetNetworkType() kernel.NetworkType {
+func (x *UpstreamSpec) GetHealthCheckAddr() string {
 	if x != nil {
-		return x.NetworkType
-	}
-	return kernel.NetworkType(0)
-}
-
-func (x *UpstreamSpec) GetProtocol() string {
-	if x != nil {
-		return x.Protocol
+		return x.HealthCheckAddr
 	}
 	return ""
-}
-
-func (x *UpstreamSpec) GetAddress() string {
-	if x != nil {
-		return x.Address
-	}
-	return ""
-}
-
-func (x *UpstreamSpec) GetCircuitBreaker() *CircuitBreaker {
-	if x != nil {
-		return x.CircuitBreaker
-	}
-	return nil
-}
-
-// CircuitBreaker is the specification of CircuitBreaker object.
-type CircuitBreaker struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// [OPTIONAL]
-	// FailureThreshold is the threshold to consider upstream unhealthy.
-	// The unit of the value differs depending on  the count algorithm.
-	// The unit is count for ConsecutiveCounter and percentage 0-100 for others.
-	// Default is [5].
-	FailureThreshold int32 `protobuf:"varint,1,opt,name=FailureThreshold,json=failureThreshold,proto3" json:"FailureThreshold,omitempty"`
-	// [OPTIONAL]
-	// SuccessThreshold is the threshold to consider upstream healthy.
-	// The unit of the value differs depending on  the count algorithm.
-	// The unit is count for ConsecutiveCounter and percentage 0-100 for others.
-	// Default is [80].
-	SuccessThreshold int32 `protobuf:"varint,2,opt,name=SuccessThreshold,json=successThreshold,proto3" json:"SuccessThreshold,omitempty"`
-	// [OPTIONAL]
-	// EffectiveFailureSamples is the number of health check samples that is
-	// considered to be meaningful for calculating failure rate.
-	// The default value of 20 means that the initial 20 requests are
-	// accepted after the status of circuit breaker changed to closed
-	// inspite of the failure rate.
-	// Ths value will be ignored for ConsecutiveCounter.
-	// Default is [20].
-	EffectiveFailureSamples int32 `protobuf:"varint,3,opt,name=EffectiveFailureSamples,json=effectiveFailureSamples,proto3" json:"EffectiveFailureSamples,omitempty"`
-	// [OPTIONAL]
-	// EffectiveSuccessSamples is the number of health check samples that is
-	// considered to be meaningful for calculating success rate
-	// when the status of circuit breaker is .
-	// The default value of 20 means that the initial 20 requests are
-	// accepted after the status of circuit breaker changed to closed
-	// inspite of the failure rate.
-	// Ths value will be ignored for ConsecutiveCounter.
-	// Default is [20].
-	EffectiveSuccessSamples int32 `protobuf:"varint,4,opt,name=EffectiveSuccessSamples,json=effectiveSuccessSamples,proto3" json:"EffectiveSuccessSamples,omitempty"`
-	// [OPTIONAL]
-	// WaitDuration is wait time to reset success and failure count
-	// of circuit breaker in seconds.
-	// Default is [180], or 3 minutes.
-	WaitDuration int32 `protobuf:"varint,5,opt,name=WaitDuration,json=waitDuration,proto3" json:"WaitDuration,omitempty"`
-	// [OPTIONAL]
-	// CircuitBreakerCounter is the success and failure counter of health cheking for circuit breaker.
-	// ConsecutiveCounter is set by default.
-	// Currently, these configs do not work.
-	//
-	// Types that are valid to be assigned to CircuitBreakerCounter:
-	//
-	//	*CircuitBreaker_ConsecutiveCounter
-	//	*CircuitBreaker_CountBasedFixedWindowCounter
-	//	*CircuitBreaker_TimeBasedFixedWindowCounter
-	//	*CircuitBreaker_CountBasedSlidingWindowCounter
-	//	*CircuitBreaker_TimeBasedSlidingWindowCounter
-	CircuitBreakerCounter isCircuitBreaker_CircuitBreakerCounter `protobuf_oneof:"CircuitBreakerCounter"`
-	unknownFields         protoimpl.UnknownFields
-	sizeCache             protoimpl.SizeCache
-}
-
-func (x *CircuitBreaker) Reset() {
-	*x = CircuitBreaker{}
-	mi := &file_core_v1_httpproxy_proto_msgTypes[6]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *CircuitBreaker) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CircuitBreaker) ProtoMessage() {}
-
-func (x *CircuitBreaker) ProtoReflect() protoreflect.Message {
-	mi := &file_core_v1_httpproxy_proto_msgTypes[6]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CircuitBreaker.ProtoReflect.Descriptor instead.
-func (*CircuitBreaker) Descriptor() ([]byte, []int) {
-	return file_core_v1_httpproxy_proto_rawDescGZIP(), []int{6}
-}
-
-func (x *CircuitBreaker) GetFailureThreshold() int32 {
-	if x != nil {
-		return x.FailureThreshold
-	}
-	return 0
-}
-
-func (x *CircuitBreaker) GetSuccessThreshold() int32 {
-	if x != nil {
-		return x.SuccessThreshold
-	}
-	return 0
-}
-
-func (x *CircuitBreaker) GetEffectiveFailureSamples() int32 {
-	if x != nil {
-		return x.EffectiveFailureSamples
-	}
-	return 0
-}
-
-func (x *CircuitBreaker) GetEffectiveSuccessSamples() int32 {
-	if x != nil {
-		return x.EffectiveSuccessSamples
-	}
-	return 0
-}
-
-func (x *CircuitBreaker) GetWaitDuration() int32 {
-	if x != nil {
-		return x.WaitDuration
-	}
-	return 0
-}
-
-func (x *CircuitBreaker) GetCircuitBreakerCounter() isCircuitBreaker_CircuitBreakerCounter {
-	if x != nil {
-		return x.CircuitBreakerCounter
-	}
-	return nil
-}
-
-func (x *CircuitBreaker) GetConsecutiveCounter() *ConsecutiveCounterSpec {
-	if x != nil {
-		if x, ok := x.CircuitBreakerCounter.(*CircuitBreaker_ConsecutiveCounter); ok {
-			return x.ConsecutiveCounter
-		}
-	}
-	return nil
-}
-
-func (x *CircuitBreaker) GetCountBasedFixedWindowCounter() *CountBasedFixedWindowCounterSpec {
-	if x != nil {
-		if x, ok := x.CircuitBreakerCounter.(*CircuitBreaker_CountBasedFixedWindowCounter); ok {
-			return x.CountBasedFixedWindowCounter
-		}
-	}
-	return nil
-}
-
-func (x *CircuitBreaker) GetTimeBasedFixedWindowCounter() *TimeBasedFixedWindowCounterSpec {
-	if x != nil {
-		if x, ok := x.CircuitBreakerCounter.(*CircuitBreaker_TimeBasedFixedWindowCounter); ok {
-			return x.TimeBasedFixedWindowCounter
-		}
-	}
-	return nil
-}
-
-func (x *CircuitBreaker) GetCountBasedSlidingWindowCounter() *CountBasedSlidingWindowCounterSpec {
-	if x != nil {
-		if x, ok := x.CircuitBreakerCounter.(*CircuitBreaker_CountBasedSlidingWindowCounter); ok {
-			return x.CountBasedSlidingWindowCounter
-		}
-	}
-	return nil
-}
-
-func (x *CircuitBreaker) GetTimeBasedSlidingWindowCounter() *TimeBasedSlidingWindowCounterSpec {
-	if x != nil {
-		if x, ok := x.CircuitBreakerCounter.(*CircuitBreaker_TimeBasedSlidingWindowCounter); ok {
-			return x.TimeBasedSlidingWindowCounter
-		}
-	}
-	return nil
-}
-
-type isCircuitBreaker_CircuitBreakerCounter interface {
-	isCircuitBreaker_CircuitBreakerCounter()
-}
-
-type CircuitBreaker_ConsecutiveCounter struct {
-	ConsecutiveCounter *ConsecutiveCounterSpec `protobuf:"bytes,6,opt,name=ConsecutiveCounter,json=consecutiveCounter,proto3,oneof"`
-}
-
-type CircuitBreaker_CountBasedFixedWindowCounter struct {
-	CountBasedFixedWindowCounter *CountBasedFixedWindowCounterSpec `protobuf:"bytes,7,opt,name=CountBasedFixedWindowCounter,json=countBasedFixedWindowCounter,proto3,oneof"`
-}
-
-type CircuitBreaker_TimeBasedFixedWindowCounter struct {
-	TimeBasedFixedWindowCounter *TimeBasedFixedWindowCounterSpec `protobuf:"bytes,8,opt,name=TimeBasedFixedWindowCounter,json=timeBasedFixedWindowCounter,proto3,oneof"`
-}
-
-type CircuitBreaker_CountBasedSlidingWindowCounter struct {
-	CountBasedSlidingWindowCounter *CountBasedSlidingWindowCounterSpec `protobuf:"bytes,9,opt,name=CountBasedSlidingWindowCounter,json=countBasedSlidingWindowCounter,proto3,oneof"`
-}
-
-type CircuitBreaker_TimeBasedSlidingWindowCounter struct {
-	TimeBasedSlidingWindowCounter *TimeBasedSlidingWindowCounterSpec `protobuf:"bytes,10,opt,name=TimeBasedSlidingWindowCounter,json=timeBasedSlidingWindowCounter,proto3,oneof"`
-}
-
-func (*CircuitBreaker_ConsecutiveCounter) isCircuitBreaker_CircuitBreakerCounter() {}
-
-func (*CircuitBreaker_CountBasedFixedWindowCounter) isCircuitBreaker_CircuitBreakerCounter() {}
-
-func (*CircuitBreaker_TimeBasedFixedWindowCounter) isCircuitBreaker_CircuitBreakerCounter() {}
-
-func (*CircuitBreaker_CountBasedSlidingWindowCounter) isCircuitBreaker_CircuitBreakerCounter() {}
-
-func (*CircuitBreaker_TimeBasedSlidingWindowCounter) isCircuitBreaker_CircuitBreakerCounter() {}
-
-// ConsecutiveCounterSpec is the specification of the circuit breaker counter
-// with consecutive counting algorithm.
-type ConsecutiveCounterSpec struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ConsecutiveCounterSpec) Reset() {
-	*x = ConsecutiveCounterSpec{}
-	mi := &file_core_v1_httpproxy_proto_msgTypes[7]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ConsecutiveCounterSpec) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ConsecutiveCounterSpec) ProtoMessage() {}
-
-func (x *ConsecutiveCounterSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_core_v1_httpproxy_proto_msgTypes[7]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ConsecutiveCounterSpec.ProtoReflect.Descriptor instead.
-func (*ConsecutiveCounterSpec) Descriptor() ([]byte, []int) {
-	return file_core_v1_httpproxy_proto_rawDescGZIP(), []int{7}
-}
-
-// CountBasedFixedWindowCounterSpec is the specification of the circuit breaker counter
-// with count-based fixed window algorithm.
-type CountBasedFixedWindowCounterSpec struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// [REQUIRED]
-	// This value must be grater than or equal to effectiveFailureSamples and effectiveSuccessSamples.
-	Samples       int32 `protobuf:"varint,1,opt,name=Samples,json=samples,proto3" json:"Samples,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *CountBasedFixedWindowCounterSpec) Reset() {
-	*x = CountBasedFixedWindowCounterSpec{}
-	mi := &file_core_v1_httpproxy_proto_msgTypes[8]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *CountBasedFixedWindowCounterSpec) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CountBasedFixedWindowCounterSpec) ProtoMessage() {}
-
-func (x *CountBasedFixedWindowCounterSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_core_v1_httpproxy_proto_msgTypes[8]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CountBasedFixedWindowCounterSpec.ProtoReflect.Descriptor instead.
-func (*CountBasedFixedWindowCounterSpec) Descriptor() ([]byte, []int) {
-	return file_core_v1_httpproxy_proto_rawDescGZIP(), []int{8}
-}
-
-func (x *CountBasedFixedWindowCounterSpec) GetSamples() int32 {
-	if x != nil {
-		return x.Samples
-	}
-	return 0
-}
-
-// TimeBasedFixedWindowCounterSpec is the specification of the circuit breaker counter
-// with time-based fixed window algorithm.
-type TimeBasedFixedWindowCounterSpec struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// [OPTIONAL]
-	// Window width in seconds.
-	// Default is [5].
-	WindowWidth   int32 `protobuf:"varint,1,opt,name=WindowWidth,json=windowWidth,proto3" json:"WindowWidth,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *TimeBasedFixedWindowCounterSpec) Reset() {
-	*x = TimeBasedFixedWindowCounterSpec{}
-	mi := &file_core_v1_httpproxy_proto_msgTypes[9]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *TimeBasedFixedWindowCounterSpec) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*TimeBasedFixedWindowCounterSpec) ProtoMessage() {}
-
-func (x *TimeBasedFixedWindowCounterSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_core_v1_httpproxy_proto_msgTypes[9]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use TimeBasedFixedWindowCounterSpec.ProtoReflect.Descriptor instead.
-func (*TimeBasedFixedWindowCounterSpec) Descriptor() ([]byte, []int) {
-	return file_core_v1_httpproxy_proto_rawDescGZIP(), []int{9}
-}
-
-func (x *TimeBasedFixedWindowCounterSpec) GetWindowWidth() int32 {
-	if x != nil {
-		return x.WindowWidth
-	}
-	return 0
-}
-
-// CountBasedSlidingWindowCounterSpec is the specification of the circuit breaker counter
-// with count-based sliding window algorithm.
-type CountBasedSlidingWindowCounterSpec struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// [REQUIRED]
-	// This value must be grater than or equal to effectiveFailureSamples and effectiveSuccessSamples.
-	Samples int32 `protobuf:"varint,1,opt,name=Samples,json=samples,proto3" json:"Samples,omitempty"`
-	// [REQUIRED]
-	HistoryLimit  int32 `protobuf:"varint,2,opt,name=HistoryLimit,json=historyLimit,proto3" json:"HistoryLimit,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *CountBasedSlidingWindowCounterSpec) Reset() {
-	*x = CountBasedSlidingWindowCounterSpec{}
-	mi := &file_core_v1_httpproxy_proto_msgTypes[10]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *CountBasedSlidingWindowCounterSpec) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CountBasedSlidingWindowCounterSpec) ProtoMessage() {}
-
-func (x *CountBasedSlidingWindowCounterSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_core_v1_httpproxy_proto_msgTypes[10]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CountBasedSlidingWindowCounterSpec.ProtoReflect.Descriptor instead.
-func (*CountBasedSlidingWindowCounterSpec) Descriptor() ([]byte, []int) {
-	return file_core_v1_httpproxy_proto_rawDescGZIP(), []int{10}
-}
-
-func (x *CountBasedSlidingWindowCounterSpec) GetSamples() int32 {
-	if x != nil {
-		return x.Samples
-	}
-	return 0
-}
-
-func (x *CountBasedSlidingWindowCounterSpec) GetHistoryLimit() int32 {
-	if x != nil {
-		return x.HistoryLimit
-	}
-	return 0
-}
-
-// TimeBasedSlidingWindowCounterSpec is the specification of the circuit breaker counter
-// with time-based sliding window algorithm.
-type TimeBasedSlidingWindowCounterSpec struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// [OPTIONAL]
-	// Window width in seconds.
-	// Default is [5].
-	WindowWidth int32 `protobuf:"varint,1,opt,name=WindowWidth,json=windowWidth,proto3" json:"WindowWidth,omitempty"`
-	// [REQUIRED]
-	HistoryLimit  int32 `protobuf:"varint,2,opt,name=HistoryLimit,json=historyLimit,proto3" json:"HistoryLimit,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *TimeBasedSlidingWindowCounterSpec) Reset() {
-	*x = TimeBasedSlidingWindowCounterSpec{}
-	mi := &file_core_v1_httpproxy_proto_msgTypes[11]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *TimeBasedSlidingWindowCounterSpec) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*TimeBasedSlidingWindowCounterSpec) ProtoMessage() {}
-
-func (x *TimeBasedSlidingWindowCounterSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_core_v1_httpproxy_proto_msgTypes[11]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use TimeBasedSlidingWindowCounterSpec.ProtoReflect.Descriptor instead.
-func (*TimeBasedSlidingWindowCounterSpec) Descriptor() ([]byte, []int) {
-	return file_core_v1_httpproxy_proto_rawDescGZIP(), []int{11}
-}
-
-func (x *TimeBasedSlidingWindowCounterSpec) GetWindowWidth() int32 {
-	if x != nil {
-		return x.WindowWidth
-	}
-	return 0
-}
-
-func (x *TimeBasedSlidingWindowCounterSpec) GetHistoryLimit() int32 {
-	if x != nil {
-		return x.HistoryLimit
-	}
-	return 0
 }
 
 var File_core_v1_httpproxy_proto protoreflect.FileDescriptor
@@ -1316,7 +826,7 @@ var file_core_v1_httpproxy_proto_rawDesc = string([]byte{
 	0x12, 0x2f, 0x0a, 0x09, 0x4d, 0x61, 0x74, 0x63, 0x68, 0x54, 0x79, 0x70, 0x65, 0x18, 0x03, 0x20,
 	0x01, 0x28, 0x0e, 0x32, 0x11, 0x2e, 0x6b, 0x65, 0x72, 0x6e, 0x65, 0x6c, 0x2e, 0x4d, 0x61, 0x74,
 	0x63, 0x68, 0x54, 0x79, 0x70, 0x65, 0x52, 0x09, 0x6d, 0x61, 0x74, 0x63, 0x68, 0x54, 0x79, 0x70,
-	0x65, 0x22, 0xac, 0x03, 0x0a, 0x0c, 0x55, 0x70, 0x73, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x53, 0x70,
+	0x65, 0x22, 0xb4, 0x02, 0x0a, 0x0c, 0x55, 0x70, 0x73, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x53, 0x70,
 	0x65, 0x63, 0x12, 0x2d, 0x0a, 0x03, 0x55, 0x52, 0x4c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42,
 	0x1b, 0xba, 0x48, 0x18, 0x72, 0x16, 0x32, 0x14, 0x28, 0x68, 0x74, 0x74, 0x70, 0x3a, 0x2f, 0x2f,
 	0x7c, 0x68, 0x74, 0x74, 0x70, 0x73, 0x3a, 0x2f, 0x2f, 0x29, 0x2e, 0x2a, 0x52, 0x03, 0x75, 0x72,
@@ -1329,101 +839,13 @@ var file_core_v1_httpproxy_proto_rawDesc = string([]byte{
 	0x74, 0x69, 0x76, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0c, 0x65, 0x6e, 0x61, 0x62,
 	0x6c, 0x65, 0x41, 0x63, 0x74, 0x69, 0x76, 0x65, 0x12, 0x22, 0x0a, 0x0c, 0x49, 0x6e, 0x69, 0x74,
 	0x69, 0x61, 0x6c, 0x44, 0x65, 0x6c, 0x61, 0x79, 0x18, 0x07, 0x20, 0x01, 0x28, 0x05, 0x52, 0x0c,
-	0x69, 0x6e, 0x69, 0x74, 0x69, 0x61, 0x6c, 0x44, 0x65, 0x6c, 0x61, 0x79, 0x12, 0x24, 0x0a, 0x0d,
-	0x43, 0x68, 0x65, 0x63, 0x6b, 0x49, 0x6e, 0x74, 0x65, 0x72, 0x76, 0x61, 0x6c, 0x18, 0x08, 0x20,
-	0x01, 0x28, 0x05, 0x52, 0x0d, 0x63, 0x68, 0x65, 0x63, 0x6b, 0x49, 0x6e, 0x74, 0x65, 0x72, 0x76,
-	0x61, 0x6c, 0x12, 0x35, 0x0a, 0x0b, 0x4e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x54, 0x79, 0x70,
-	0x65, 0x18, 0x09, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x13, 0x2e, 0x6b, 0x65, 0x72, 0x6e, 0x65, 0x6c,
-	0x2e, 0x4e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x54, 0x79, 0x70, 0x65, 0x52, 0x0b, 0x6e, 0x65,
-	0x74, 0x77, 0x6f, 0x72, 0x6b, 0x54, 0x79, 0x70, 0x65, 0x12, 0x1a, 0x0a, 0x08, 0x50, 0x72, 0x6f,
-	0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x18, 0x0a, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x12, 0x18, 0x0a, 0x07, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73,
-	0x18, 0x0b, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12,
-	0x3f, 0x0a, 0x0e, 0x43, 0x69, 0x72, 0x63, 0x75, 0x69, 0x74, 0x42, 0x72, 0x65, 0x61, 0x6b, 0x65,
-	0x72, 0x18, 0x0c, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x17, 0x2e, 0x63, 0x6f, 0x72, 0x65, 0x2e, 0x76,
-	0x31, 0x2e, 0x43, 0x69, 0x72, 0x63, 0x75, 0x69, 0x74, 0x42, 0x72, 0x65, 0x61, 0x6b, 0x65, 0x72,
-	0x52, 0x0e, 0x63, 0x69, 0x72, 0x63, 0x75, 0x69, 0x74, 0x42, 0x72, 0x65, 0x61, 0x6b, 0x65, 0x72,
-	0x22, 0xe3, 0x06, 0x0a, 0x0e, 0x43, 0x69, 0x72, 0x63, 0x75, 0x69, 0x74, 0x42, 0x72, 0x65, 0x61,
-	0x6b, 0x65, 0x72, 0x12, 0x33, 0x0a, 0x10, 0x46, 0x61, 0x69, 0x6c, 0x75, 0x72, 0x65, 0x54, 0x68,
-	0x72, 0x65, 0x73, 0x68, 0x6f, 0x6c, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x42, 0x07, 0xba,
-	0x48, 0x04, 0x1a, 0x02, 0x28, 0x00, 0x52, 0x10, 0x66, 0x61, 0x69, 0x6c, 0x75, 0x72, 0x65, 0x54,
-	0x68, 0x72, 0x65, 0x73, 0x68, 0x6f, 0x6c, 0x64, 0x12, 0x33, 0x0a, 0x10, 0x53, 0x75, 0x63, 0x63,
-	0x65, 0x73, 0x73, 0x54, 0x68, 0x72, 0x65, 0x73, 0x68, 0x6f, 0x6c, 0x64, 0x18, 0x02, 0x20, 0x01,
-	0x28, 0x05, 0x42, 0x07, 0xba, 0x48, 0x04, 0x1a, 0x02, 0x28, 0x00, 0x52, 0x10, 0x73, 0x75, 0x63,
-	0x63, 0x65, 0x73, 0x73, 0x54, 0x68, 0x72, 0x65, 0x73, 0x68, 0x6f, 0x6c, 0x64, 0x12, 0x41, 0x0a,
-	0x17, 0x45, 0x66, 0x66, 0x65, 0x63, 0x74, 0x69, 0x76, 0x65, 0x46, 0x61, 0x69, 0x6c, 0x75, 0x72,
-	0x65, 0x53, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x73, 0x18, 0x03, 0x20, 0x01, 0x28, 0x05, 0x42, 0x07,
-	0xba, 0x48, 0x04, 0x1a, 0x02, 0x28, 0x00, 0x52, 0x17, 0x65, 0x66, 0x66, 0x65, 0x63, 0x74, 0x69,
-	0x76, 0x65, 0x46, 0x61, 0x69, 0x6c, 0x75, 0x72, 0x65, 0x53, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x73,
-	0x12, 0x41, 0x0a, 0x17, 0x45, 0x66, 0x66, 0x65, 0x63, 0x74, 0x69, 0x76, 0x65, 0x53, 0x75, 0x63,
-	0x63, 0x65, 0x73, 0x73, 0x53, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x73, 0x18, 0x04, 0x20, 0x01, 0x28,
-	0x05, 0x42, 0x07, 0xba, 0x48, 0x04, 0x1a, 0x02, 0x28, 0x00, 0x52, 0x17, 0x65, 0x66, 0x66, 0x65,
-	0x63, 0x74, 0x69, 0x76, 0x65, 0x53, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x53, 0x61, 0x6d, 0x70,
-	0x6c, 0x65, 0x73, 0x12, 0x2b, 0x0a, 0x0c, 0x57, 0x61, 0x69, 0x74, 0x44, 0x75, 0x72, 0x61, 0x74,
-	0x69, 0x6f, 0x6e, 0x18, 0x05, 0x20, 0x01, 0x28, 0x05, 0x42, 0x07, 0xba, 0x48, 0x04, 0x1a, 0x02,
-	0x28, 0x01, 0x52, 0x0c, 0x77, 0x61, 0x69, 0x74, 0x44, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e,
-	0x12, 0x51, 0x0a, 0x12, 0x43, 0x6f, 0x6e, 0x73, 0x65, 0x63, 0x75, 0x74, 0x69, 0x76, 0x65, 0x43,
-	0x6f, 0x75, 0x6e, 0x74, 0x65, 0x72, 0x18, 0x06, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1f, 0x2e, 0x63,
-	0x6f, 0x72, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x6f, 0x6e, 0x73, 0x65, 0x63, 0x75, 0x74, 0x69,
-	0x76, 0x65, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x65, 0x72, 0x53, 0x70, 0x65, 0x63, 0x48, 0x00, 0x52,
-	0x12, 0x63, 0x6f, 0x6e, 0x73, 0x65, 0x63, 0x75, 0x74, 0x69, 0x76, 0x65, 0x43, 0x6f, 0x75, 0x6e,
-	0x74, 0x65, 0x72, 0x12, 0x6f, 0x0a, 0x1c, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x42, 0x61, 0x73, 0x65,
-	0x64, 0x46, 0x69, 0x78, 0x65, 0x64, 0x57, 0x69, 0x6e, 0x64, 0x6f, 0x77, 0x43, 0x6f, 0x75, 0x6e,
-	0x74, 0x65, 0x72, 0x18, 0x07, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x29, 0x2e, 0x63, 0x6f, 0x72, 0x65,
-	0x2e, 0x76, 0x31, 0x2e, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x42, 0x61, 0x73, 0x65, 0x64, 0x46, 0x69,
-	0x78, 0x65, 0x64, 0x57, 0x69, 0x6e, 0x64, 0x6f, 0x77, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x65, 0x72,
-	0x53, 0x70, 0x65, 0x63, 0x48, 0x00, 0x52, 0x1c, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x42, 0x61, 0x73,
-	0x65, 0x64, 0x46, 0x69, 0x78, 0x65, 0x64, 0x57, 0x69, 0x6e, 0x64, 0x6f, 0x77, 0x43, 0x6f, 0x75,
-	0x6e, 0x74, 0x65, 0x72, 0x12, 0x6c, 0x0a, 0x1b, 0x54, 0x69, 0x6d, 0x65, 0x42, 0x61, 0x73, 0x65,
-	0x64, 0x46, 0x69, 0x78, 0x65, 0x64, 0x57, 0x69, 0x6e, 0x64, 0x6f, 0x77, 0x43, 0x6f, 0x75, 0x6e,
-	0x74, 0x65, 0x72, 0x18, 0x08, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x28, 0x2e, 0x63, 0x6f, 0x72, 0x65,
-	0x2e, 0x76, 0x31, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x42, 0x61, 0x73, 0x65, 0x64, 0x46, 0x69, 0x78,
-	0x65, 0x64, 0x57, 0x69, 0x6e, 0x64, 0x6f, 0x77, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x65, 0x72, 0x53,
-	0x70, 0x65, 0x63, 0x48, 0x00, 0x52, 0x1b, 0x74, 0x69, 0x6d, 0x65, 0x42, 0x61, 0x73, 0x65, 0x64,
-	0x46, 0x69, 0x78, 0x65, 0x64, 0x57, 0x69, 0x6e, 0x64, 0x6f, 0x77, 0x43, 0x6f, 0x75, 0x6e, 0x74,
-	0x65, 0x72, 0x12, 0x75, 0x0a, 0x1e, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x42, 0x61, 0x73, 0x65, 0x64,
-	0x53, 0x6c, 0x69, 0x64, 0x69, 0x6e, 0x67, 0x57, 0x69, 0x6e, 0x64, 0x6f, 0x77, 0x43, 0x6f, 0x75,
-	0x6e, 0x74, 0x65, 0x72, 0x18, 0x09, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x2b, 0x2e, 0x63, 0x6f, 0x72,
-	0x65, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x42, 0x61, 0x73, 0x65, 0x64, 0x53,
-	0x6c, 0x69, 0x64, 0x69, 0x6e, 0x67, 0x57, 0x69, 0x6e, 0x64, 0x6f, 0x77, 0x43, 0x6f, 0x75, 0x6e,
-	0x74, 0x65, 0x72, 0x53, 0x70, 0x65, 0x63, 0x48, 0x00, 0x52, 0x1e, 0x63, 0x6f, 0x75, 0x6e, 0x74,
-	0x42, 0x61, 0x73, 0x65, 0x64, 0x53, 0x6c, 0x69, 0x64, 0x69, 0x6e, 0x67, 0x57, 0x69, 0x6e, 0x64,
-	0x6f, 0x77, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x65, 0x72, 0x12, 0x72, 0x0a, 0x1d, 0x54, 0x69, 0x6d,
-	0x65, 0x42, 0x61, 0x73, 0x65, 0x64, 0x53, 0x6c, 0x69, 0x64, 0x69, 0x6e, 0x67, 0x57, 0x69, 0x6e,
-	0x64, 0x6f, 0x77, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x65, 0x72, 0x18, 0x0a, 0x20, 0x01, 0x28, 0x0b,
-	0x32, 0x2a, 0x2e, 0x63, 0x6f, 0x72, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x42,
-	0x61, 0x73, 0x65, 0x64, 0x53, 0x6c, 0x69, 0x64, 0x69, 0x6e, 0x67, 0x57, 0x69, 0x6e, 0x64, 0x6f,
-	0x77, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x65, 0x72, 0x53, 0x70, 0x65, 0x63, 0x48, 0x00, 0x52, 0x1d,
-	0x74, 0x69, 0x6d, 0x65, 0x42, 0x61, 0x73, 0x65, 0x64, 0x53, 0x6c, 0x69, 0x64, 0x69, 0x6e, 0x67,
-	0x57, 0x69, 0x6e, 0x64, 0x6f, 0x77, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x65, 0x72, 0x42, 0x17, 0x0a,
-	0x15, 0x43, 0x69, 0x72, 0x63, 0x75, 0x69, 0x74, 0x42, 0x72, 0x65, 0x61, 0x6b, 0x65, 0x72, 0x43,
-	0x6f, 0x75, 0x6e, 0x74, 0x65, 0x72, 0x22, 0x18, 0x0a, 0x16, 0x43, 0x6f, 0x6e, 0x73, 0x65, 0x63,
-	0x75, 0x74, 0x69, 0x76, 0x65, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x65, 0x72, 0x53, 0x70, 0x65, 0x63,
-	0x22, 0x45, 0x0a, 0x20, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x42, 0x61, 0x73, 0x65, 0x64, 0x46, 0x69,
-	0x78, 0x65, 0x64, 0x57, 0x69, 0x6e, 0x64, 0x6f, 0x77, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x65, 0x72,
-	0x53, 0x70, 0x65, 0x63, 0x12, 0x21, 0x0a, 0x07, 0x53, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x73, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x05, 0x42, 0x07, 0xba, 0x48, 0x04, 0x1a, 0x02, 0x28, 0x01, 0x52, 0x07,
-	0x73, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x73, 0x22, 0x4c, 0x0a, 0x1f, 0x54, 0x69, 0x6d, 0x65, 0x42,
-	0x61, 0x73, 0x65, 0x64, 0x46, 0x69, 0x78, 0x65, 0x64, 0x57, 0x69, 0x6e, 0x64, 0x6f, 0x77, 0x43,
-	0x6f, 0x75, 0x6e, 0x74, 0x65, 0x72, 0x53, 0x70, 0x65, 0x63, 0x12, 0x29, 0x0a, 0x0b, 0x57, 0x69,
-	0x6e, 0x64, 0x6f, 0x77, 0x57, 0x69, 0x64, 0x74, 0x68, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x42,
-	0x07, 0xba, 0x48, 0x04, 0x1a, 0x02, 0x28, 0x01, 0x52, 0x0b, 0x77, 0x69, 0x6e, 0x64, 0x6f, 0x77,
-	0x57, 0x69, 0x64, 0x74, 0x68, 0x22, 0x74, 0x0a, 0x22, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x42, 0x61,
-	0x73, 0x65, 0x64, 0x53, 0x6c, 0x69, 0x64, 0x69, 0x6e, 0x67, 0x57, 0x69, 0x6e, 0x64, 0x6f, 0x77,
-	0x43, 0x6f, 0x75, 0x6e, 0x74, 0x65, 0x72, 0x53, 0x70, 0x65, 0x63, 0x12, 0x21, 0x0a, 0x07, 0x53,
-	0x61, 0x6d, 0x70, 0x6c, 0x65, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x42, 0x07, 0xba, 0x48,
-	0x04, 0x1a, 0x02, 0x28, 0x01, 0x52, 0x07, 0x73, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x73, 0x12, 0x2b,
-	0x0a, 0x0c, 0x48, 0x69, 0x73, 0x74, 0x6f, 0x72, 0x79, 0x4c, 0x69, 0x6d, 0x69, 0x74, 0x18, 0x02,
-	0x20, 0x01, 0x28, 0x05, 0x42, 0x07, 0xba, 0x48, 0x04, 0x1a, 0x02, 0x28, 0x01, 0x52, 0x0c, 0x68,
-	0x69, 0x73, 0x74, 0x6f, 0x72, 0x79, 0x4c, 0x69, 0x6d, 0x69, 0x74, 0x22, 0x7b, 0x0a, 0x21, 0x54,
-	0x69, 0x6d, 0x65, 0x42, 0x61, 0x73, 0x65, 0x64, 0x53, 0x6c, 0x69, 0x64, 0x69, 0x6e, 0x67, 0x57,
-	0x69, 0x6e, 0x64, 0x6f, 0x77, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x65, 0x72, 0x53, 0x70, 0x65, 0x63,
-	0x12, 0x29, 0x0a, 0x0b, 0x57, 0x69, 0x6e, 0x64, 0x6f, 0x77, 0x57, 0x69, 0x64, 0x74, 0x68, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x05, 0x42, 0x07, 0xba, 0x48, 0x04, 0x1a, 0x02, 0x28, 0x01, 0x52, 0x0b,
-	0x77, 0x69, 0x6e, 0x64, 0x6f, 0x77, 0x57, 0x69, 0x64, 0x74, 0x68, 0x12, 0x2b, 0x0a, 0x0c, 0x48,
-	0x69, 0x73, 0x74, 0x6f, 0x72, 0x79, 0x4c, 0x69, 0x6d, 0x69, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28,
-	0x05, 0x42, 0x07, 0xba, 0x48, 0x04, 0x1a, 0x02, 0x28, 0x01, 0x52, 0x0c, 0x68, 0x69, 0x73, 0x74,
-	0x6f, 0x72, 0x79, 0x4c, 0x69, 0x6d, 0x69, 0x74, 0x42, 0x39, 0x5a, 0x37, 0x67, 0x69, 0x74, 0x68,
+	0x69, 0x6e, 0x69, 0x74, 0x69, 0x61, 0x6c, 0x44, 0x65, 0x6c, 0x61, 0x79, 0x12, 0x30, 0x0a, 0x13,
+	0x48, 0x65, 0x61, 0x6c, 0x74, 0x68, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x49, 0x6e, 0x74, 0x65, 0x72,
+	0x76, 0x61, 0x6c, 0x18, 0x08, 0x20, 0x01, 0x28, 0x05, 0x52, 0x13, 0x68, 0x65, 0x61, 0x6c, 0x74,
+	0x68, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x49, 0x6e, 0x74, 0x65, 0x72, 0x76, 0x61, 0x6c, 0x12, 0x28,
+	0x0a, 0x0f, 0x48, 0x65, 0x61, 0x6c, 0x74, 0x68, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x41, 0x64, 0x64,
+	0x72, 0x18, 0x09, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0f, 0x68, 0x65, 0x61, 0x6c, 0x74, 0x68, 0x43,
+	0x68, 0x65, 0x63, 0x6b, 0x41, 0x64, 0x64, 0x72, 0x42, 0x39, 0x5a, 0x37, 0x67, 0x69, 0x74, 0x68,
 	0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x61, 0x69, 0x6c, 0x65, 0x72, 0x6f, 0x6e, 0x2d, 0x67,
 	0x61, 0x74, 0x65, 0x77, 0x61, 0x79, 0x2f, 0x61, 0x69, 0x6c, 0x65, 0x72, 0x6f, 0x6e, 0x2d, 0x67,
 	0x61, 0x74, 0x65, 0x77, 0x61, 0x79, 0x2f, 0x61, 0x70, 0x69, 0x73, 0x2f, 0x63, 0x6f, 0x72, 0x65,
@@ -1442,59 +864,45 @@ func file_core_v1_httpproxy_proto_rawDescGZIP() []byte {
 	return file_core_v1_httpproxy_proto_rawDescData
 }
 
-var file_core_v1_httpproxy_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_core_v1_httpproxy_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_core_v1_httpproxy_proto_goTypes = []any{
-	(*ReverseProxyHandler)(nil),                // 0: core.v1.ReverseProxyHandler
-	(*ReverseProxyHandlerSpec)(nil),            // 1: core.v1.ReverseProxyHandlerSpec
-	(*LoadBalancerSpec)(nil),                   // 2: core.v1.LoadBalancerSpec
-	(*PathMatcherSpec)(nil),                    // 3: core.v1.PathMatcherSpec
-	(*ParamMatcherSpec)(nil),                   // 4: core.v1.ParamMatcherSpec
-	(*UpstreamSpec)(nil),                       // 5: core.v1.UpstreamSpec
-	(*CircuitBreaker)(nil),                     // 6: core.v1.CircuitBreaker
-	(*ConsecutiveCounterSpec)(nil),             // 7: core.v1.ConsecutiveCounterSpec
-	(*CountBasedFixedWindowCounterSpec)(nil),   // 8: core.v1.CountBasedFixedWindowCounterSpec
-	(*TimeBasedFixedWindowCounterSpec)(nil),    // 9: core.v1.TimeBasedFixedWindowCounterSpec
-	(*CountBasedSlidingWindowCounterSpec)(nil), // 10: core.v1.CountBasedSlidingWindowCounterSpec
-	(*TimeBasedSlidingWindowCounterSpec)(nil),  // 11: core.v1.TimeBasedSlidingWindowCounterSpec
-	(*kernel.Metadata)(nil),                    // 12: kernel.Metadata
-	(*kernel.Reference)(nil),                   // 13: kernel.Reference
-	(HTTPMethod)(0),                            // 14: core.v1.HTTPMethod
-	(LBAlgorithm)(0),                           // 15: core.v1.LBAlgorithm
-	(*HTTPHasherSpec)(nil),                     // 16: core.v1.HTTPHasherSpec
-	(kernel.MatchType)(0),                      // 17: kernel.MatchType
-	(kernel.NetworkType)(0),                    // 18: kernel.NetworkType
+	(*ReverseProxyHandler)(nil),     // 0: core.v1.ReverseProxyHandler
+	(*ReverseProxyHandlerSpec)(nil), // 1: core.v1.ReverseProxyHandlerSpec
+	(*LoadBalancerSpec)(nil),        // 2: core.v1.LoadBalancerSpec
+	(*PathMatcherSpec)(nil),         // 3: core.v1.PathMatcherSpec
+	(*ParamMatcherSpec)(nil),        // 4: core.v1.ParamMatcherSpec
+	(*UpstreamSpec)(nil),            // 5: core.v1.UpstreamSpec
+	(*kernel.Metadata)(nil),         // 6: kernel.Metadata
+	(*kernel.Reference)(nil),        // 7: kernel.Reference
+	(HTTPMethod)(0),                 // 8: core.v1.HTTPMethod
+	(LBAlgorithm)(0),                // 9: core.v1.LBAlgorithm
+	(*HTTPHasherSpec)(nil),          // 10: core.v1.HTTPHasherSpec
+	(kernel.MatchType)(0),           // 11: kernel.MatchType
 }
 var file_core_v1_httpproxy_proto_depIdxs = []int32{
-	12, // 0: core.v1.ReverseProxyHandler.Metadata:type_name -> kernel.Metadata
+	6,  // 0: core.v1.ReverseProxyHandler.Metadata:type_name -> kernel.Metadata
 	1,  // 1: core.v1.ReverseProxyHandler.Spec:type_name -> core.v1.ReverseProxyHandlerSpec
-	13, // 2: core.v1.ReverseProxyHandlerSpec.ErrorHandler:type_name -> kernel.Reference
-	14, // 3: core.v1.ReverseProxyHandlerSpec.Methods:type_name -> core.v1.HTTPMethod
-	13, // 4: core.v1.ReverseProxyHandlerSpec.Tripperwares:type_name -> kernel.Reference
-	13, // 5: core.v1.ReverseProxyHandlerSpec.RoundTripper:type_name -> kernel.Reference
+	7,  // 2: core.v1.ReverseProxyHandlerSpec.ErrorHandler:type_name -> kernel.Reference
+	8,  // 3: core.v1.ReverseProxyHandlerSpec.Methods:type_name -> core.v1.HTTPMethod
+	7,  // 4: core.v1.ReverseProxyHandlerSpec.Tripperwares:type_name -> kernel.Reference
+	7,  // 5: core.v1.ReverseProxyHandlerSpec.RoundTripper:type_name -> kernel.Reference
 	2,  // 6: core.v1.ReverseProxyHandlerSpec.LoadBalancers:type_name -> core.v1.LoadBalancerSpec
-	15, // 7: core.v1.LoadBalancerSpec.LBAlgorithm:type_name -> core.v1.LBAlgorithm
+	9,  // 7: core.v1.LoadBalancerSpec.LBAlgorithm:type_name -> core.v1.LBAlgorithm
 	5,  // 8: core.v1.LoadBalancerSpec.Upstreams:type_name -> core.v1.UpstreamSpec
 	3,  // 9: core.v1.LoadBalancerSpec.PathMatcher:type_name -> core.v1.PathMatcherSpec
 	3,  // 10: core.v1.LoadBalancerSpec.PathMatchers:type_name -> core.v1.PathMatcherSpec
-	14, // 11: core.v1.LoadBalancerSpec.Methods:type_name -> core.v1.HTTPMethod
+	8,  // 11: core.v1.LoadBalancerSpec.Methods:type_name -> core.v1.HTTPMethod
 	4,  // 12: core.v1.LoadBalancerSpec.PathParamMatchers:type_name -> core.v1.ParamMatcherSpec
 	4,  // 13: core.v1.LoadBalancerSpec.HeaderMatchers:type_name -> core.v1.ParamMatcherSpec
 	4,  // 14: core.v1.LoadBalancerSpec.QueryMatchers:type_name -> core.v1.ParamMatcherSpec
-	16, // 15: core.v1.LoadBalancerSpec.Hashers:type_name -> core.v1.HTTPHasherSpec
-	17, // 16: core.v1.PathMatcherSpec.MatchType:type_name -> kernel.MatchType
-	17, // 17: core.v1.ParamMatcherSpec.MatchType:type_name -> kernel.MatchType
-	18, // 18: core.v1.UpstreamSpec.NetworkType:type_name -> kernel.NetworkType
-	6,  // 19: core.v1.UpstreamSpec.CircuitBreaker:type_name -> core.v1.CircuitBreaker
-	7,  // 20: core.v1.CircuitBreaker.ConsecutiveCounter:type_name -> core.v1.ConsecutiveCounterSpec
-	8,  // 21: core.v1.CircuitBreaker.CountBasedFixedWindowCounter:type_name -> core.v1.CountBasedFixedWindowCounterSpec
-	9,  // 22: core.v1.CircuitBreaker.TimeBasedFixedWindowCounter:type_name -> core.v1.TimeBasedFixedWindowCounterSpec
-	10, // 23: core.v1.CircuitBreaker.CountBasedSlidingWindowCounter:type_name -> core.v1.CountBasedSlidingWindowCounterSpec
-	11, // 24: core.v1.CircuitBreaker.TimeBasedSlidingWindowCounter:type_name -> core.v1.TimeBasedSlidingWindowCounterSpec
-	25, // [25:25] is the sub-list for method output_type
-	25, // [25:25] is the sub-list for method input_type
-	25, // [25:25] is the sub-list for extension type_name
-	25, // [25:25] is the sub-list for extension extendee
-	0,  // [0:25] is the sub-list for field type_name
+	10, // 15: core.v1.LoadBalancerSpec.Hashers:type_name -> core.v1.HTTPHasherSpec
+	11, // 16: core.v1.PathMatcherSpec.MatchType:type_name -> kernel.MatchType
+	11, // 17: core.v1.ParamMatcherSpec.MatchType:type_name -> kernel.MatchType
+	18, // [18:18] is the sub-list for method output_type
+	18, // [18:18] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() { file_core_v1_httpproxy_proto_init() }
@@ -1504,20 +912,13 @@ func file_core_v1_httpproxy_proto_init() {
 	}
 	file_core_v1_http_proto_init()
 	file_core_v1_resilience_proto_init()
-	file_core_v1_httpproxy_proto_msgTypes[6].OneofWrappers = []any{
-		(*CircuitBreaker_ConsecutiveCounter)(nil),
-		(*CircuitBreaker_CountBasedFixedWindowCounter)(nil),
-		(*CircuitBreaker_TimeBasedFixedWindowCounter)(nil),
-		(*CircuitBreaker_CountBasedSlidingWindowCounter)(nil),
-		(*CircuitBreaker_TimeBasedSlidingWindowCounter)(nil),
-	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_core_v1_httpproxy_proto_rawDesc), len(file_core_v1_httpproxy_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   12,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
