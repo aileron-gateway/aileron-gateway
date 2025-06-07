@@ -21,15 +21,6 @@ message HTTPServer {
 // HTTPServerSpec is the specifications for the HTTPServer object.
 message HTTPServerSpec {
     // [OPTIONAL]
-    // ErrorHandler is the reference to a ErrorHandler object.
-    // Referred object must implement ErrorHandler interface.
-    // This error handler will be used for default NotFound handler.
-    // This field will be ignored if NotFoundHandler is specified
-    // or a handler for root path "/" is registered.
-    // Default error handler is used when not set.
-    kernel.Reference ErrorHandler = 1 [json_name = "errorHandler"];
-
-    // [OPTIONAL]
     // Addr is the address which the server listen to.
     // If not set, default port is used.
     // The format must be "host:port", ":port" or "host%zone:port".
@@ -38,24 +29,24 @@ message HTTPServerSpec {
     // To use unix domain socket such like, "/var/run/gateway.sock" or "@gateway",
     // set Network and Address in the ListenConfig of HTTP2Config field.
     // Default is [":8080"].
-    string Addr = 2 [json_name = "addr"];
+    string Addr = 1 [json_name = "addr"];
 
     // [OPTIONAL]
     // ShutdownTimeout is the timeout dutation of graceful shutdown of the server in seconds.
     // Default is [30].
-    int32 ShutdownTimeout = 3 [json_name = "shutdownTimeout"];
+    int32 ShutdownTimeout = 2 [json_name = "shutdownTimeout"];
 
     // [OPTIONAL]
     // HTTPConfig is the configuration for HTTP/1.1 and HTTP/2 server.
     // HTTP server is enabled if both HTTP2Config and HTTP3Config
     // are not configured.
     // Default is not set.
-    HTTPConfig HTTPConfig = 4 [json_name = "httpConfig"];
+    HTTPConfig HTTPConfig = 3 [json_name = "httpConfig"];
 
     // [OPTIONAL]
     // HTTP2Config is the additional config for HTTP/2 server.
     // Default is not set.
-    HTTP2Config HTTP2Config = 5 [json_name = "http2Config"];
+    HTTP2Config HTTP2Config = 4 [json_name = "http2Config"];
 
     // [OPTIONAL]
     // HTTP3Config is the configuration for HTTP3, or Quic server.
@@ -65,18 +56,18 @@ message HTTPServerSpec {
     // So, it is usually required to enable both HTTP2 (tcp) and HTTP3 (udp) servers
     // to access this server directory from browsers.
     // Default is not set.
-    HTTP3Config HTTP3Config = 6 [json_name = "http3Config"];
+    HTTP3Config HTTP3Config = 5 [json_name = "http3Config"];
 
     // [OPTIONAL]
     // Middleware is the list of middleware applied for the entire server.
     // Default is not set.
-    repeated kernel.Reference Middleware = 7 [json_name = "middleware"];
+    repeated kernel.Reference Middleware = 6 [json_name = "middleware"];
 
     // [OPTIONAL]
     // VirtualHosts is the list of virtual host specification.
     // Use this for configuring the route for this server.
     // Default is not set.
-    repeated VirtualHostSpec VirtualHosts = 8 [json_name = "virtualHosts"];
+    repeated VirtualHostSpec VirtualHosts = 7 [json_name = "virtualHosts"];
 
     // [OPTIONAL]
     // EnableProfile enables profile endpoint for the server.
@@ -89,7 +80,7 @@ message HTTPServerSpec {
     // See https://pkg.go.dev/net/http/pprof.
     // DO NOT enable this on production environment.
     // Default is [false].
-    bool EnableProfile = 9 [json_name = "enableProfile"];
+    bool EnableProfile = 8 [json_name = "enableProfile"];
 
     // [OPTIONAL]
     // EnableExpvar enables expvar endpoint for the server.
@@ -97,7 +88,7 @@ message HTTPServerSpec {
     // See https://pkg.go.dev/expvar.
     // DO NOT enable this on production environment.
     // Default is [false].
-    bool EnableExpvar = 10 [json_name = "enableExpvar"];
+    bool EnableExpvar = 9 [json_name = "enableExpvar"];
 }
 
 // HTTPConfig is the configuration for a HTTP 1/2 server.

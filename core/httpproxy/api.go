@@ -4,6 +4,7 @@
 package httpproxy
 
 import (
+	"cmp"
 	"errors"
 	"net/http"
 	"net/url"
@@ -64,11 +65,7 @@ func (*API) Mutate(msg protoreflect.ProtoMessage) protoreflect.ProtoMessage {
 
 func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.ProtoMessage) (any, error) {
 	c := msg.(*v1.ReverseProxyHandler)
-
-	eh, err := utilhttp.ErrorHandler(a, c.Spec.ErrorHandler)
-	if err != nil {
-		return nil, core.ErrCoreGenCreateObject.WithStack(err, map[string]any{"kind": kind})
-	}
+	eh := utilhttp.GlobalErrorHandler(cmp.Or(c.Metadata.ErrorHandler, utilhttp.DefaultErrorHandlerName))
 
 	// Use http.DefaultTransport as the default round tripper.
 	// Replace it if the c.Spec.RoundTripper is set.

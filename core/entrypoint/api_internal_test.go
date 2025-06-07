@@ -138,6 +138,7 @@ func TestCreate(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
+	noopLogger := &struct{ log.Logger }{}
 	tb := testutil.NewTableBuilder[*condition, *action]()
 	tb.Name(t.Name())
 	cndDefaultManifest := tb.Condition("default manifest", "input default manifest")
@@ -152,7 +153,7 @@ func TestCreate(t *testing.T) {
 	postTestResource(testServer, "errRunner", &testRunner{err: errors.New("test")})
 	postTestResource(testServer, "nilFinalizer", &testFinalizer{name: "nil"})
 	postTestResource(testServer, "errFinalizer", &testFinalizer{err: errors.New("test")})
-	postTestResource(testServer, "noopLogger", log.NoopLogger)
+	postTestResource(testServer, "noopLogger", noopLogger)
 	testEH := &utilhttp.DefaultErrorHandler{}
 	postTestResource(testServer, "errorHandler", testEH)
 
@@ -211,7 +212,7 @@ func TestCreate(t *testing.T) {
 			},
 			&action{
 				expect: &channelGroup{
-					lg:           log.NoopLogger,
+					lg:           noopLogger,
 					runners:      []core.Runner{},
 					initializers: []core.Initializer{},
 					finalizers:   []core.Finalizer{},
@@ -257,7 +258,7 @@ func TestCreate(t *testing.T) {
 			},
 			&action{
 				expect: &channelGroup{
-					lg:           log.NoopLogger,
+					lg:           noopLogger,
 					runners:      []core.Runner{},
 					initializers: []core.Initializer{},
 					finalizers:   []core.Finalizer{},

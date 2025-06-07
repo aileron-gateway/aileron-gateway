@@ -144,12 +144,6 @@ func TestCreate(t *testing.T) {
 
 	tb := testutil.NewTableBuilder[*condition, *action]()
 	tb.Name(t.Name())
-	cndDefaultManifest := tb.Condition("input default manifest", "input default manifest")
-	cndSpecifyVirtualHost := tb.Condition("specify virtual host", "specify and use the virtual host")
-	cndErrorReference := tb.Condition("input error reference", "input an error reference to an object")
-	actCheckExpected := tb.Action("check returned wait group", "check that an expected object was returned")
-	actCheckError := tb.Action("check the returned error", "check that the returned error is the one expected")
-	actCheckNoError := tb.Action("check no error", "check that there is no error returned")
 	table := tb.Build()
 
 	// Get available port for testing.
@@ -177,8 +171,7 @@ func TestCreate(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"create with default manifest",
-			[]string{cndDefaultManifest},
-			[]string{actCheckExpected, actCheckNoError},
+			[]string{}, []string{},
 			&condition{
 				manifest: Resource.Default(),
 			},
@@ -204,8 +197,7 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create http1 server only",
-			[]string{},
-			[]string{actCheckExpected, actCheckNoError},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.HTTPServer{
 					Metadata: &k.Metadata{},
@@ -238,8 +230,7 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create http2 server only",
-			[]string{cndSpecifyVirtualHost},
-			[]string{actCheckExpected, actCheckNoError},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.HTTPServer{
 					Metadata: &k.Metadata{},
@@ -277,8 +268,7 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create http3 server only",
-			[]string{},
-			[]string{actCheckExpected, actCheckNoError},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.HTTPServer{
 					Metadata: &k.Metadata{},
@@ -309,8 +299,7 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"specify virtual hosts",
-			[]string{},
-			[]string{actCheckExpected, actCheckNoError},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.HTTPServer{
 					Metadata: &k.Metadata{},
@@ -343,8 +332,7 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"register not found",
-			[]string{},
-			[]string{actCheckExpected, actCheckNoError},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.HTTPServer{
 					Metadata: &k.Metadata{},
@@ -379,8 +367,7 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"error register virtual host mux",
-			[]string{cndSpecifyVirtualHost},
-			[]string{actCheckExpected, actCheckNoError},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.HTTPServer{
 					Metadata: &k.Metadata{},
@@ -405,30 +392,8 @@ func TestCreate(t *testing.T) {
 			},
 		),
 		gen(
-			"fail to get error handler",
-			[]string{cndErrorReference},
-			[]string{actCheckError},
-			&condition{
-				manifest: &v1.HTTPServer{
-					Metadata: &k.Metadata{},
-					Spec: &v1.HTTPServerSpec{
-						ErrorHandler: &k.Reference{
-							APIVersion: "wrong",
-						},
-						Addr: ln.Addr().String(),
-					},
-				},
-			},
-			&action{
-				expect:     nil,
-				err:        core.ErrCoreGenCreateObject,
-				errPattern: regexp.MustCompile(core.ErrPrefix + `failed to create HTTPServer`),
-			},
-		),
-		gen(
 			"fail to get middleware",
-			[]string{cndErrorReference},
-			[]string{actCheckError},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.HTTPServer{
 					Metadata: &k.Metadata{},
@@ -450,8 +415,7 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"invalid http2 server",
-			[]string{cndErrorReference},
-			[]string{actCheckError},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.HTTPServer{
 					Metadata: &k.Metadata{},
@@ -475,8 +439,7 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"invalid http3 server",
-			[]string{cndErrorReference},
-			[]string{actCheckError},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.HTTPServer{
 					Metadata: &k.Metadata{},

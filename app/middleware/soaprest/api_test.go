@@ -10,7 +10,6 @@ import (
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
-	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/aileron-projects/go/zencoding/zxml"
@@ -180,30 +179,6 @@ func TestCreate(t *testing.T) {
 						Header: xml.Header,
 					},
 				},
-			},
-		),
-		gen(
-			"fail to get ErrorHandler",
-			[]string{},
-			[]string{},
-			&condition{
-				manifest: &v1.SOAPRESTMiddleware{
-					APIVersion: apiVersion,
-					Kind:       kind,
-					Metadata: &k.Metadata{
-						Namespace: "default",
-						Name:      "default",
-					},
-					Spec: &v1.SOAPRESTMiddlewareSpec{
-						ErrorHandler: &k.Reference{
-							Name: "notExist",
-						},
-					},
-				},
-			},
-			&action{
-				err:        core.ErrCoreGenCreateObject,
-				errPattern: regexp.MustCompile(core.ErrPrefix + `failed to create SOAPRESTMiddleware`),
 			},
 		),
 	}

@@ -9,6 +9,7 @@ import (
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
+	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
@@ -59,30 +60,12 @@ func TestCreate(t *testing.T) {
 			},
 		),
 		gen(
-			"error handler not found",
-			[]string{},
-			[]string{},
-			&condition{
-				manifest: &v1.HeaderPolicyMiddleware{
-					Metadata: &kernel.Metadata{},
-					Spec: &v1.HeaderPolicyMiddlewareSpec{
-						ErrorHandler: &kernel.Reference{
-							APIVersion: "wrong-version",
-						},
-					},
-				},
-			},
-			&action{
-				err:        core.ErrCoreGenCreateObject,
-				errPattern: regexp.MustCompile(core.ErrPrefix + `failed to create HeaderPolicyMiddleware`),
-			},
-		),
-		gen(
 			"with request policy",
 			[]string{},
 			[]string{},
 			&condition{
 				manifest: &v1.HeaderPolicyMiddleware{
+					Metadata: &k.Metadata{},
 					Spec: &v1.HeaderPolicyMiddlewareSpec{
 						RequestPolicy: &v1.HeaderPolicySpec{
 							Allows:  []string{"test-allows"},
@@ -123,6 +106,7 @@ func TestCreate(t *testing.T) {
 			[]string{},
 			&condition{
 				manifest: &v1.HeaderPolicyMiddleware{
+					Metadata: &k.Metadata{},
 					Spec: &v1.HeaderPolicyMiddlewareSpec{
 						ResponsePolicy: &v1.HeaderPolicySpec{
 							Allows:  []string{"test-allows"},
@@ -163,6 +147,7 @@ func TestCreate(t *testing.T) {
 			[]string{},
 			&condition{
 				manifest: &v1.HeaderPolicyMiddleware{
+					Metadata: &k.Metadata{},
 					Spec: &v1.HeaderPolicyMiddlewareSpec{
 						RequestPolicy: &v1.HeaderPolicySpec{
 							Rewrites: []*v1.HeaderRewriteSpec{
@@ -190,6 +175,7 @@ func TestCreate(t *testing.T) {
 			[]string{},
 			&condition{
 				manifest: &v1.HeaderPolicyMiddleware{
+					Metadata: &k.Metadata{},
 					Spec: &v1.HeaderPolicyMiddlewareSpec{
 						ResponsePolicy: &v1.HeaderPolicySpec{
 							Rewrites: []*v1.HeaderRewriteSpec{

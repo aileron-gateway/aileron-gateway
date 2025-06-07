@@ -18,18 +18,12 @@ message SOAPRESTMiddleware {
 // Values are managed by the application and therefore should not be set by users.
 message SOAPRESTMiddlewareSpec {
     // [OPTIONAL]
-    // ErrorHandler is the reference to a ErrorHandler object.
-    // Referred object must implement ErrorHandler interface.
-    // Default error handler is used when not set.
-    kernel.Reference ErrorHandler = 1 [json_name = "errorHandler"];
-
-    // [OPTIONAL]
     // Rules is the conversion ruleset.
     // Default is [Simple].
     oneof Rules {
-        SimpleSpec     Simple     = 2 [json_name = "simple"];
-        RayfishSpec    Rayfish    = 3 [json_name = "rayfish"];
-        BadgerfishSpec Badgerfish = 4 [json_name = "badgerfish"];
+        SimpleSpec     Simple     = 1 [json_name = "simple"];
+        RayfishSpec    Rayfish    = 2 [json_name = "rayfish"];
+        BadgerfishSpec Badgerfish = 3 [json_name = "badgerfish"];
     }
 }
 

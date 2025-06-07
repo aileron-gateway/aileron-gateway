@@ -10,7 +10,6 @@ import (
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
-	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-projects/go/zencoding/zxml"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -46,11 +45,7 @@ func (s *API) Default() protoreflect.ProtoMessage {
 
 func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.ProtoMessage) (any, error) {
 	c := msg.(*v1.SOAPRESTMiddleware)
-
-	eh, err := utilhttp.ErrorHandler(a, c.Spec.ErrorHandler)
-	if err != nil {
-		return nil, core.ErrCoreGenCreateObject.WithStack(err, map[string]any{"kind": kind})
-	}
+	eh := utilhttp.GlobalErrorHandler(cmp.Or(c.Metadata.ErrorHandler, utilhttp.DefaultErrorHandlerName))
 
 	var cv *zxml.JSONConverter
 	switch t := c.Spec.Rules.(type) {

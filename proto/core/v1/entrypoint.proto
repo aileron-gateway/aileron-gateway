@@ -42,6 +42,16 @@ message EntrypointSpec {
     kernel.Reference DefaultErrorHandler = 3 [json_name = "defaultErrorHandler"];
 
     // [OPTIONAL]
+    // ErrorHandlers is the list of references to error handler objects.
+    // Specified error handlers can be referred from other resources
+    // by the name "<group>/<version>/<kind>/<namespace>/<name>"
+    // from their metadata field
+    // for example "core/v1/ErrorHandler/myNamespace/myHandler".
+    // Objects must implement error handler interface.
+    // Default is not set.
+    repeated kernel.Reference ErrorHandlers = 4 [json_name = "errorHandlers"];
+
+    // [OPTIONAL]
     // Runners is the list of reference to runner resources.
     // Referred objects must implement the Runner interface.
     // HTTPServer is a typical example of the resource that can be set to this field.
@@ -49,19 +59,19 @@ message EntrypointSpec {
     // when no runner was specified.
     // The gateway will exit with failure when one of or all of the
     // runners exit with an error.
-    repeated kernel.Reference Runners = 4 [json_name = "runners"];
+    repeated kernel.Reference Runners = 5 [json_name = "runners"];
 
     // [OPTIONAL]
     // Initializers is the reference to the resources
     // that should be initialized before creating runners.
     // Referred objects must implement the Initializer interface.
     // Default is not set.
-    repeated kernel.Reference Initializers = 5 [json_name = "initializers"];
+    repeated kernel.Reference Initializers = 6 [json_name = "initializers"];
 
     // [OPTIONAL]
     // Finalizers is the reference to the resources
     // that should be finalized on exit of the gateway.
     // Referred objects must implement the Finalizer interface.
     // Default is not set.
-    repeated kernel.Reference Finalizers = 6 [json_name = "finalizers"];
+    repeated kernel.Reference Finalizers = 7 [json_name = "finalizers"];
 }

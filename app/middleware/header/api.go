@@ -4,6 +4,7 @@
 package header
 
 import (
+	"cmp"
 	"net/textproto"
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
@@ -11,7 +12,7 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
-	httputil "github.com/aileron-gateway/aileron-gateway/util/http"
+	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
@@ -41,15 +42,10 @@ type API struct {
 
 func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.ProtoMessage) (any, error) {
 	c := msg.(*v1.HeaderPolicyMiddleware)
-
-	eh, err := httputil.ErrorHandler(a, c.Spec.ErrorHandler)
-	if err != nil {
-		return nil, core.ErrCoreGenCreateObject.WithStack(err, map[string]any{"kind": kind})
-	}
+	eh := utilhttp.GlobalErrorHandler(cmp.Or(c.Metadata.ErrorHandler, utilhttp.DefaultErrorHandlerName))
 
 	middleware := &headerPolicy{
-		eh: eh,
-
+		eh:               eh,
 		allowedMIMEs:     c.Spec.AllowMIMEs,
 		maxContentLength: c.Spec.MaxContentLength,
 	}

@@ -9,7 +9,6 @@ import (
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
-	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -48,24 +47,6 @@ func TestCreate(t *testing.T) {
 			},
 			&action{
 				err: nil,
-			},
-		),
-		gen(
-			"fail to get errorhandler",
-			[]string{},
-			[]string{},
-			&condition{
-				manifest: &v1.TrackingMiddleware{
-					Spec: &v1.TrackingMiddlewareSpec{
-						ErrorHandler: &k.Reference{
-							APIVersion: "wrong",
-						},
-					},
-				},
-			},
-			&action{
-				err:        core.ErrCoreGenCreateObject,
-				errPattern: regexp.MustCompile(core.ErrPrefix + `failed to create TrackingMiddleware`),
 			},
 		),
 	}

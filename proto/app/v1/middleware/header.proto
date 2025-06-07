@@ -19,33 +19,27 @@ message HeaderPolicyMiddleware {
 // HeaderPolicyMiddlewareSpec is the specifications for the HeaderPolicyMiddleware object.
 message HeaderPolicyMiddlewareSpec {
     // [OPTIONAL]
-    // ErrorHandler is the reference to a ErrorHandler object.
-    // Referred object must implement ErrorHandler interface.
-    // Default error handler is used when not set.
-    kernel.Reference ErrorHandler = 1 [json_name = "errorHandler"];
-
-    // [OPTIONAL]
     // AllowMIMEs are the list of MIME types to allow.
     // See https://www.iana.org/assignments/media-types/media-types.xhtml for all mime types.
     // This field is ignored when nothing is specified.
-    repeated string AllowMIMEs = 2 [json_name = "allowMIMEs"];
+    repeated string AllowMIMEs = 1 [json_name = "allowMIMEs"];
 
     // [OPTIONAL]
     // MaxContentLength is the maximum content-length of the requests to allow.
     // All requests including unknown-length requests are allowed
     // when the value is less than or equal to 0.
     // Default is 0.
-    int64 MaxContentLength = 3 [json_name = "maxContentLength"];
+    int64 MaxContentLength = 2 [json_name = "maxContentLength"];
 
     // [OPTIONAL]
     // RequestPolicy is the header policy imposed to the request headers.
     // Default is not set.
-    HeaderPolicySpec RequestPolicy = 4 [json_name = "requestPolicy"];
+    HeaderPolicySpec RequestPolicy = 3 [json_name = "requestPolicy"];
 
     // [OPTIONAL]
     // RequestPolicy is the header policy imposed to the response headers.
     // Default is not set.
-    HeaderPolicySpec ResponsePolicy = 5 [json_name = "responsePolicy"];
+    HeaderPolicySpec ResponsePolicy = 4 [json_name = "responsePolicy"];
 }
 
 // HeaderPolicySpec is the specifications of header policy.

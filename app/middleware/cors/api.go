@@ -4,13 +4,13 @@
 package cors
 
 import (
+	"cmp"
 	"strconv"
 	"strings"
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
 	corev1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
-	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
@@ -70,17 +70,10 @@ func (*API) Mutate(msg protoreflect.ProtoMessage) protoreflect.ProtoMessage {
 
 func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.ProtoMessage) (any, error) {
 	c := msg.(*v1.CORSMiddleware)
-
-	// TODO: Output debug logs in the CORS middleware.
 	_ = log.DefaultOr(c.Metadata.Logger)
-
-	eh, err := utilhttp.ErrorHandler(a, c.Spec.ErrorHandler)
-	if err != nil {
-		return nil, core.ErrCoreGenCreateObject.WithStack(err, map[string]any{"kind": kind})
-	}
+	eh := utilhttp.GlobalErrorHandler(cmp.Or(c.Metadata.ErrorHandler, utilhttp.DefaultErrorHandlerName))
 
 	cp := c.Spec.CORSPolicy
-
 	return &cors{
 		eh: eh,
 		policy: &corsPolicy{

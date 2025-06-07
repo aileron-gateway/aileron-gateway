@@ -33,20 +33,13 @@ func TestMutate(t *testing.T) {
 
 	tb := testutil.NewTableBuilder[*condition, *action]()
 	tb.Name(t.Name())
-	CndDefaultManifest := tb.Condition("default manifest", "input default manifest")
-	CndMaxConnections := tb.Condition("MaxConnections", "input MaxConnections manifest")
-	CndFixedWindow := tb.Condition("FixedWindow", "input FixedWindow manifest")
-	CndTokenBucket := tb.Condition("TokenBucket", "input TokenBucket manifest")
-	CndLeakyBucket := tb.Condition("LeakyBucket", "input LeakyBucket manifest")
-	ActCheckMutated := tb.Action("check mutated", "check that the intended fields are mutated")
 	table := tb.Build()
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"apply default values",
-			[]string{CndDefaultManifest},
-			[]string{ActCheckMutated},
+			[]string{}, []string{},
 			&condition{
 				manifest: Resource.Default(),
 			},
@@ -64,8 +57,7 @@ func TestMutate(t *testing.T) {
 		),
 		gen(
 			"mutate MaxConnections",
-			[]string{CndMaxConnections},
-			[]string{ActCheckMutated},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.ThrottleMiddleware{
 					Spec: &v1.ThrottleMiddlewareSpec{
@@ -111,8 +103,7 @@ func TestMutate(t *testing.T) {
 		),
 		gen(
 			"mutate FixedWindow",
-			[]string{CndFixedWindow},
-			[]string{ActCheckMutated},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.ThrottleMiddleware{
 					Spec: &v1.ThrottleMiddlewareSpec{
@@ -159,8 +150,7 @@ func TestMutate(t *testing.T) {
 		),
 		gen(
 			"mutate TokenBucket",
-			[]string{CndTokenBucket},
-			[]string{ActCheckMutated},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.ThrottleMiddleware{
 					Spec: &v1.ThrottleMiddlewareSpec{
@@ -208,8 +198,7 @@ func TestMutate(t *testing.T) {
 		),
 		gen(
 			"mutate LeakyBucket",
-			[]string{CndLeakyBucket},
-			[]string{ActCheckMutated},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.ThrottleMiddleware{
 					Spec: &v1.ThrottleMiddlewareSpec{
@@ -287,24 +276,13 @@ func TestCreate(t *testing.T) {
 
 	tb := testutil.NewTableBuilder[*condition, *action]()
 	tb.Name(t.Name())
-	CndDefaultManifest := tb.Condition("input default manifest", "input default manifest")
-	CndErrorErrorHandlerSet := tb.Condition("input error reference to errorhandler", "input error reference to errorhandler")
-	CndErrorAPIThrottlersSet := tb.Condition("input error reference to APIThrottlers", "input error reference to APIThrottlers")
-	CndAPIThrottlersMaxConnectionsSet := tb.Condition("input APIThrottlers MaxConnections", "input APIThrottlers MaxConnections")
-	CndAPIThrottlersFixedWindowSet := tb.Condition("input APIThrottlers FixedWindow", "input APIThrottlers FixedWindow")
-	CndAPIThrottlersTokenBucketSet := tb.Condition("input APIThrottlers TokenBucket", "input APIThrottlers TokenBucket")
-	CndAPIThrottlersLeakyBucketSet := tb.Condition("input APIThrottlers LeakyBucket", "input APIThrottlers LeakyBucket")
-	CndAPIThrottlersRetryThrottlerSet := tb.Condition("input APIThrottlers RetryThrottler", "input APIThrottlers RetryThrottler")
-	ActCheckNoError := tb.Action("check no error was returned", "check no error was returned")
-	ActCheckErrorMsg := tb.Action("check error message", "check the error messages that was returned")
 	table := tb.Build()
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"create with default manifest",
-			[]string{CndDefaultManifest},
-			[]string{ActCheckNoError},
+			[]string{}, []string{},
 			&condition{
 				manifest: Resource.Default(),
 			},
@@ -318,8 +296,7 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"nil matcher",
-			[]string{},
-			[]string{ActCheckNoError},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.ThrottleMiddleware{
 					Metadata: &k.Metadata{},
@@ -339,28 +316,8 @@ func TestCreate(t *testing.T) {
 			},
 		),
 		gen(
-			"fail to get errorhandler",
-			[]string{CndErrorErrorHandlerSet},
-			[]string{ActCheckErrorMsg},
-			&condition{
-				manifest: &v1.ThrottleMiddleware{
-					Metadata: &k.Metadata{},
-					Spec: &v1.ThrottleMiddlewareSpec{
-						ErrorHandler: &k.Reference{
-							APIVersion: "wrong",
-						},
-					},
-				},
-			},
-			&action{
-				err:        core.ErrCoreGenCreateObject,
-				errPattern: regexp.MustCompile(core.ErrPrefix + `failed to create ThrottleMiddleware`),
-			},
-		),
-		gen(
 			"fail to create APIThrottlers",
-			[]string{CndErrorAPIThrottlersSet},
-			[]string{ActCheckErrorMsg},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.ThrottleMiddleware{
 					Metadata: &k.Metadata{},
@@ -385,8 +342,7 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create with MaxConnections",
-			[]string{CndAPIThrottlersMaxConnectionsSet},
-			[]string{ActCheckNoError},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.ThrottleMiddleware{
 					Metadata: &k.Metadata{},
@@ -428,8 +384,7 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create with FixedWindow",
-			[]string{CndAPIThrottlersFixedWindowSet},
-			[]string{ActCheckNoError},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.ThrottleMiddleware{
 					Metadata: &k.Metadata{},
@@ -473,8 +428,7 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create with TokenBucket",
-			[]string{CndAPIThrottlersTokenBucketSet},
-			[]string{ActCheckNoError},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.ThrottleMiddleware{
 					Metadata: &k.Metadata{},
@@ -520,8 +474,7 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create with LeakyBucket",
-			[]string{CndAPIThrottlersLeakyBucketSet},
-			[]string{ActCheckNoError},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.ThrottleMiddleware{
 					Metadata: &k.Metadata{},
@@ -567,8 +520,7 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create with retryThrottler",
-			[]string{CndAPIThrottlersRetryThrottlerSet},
-			[]string{ActCheckNoError},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.ThrottleMiddleware{
 					Metadata: &k.Metadata{},

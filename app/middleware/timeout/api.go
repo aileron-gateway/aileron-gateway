@@ -4,6 +4,7 @@
 package timeout
 
 import (
+	"cmp"
 	"time"
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
@@ -41,13 +42,7 @@ type API struct {
 
 func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.ProtoMessage) (any, error) {
 	c := msg.(*v1.TimeoutMiddleware)
-
-	// Obtain an error handler.
-	// Default error handler is returned when not configured.
-	eh, err := utilhttp.ErrorHandler(a, c.Spec.ErrorHandler)
-	if err != nil {
-		return nil, core.ErrCoreGenCreateObject.WithStack(err, map[string]any{"kind": kind})
-	}
+	eh := utilhttp.GlobalErrorHandler(cmp.Or(c.Metadata.ErrorHandler, utilhttp.DefaultErrorHandlerName))
 
 	timeouts, err := apiTimeouts(c.Spec.APITimeouts...)
 	if err != nil {

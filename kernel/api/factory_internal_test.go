@@ -727,7 +727,7 @@ func TestFactoryAPI_get(t *testing.T) {
 				},
 			},
 			&action{
-				obj: []byte("apiVersion: test1\nkind: test2\nmetadata:\n  logger: \"\"\n  name: test4\n  namespace: test3\nspec: null\n"),
+				obj: []byte("apiVersion: test1\nkind: test2\nmetadata:\n  errorHandler: \"\"\n  logger: \"\"\n  name: test4\n  namespace: test3\nspec: null\n"),
 				protoStore: map[string]protoreflect.ProtoMessage{
 					"test1/test2/test3/test4": &k.Resource{
 						APIVersion: "test1",

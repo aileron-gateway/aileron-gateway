@@ -9,8 +9,6 @@ import (
 	"regexp"
 	"testing"
 
-	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
-	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
@@ -50,25 +48,6 @@ func TestCreate(t *testing.T) {
 					memLimit: 1 << 22,
 					tempPath: filepath.Clean(os.TempDir()) + "/",
 				},
-			},
-		),
-		gen(
-			"fail to obtain errorhandler",
-			[]string{},
-			[]string{},
-			&condition{
-				manifest: &v1.BodyLimitMiddleware{
-					Metadata: &kernel.Metadata{},
-					Spec: &v1.BodyLimitMiddlewareSpec{
-						ErrorHandler: &kernel.Reference{
-							APIVersion: "wrong-version",
-						},
-					},
-				},
-			},
-			&action{
-				err:        core.ErrCoreGenCreateObject,
-				errPattern: regexp.MustCompile(core.ErrPrefix + `failed to create BodyLimitMiddleware`),
 			},
 		),
 	}

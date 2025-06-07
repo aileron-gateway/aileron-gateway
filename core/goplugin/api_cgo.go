@@ -6,6 +6,7 @@
 package goplugin
 
 import (
+	"cmp"
 	"plugin"
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
@@ -53,11 +54,7 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.Prot
 	c := msg.(*v1.GoPlugin)
 
 	lg := log.DefaultOr(c.Metadata.Logger)
-
-	eh, err := utilhttp.ErrorHandler(a, c.Spec.ErrorHandler)
-	if err != nil {
-		return nil, core.ErrCoreGenCreateObject.WithStack(err, map[string]any{"kind": kind})
-	}
+	eh := utilhttp.GlobalErrorHandler(cmp.Or(c.Metadata.ErrorHandler, utilhttp.DefaultErrorHandlerName))
 
 	p, err := plugin.Open(c.Spec.PluginPath)
 	if testOpen != nil { // Skip error when testing.

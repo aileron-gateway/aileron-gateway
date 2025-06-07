@@ -65,9 +65,24 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.Prot
 		ref.Name = cmp.Or(ref.Name, "default")
 		name := strings.Join([]string{ref.APIVersion, ref.Kind, ref.Namespace, ref.Name}, "/")
 		log.SetGlobalLogger(name, lg)
-
 		initializers = appendInitializer(initializers, lg)
 		finalizers = appendFinalizer(finalizers, lg)
+	}
+
+	for _, ref := range c.Spec.ErrorHandlers {
+		ref.Namespace = cmp.Or(ref.Namespace, "default")
+		ref.Name = cmp.Or(ref.Name, "default")
+		eh, err := api.ReferTypedObject[core.ErrorHandler](a, ref)
+		if err != nil {
+			return nil, core.ErrCoreGenCreateObject.WithStack(err, map[string]any{"kind": kind})
+		}
+		// Specified error handler are registered with <apiVersion>/<kind>/<namespace>/<name>
+		ref.Namespace = cmp.Or(ref.Namespace, "default")
+		ref.Name = cmp.Or(ref.Name, "default")
+		name := strings.Join([]string{ref.APIVersion, ref.Kind, ref.Namespace, ref.Name}, "/")
+		utilhttp.SetGlobalErrorHandler(name, eh)
+		initializers = appendInitializer(initializers, eh)
+		finalizers = appendFinalizer(finalizers, eh)
 	}
 
 	if c.Spec.DefaultLogger != nil {

@@ -214,27 +214,6 @@ func TestCreate(t *testing.T) {
 			},
 		),
 		gen(
-			"fail to get error handler",
-			[]string{cndErrorReference},
-			[]string{actCheckError},
-			&condition{
-				manifest: &v1.TemplateHandler{
-					Metadata: &k.Metadata{},
-					Spec: &v1.TemplateHandlerSpec{
-						ErrorHandler: &k.Reference{
-							APIVersion: "wrong",
-						},
-					},
-				},
-				server: api.NewContainerAPI(),
-			},
-			&action{
-				expect:     nil,
-				err:        core.ErrCoreGenCreateObject,
-				errPattern: regexp.MustCompile(core.ErrPrefix + `failed to create TemplateHandler`),
-			},
-		),
-		gen(
 			"fail to get mime content",
 			[]string{cndErrorReference},
 			[]string{actCheckError},

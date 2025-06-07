@@ -523,7 +523,6 @@ func TestNewDatetimeAttrs(t *testing.T) {
 			if tt.C().loc != nil {
 				now = now.In(tt.C().loc)
 			}
-
 			testutil.Diff(t, now.Format(tt.A().date), dt.date)
 			testutil.Diff(t, now.Format(tt.A().time), dt.time)
 			testutil.Diff(t, now.Location().String(), tt.A().zone)
@@ -535,16 +534,12 @@ func TestDatetimeAttrs_Name(t *testing.T) {
 	type condition struct {
 		dt *DatetimeAttrs
 	}
-
 	type action struct {
 		name string
 	}
 
-	ActCheckName := "check name"
-
 	tb := testutil.NewTableBuilder[*condition, *action]()
 	tb.Name(t.Name())
-	tb.Action(ActCheckName, "check that the returned name is the one expected")
 	table := tb.Build()
 
 	gen := testutil.NewCase[*condition, *action]
@@ -591,30 +586,19 @@ func TestDatetimeAttrs_Map(t *testing.T) {
 	type condition struct {
 		dt *DatetimeAttrs
 	}
-
 	type action struct {
 		expect map[string]any
 	}
 
-	CndWithDate := "with date"
-	CndWithTime := "with time"
-	CndWithZone := "with zone"
-	ActCheckMap := "check map"
-
 	tb := testutil.NewTableBuilder[*condition, *action]()
 	tb.Name(t.Name())
-	tb.Condition(CndWithDate, "date has non empty value")
-	tb.Condition(CndWithTime, "time has non empty value")
-	tb.Condition(CndWithZone, "zone has non empty value")
-	tb.Action(ActCheckMap, "check that the returned map is the one expected")
 	table := tb.Build()
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"without values",
-			[]string{},
-			[]string{ActCheckMap},
+			[]string{}, []string{},
 			&condition{
 				dt: &DatetimeAttrs{
 					name: "test",
@@ -630,8 +614,7 @@ func TestDatetimeAttrs_Map(t *testing.T) {
 		),
 		gen(
 			"with date",
-			[]string{CndWithDate},
-			[]string{ActCheckMap},
+			[]string{}, []string{},
 			&condition{
 				dt: &DatetimeAttrs{
 					name: "test",
@@ -648,8 +631,7 @@ func TestDatetimeAttrs_Map(t *testing.T) {
 		),
 		gen(
 			"with time",
-			[]string{CndWithTime},
-			[]string{ActCheckMap},
+			[]string{}, []string{},
 			&condition{
 				dt: &DatetimeAttrs{
 					name: "test",
@@ -666,8 +648,7 @@ func TestDatetimeAttrs_Map(t *testing.T) {
 		),
 		gen(
 			"with zone",
-			[]string{CndWithZone},
-			[]string{ActCheckMap},
+			[]string{}, []string{},
 			&condition{
 				dt: &DatetimeAttrs{
 					name: "test",
@@ -684,8 +665,7 @@ func TestDatetimeAttrs_Map(t *testing.T) {
 		),
 		gen(
 			"with date/time/zone",
-			[]string{CndWithDate, CndWithTime, CndWithZone},
-			[]string{ActCheckMap},
+			[]string{}, []string{},
 			&condition{
 				dt: &DatetimeAttrs{
 					name: "test",
@@ -703,9 +683,7 @@ func TestDatetimeAttrs_Map(t *testing.T) {
 			},
 		),
 	}
-
 	testutil.Register(table, testCases...)
-
 	for _, tt := range table.Entries() {
 		tt := tt
 		t.Run(tt.Name(), func(t *testing.T) {
@@ -718,30 +696,19 @@ func TestDatetimeAttrs_KeyValues(t *testing.T) {
 	type condition struct {
 		dt *DatetimeAttrs
 	}
-
 	type action struct {
 		expect []any
 	}
 
-	CndWithDate := "with date"
-	CndWithTime := "with time"
-	CndWithZone := "with zone"
-	ActCheckSlice := "check slice"
-
 	tb := testutil.NewTableBuilder[*condition, *action]()
 	tb.Name(t.Name())
-	tb.Condition(CndWithDate, "date has non empty value")
-	tb.Condition(CndWithTime, "time has non empty value")
-	tb.Condition(CndWithZone, "zone has non empty value")
-	tb.Action(ActCheckSlice, "check that the returned slice is the one expected")
 	table := tb.Build()
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"without values",
-			[]string{},
-			[]string{ActCheckSlice},
+			[]string{}, []string{},
 			&condition{
 				dt: &DatetimeAttrs{
 					name: "test",
@@ -757,8 +724,7 @@ func TestDatetimeAttrs_KeyValues(t *testing.T) {
 		),
 		gen(
 			"with date",
-			[]string{CndWithDate},
-			[]string{ActCheckSlice},
+			[]string{}, []string{},
 			&condition{
 				dt: &DatetimeAttrs{
 					name: "test",
@@ -775,8 +741,7 @@ func TestDatetimeAttrs_KeyValues(t *testing.T) {
 		),
 		gen(
 			"with time",
-			[]string{CndWithTime},
-			[]string{ActCheckSlice},
+			[]string{}, []string{},
 			&condition{
 				dt: &DatetimeAttrs{
 					name: "test",
@@ -793,8 +758,7 @@ func TestDatetimeAttrs_KeyValues(t *testing.T) {
 		),
 		gen(
 			"with zone",
-			[]string{CndWithZone},
-			[]string{ActCheckSlice},
+			[]string{}, []string{},
 			&condition{
 				dt: &DatetimeAttrs{
 					name: "test",
@@ -811,8 +775,7 @@ func TestDatetimeAttrs_KeyValues(t *testing.T) {
 		),
 		gen(
 			"with date/time/zone",
-			[]string{CndWithDate, CndWithTime, CndWithZone},
-			[]string{ActCheckSlice},
+			[]string{}, []string{},
 			&condition{
 				dt: &DatetimeAttrs{
 					name: "test",
@@ -830,9 +793,7 @@ func TestDatetimeAttrs_KeyValues(t *testing.T) {
 			},
 		),
 	}
-
 	testutil.Register(table, testCases...)
-
 	for _, tt := range table.Entries() {
 		tt := tt
 		t.Run(tt.Name(), func(t *testing.T) {
@@ -846,28 +807,19 @@ func TestNewCustomAttrs(t *testing.T) {
 		name  string
 		attrs map[string]any
 	}
-
 	type action struct {
 		attrs map[string]any
 	}
 
-	CndInputNilMap := "input nil map"
-	ActCheckName := "check name"
-	ActCheckMap := "check map"
-
 	tb := testutil.NewTableBuilder[*condition, *action]()
 	tb.Name(t.Name())
-	tb.Condition(CndInputNilMap, "")
-	tb.Action(ActCheckName, "check that the returned file is the expected one")
-	tb.Action(ActCheckMap, "check that the returned func is the expected one")
 	table := tb.Build()
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"non nil map",
-			[]string{},
-			[]string{ActCheckName, ActCheckMap},
+			[]string{}, []string{},
 			&condition{
 				name:  "test",
 				attrs: map[string]any{"foo": "bar", "hoge": "fuga"},
@@ -878,8 +830,7 @@ func TestNewCustomAttrs(t *testing.T) {
 		),
 		gen(
 			"nil map",
-			[]string{CndInputNilMap},
-			[]string{ActCheckName, ActCheckMap},
+			[]string{}, []string{},
 			&condition{
 				name:  "test",
 				attrs: nil,
@@ -889,14 +840,11 @@ func TestNewCustomAttrs(t *testing.T) {
 			},
 		),
 	}
-
 	testutil.Register(table, testCases...)
-
 	for _, tt := range table.Entries() {
 		tt := tt
 		t.Run(tt.Name(), func(t *testing.T) {
 			cus := NewCustomAttrs(tt.C().name, tt.C().attrs)
-
 			testutil.Diff(t, tt.C().name, cus.name)
 			testutil.Diff(t, tt.A().attrs, cus.m)
 		})
@@ -907,24 +855,18 @@ func TestCustomAttrs_Name(t *testing.T) {
 	type condition struct {
 		ct *CustomAttrs
 	}
-
 	type action struct {
 		name string
 	}
-
-	ActCheckName := "check name"
-
 	tb := testutil.NewTableBuilder[*condition, *action]()
 	tb.Name(t.Name())
-	tb.Action(ActCheckName, "check that the returned name is the one expected")
 	table := tb.Build()
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"non empty name",
-			[]string{},
-			[]string{},
+			[]string{}, []string{},
 			&condition{
 				ct: &CustomAttrs{
 					name: "test",
@@ -936,8 +878,7 @@ func TestCustomAttrs_Name(t *testing.T) {
 		),
 		gen(
 			"empty name",
-			[]string{},
-			[]string{},
+			[]string{}, []string{},
 			&condition{
 				ct: &CustomAttrs{
 					name: "",
@@ -948,9 +889,7 @@ func TestCustomAttrs_Name(t *testing.T) {
 			},
 		),
 	}
-
 	testutil.Register(table, testCases...)
-
 	for _, tt := range table.Entries() {
 		tt := tt
 		t.Run(tt.Name(), func(t *testing.T) {
@@ -967,22 +906,15 @@ func TestCustomAttrs_Map(t *testing.T) {
 	type action struct {
 		expect map[string]any
 	}
-
-	CndWithAttr := "with date"
-	ActCheckMap := "check map"
-
 	tb := testutil.NewTableBuilder[*condition, *action]()
 	tb.Name(t.Name())
-	tb.Condition(CndWithAttr, "attribute has non empty value")
-	tb.Action(ActCheckMap, "check that the returned map is the one expected")
 	table := tb.Build()
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"without attribute",
-			[]string{},
-			[]string{ActCheckMap},
+			[]string{}, []string{},
 			&condition{
 				ct: &CustomAttrs{
 					name: "test",
@@ -994,8 +926,7 @@ func TestCustomAttrs_Map(t *testing.T) {
 		),
 		gen(
 			"with attribute",
-			[]string{CndWithAttr},
-			[]string{ActCheckMap},
+			[]string{}, []string{},
 			&condition{
 				ct: &CustomAttrs{
 					name: "test",
@@ -1008,8 +939,7 @@ func TestCustomAttrs_Map(t *testing.T) {
 		),
 		gen(
 			"with 2 attributes",
-			[]string{CndWithAttr},
-			[]string{ActCheckMap},
+			[]string{}, []string{},
 			&condition{
 				ct: &CustomAttrs{
 					name: "test",
@@ -1021,9 +951,7 @@ func TestCustomAttrs_Map(t *testing.T) {
 			},
 		),
 	}
-
 	testutil.Register(table, testCases...)
-
 	for _, tt := range table.Entries() {
 		tt := tt
 		t.Run(tt.Name(), func(t *testing.T) {
@@ -1036,26 +964,19 @@ func TestCustomAttrs_KeyValues(t *testing.T) {
 	type condition struct {
 		ct *CustomAttrs
 	}
-
 	type action struct {
 		expect []any
 	}
 
-	CndWithAttr := "with date"
-	ActCheckSlice := "check slice"
-
 	tb := testutil.NewTableBuilder[*condition, *action]()
 	tb.Name(t.Name())
-	tb.Condition(CndWithAttr, "attribute has non empty value")
-	tb.Action(ActCheckSlice, "check that the returned slice is the one expected")
 	table := tb.Build()
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"without attribute",
-			[]string{},
-			[]string{ActCheckSlice},
+			[]string{}, []string{},
 			&condition{
 				ct: &CustomAttrs{
 					name: "test",
@@ -1067,8 +988,7 @@ func TestCustomAttrs_KeyValues(t *testing.T) {
 		),
 		gen(
 			"with attribute",
-			[]string{CndWithAttr},
-			[]string{ActCheckSlice},
+			[]string{}, []string{},
 			&condition{
 				ct: &CustomAttrs{
 					name: "test",
@@ -1084,9 +1004,7 @@ func TestCustomAttrs_KeyValues(t *testing.T) {
 			},
 		),
 	}
-
 	testutil.Register(table, testCases...)
-
 	for _, tt := range table.Entries() {
 		tt := tt
 		t.Run(tt.Name(), func(t *testing.T) {
