@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/aileron-projects/go/ztext"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
@@ -58,7 +59,7 @@ func TestNewKind(t *testing.T) {
 				kind: &Kind{
 					code: "test-code",
 					kind: "test-kind",
-					tpl:  newTemplate("this is {{test}}"),
+					tpl:  ztext.NewTemplate("this is {{test}}", "{{", "}}"),
 				},
 			},
 		),
@@ -75,7 +76,7 @@ func TestNewKind(t *testing.T) {
 				kind: &Kind{
 					code: "test-code",
 					kind: "test-kind",
-					tpl:  newTemplate(""),
+					tpl:  ztext.NewTemplate("", "{{", "}}"),
 				},
 			},
 		),
@@ -94,7 +95,7 @@ func TestNewKind(t *testing.T) {
 			}
 
 			k := NewKind(tt.C().code, tt.C().kind, tt.C().tpl)
-			testutil.Diff(t, tt.A().kind, k, cmp.AllowUnexported(Kind{}, template{}))
+			testutil.Diff(t, tt.A().kind, k, cmp.AllowUnexported(Kind{}, ztext.Template{}))
 		})
 	}
 }
@@ -248,7 +249,7 @@ func TestKind_WithoutStack(t *testing.T) {
 				kind: &Kind{
 					kind: "test-kind",
 					code: "test-code",
-					tpl:  newTemplate("test-message"),
+					tpl:  ztext.NewTemplate("test-message", "{{", "}}"),
 				},
 			},
 			&action{
@@ -268,7 +269,7 @@ func TestKind_WithoutStack(t *testing.T) {
 				kind: &Kind{
 					kind: "test-kind",
 					code: "test-code",
-					tpl:  newTemplate("test-message"),
+					tpl:  ztext.NewTemplate("test-message", "{{", "}}"),
 				},
 				err: errors.New("test-error"),
 			},
@@ -290,7 +291,7 @@ func TestKind_WithoutStack(t *testing.T) {
 				kind: &Kind{
 					kind: "test-kind",
 					code: "test-code",
-					tpl:  newTemplate("test-message"),
+					tpl:  ztext.NewTemplate("test-message", "{{", "}}"),
 				},
 				err: &ErrorAttrs{
 					kind: "error-kind",
@@ -352,7 +353,7 @@ func TestKind_WithStack(t *testing.T) {
 				kind: &Kind{
 					kind: "test-kind",
 					code: "test-code",
-					tpl:  newTemplate("test-message"),
+					tpl:  ztext.NewTemplate("test-message", "{{", "}}"),
 				},
 			},
 			&action{
@@ -372,7 +373,7 @@ func TestKind_WithStack(t *testing.T) {
 				kind: &Kind{
 					kind: "test-kind",
 					code: "test-code",
-					tpl:  newTemplate("test-message"),
+					tpl:  ztext.NewTemplate("test-message", "{{", "}}"),
 				},
 				err: errors.New("test-error"),
 			},
@@ -394,7 +395,7 @@ func TestKind_WithStack(t *testing.T) {
 				kind: &Kind{
 					kind: "test-kind",
 					code: "test-code",
-					tpl:  newTemplate("test-message"),
+					tpl:  ztext.NewTemplate("test-message", "{{", "}}"),
 				},
 				err: &ErrorAttrs{
 					kind: "error-kind",

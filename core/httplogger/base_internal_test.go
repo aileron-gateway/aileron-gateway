@@ -22,6 +22,7 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
+	"github.com/aileron-projects/go/ztext"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
@@ -222,7 +223,7 @@ func TestNewBaseLogger(t *testing.T) {
 				bl: &baseLogger{
 					lg:         log.GlobalLogger(log.DefaultLoggerName),
 					w:          log.GlobalLogger(log.DefaultLoggerName).(io.Writer),
-					tpl:        &txtutil.FastTemplate{},
+					tpl:        &ztext.Template{},
 					queries:    []stringReplFunc{},
 					headers:    map[string][]stringReplFunc{},
 					headerKeys: []string{},
@@ -305,7 +306,7 @@ func TestNewBaseLogger(t *testing.T) {
 
 			opts := []cmp.Option{
 				cmp.AllowUnexported(baseLogger{}),
-				cmpopts.IgnoreTypes(txtutil.FastTemplate{}),
+				cmpopts.IgnoreTypes(ztext.Template{}),
 				cmp.Comparer(testutil.ComparePointer[io.Writer]),
 				cmp.Comparer(testutil.ComparePointer[stringReplFunc]),
 				cmp.Comparer(testutil.ComparePointer[bytesReplFunc]),
@@ -372,7 +373,7 @@ func TestBaseLogger_logOutput(t *testing.T) {
 			[]string{},
 			&condition{
 				bl: &baseLogger{
-					tpl: txtutil.NewFastTemplate("id=%id% time=%time%", "%", "%"),
+					tpl: ztext.NewTemplate("id=%id% time=%time%", "%", "%"),
 				},
 				level:   slog.LevelInfo,
 				attrs:   testAttrs.accessKeyValues(),

@@ -23,7 +23,7 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
 	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
-	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
+	"github.com/aileron-projects/go/ztext"
 )
 
 // Following error statuses do not contain inner error.
@@ -152,11 +152,11 @@ func NewErrorMessage(spec *v1.ErrorMessageSpec) (*ErrorMessage, error) {
 	m := &ErrorMessage{
 		codes:     spec.Codes,
 		kinds:     spec.Kinds,
-		headerTpl: make(map[string]*txtutil.FastTemplate, len(spec.HeaderTemplate)),
+		headerTpl: make(map[string]*ztext.Template, len(spec.HeaderTemplate)),
 	}
 
 	for k, tpl := range spec.HeaderTemplate {
-		m.headerTpl[textproto.CanonicalMIMEHeaderKey(k)] = txtutil.NewFastTemplate(tpl, "{{", "}}")
+		m.headerTpl[textproto.CanonicalMIMEHeaderKey(k)] = ztext.NewTemplate(tpl, "{{", "}}")
 	}
 
 	for _, msg := range spec.Messages {
@@ -186,7 +186,7 @@ type ErrorMessage struct {
 	codes     []string
 	kinds     []string
 	messages  []*regexp.Regexp
-	headerTpl map[string]*txtutil.FastTemplate
+	headerTpl map[string]*ztext.Template
 	contents  []*MIMEContent
 }
 

@@ -20,6 +20,7 @@ import (
 	kio "github.com/aileron-gateway/aileron-gateway/kernel/io"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
 	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
+	"github.com/aileron-projects/go/ztext"
 )
 
 // stringReplFunc is the value replace function for string.
@@ -92,7 +93,7 @@ func newBaseLogger(spec *v1.LoggingSpec, lg log.Logger) (*baseLogger, error) {
 	bl.queries = stringReplacerToFunc(fs)
 
 	if spec.LogFormat != "" {
-		bl.tpl = txtutil.NewFastTemplate(spec.LogFormat+"\n", "%", "%")
+		bl.tpl = ztext.NewTemplate(spec.LogFormat+"\n", "%", "%")
 		writer, ok := lg.(io.Writer) // Format logging requires raw io.Writer.
 		if !ok {
 			return nil, &er.Error{
@@ -118,7 +119,7 @@ func newBaseLogger(spec *v1.LoggingSpec, lg log.Logger) (*baseLogger, error) {
 type baseLogger struct {
 	lg  log.Logger
 	w   io.Writer // Used for formatted logger.
-	tpl *txtutil.FastTemplate
+	tpl *ztext.Template
 
 	// queries is the URL query value replacers.
 	queries []stringReplFunc
@@ -169,7 +170,7 @@ func (l *baseLogger) logOutput(ctx context.Context, msg string, attrs []any, tag
 		buf := pool.Get().(*bytes.Buffer)
 		defer pool.Put(buf)
 		buf.Reset()
-		l.tpl.ExecuteFuncWriter(buf, tagFunc)
+		l.tpl.ExecuteWriterFunc(buf, tagFunc)
 		_, _ = l.w.Write(buf.Bytes())
 	} else {
 		l.lg.Info(ctx, msg, attrs...)

@@ -23,6 +23,7 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
+	"github.com/aileron-projects/go/ztext"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
@@ -438,8 +439,8 @@ func TestNewErrorMessage(t *testing.T) {
 					messages: []*regexp.Regexp{
 						regexp.MustCompile(`.*`),
 					},
-					headerTpl: map[string]*txtutil.FastTemplate{
-						"Code": txtutil.NewFastTemplate("{{code}}", "{{", "}}"),
+					headerTpl: map[string]*ztext.Template{
+						"Code": ztext.NewTemplate("{{code}}", "{{", "}}"),
 					},
 					contents: []*MIMEContent{
 						{
@@ -509,7 +510,7 @@ func TestNewErrorMessage(t *testing.T) {
 				cmp.AllowUnexported(ErrorMessage{}),
 				cmp.AllowUnexported(MIMEContent{}),
 				cmp.AllowUnexported(regexp.Regexp{}),
-				cmp.AllowUnexported(txtutil.FastTemplate{}),
+				cmp.AllowUnexported(ztext.Template{}),
 				cmpopts.IgnoreInterfaces(struct{ txtutil.Template }{}),
 			}
 			testutil.Diff(t, tt.A().em, em, opts...)
@@ -1145,8 +1146,8 @@ func TestDefaultErrorHandler_ServeHTTPError(t *testing.T) {
 					Msgs: []*ErrorMessage{
 						{
 							codes: []string{"E0001"},
-							headerTpl: map[string]*txtutil.FastTemplate{
-								"Status": txtutil.NewFastTemplate("{{status}}", "{{", "}}"),
+							headerTpl: map[string]*ztext.Template{
+								"Status": ztext.NewTemplate("{{status}}", "{{", "}}"),
 							},
 							contents: []*MIMEContent{
 								{
