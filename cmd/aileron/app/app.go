@@ -16,7 +16,6 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/encoder"
-	"github.com/aileron-gateway/aileron-gateway/kernel/io"
 	"github.com/aileron-projects/go/zos"
 	"github.com/spf13/pflag"
 )
@@ -104,7 +103,7 @@ func (a *App) Run(server api.API[*api.Request, *api.Response]) error {
 
 // LoadEnvFiles load environmental variables from given file paths.
 func LoadEnvFiles(paths []string) error {
-	envs, err := io.ReadFiles(true, paths...)
+	envs, err := zos.ReadFiles(true, paths...)
 	if err != nil {
 		return ErrAppMainLoadEnv.WithStack(err, nil)
 	}
@@ -121,7 +120,7 @@ func LoadEnvFiles(paths []string) error {
 // Others will be ignored.
 // This function panics when the given server is nil.
 func LoadConfigFiles(server api.API[*api.Request, *api.Response], paths []string) error {
-	configs, err := io.ReadFiles(false, paths...)
+	configs, err := zos.ReadFiles(false, paths...)
 	if err != nil {
 		return ErrAppMainLoadConfigs.WithStack(err, nil)
 	}
@@ -140,7 +139,7 @@ func LoadConfigFiles(server api.API[*api.Request, *api.Response], paths []string
 		}
 
 		manifest = bytes.ReplaceAll(manifest, []byte("\r\n"), []byte("\n"))
-		bs := io.SplitMultiDoc(manifest, "---\n")
+		bs := SplitMultiDoc(manifest, "---\n")
 		for _, b := range bs {
 			into := &struct {
 				APIVersion string `json:"apiVersion" yaml:"apiVersion"`
@@ -228,4 +227,25 @@ func ShowTemplate(server api.API[*api.Request, *api.Response], tpl, out string) 
 
 	fmt.Println(string(res.Content.([]byte)))
 	Exit(0)
+}
+
+// SplitMultiDoc splits a documents in []byte format with a given separator.
+// If an empty separator is given, the default separator "---\n" is used.
+// Empty contents are ignored.
+func SplitMultiDoc(in []byte, sep string) [][]byte {
+	if sep == "" {
+		sep = "---\n"
+	}
+
+	var outArr [][]byte
+	inArr := bytes.Split(in, []byte(sep))
+	for _, b := range inArr {
+		// exclude empty documents.
+		b = bytes.Trim(b, " \n")
+		if len(b) != 0 {
+			outArr = append(outArr, b)
+		}
+	}
+
+	return outArr
 }

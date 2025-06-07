@@ -6,9 +6,7 @@
 package slogger_test
 
 import (
-	"cmp"
 	"context"
-	"os"
 	"regexp"
 	"testing"
 
@@ -22,8 +20,7 @@ import (
 )
 
 // testDataDir is the path to the test data.
-// This path can be changed by the environmental variable.
-var testDataDir = cmp.Or(os.Getenv("TEST_DIR"), "../../../test/") + "integration/slogger/"
+var testDataDir = "../../../test/integration/slogger/"
 
 func testLogger(t *testing.T, lg log.Logger) {
 

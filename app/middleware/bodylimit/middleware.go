@@ -14,7 +14,6 @@ import (
 
 	"github.com/aileron-gateway/aileron-gateway/app"
 	"github.com/aileron-gateway/aileron-gateway/core"
-	kio "github.com/aileron-gateway/aileron-gateway/kernel/io"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 )
 
@@ -135,7 +134,7 @@ func (m *bodyLimit) Middleware(next http.Handler) http.Handler {
 				f.Close()
 				os.Remove(filePath)
 			}()
-			n, err := kio.CopyBuffer(f, io.LimitReader(r.Body, m.maxSize))
+			n, err := io.Copy(f, io.LimitReader(r.Body, m.maxSize))
 			if err != nil {
 				err := app.ErrAppMiddleBodyLimit.WithoutStack(err, nil)
 				m.eh.ServeHTTPError(w, r, utilhttp.NewHTTPError(err, http.StatusInternalServerError))

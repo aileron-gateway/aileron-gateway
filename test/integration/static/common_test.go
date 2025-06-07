@@ -7,7 +7,6 @@ package static_test
 
 import (
 	"bytes"
-	"cmp"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -24,8 +23,7 @@ import (
 )
 
 // testDataDir is the path to the test data.
-// This path can be changed by the environmental variable.
-var testDataDir = cmp.Or(os.Getenv("TEST_DIR"), "../../../test/") + "integration/static/"
+var testDataDir = "../../../test/integration/static/"
 
 func init() {
 	// TEST_DATA_DIR is used in config file.

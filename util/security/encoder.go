@@ -8,10 +8,10 @@ import (
 	"compress/gzip"
 	"encoding/base64"
 	"errors"
+	"io"
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
 	"github.com/aileron-gateway/aileron-gateway/kernel/encrypt"
-	"github.com/aileron-gateway/aileron-gateway/kernel/io"
 	"github.com/aileron-gateway/aileron-gateway/kernel/mac"
 )
 
@@ -137,7 +137,7 @@ func (e *SecureEncoder) Decode(b []byte) ([]byte, error) {
 	if e.enableCompression {
 		r, _ := gzip.NewReader(bytes.NewReader(data))
 		var buf bytes.Buffer
-		_, err := io.CopyBuffer(&buf, r)
+		_, err := io.Copy(&buf, r)
 		if err != nil {
 			return nil, errors.New("util/security: failed to extract compressed data")
 		}
