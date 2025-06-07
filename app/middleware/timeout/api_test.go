@@ -34,20 +34,13 @@ func TestCreate(t *testing.T) {
 
 	tb := testutil.NewTableBuilder[*condition, *action]()
 	tb.Name(t.Name())
-	CndDefaultManifest := tb.Condition("input default manifest", "input default manifest")
-	CndErrorErrorHandlerSet := tb.Condition("input error reference to errorhandler", "input error reference to errorhandler")
-	CndSetAPITimeout := tb.Condition("input apiTimeout", "input apiTimeout")
-	CndErrorPattern := tb.Condition("input pattern", "input pattern")
-	ActCheckNoError := tb.Action("check no error was returned", "check no error was returned")
-	ActCheckErrorMsg := tb.Action("check error message", "check the error messages that was returned")
 	table := tb.Build()
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"create with default manifest",
-			[]string{CndDefaultManifest},
-			[]string{ActCheckNoError},
+			[]string{}, []string{},
 			&condition{
 				manifest: Resource.Default(),
 			},
@@ -62,8 +55,7 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"default timeout only",
-			[]string{CndSetAPITimeout},
-			[]string{ActCheckNoError},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.TimeoutMiddleware{
 					Metadata: &k.Metadata{},
@@ -83,8 +75,7 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"default timeout negative",
-			[]string{CndSetAPITimeout},
-			[]string{ActCheckNoError},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.TimeoutMiddleware{
 					Metadata: &k.Metadata{},
@@ -104,8 +95,7 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"all options",
-			[]string{CndSetAPITimeout},
-			[]string{ActCheckNoError},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.TimeoutMiddleware{
 					Metadata: &k.Metadata{},
@@ -141,8 +131,7 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"api timeout negative",
-			[]string{CndSetAPITimeout},
-			[]string{ActCheckNoError},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.TimeoutMiddleware{
 					Metadata: &k.Metadata{},
@@ -171,28 +160,8 @@ func TestCreate(t *testing.T) {
 			},
 		),
 		gen(
-			"fail to get errorhandler",
-			[]string{CndErrorErrorHandlerSet},
-			[]string{ActCheckErrorMsg},
-			&condition{
-				manifest: &v1.TimeoutMiddleware{
-					Metadata: &k.Metadata{},
-					Spec: &v1.TimeoutMiddlewareSpec{
-						ErrorHandler: &k.Reference{
-							APIVersion: "wrong",
-						},
-					},
-				},
-			},
-			&action{
-				err:        core.ErrCoreGenCreateObject,
-				errPattern: regexp.MustCompile(core.ErrPrefix + `failed to create TimeoutMiddleware`),
-			},
-		),
-		gen(
 			"default timeout negative",
-			[]string{CndSetAPITimeout},
-			[]string{ActCheckNoError},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.TimeoutMiddleware{
 					Metadata: &k.Metadata{},
@@ -228,8 +197,7 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"input options to pattern error",
-			[]string{CndErrorPattern},
-			[]string{ActCheckErrorMsg},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.TimeoutMiddleware{
 					Metadata: &k.Metadata{},

@@ -155,10 +155,6 @@ func TestCreate(t *testing.T) {
 
 	tb := testutil.NewTableBuilder[*condition, *action]()
 	tb.Name(t.Name())
-	cndDefaultManifest := tb.Condition("default manifest", "input default manifest")
-	cndInvalidReference := tb.Condition("invalid reference", "input an invalid reference")
-	actCheckNoError := tb.Action("no error", "check that there is no error")
-	actCheckError := tb.Action("error", "check that there is an error")
 	table := tb.Build()
 
 	server := api.NewContainerAPI()
@@ -168,8 +164,7 @@ func TestCreate(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"create with default manifest",
-			[]string{cndDefaultManifest},
-			[]string{actCheckNoError},
+			[]string{}, []string{},
 			&condition{
 				manifest: Resource.Default(),
 			},
@@ -186,8 +181,7 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create with round tripper",
-			[]string{},
-			[]string{actCheckNoError},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.ReverseProxyHandler{
 					Metadata: &k.Metadata{},
@@ -208,29 +202,8 @@ func TestCreate(t *testing.T) {
 			},
 		),
 		gen(
-			"fail to get errorhandler",
-			[]string{cndInvalidReference},
-			[]string{actCheckError},
-			&condition{
-				manifest: &v1.ReverseProxyHandler{
-					Metadata: &k.Metadata{},
-					Spec: &v1.ReverseProxyHandlerSpec{
-						ErrorHandler: &k.Reference{
-							APIVersion: "wrong",
-						},
-					},
-				},
-			},
-			&action{
-				rp:         nil,
-				err:        core.ErrCoreGenCreateObject,
-				errPattern: regexp.MustCompile(core.ErrPrefix + `failed to create ReverseProxyHandler`),
-			},
-		),
-		gen(
 			"fail to get round tripper",
-			[]string{cndInvalidReference},
-			[]string{actCheckError},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.ReverseProxyHandler{
 					Metadata: &k.Metadata{},
@@ -249,8 +222,7 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"fail to refer tripperware",
-			[]string{cndInvalidReference},
-			[]string{actCheckError},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.ReverseProxyHandler{
 					Metadata: &k.Metadata{},
@@ -271,8 +243,7 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"fail to create load balancer",
-			[]string{},
-			[]string{actCheckError},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.ReverseProxyHandler{
 					Metadata: &k.Metadata{},
@@ -321,10 +292,8 @@ func TestNewLoadBalancers(t *testing.T) {
 	type condition struct {
 		specs []*v1.LoadBalancerSpec
 	}
-
 	type action struct {
 		lbs        []loadBalancer
-		upstreams  []upstream
 		err        any // error or errorutil.Kind
 		errPattern *regexp.Regexp
 	}

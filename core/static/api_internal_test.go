@@ -14,7 +14,6 @@ import (
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
-	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
@@ -34,7 +33,6 @@ func TestCreate(t *testing.T) {
 		server   api.API[*api.Request, *api.Response]
 		path     string
 	}
-
 	type action struct {
 		expect     any
 		err        any // error or errorutil.Kind
@@ -43,18 +41,13 @@ func TestCreate(t *testing.T) {
 
 	tb := testutil.NewTableBuilder[*condition, *action]()
 	tb.Name(t.Name())
-	cndDefaultManifest := tb.Condition("input default manifest", "input default manifest")
-	cndErrorReference := tb.Condition("input error reference", "input an error reference to an object")
-	actCheckError := tb.Action("check the returned error", "check that the returned error is the one expected")
-	actCheckNoError := tb.Action("check no error", "check that there is no error returned")
 	table := tb.Build()
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"create with default manifest",
-			[]string{cndDefaultManifest},
-			[]string{actCheckNoError},
+			[]string{}, []string{},
 			&condition{
 				manifest: Resource.Default(),
 				server:   api.NewContainerAPI(),
@@ -70,8 +63,7 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create with root dir",
-			[]string{},
-			[]string{actCheckNoError},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.StaticFileHandler{
 					Metadata: &k.Metadata{},
@@ -92,8 +84,7 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create with strip prefix",
-			[]string{},
-			[]string{actCheckNoError},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.StaticFileHandler{
 					Metadata: &k.Metadata{},
@@ -113,31 +104,8 @@ func TestCreate(t *testing.T) {
 				err: nil,
 			},
 		),
-		gen(
-			"fail to get error handler",
-			[]string{cndErrorReference},
-			[]string{actCheckError},
-			&condition{
-				manifest: &v1.StaticFileHandler{
-					Metadata: &k.Metadata{},
-					Spec: &v1.StaticFileHandlerSpec{
-						ErrorHandler: &k.Reference{
-							APIVersion: "wrong",
-						},
-					},
-				},
-				server: api.NewContainerAPI(),
-			},
-			&action{
-				expect:     nil,
-				err:        core.ErrCoreGenCreateObject,
-				errPattern: regexp.MustCompile(core.ErrPrefix + `failed to create StaticFileHandler`),
-			},
-		),
 	}
-
 	testutil.Register(table, testCases...)
-
 	for _, tt := range table.Entries() {
 		tt := tt
 		t.Run(tt.Name(), func(t *testing.T) {

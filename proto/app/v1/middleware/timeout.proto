@@ -36,22 +36,16 @@ message TimeoutMiddleware {
 // TimeoutMiddlewareSpec is the specifications for the TimeoutMiddleware object.
 message TimeoutMiddlewareSpec {
     // [OPTIONAL]
-    // ErrorHandler is the reference to a ErrorHandler object.
-    // Referred object must implement ErrorHandler interface.
-    // Default error handler is used when not set.
-    kernel.Reference ErrorHandler = 1 [json_name = "errorHandler"];
-
-    // [OPTIONAL]
     // DefaultTimeout is the timeout duration in millisecond which is applied to requests
     // which are not matched to a matcher.
     // Timer starts just after requests are received and lasts until the clients receive the response completely.
     // No timeout is applied when this value is set to 0.
     // Default value is set to 0.
-    int32 DefaultTimeout = 2 [json_name = "defaultTimeout", (buf.validate.field).int32 = {gte : 0}];
+    int32 DefaultTimeout = 1 [json_name = "defaultTimeout", (buf.validate.field).int32 = {gte : 0}];
 
     // [OPTIONAL]
     // APITimeouts is the list of APITimeout objects.
-    repeated APITimeoutSpec APITimeouts = 3 [json_name = "apiTimeouts"];
+    repeated APITimeoutSpec APITimeouts = 2 [json_name = "apiTimeouts"];
 }
 
 // APITimeoutSpec creates a timeout which is applied to requests

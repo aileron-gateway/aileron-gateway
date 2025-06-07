@@ -78,11 +78,7 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.Prot
 	c := msg.(*v1.HTTPServer)
 
 	lg := log.DefaultOr(c.Metadata.Logger)
-
-	eh, err := utilhttp.ErrorHandler(a, c.Spec.ErrorHandler)
-	if err != nil {
-		return nil, core.ErrCoreGenCreateObject.WithStack(err, map[string]any{"kind": kind})
-	}
+	eh := utilhttp.GlobalErrorHandler(cmp.Or(c.Metadata.ErrorHandler, utilhttp.DefaultErrorHandlerName))
 
 	mux := &http.ServeMux{}
 	registerProfile(mux, c.Spec.EnableProfile)

@@ -17,12 +17,6 @@ message BodyLimitMiddleware {
 // BodyLimitMiddlewareSpec is the specifications for the BodyLimitMiddleware object.
 message BodyLimitMiddlewareSpec {
     // [OPTIONAL]
-    // ErrorHandler is the reference to a ErrorHandler object.
-    // Referred object must implement ErrorHandler interface.
-    // Default error handler is used when not set.
-    kernel.Reference ErrorHandler = 1 [json_name = "errorHandler"];
-
-    // [OPTIONAL]
     // MaxSize is the maximum body size to allow.
     // Both Content-Length header values and actual body size
     // calculated by loading the bodies are used to
@@ -40,7 +34,7 @@ message BodyLimitMiddlewareSpec {
     // If negative, actual body sized are not checked for all requests
     // which means the same as disabling this middleware.
     // Default is [4194304], or 4 MiB.
-    int64 MaxSize = 2 [json_name = "maxSize"];
+    int64 MaxSize = 1 [json_name = "maxSize"];
 
     // [OPTIONAL]
     // MemLimit is the memory limit to oad request bodies to
@@ -53,7 +47,7 @@ message BodyLimitMiddlewareSpec {
     // To disable loading on memory and always use temporary file,
     // set MemLimit to negative value.
     // Default is the value of MaxSize.
-    int64 MemLimit = 3 [json_name = "memLimit"];
+    int64 MemLimit = 2 [json_name = "memLimit"];
 
     // [OPTIONAL]
     // TempPath is the temporary file path used for checking
@@ -63,5 +57,5 @@ message BodyLimitMiddlewareSpec {
     // Temp files are removed after finished proceeding requests.
     // Make sure there is enough space in the TempPath to save request bodies.
     // Default is the system's temp path.
-    string TempPath = 4 [json_name = "tempPath"];
+    string TempPath = 3 [json_name = "tempPath"];
 }

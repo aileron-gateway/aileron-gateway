@@ -20,36 +20,30 @@ message CSRFMiddleware {
 // CSRFMiddlewareSpec is the specifications for the CSRFMiddleware object.
 message CSRFMiddlewareSpec {
     // [OPTIONAL]
-    // ErrorHandler is the reference to a ErrorHandler object.
-    // Referred object must implement ErrorHandler interface.
-    // Default error handler is used when not set.
-    kernel.Reference ErrorHandler = 1 [json_name = "errorHandler"];
-
-    // [OPTIONAL]
     // Pattern is the URL path pattern that csrf token issue handler accepts.
     // Token issue handler is the endpoint that issue csrf token to the client.
     // This endpoint must be protected with CORS policy.
     // Default is "/token".
-    repeated string Patterns = 2 [json_name = "patterns"];
+    repeated string Patterns = 1 [json_name = "patterns"];
 
     // [OPTIONAL]
     // Methods is the list of HTTP methods that CSRF token issue handler can receive.
     // Token issue handler is the endpoint that issue csrf token to the client.
     // This endpoint must be protected with CORS policy.
     // All methods are allowed when not set.
-    repeated core.v1.HTTPMethod Methods = 3 [json_name = "methods"];
+    repeated core.v1.HTTPMethod Methods = 2 [json_name = "methods"];
 
     // [OPTIONAL]
     // SkipMethods is the list of HTTP methods that skip token validation.
     // By default GET, HEAD, TRACE, OPTIONS are skipped because
     // they are the methods that should not modify the server side state.
     // Default is [GET, HEAD, TRACE, OPTIONS].
-    repeated core.v1.HTTPMethod SkipMethods = 4 [json_name = "skipMethods"];
+    repeated core.v1.HTTPMethod SkipMethods = 3 [json_name = "skipMethods"];
 
     // [OPTIONAL]
     // ProxyHeaderName is the header name to send a valid CSRF token to upstream.
     // This should be set when using DoubleSubmitCookies pattern or SynchronizerToken pattern.
-    string ProxyHeaderName = 5 [json_name = "proxyHeaderName"];
+    string ProxyHeaderName = 4 [json_name = "proxyHeaderName"];
 
     // [OPTIONAL]
     // IssueNew is the flag to always generate new csrf token
@@ -57,7 +51,7 @@ message CSRFMiddlewareSpec {
     // If false, the handler try to find existing csrf token
     // bounded to the request.
     // Default is [false].
-    bool IssueNew = 6 [json_name = "issueNew"];
+    bool IssueNew = 5 [json_name = "issueNew"];
 
     // [OPTIONAL]
     // Secret is the base64 encoded secret used for generating
@@ -66,21 +60,21 @@ message CSRFMiddlewareSpec {
     // Online generator such as https://generate.plus/en/base64 can be used.
     // DO NOT use the default value.
     // Default value is Base64(sha512(hostname)).
-    string Secret = 7 [json_name = "secret", (buf.validate.field).string.pattern = "[0-9a-zA-Z+/=]+"];
+    string Secret = 6 [json_name = "secret", (buf.validate.field).string.pattern = "[0-9a-zA-Z+/=]+"];
 
     // [OPTIONAL]
     // SeedSize is the random bytes length of CSRF token.
     // Larger number is safer but results in bigger size of token.
     // 15 bytes (120 bits) at minimum is recommended by OWASP.
     // Default is [20].
-    int32 SeedSize = 8 [json_name = "seedSize", (buf.validate.field).int32 = {gte : 5}];
+    int32 SeedSize = 7 [json_name = "seedSize", (buf.validate.field).int32 = {gte : 5}];
 
     // [OPTIONAL]
     // HashAlg is the type of hash algorithm used for generating csrf token.
     // The hash algorithm must be cryptographic one.
     // Do not use this field otherwise you understand what you are doing.
     // Default is [SHA256] which means to use HMAC-SHA256.
-    kernel.HashAlg HashAlg = 9 [json_name = "hashAlg"];
+    kernel.HashAlg HashAlg = 8 [json_name = "hashAlg"];
 
     oneof CSRFPatterns {
         option(buf.validate.oneof).required = true;

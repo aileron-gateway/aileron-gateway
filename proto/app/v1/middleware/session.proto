@@ -22,52 +22,40 @@ message SessionMiddleware {
 // Values are managed by the application and therefore should not be set by users.
 message SessionMiddlewareSpec {
     // [OPTIONAL]
-    // Logger is the reference to a Logger object.
-    // Referred object must implement Logger interface.
-    // Default Logger is used when not set.
-    kernel.Reference Logger = 1 [json_name = "logger"];
-
-    // [OPTIONAL]
-    // ErrorHandler is the reference to a ErrorHandler object.
-    // Referred object must implement ErrorHandler interface.
-    // Default error handler is used when not set.
-    kernel.Reference ErrorHandler = 2 [json_name = "errorHandler"];
-
-    // [OPTIONAL]
     // Storage is the reference to a key-value storage object to save session data.
     // Referred object must implement KeyValueStorage interface.
     // Cookies is used as the session storage when this field is not set.
-    kernel.Reference Storage = 3 [json_name = "storage"];
+    kernel.Reference Storage = 1 [json_name = "storage"];
 
     // [OPTIONAL]
     // Prefix is the prefix used when saving the session to the external storage.
     // That is the session is saved in the session store with the key of <prefix> + <session-id>.
     // This prefx is used only for external session storage specified by storage field and not used for cookie storage.
     // Default is not set.
-    string Prefix = 4 [json_name = "prefix", (buf.validate.field).string.pattern = "^[0-9a-zA-Z-_:]*$"];
+    string Prefix = 2 [json_name = "prefix", (buf.validate.field).string.pattern = "^[0-9a-zA-Z-_:]*$"];
 
     // [OPTIONAL]
     // CookieName is the name of the cookie used for save session ID or session data.
     // It is recommended to include "__Host-" or "__Secure-" prefix if possible.
     // Default values is "_SESSION".
     // See https://datatracker.ietf.org/doc/draft-ietf-httpbis-rfc6265bis/ and https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies.
-    string CookieName = 5 [json_name = "cookieName", (buf.validate.field).string.pattern = "^[0-9a-zA-Z-_]+$"];
+    string CookieName = 3 [json_name = "cookieName", (buf.validate.field).string.pattern = "^[0-9a-zA-Z-_]+$"];
 
     // [OPTIONAL]
     // Cookie is the settings of cookie to save session ID and session data.
     // Default values are used when not set.
-    core.v1.CookieSpec Cookie = 6 [json_name = "cookie"];
+    core.v1.CookieSpec Cookie = 4 [json_name = "cookie"];
 
     // [OPTIONAL]
     // SecureEncoderSpec is encoder setting to securely save session data.
-    SecureEncoderSpec SecureEncoder = 7 [json_name = "secureEncoder"];
+    SecureEncoderSpec SecureEncoder = 5 [json_name = "secureEncoder"];
 
     // [OPTIONAL]
     // Tracer is the reference to the tracer object.
     // The referred object must implement the tracer interface.
     // This tracer is used for tracing the saving of the session data to the session storage
     // except for cookie storage.
-    kernel.Reference Tracer = 8 [json_name = "tracer"];
+    kernel.Reference Tracer = 6 [json_name = "tracer"];
 }
 
 // SecureEncoderSpec is the specification of a secure encoder.

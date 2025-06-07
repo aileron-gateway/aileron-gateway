@@ -4,8 +4,6 @@
 package log
 
 import (
-	"context"
-	"io"
 	"log/slog"
 	"os"
 	"sync"
@@ -28,11 +26,6 @@ import (
 //	logger.SetGlobalLogger(logger.DefaultLoggerName, lg)
 const DefaultLoggerName = "__default__"
 
-// NoopLoggerName is the noop logger name.
-// Default noop logger is available by
-// GlobalLogger func.
-const NoopLoggerName = "__noop__"
-
 var (
 	// mu protects loggers.
 	mu = sync.RWMutex{}
@@ -51,7 +44,6 @@ var (
 			NoLocation: os.Getenv("GATEWAY_LOG_LOCATION") == "false",
 			NoDatetime: os.Getenv("GATEWAY_LOG_DATETIME") == "false",
 		},
-		NoopLoggerName: NoopLogger,
 	}
 )
 
@@ -117,33 +109,10 @@ func SetGlobalLogger(name string, logger Logger) {
 	mu.Lock()
 	defer mu.Unlock()
 	if logger == nil {
-		if name != DefaultLoggerName && name != NoopLoggerName {
+		if name != DefaultLoggerName {
 			delete(loggers, name)
 		}
 		return
 	}
 	loggers[name] = logger
 }
-
-// NoopLogger is a no-operation logger which do nothing.
-var NoopLogger Logger = &Noop{
-	Writer: io.Discard,
-}
-
-// Noop is the logger that do nothing.
-// This implements logger.Logger interface.
-type Noop struct {
-	io.Writer
-}
-
-func (l *Noop) Enabled(_ LogLevel) bool {
-	return false
-}
-
-func (l *Noop) Debug(_ context.Context, _ string, _ ...any) {}
-
-func (l *Noop) Info(_ context.Context, _ string, _ ...any) {}
-
-func (l *Noop) Warn(_ context.Context, _ string, _ ...any) {}
-
-func (l *Noop) Error(_ context.Context, _ string, _ ...any) {}

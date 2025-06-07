@@ -4,12 +4,12 @@
 package static
 
 import (
+	"cmp"
 	"net/http"
 	"path"
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
-	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -43,12 +43,6 @@ type API struct {
 
 func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.ProtoMessage) (any, error) {
 	c := msg.(*v1.StaticFileHandler)
-
-	eh, err := utilhttp.ErrorHandler(a, c.Spec.ErrorHandler)
-	if err != nil {
-		return nil, core.ErrCoreGenCreateObject.WithStack(err, map[string]any{"kind": kind})
-	}
-
 	var fs http.FileSystem = http.Dir(path.Clean(c.Spec.RootDir))
 	if !c.Spec.EnableListing {
 		fs = &fileOnlyDir{ // Protect from directory listing attack.
@@ -67,7 +61,7 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.Prot
 			AcceptMethods:  utilhttp.Methods(c.Spec.Methods),
 		},
 		Handler: h,
-		eh:      eh,
+		eh:      utilhttp.GlobalErrorHandler(cmp.Or(c.Metadata.ErrorHandler, utilhttp.DefaultErrorHandlerName)),
 		header:  c.Spec.Header,
 	}, nil
 }

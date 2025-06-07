@@ -4,6 +4,7 @@
 package throttle
 
 import (
+	"cmp"
 	"time"
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
@@ -102,16 +103,8 @@ func (*API) Mutate(msg protoreflect.ProtoMessage) protoreflect.ProtoMessage {
 
 func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.ProtoMessage) (any, error) {
 	c := msg.(*v1.ThrottleMiddleware)
-
-	// TODO: Output debug logs in the throttle middleware.
 	_ = log.DefaultOr(c.Metadata.Logger)
-
-	// Obtain an error handler.
-	// Default error handler is returned when not configured.
-	eh, err := utilhttp.ErrorHandler(a, c.Spec.ErrorHandler)
-	if err != nil {
-		return nil, core.ErrCoreGenCreateObject.WithStack(err, map[string]any{"kind": kind})
-	}
+	eh := utilhttp.GlobalErrorHandler(cmp.Or(c.Metadata.ErrorHandler, utilhttp.DefaultErrorHandlerName))
 
 	throttlers, err := apiThrottlers(c.Spec.APIThrottlers...)
 	if err != nil {

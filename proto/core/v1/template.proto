@@ -19,16 +19,10 @@ message TemplateHandler {
 // TemplateHandlerSpec is the specifications for the TemplateHandler object.
 message TemplateHandlerSpec {
     // [OPTIONAL]
-    // ErrorHandler is the reference to a ErrorHandler object.
-    // Referred object must implement ErrorHandler interface.
-    // Default error handler is used when not set.
-    kernel.Reference ErrorHandler = 1 [json_name = "errorHandler"];
-
-    // [OPTIONAL]
     // Patterns is path patterns that this handler
     // is registered to a server.
     // Default is not set.
-    repeated string Patterns = 2 [json_name = "patterns", (buf.validate.field).repeated.unique = true];
+    repeated string Patterns = 1 [json_name = "patterns", (buf.validate.field).repeated.unique = true];
 
     // [OPTIONA]
     // Methods is the list of HTTP method this handler can handle.
@@ -36,14 +30,14 @@ message TemplateHandlerSpec {
     // if this field can be used.
     // If not set, all methods are accepted.
     // Default is not set.
-    repeated HTTPMethod Methods = 3 [json_name = "methods", (buf.validate.field).repeated.unique = true];
+    repeated HTTPMethod Methods = 2 [json_name = "methods", (buf.validate.field).repeated.unique = true];
 
     // [REQUIRED]
     // MIMEContents is the list of content that will be returned by this handler.
     // When no appropriate content were found,
     // not acceptable error will be returned to clients.
     // Default is not set.
-    repeated MIMEContentSpec MIMEContents = 4 [json_name = "mimeContents"];
+    repeated MIMEContentSpec MIMEContents = 3 [json_name = "mimeContents"];
 }
 
 // MIMEContentSpec is the specification for the MIMEContent.

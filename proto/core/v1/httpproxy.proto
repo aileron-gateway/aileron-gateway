@@ -5,7 +5,6 @@ import "buf/validate/validate.proto";
 import "core/v1/http.proto";
 import "core/v1/resilience.proto";
 import "kernel/matcher.proto";
-import "kernel/network.proto";
 import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/core/v1";
@@ -22,15 +21,9 @@ message ReverseProxyHandler {
 // ReverseProxyHandlerSpec is the specifications for the ReverseProxyHandler object.
 message ReverseProxyHandlerSpec {
     // [OPTIONAL]
-    // ErrorHandler is the reference to a ErrorHandler object.
-    // Referred object must implement ErrorHandler interface.
-    // Default error handler is used when not set.
-    kernel.Reference ErrorHandler = 1 [json_name = "errorHandler"];
-
-    // [OPTIONAL]
     // Patterns is path patterns that this handler is registered to a server.
     // Default is not set.
-    repeated string Patterns = 2 [json_name = "patterns", (buf.validate.field).repeated.unique = true];
+    repeated string Patterns = 1 [json_name = "patterns", (buf.validate.field).repeated.unique = true];
 
     // [OPTIONA]
     // Methods is the list of HTTP method this handler can handle.
@@ -38,19 +31,19 @@ message ReverseProxyHandlerSpec {
     // if this field can be used.
     // If not set, all methods are accepted.
     // Default is not set.
-    repeated HTTPMethod Methods = 3 [json_name = "methods", (buf.validate.field).repeated.unique = true];
+    repeated HTTPMethod Methods = 2 [json_name = "methods", (buf.validate.field).repeated.unique = true];
 
     // [OPTIONAL]
     // Tripperwares is the list of references to Tripperwares  object.
     // Referred object must implement Tripperware interface.
     // Default is not set.
-    repeated kernel.Reference Tripperwares = 4 [json_name = "tripperwares"];
+    repeated kernel.Reference Tripperwares = 3 [json_name = "tripperwares"];
 
     // [OPTIONAL]
     // RoundTripper is the references to a roundTripper  object.
     // Referred object must implement RoundTripper interface.
     // Default roundTripper is used when not set.
-    kernel.Reference RoundTripper = 5 [json_name = "roundTripper"];
+    kernel.Reference RoundTripper = 4 [json_name = "roundTripper"];
 
     // [OPTIONAL]
     // LoadBalancers is the list of load balancers.
@@ -58,7 +51,7 @@ message ReverseProxyHandlerSpec {
     // Requests will be proxied to the first matched upstream
     // by matching with the load balancers defined order.
     // Default is not set.
-    repeated LoadBalancerSpec LoadBalancers = 6 [json_name = "loadBalancers"];
+    repeated LoadBalancerSpec LoadBalancers = 5 [json_name = "loadBalancers"];
 }
 
 // LoadBalancerSpec is the specification of LoadBalancer objects.

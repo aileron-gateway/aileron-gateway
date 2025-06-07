@@ -17,15 +17,9 @@ message CORSMiddleware {
 
 // CORSMiddlewareSpec is the specifications for the CORSMiddleware object.
 message CORSMiddlewareSpec {
-    // [OPTIONAL]
-    // ErrorHandler is the reference to a ErrorHandler object.
-    // Referred object must implement ErrorHandler interface.
-    // Default error handler is used when not set.
-    kernel.Reference ErrorHandler = 1 [json_name = "errorHandler"];
-
     // [REQUIRED]
     // CORSPolicy is the configuration of CORS policy object.
-    CORSPolicySpec CORSPolicy = 2 [json_name = "corsPolicy"];
+    CORSPolicySpec CORSPolicy = 1 [json_name = "corsPolicy"];
 }
 
 // CORSPolicySpec is the specifications for the CORSPolicy object.

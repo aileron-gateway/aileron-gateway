@@ -4,6 +4,7 @@
 package csrf
 
 import (
+	"cmp"
 	"crypto/sha512"
 	"encoding/base64"
 	"errors"
@@ -95,14 +96,8 @@ func (*API) Mutate(msg protoreflect.ProtoMessage) protoreflect.ProtoMessage {
 
 func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.ProtoMessage) (any, error) {
 	c := msg.(*v1.CSRFMiddleware)
-
-	// TODO: Output debug logs in the CSRF middleware.
 	_ = log.DefaultOr(c.Metadata.Logger)
-
-	eh, err := utilhttp.ErrorHandler(a, c.Spec.ErrorHandler)
-	if err != nil {
-		return nil, core.ErrCoreGenCreateObject.WithStack(err, map[string]any{"kind": kind})
-	}
+	eh := utilhttp.GlobalErrorHandler(cmp.Or(c.Metadata.ErrorHandler, utilhttp.DefaultErrorHandlerName))
 
 	s, err := base64.StdEncoding.DecodeString(c.Spec.Secret)
 	if err != nil {

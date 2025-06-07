@@ -124,8 +124,7 @@ func TestCreate(t *testing.T) {
 	table := tb.Build()
 
 	testServer := api.NewContainerAPI()
-	postTestResource(testServer, "noopLogger", log.NoopLogger)
-	postTestResource(testServer, "logger", struct{ log.Logger }{log.NoopLogger})
+	postTestResource(testServer, "logger", log.GlobalLogger(log.DefaultLoggerName))
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
@@ -211,7 +210,7 @@ func TestCreate(t *testing.T) {
 				manifest: &v1.HTTPLogger{
 					Metadata: &kernel.Metadata{},
 					Spec: &v1.HTTPLoggerSpec{
-						Logger:   testResourceRef("noopLogger"),
+						Logger:   testResourceRef("logger"),
 						Request:  &v1.LoggingSpec{},
 						Response: &v1.LoggingSpec{},
 					},
@@ -222,7 +221,7 @@ func TestCreate(t *testing.T) {
 				expect: &httpLogger{
 					zone: time.UTC,
 					req: &baseLogger{
-						lg:         log.NoopLogger,
+						lg:         log.GlobalLogger(log.DefaultLoggerName),
 						w:          os.Stderr,
 						queries:    []stringReplFunc{},
 						headers:    map[string][]stringReplFunc{},
@@ -230,7 +229,7 @@ func TestCreate(t *testing.T) {
 						bodies:     map[string][]bytesReplFunc{},
 					},
 					res: &baseLogger{
-						lg:         log.NoopLogger,
+						lg:         log.GlobalLogger(log.DefaultLoggerName),
 						w:          os.Stderr,
 						queries:    []stringReplFunc{},
 						headers:    map[string][]stringReplFunc{},

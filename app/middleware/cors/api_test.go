@@ -356,25 +356,6 @@ func TestCreate(t *testing.T) {
 				},
 			},
 		),
-		gen(
-			"fail to get errorhandler",
-			[]string{},
-			[]string{},
-			&condition{
-				manifest: &v1.CORSMiddleware{
-					Metadata: &k.Metadata{},
-					Spec: &v1.CORSMiddlewareSpec{
-						ErrorHandler: &k.Reference{
-							APIVersion: "wrong",
-						},
-					},
-				},
-			},
-			&action{
-				err:        core.ErrCoreGenCreateObject,
-				errPattern: regexp.MustCompile(core.ErrPrefix + `failed to create CORSMiddleware`),
-			},
-		),
 	}
 	testutil.Register(table, testCases...)
 

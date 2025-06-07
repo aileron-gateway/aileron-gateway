@@ -4,8 +4,6 @@
 package log
 
 import (
-	"context"
-	"io"
 	"log/slog"
 	"os"
 	"testing"
@@ -280,24 +278,12 @@ func TestGlobalLogger(t *testing.T) {
 	type condition struct {
 		name string
 	}
-
 	type action struct {
 		expect Logger
 	}
 
-	CndLoggerExist := "logger exists"
-	CndLoggerNotExist := "logger not exists"
-	CndDefaultName := "default name"
-	ActCheckNonNil := "check non-nil"
-	ActCheckNil := "check nil"
-
 	tb := testutil.NewTableBuilder[*condition, *action]()
 	tb.Name(t.Name())
-	tb.Condition(CndLoggerExist, "get logger which exists in the global logger holder")
-	tb.Condition(CndLoggerNotExist, "get logger which does not exist in the global logger holder")
-	tb.Condition(CndDefaultName, "set logger by default name")
-	tb.Action(ActCheckNonNil, "check that the returned value is non-nil")
-	tb.Action(ActCheckNil, "check that the returned value is nil")
 	table := tb.Build()
 
 	testLg := &testLogger{
@@ -309,8 +295,7 @@ func TestGlobalLogger(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"default name",
-			[]string{CndLoggerExist, CndDefaultName},
-			[]string{ActCheckNonNil},
+			[]string{}, []string{},
 			&condition{
 				name: DefaultLoggerName,
 			},
@@ -320,8 +305,7 @@ func TestGlobalLogger(t *testing.T) {
 		),
 		gen(
 			"not default name",
-			[]string{CndLoggerExist},
-			[]string{ActCheckNonNil},
+			[]string{}, []string{},
 			&condition{
 				name: "test_logger",
 			},
@@ -331,8 +315,7 @@ func TestGlobalLogger(t *testing.T) {
 		),
 		gen(
 			"not-nil logger",
-			[]string{CndLoggerNotExist},
-			[]string{ActCheckNil},
+			[]string{}, []string{},
 			&condition{
 				name: "not_exist_logger_name",
 			},
@@ -342,8 +325,7 @@ func TestGlobalLogger(t *testing.T) {
 		),
 		gen(
 			"not-nil logger by empty name",
-			[]string{CndLoggerNotExist},
-			[]string{ActCheckNil},
+			[]string{}, []string{},
 			&condition{
 				name: "",
 			},
@@ -373,150 +355,6 @@ func TestGlobalLogger(t *testing.T) {
 			} else {
 				testutil.Diff(t, tt.A().expect, lg, opts...)
 			}
-		})
-	}
-}
-
-func TestNoopLogger_Enabled(t *testing.T) {
-	type condition struct {
-		lg Logger
-		lv LogLevel
-	}
-
-	type action struct {
-	}
-
-	ActCheckFalse := "check false"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Action(ActCheckFalse, "check that the empty log creator was returned")
-	table := tb.Build()
-
-	gen := testutil.NewCase[*condition, *action]
-	testCases := []*testutil.Case[*condition, *action]{
-		gen(
-			"trace",
-			[]string{},
-			[]string{ActCheckFalse},
-			&condition{
-				lg: NoopLogger,
-				lv: LvTrace,
-			},
-			&action{},
-		),
-		gen(
-			"debug",
-			[]string{},
-			[]string{ActCheckFalse},
-			&condition{
-				lg: NoopLogger,
-				lv: LvDebug,
-			},
-			&action{},
-		),
-		gen(
-			"info",
-			[]string{},
-			[]string{ActCheckFalse},
-			&condition{
-				lg: NoopLogger,
-				lv: LvInfo,
-			},
-			&action{},
-		),
-		gen(
-			"warn",
-			[]string{},
-			[]string{ActCheckFalse},
-			&condition{
-				lg: NoopLogger,
-				lv: LvWarn,
-			},
-			&action{},
-		),
-		gen(
-			"error",
-			[]string{},
-			[]string{ActCheckFalse},
-			&condition{
-				lg: NoopLogger,
-				lv: LvError,
-			},
-			&action{},
-		),
-		gen(
-			"fatal",
-			[]string{},
-			[]string{ActCheckFalse},
-			&condition{
-				lg: NoopLogger,
-				lv: LvFatal,
-			},
-			&action{},
-		),
-	}
-
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
-		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			got := tt.C().lg.Enabled(tt.C().lv)
-			testutil.Diff(t, false, got)
-		})
-	}
-}
-
-func TestNoopLogger(t *testing.T) {
-	type condition struct {
-		lg Logger
-	}
-
-	type action struct {
-	}
-
-	ActCheckLogs := "check logs"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Action(ActCheckLogs, "check that the expected log was output")
-	table := tb.Build()
-
-	gen := testutil.NewCase[*condition, *action]
-	testCases := []*testutil.Case[*condition, *action]{
-		gen(
-			"debug",
-			[]string{},
-			[]string{ActCheckLogs},
-			&condition{
-				lg: NoopLogger,
-			},
-			&action{},
-		),
-	}
-
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
-		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			tmp := os.Stdout
-			defer func() {
-				os.Stdout = tmp
-			}()
-			r, w, _ := os.Pipe()
-			os.Stdout = w
-
-			tt.C().lg.Debug(context.Background(), "test", "foo", "bar")
-			tt.C().lg.Info(context.Background(), "test", "foo", "bar")
-			tt.C().lg.Warn(context.Background(), "test", "foo", "bar")
-			tt.C().lg.Error(context.Background(), "test", "foo", "bar")
-			w.Close() // Close before read contents.
-
-			b, err := io.ReadAll(r)
-			testutil.Diff(t, nil, err)
-			testutil.Diff(t, "", string(b))
 		})
 	}
 }

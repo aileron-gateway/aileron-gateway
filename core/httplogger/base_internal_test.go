@@ -238,7 +238,7 @@ func TestNewBaseLogger(t *testing.T) {
 				spec: &v1.LoggingSpec{
 					LogFormat: "%foo%",
 				},
-				lg: struct{ log.Logger }{&log.Noop{}},
+				lg: struct{ log.Logger }{},
 			},
 			&action{
 				bl: nil,

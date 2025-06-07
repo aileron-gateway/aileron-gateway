@@ -4,6 +4,7 @@
 package template
 
 import (
+	"cmp"
 	"net/http"
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
@@ -40,7 +41,6 @@ type API struct {
 
 func (*API) Mutate(msg protoreflect.ProtoMessage) protoreflect.ProtoMessage {
 	c := msg.(*v1.TemplateHandler)
-
 	for _, mc := range c.Spec.MIMEContents {
 		if mc.MIMEType == "" {
 			mc.MIMEType = "text/plain"
@@ -49,17 +49,11 @@ func (*API) Mutate(msg protoreflect.ProtoMessage) protoreflect.ProtoMessage {
 			mc.StatusCode = http.StatusOK
 		}
 	}
-
 	return c
 }
 
 func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.ProtoMessage) (any, error) {
 	c := msg.(*v1.TemplateHandler)
-
-	eh, err := utilhttp.ErrorHandler(a, c.Spec.ErrorHandler)
-	if err != nil {
-		return nil, core.ErrCoreGenCreateObject.WithStack(err, map[string]any{"kind": kind})
-	}
 
 	contents := make([]*utilhttp.MIMEContent, 0, len(c.Spec.MIMEContents))
 	for _, cs := range c.Spec.MIMEContents {
@@ -75,7 +69,7 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.Prot
 			AcceptPatterns: c.Spec.Patterns,
 			AcceptMethods:  utilhttp.Methods(c.Spec.Methods),
 		},
-		eh:       eh,
+		eh:       utilhttp.GlobalErrorHandler(cmp.Or(c.Metadata.ErrorHandler, utilhttp.DefaultErrorHandlerName)),
 		contents: contents,
 	}, nil
 }

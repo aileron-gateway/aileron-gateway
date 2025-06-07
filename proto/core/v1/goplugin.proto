@@ -16,20 +16,14 @@ message GoPlugin {
 
 // GoPluginSpec is the specifications of the GoPlugin object.
 message GoPluginSpec {
-    // [OPTIONAL]
-    // ErrorHandler is the reference to a ErrorHandler object.
-    // Referred object must implement ErrorHandler interface.
-    // Default error handler is used when not set.
-    kernel.Reference ErrorHandler = 1 [json_name = "errorHandler"];
-
     // [REQUIRED]
     // PluginPath is path to the shared object of the GoPlugin.
     // The path can be absolute or relative.
     // Default is not set.
-    string PluginPath = 2 [json_name = "pluginPath"];
+    string PluginPath = 1 [json_name = "pluginPath"];
 
     // [OPTIONAL]
     // SymbolName is synbol name to lookup.
     // Default is ["Plugin"].
-    string SymbolName = 3 [json_name = "symbolName"];
+    string SymbolName = 2 [json_name = "symbolName"];
 }

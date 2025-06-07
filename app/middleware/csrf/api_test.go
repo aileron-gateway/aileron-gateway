@@ -379,28 +379,6 @@ func TestCreate(t *testing.T) {
 			},
 		),
 		gen(
-			"fail to get errorhandler",
-			[]string{},
-			[]string{},
-			&condition{
-				manifest: &v1.CSRFMiddleware{
-					APIVersion: apiVersion,
-					Kind:       kind,
-					Metadata: &kernel.Metadata{
-						Namespace: "default",
-						Name:      "default",
-					},
-					Spec: &v1.CSRFMiddlewareSpec{
-						ErrorHandler: &kernel.Reference{APIVersion: "wrong"},
-					},
-				},
-			},
-			&action{
-				err:        core.ErrCoreGenCreateObject,
-				errPattern: regexp.MustCompile(core.ErrPrefix + `failed to create CSRFMiddleware`),
-			},
-		),
-		gen(
 			"invalid secret",
 			[]string{},
 			[]string{},

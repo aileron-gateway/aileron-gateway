@@ -21,16 +21,10 @@ message ThrottleMiddleware {
 // ThrottleMiddlewareSpec is the specifications for the ThrottleMiddleware object.
 message ThrottleMiddlewareSpec {
     // [OPTIONAL]
-    // ErrorHandler is the reference to a ErrorHandler object.
-    // Referred object must implement ErrorHandler interface.
-    // Default error handler is used when not set.
-    kernel.Reference ErrorHandler = 1 [json_name = "errorHandler"];
-
-    // [OPTIONAL]
     // APIThrottlers is the list of APIThrottler objects.
     // Throttler that matches all requests should be defined at the last of this list to
     // protect the application from DDoS attack.
-    repeated APIThrottlerSpec APIThrottlers = 2 [json_name = "apiThrottlers"];
+    repeated APIThrottlerSpec APIThrottlers = 1 [json_name = "apiThrottlers"];
 }
 
 // APIThrottlerSpec creates a timeout which is applied to requests

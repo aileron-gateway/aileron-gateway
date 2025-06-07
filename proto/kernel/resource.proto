@@ -48,7 +48,7 @@ message Metadata {
     // [OPTIONAL]
     // Logger is the logger name to use.
     // The format should be "<group>/<version>/<kind>/<namespace>/<name>"
-    // for example "core/v1/SLogger/myNamespace/myLogger".
+    // for example "core/v1/SLogger/myNamespace/myName".
     // The named logger must be registered to the entrypoint resource.
     // "__default__" is the special name to refer to the default logger.
     // The default logger, which is globally unique, is used
@@ -57,6 +57,17 @@ message Metadata {
     // Logger for access logs, authentication or authorization logs, etc
     // should be configured under spec.
     string Logger = 3 [json_name = "logger"];
+
+    // [OPTIONAL]
+    // ErrorHandler is the error handler name to use.
+    // The format should be "<group>/<version>/<kind>/<namespace>/<name>"
+    // for example "core/v1/ErrorHandler/myNamespace/myName".
+    // The named error handler must be registered to the entrypoint resource.
+    // "__default__" is the special name to refer to the default error handler.
+    // The default error handler, which is globally unique, is used
+    // if error handler was not found by the specified name.
+    // If not set, the globally unique default error handler is used.
+    string ErrorHandler = 4 [json_name = "errorHandler"];
 }
 
 // Reference is the reference to a resource.

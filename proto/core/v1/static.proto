@@ -19,43 +19,37 @@ message StaticFileHandler {
 // StaticFileHandlerSpec is the specifications for the StaticFileHandler object.
 message StaticFileHandlerSpec {
     // [OPTIONAL]
-    // ErrorHandler is the reference to a ErrorHandler object.
-    // Referred object must implement ErrorHandler interface.
-    // Default error handler is used when not set.
-    kernel.Reference ErrorHandler = 1 [json_name = "errorHandler"];
-
-    // [OPTIONAL]
     // Patterns is path patterns that this handler
     // is registered to a server.
     // Default is not set.
-    repeated string Patterns = 2 [json_name = "patterns", (buf.validate.field).repeated.unique = true];
+    repeated string Patterns = 1 [json_name = "patterns", (buf.validate.field).repeated.unique = true];
 
     // [OPTIONA]
     // Methods is the list of HTTP method this handler can handle.
     // Note that it depends on the multiplexer, or HTTP router,
     // that the server uses if this field is used or not.
     // Default is not set.
-    repeated HTTPMethod Methods = 3 [json_name = "methods", (buf.validate.field).repeated.unique = true];
+    repeated HTTPMethod Methods = 2 [json_name = "methods", (buf.validate.field).repeated.unique = true];
 
     // [OPTIONAL]
     // RootDir is the root directry path
     // that is serverd by this static file server.
     // If not set, the current working directory "./" will be used.
     // Default is not set.
-    string RootDir = 4 [json_name = "rootDir"];
+    string RootDir = 3 [json_name = "rootDir"];
 
     // [OPTIONAL]
     // StripPrefix is the prefix string to strip from the requested path.
     // For example, set "/foo/bar" to get "content.json" with the path "/foo/bar/content.json".
     // Default is not set.
-    string StripPrefix = 5 [json_name = "stripPrefix"];
+    string StripPrefix = 4 [json_name = "stripPrefix"];
 
     // [OPTIONAL]
     // EnableListing is flag to enable directory listing under RootDir.
     // Setting this true can make the gateway vulnerable to directory listing attack.
     // Do not set this unless you know what you are doing.
     // Default is [false].
-    bool EnableListing = 6 [json_name = "enableListing"];
+    bool EnableListing = 5 [json_name = "enableListing"];
 
     // [OPTIONAL]
     // Header is the key-value pairs of HTTP headers
@@ -64,5 +58,5 @@ message StaticFileHandlerSpec {
     // Content-Type header is recommended to be set when serving the same type contents
     // to avoid content detection in the gateway from the stand point view of performance.
     // Default is not set.
-    map<string, string> Header = 7 [json_name = "header"];
+    map<string, string> Header = 6 [json_name = "header"];
 }
