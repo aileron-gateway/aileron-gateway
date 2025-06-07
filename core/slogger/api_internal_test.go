@@ -19,11 +19,11 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/cron"
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
 	kio "github.com/aileron-gateway/aileron-gateway/kernel/io"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/aileron-projects/go/ztime/zcron"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -437,12 +437,8 @@ func TestNewFileWriter(t *testing.T) {
 				},
 			},
 			&action{
-				w: nil,
-				err: &er.Error{
-					Package:     cron.ErrPkg,
-					Type:        cron.ErrTypeParse,
-					Description: cron.ErrDscParse,
-				},
+				w:   nil,
+				err: &zcron.ParseError{What: "number of fields"},
 			},
 		),
 		gen(

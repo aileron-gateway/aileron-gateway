@@ -5,6 +5,7 @@ package slogger
 
 import (
 	"cmp"
+	"context"
 	"io"
 	"log/slog"
 	"os"
@@ -15,9 +16,9 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/cron"
 	kio "github.com/aileron-gateway/aileron-gateway/kernel/io"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
+	"github.com/aileron-projects/go/ztime/zcron"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
@@ -154,15 +155,16 @@ func newFileWriter(spec *v1.LogOutputSpec, loc *time.Location) (*kio.LogicalFile
 	if spec.Cron == "" {
 		return lf, nil
 	}
-
-	ct, err := cron.Parse(spec.Cron)
+	c := &zcron.Config{
+		Crontab: spec.Cron,
+		JobFunc: func(ctx context.Context) error { return lf.SwapFile() },
+	}
+	cron, err := zcron.NewCron(c)
 	if err != nil {
 		return nil, err
 	}
-	ct.WithLocation(loc)
-	job := ct.NewJob(func() { _ = lf.SwapFile() })
-	go job.Start()
-
+	cron.WithTimeFunc(func() time.Time { return time.Now().In(loc) })
+	go cron.Start()
 	return lf, nil
 }
 
