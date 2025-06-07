@@ -18,8 +18,8 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
-	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
+	"github.com/aileron-projects/go/ztext"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -375,7 +375,7 @@ func TestCreate(t *testing.T) {
 				cmp.Comparer(testutil.ComparePointer[io.Writer]),
 				cmp.Comparer(testutil.ComparePointer[*time.Location]),
 				cmp.AllowUnexported(baseLogger{}, httpLogger{}, journalLogger{}),
-				cmpopts.IgnoreUnexported(txtutil.FastTemplate{}),
+				cmpopts.IgnoreUnexported(ztext.Template{}),
 				cmpopts.SortSlices(func(a, b string) bool { return a < b }),
 			}
 

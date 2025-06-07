@@ -6,21 +6,9 @@ package errorutil
 import (
 	"bytes"
 	"runtime"
-	"sync"
-)
 
-// pool is the pool for *bytes.Buffer.
-// Use like below.
-//
-//	buf := pool.Get().(*bytes.Buffer)
-//	defer pool.Put(buf)
-//	buf.Reset()  // Make sure to reset before use.
-var pool = &sync.Pool{
-	New: func() any {
-		var buf bytes.Buffer
-		return &buf
-	},
-}
+	"github.com/aileron-projects/go/ztext"
+)
 
 // NewKind creates a new error kind.
 // If the error message template is invalid, it returns nil.
@@ -31,7 +19,7 @@ func NewKind(code, kind, tpl string) *Kind {
 	return &Kind{
 		code: code,
 		kind: kind,
-		tpl:  newTemplate(tpl),
+		tpl:  ztext.NewTemplate(tpl, "{{", "}}"),
 	}
 }
 
@@ -40,7 +28,7 @@ func NewKind(code, kind, tpl string) *Kind {
 type Kind struct {
 	code string
 	kind string
-	tpl  *template
+	tpl  *ztext.Template
 }
 
 // Code returns an error code of this kind.
@@ -88,18 +76,14 @@ func (k *Kind) WithStack(err error, args map[string]any) Attributes {
 // The second argument args is passed to the message template.
 // The internal err can be nil.
 func (k *Kind) newError(err error, args map[string]any, stack []byte) *ErrorAttrs {
-	buf := pool.Get().(*bytes.Buffer)
-	defer pool.Put(buf)
-	buf.Reset()
-
+	var buf bytes.Buffer
 	buf.Write([]byte(k.code + "." + k.kind + " "))
-	k.tpl.execute(buf, args)
+	k.tpl.ExecuteWriter(&buf, args)
 	if err != nil {
 		buf.Write([]byte(" ["))
 		buf.Write([]byte(err.Error()))
 		buf.Write([]byte("]"))
 	}
-
 	return &ErrorAttrs{
 		code:  k.code,
 		kind:  k.kind,
