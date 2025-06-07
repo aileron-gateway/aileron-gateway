@@ -31,8 +31,8 @@ spec:
     rotateSize: 10
     maxBackup: 3
     compressLevel: 0
-    logDir: ./_example/logging/logs
-    backupDir: ./_example/logging/logs
+    logDir: ./logs
+    backupDir: ./logs
     timeLayout: "2006-01-02_15-04-05"
     timeZone: "UTC"
     cron: "*/10 * * * * *"

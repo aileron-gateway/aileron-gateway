@@ -5,7 +5,6 @@ package oauth
 
 import (
 	"crypto/rand"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -67,13 +66,11 @@ func (h *resourceServerHandler) ServeAuthn(w http.ResponseWriter, r *http.Reques
 
 	// Check if the token is valid or not.
 	if err := oc.validOauthClaims(r.Context(), tokens); err != nil {
-		fmt.Println("invalid", tokens, err)
 		if e, ok := err.(interface{ Header() http.Header }); ok {
 			e.Header().Add("WWW-Authenticate", `Bearer error="invalid_token"`)
 		}
 		return nil, app.AuthFailed, true, err
 	}
-	fmt.Println("valid", tokens, err)
 
 	if h.fapiEnabled {
 		// Validate the client certificate required by FAPI Part2 - 6.2.1. Protected resources provisions.
