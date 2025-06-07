@@ -4,7 +4,6 @@
 package network
 
 import (
-	stdcmp "cmp"
 	"crypto/tls"
 	"errors"
 	"io"
@@ -23,8 +22,7 @@ import (
 )
 
 // testDir is the path to the test data.
-// This path can be changed by the environmental variable.
-var testDir = stdcmp.Or(os.Getenv("TEST_DIR"), "../../test/")
+var testDir = "../../test/"
 
 type removeSocketTest struct {
 	net.Listener   // For testing RemoveSocketListener

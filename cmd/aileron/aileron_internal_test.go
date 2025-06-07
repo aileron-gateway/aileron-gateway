@@ -4,7 +4,6 @@
 package main
 
 import (
-	stdcmp "cmp"
 	"context"
 	"errors"
 	"os"
@@ -17,8 +16,7 @@ import (
 )
 
 // testDir is the path to the test data.
-// This path can be changed by the environmental variable.
-var testDir = stdcmp.Or(os.Getenv("TEST_DIR"), "../../test/")
+var testDir = "../../test/"
 
 // testRunner is a runner that will be called in the main function.
 // This implements daemon.Runner and core.Runner interfaces.

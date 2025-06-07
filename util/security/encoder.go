@@ -8,10 +8,10 @@ import (
 	"compress/gzip"
 	"encoding/base64"
 	"errors"
+	"io"
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
 	"github.com/aileron-gateway/aileron-gateway/kernel/encrypt"
-	"github.com/aileron-gateway/aileron-gateway/kernel/io"
 	"github.com/aileron-gateway/aileron-gateway/kernel/mac"
 )
 
@@ -113,15 +113,11 @@ func (e *SecureEncoder) Decode(b []byte) ([]byte, error) {
 		if n < 0 {
 			return nil, errors.New("util/security: invalid hash")
 		}
-
 		text, digest := b[:n], b[n:]
-
 		d := e.hmac(text, e.key)
-
 		if !bytes.Equal(d, digest) {
 			return nil, errors.New("util/security: hashes are not matched")
 		}
-
 		data = text
 	}
 
@@ -130,14 +126,13 @@ func (e *SecureEncoder) Decode(b []byte) ([]byte, error) {
 		if err != nil {
 			return nil, errors.New("util/security: invalid data")
 		}
-
 		data = plaintext
 	}
 
 	if e.enableCompression {
 		r, _ := gzip.NewReader(bytes.NewReader(data))
 		var buf bytes.Buffer
-		_, err := io.CopyBuffer(&buf, r)
+		_, err := io.Copy(&buf, r)
 		if err != nil {
 			return nil, errors.New("util/security: failed to extract compressed data")
 		}

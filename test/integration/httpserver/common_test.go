@@ -7,7 +7,6 @@ package httpserver_test
 
 import (
 	"bytes"
-	"cmp"
 	"context"
 	"io"
 	"net/http"
@@ -24,8 +23,7 @@ import (
 )
 
 // testDataDir is the path to the test data.
-// This path can be changed by the environmental variable.
-var testDataDir = cmp.Or(os.Getenv("TEST_DIR"), "../../../test/") + "integration/httpserver/"
+var testDataDir = "../../../test/integration/httpserver/"
 
 func init() {
 	// TEST_DATA_DIR is used in config file.

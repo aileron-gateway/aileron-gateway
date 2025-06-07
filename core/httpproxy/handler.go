@@ -11,9 +11,9 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 
 	"github.com/aileron-gateway/aileron-gateway/core"
-	kio "github.com/aileron-gateway/aileron-gateway/kernel/io"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 	"github.com/quic-go/quic-go/http3"
@@ -139,7 +139,9 @@ func (p *reverseProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Copy response body to client.
 	// CopyBuffer blocks until copy finished.
-	if _, err = kio.CopyBuffer(withImmediateFlush(w, shouldFlushImmediately(outRes)), outRes.Body); err != nil {
+	buf := *pool.Get().(*[]byte)
+	defer pool.Put(&buf)
+	if _, err = io.CopyBuffer(withImmediateFlush(w, shouldFlushImmediately(outRes)), outRes.Body, buf); err != nil {
 		// We can't write anything to the response writer any more.
 		// So, we only output log of the returned error.
 		p.logIfError(r.Context(), outRes.Body.Close())
@@ -243,19 +245,32 @@ func handleUpgradeResponse(rw http.ResponseWriter, req *http.Request, res *http.
 		return utilhttp.NewHTTPError(err, -1) // LoggingOnly
 	}
 
-	errChan := make(chan error, 1)
-	bid := &kio.BidirectionalReadWriter{
-		Frontend: conn,
-		Backend:  backConn,
-	}
-
 	// Stat the bi-directional communication and wait until it finished.
-	go bid.CopyToBackend(errChan)
-	go bid.CopyFromBackend(errChan)
+	errChan := make(chan error)
+	go copyBuf(conn, backConn, errChan)
+	go copyBuf(backConn, conn, errChan)
 	if err = <-errChan; err != nil {
 		err = core.ErrCoreProxyBidirectionalCom.WithStack(err, nil)
 		return utilhttp.NewHTTPError(err, -1) // LoggingOnly
 	}
-
+	if err = <-errChan; err != nil {
+		err = core.ErrCoreProxyBidirectionalCom.WithStack(err, nil)
+		return utilhttp.NewHTTPError(err, -1) // LoggingOnly
+	}
 	return nil
+}
+
+// pool is the buffer pool.
+var pool = sync.Pool{
+	New: func() any {
+		buf := make([]byte, 1<<12) // 16kiB
+		return &buf
+	},
+}
+
+func copyBuf(dst io.Writer, src io.Reader, errChan chan<- error) {
+	buf := *pool.Get().(*[]byte)
+	defer pool.Put(&buf)
+	_, err := io.CopyBuffer(dst, src, buf)
+	errChan <- err
 }

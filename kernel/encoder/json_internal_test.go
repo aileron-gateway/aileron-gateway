@@ -4,8 +4,6 @@
 package encoder
 
 import (
-	stdcmp "cmp"
-	"os"
 	"testing"
 
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
@@ -14,8 +12,7 @@ import (
 )
 
 // testDir is the path to the test data.
-// This path can be changed by the environmental variable.
-var testDir = stdcmp.Or(os.Getenv("TEST_DIR"), "../../test/")
+var testDir = "../../test/"
 
 func TestMarshalJSON(t *testing.T) {
 	type condition struct {

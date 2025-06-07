@@ -4,13 +4,11 @@
 package httpclient
 
 import (
-	stdcmp "cmp"
 	"context"
 	"crypto/tls"
 	"net"
 	"net/http"
 	"net/url"
-	"os"
 	"regexp"
 	"testing"
 
@@ -28,8 +26,7 @@ import (
 )
 
 // testDir is the path to the test data.
-// This path can be changed by the environmental variable.
-var testDir = stdcmp.Or(os.Getenv("TEST_DIR"), "../../test/")
+var testDir = "../../test/"
 
 func TestCreate(t *testing.T) {
 	type condition struct {

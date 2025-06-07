@@ -4,7 +4,6 @@
 package network_test
 
 import (
-	stdcmp "cmp"
 	"crypto/tls"
 	"crypto/x509"
 	"os"
@@ -19,8 +18,7 @@ import (
 )
 
 // testDir is the path to the test data.
-// This path can be changed by the environmental variable.
-var testDir = stdcmp.Or(os.Getenv("TEST_DIR"), "../../test/")
+var testDir = "../../test/"
 
 func TestTLSConfig(t *testing.T) {
 	type condition struct {

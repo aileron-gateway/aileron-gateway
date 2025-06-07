@@ -4,14 +4,12 @@
 package httpserver
 
 import (
-	stdcmp "cmp"
 	"context"
 	"crypto/tls"
 	"errors"
 	"net"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"regexp"
 	"testing"
 	"time"
@@ -24,8 +22,7 @@ import (
 )
 
 // testDir is the path to the test data.
-// This path can be changed by the environmental variable.
-var testDir = stdcmp.Or(os.Getenv("TEST_DIR"), "../../test/")
+var testDir = "../../test/"
 
 type testServer struct {
 	serveTime    int

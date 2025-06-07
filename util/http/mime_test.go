@@ -4,9 +4,7 @@
 package http_test
 
 import (
-	stdcmp "cmp"
 	"net/http"
-	"os"
 	"testing"
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
@@ -18,8 +16,7 @@ import (
 )
 
 // testDir is the path to the test data.
-// This path can be changed by the environmental variable.
-var testDir = stdcmp.Or(os.Getenv("TEST_DIR"), "../../test/")
+var testDir = "../../test/"
 
 func TestNewTemplate(t *testing.T) {
 	type condition struct {

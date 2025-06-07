@@ -6,11 +6,9 @@
 package errorhandler_test
 
 import (
-	"cmp"
 	"errors"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"regexp"
 	"testing"
 
@@ -24,11 +22,9 @@ import (
 )
 
 // testDataDir is the path to the test data.
-// This path can be changed by the environmental variable.
-var testDataDir = cmp.Or(os.Getenv("TEST_DIR"), "../../../test/") + "integration/errorhandler/"
+var testDataDir = "../../../test/integration/errorhandler/"
 
 func testErrorHandler(t *testing.T, eh core.ErrorHandler) {
-
 	t.Helper()
 
 	r := httptest.NewRequest(http.MethodGet, "/test", nil)
@@ -44,7 +40,6 @@ func testErrorHandler(t *testing.T, eh core.ErrorHandler) {
 	w3 := httptest.NewRecorder()
 	eh.ServeHTTPError(w3, r, utilhttp.NewHTTPError(nil, http.StatusUnauthorized))
 	testutil.Diff(t, http.StatusUnauthorized, w3.Result().StatusCode)
-
 }
 
 func TestMinimalWithoutMetadata(t *testing.T) {

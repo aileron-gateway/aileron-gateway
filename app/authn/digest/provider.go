@@ -14,8 +14,8 @@ import (
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/kernel/encoder"
-	"github.com/aileron-gateway/aileron-gateway/kernel/io"
 	"github.com/aileron-gateway/aileron-gateway/kernel/kvs"
+	"github.com/aileron-projects/go/zos"
 )
 
 func newEnvProvider(spec *v1.DigestAuthnEnvProvider) (kvs.Commander[string, credential], error) {
@@ -96,7 +96,7 @@ func newFileProvider(spec *v1.DigestAuthnFileProvider) (kvs.Commander[string, cr
 		_, decodeFunc = encoder.EncoderDecoder(spec.Encoding)
 	}
 
-	bodies, err := io.ReadFiles(false, spec.Paths...)
+	bodies, err := zos.ReadFiles(false, spec.Paths...)
 	if err != nil {
 		return nil, err
 	}

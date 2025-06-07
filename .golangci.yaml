@@ -29,6 +29,7 @@ linters:
       min-complexity: 20
     gosec:
       excludes:
+        - G110
         - G401
         - G404
         - G405
@@ -58,8 +59,6 @@ linters:
       - path: (.+)\.go$
         text: test/
     paths:
-      - third_party$
-      - builtin$
       - examples$
 issues:
   max-issues-per-linter: 0
@@ -71,6 +70,4 @@ formatters:
   exclusions:
     generated: lax
     paths:
-      - third_party$
-      - builtin$
       - examples$

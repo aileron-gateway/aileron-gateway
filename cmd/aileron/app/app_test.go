@@ -4,7 +4,6 @@
 package app_test
 
 import (
-	stdcmp "cmp"
 	"context"
 	"errors"
 	"io"
@@ -22,8 +21,7 @@ import (
 )
 
 // testDir is the path to the test data.
-// This path can be changed by the environmental variable.
-var testDir = stdcmp.Or(os.Getenv("TEST_DIR"), "../../../test/")
+var testDir = "../../../test/"
 
 func TestLoadEnvFiles(t *testing.T) {
 	type condition struct {
@@ -610,6 +608,111 @@ func TestShowTemplate(t *testing.T) {
 			testutil.Diff(t, nil, err)
 			testutil.Diff(t, true, strings.Contains(string(out), tt.A().contains))
 			t.Log(string(out))
+		})
+	}
+}
+
+func TestSplitMultiDoc(t *testing.T) {
+	type condition struct {
+		docs []byte
+		sep  string
+	}
+	type action struct {
+		contents [][]byte
+	}
+
+	tb := testutil.NewTableBuilder[*condition, *action]()
+	tb.Name(t.Name())
+	table := tb.Build()
+
+	gen := testutil.NewCase[*condition, *action]
+	testCases := []*testutil.Case[*condition, *action]{
+		gen(
+			"read docs with 1 block",
+			[]string{}, []string{},
+			&condition{
+				docs: []byte("test"),
+				sep:  "",
+			},
+			&action{
+				contents: [][]byte{
+					[]byte("test"),
+				},
+			},
+		),
+		gen(
+			"read docs with 2 blocks",
+			[]string{}, []string{},
+			&condition{
+				docs: []byte("test1\n---\ntest2"),
+				sep:  "",
+			},
+			&action{
+				contents: [][]byte{
+					[]byte("test1"),
+					[]byte("test2"),
+				},
+			},
+		),
+		gen(
+			"read empty docs",
+			[]string{}, []string{},
+			&condition{
+				docs: []byte(""),
+				sep:  "",
+			},
+			&action{
+				contents: nil,
+			},
+		),
+		gen(
+			"read docs double separator",
+			[]string{}, []string{},
+			&condition{
+				docs: []byte("test1\n---\n---\ntest2"),
+				sep:  "",
+			},
+			&action{
+				contents: [][]byte{
+					[]byte("test1"),
+					[]byte("test2"),
+				},
+			},
+		),
+		gen(
+			"read docs with only separator",
+			[]string{}, []string{},
+			&condition{
+				docs: []byte("---\n"),
+				sep:  "",
+			},
+			&action{
+				contents: nil,
+			},
+		),
+		gen(
+			"read docs with non default separator",
+			[]string{}, []string{},
+			&condition{
+				docs: []byte("test1\n***\ntest2"),
+				sep:  "***\n",
+			},
+			&action{
+				contents: [][]byte{
+					[]byte("test1"),
+					[]byte("test2"),
+				},
+			},
+		),
+	}
+
+	testutil.Register(table, testCases...)
+
+	for _, tt := range table.Entries() {
+		tt := tt
+		t.Run(tt.Name(), func(t *testing.T) {
+			contents := app.SplitMultiDoc(tt.C().docs, tt.C().sep)
+			testutil.Diff(t, tt.A().contents, contents)
 		})
 	}
 }

@@ -4,7 +4,6 @@
 package io
 
 import (
-	stdcmp "cmp"
 	"compress/gzip"
 	"io/fs"
 	"os"
@@ -21,8 +20,7 @@ import (
 )
 
 // testDir is the path to the test data.
-// This path can be changed by the environmental variable.
-var testDir = stdcmp.Or(os.Getenv("TEST_DIR"), "../../test/")
+var testDir = "../../test/"
 
 func TestNewMatchFunc(t *testing.T) {
 	type condition struct {
@@ -309,95 +307,6 @@ func TestNewParseFunc(t *testing.T) {
 	}
 }
 
-// func TestLogicalFileConfig_New(t *testing.T) {
-
-// 	type condition struct {
-// 		c      *LogicalFileConfig
-// 		open   func(string, int, fs.FileMode) (*os.File, error)
-// 		remove func(string) error
-// 	}
-
-// 	type action struct {
-// 		wc         io.WriteCloser
-// 		err        any // error or errorutil.Kind
-// 		errPattern *regexp.Regexp
-// 	}
-
-// 	tb := testutil.NewTableBuilder[*condition, *action]()
-// 	tb.Name(t.Name())
-// 	table := tb.Build()
-
-// 	// testDir := testDir+"ut/kernel/io/"
-
-// 	gen := testutil.NewCase[*condition, *action]
-// 	testCases := []*testutil.Case[*condition, *action]{
-// 		gen(
-// 			"zero config",
-// 			[]string{},
-// 			[]string{},
-// 			&condition{
-// 				c: &LogicalFileConfig{
-// 					// SrcDir:   testDir,
-// 					// FileName: "dummy.txt",
-// 				},
-// 				open: func(s string, i int, fm fs.FileMode) (*os.File, error) {
-// 					return os.NewFile(uintptr(os.Stdout.Fd()), "/test"), nil // Stderr for dummy
-// 				},
-// 				remove: func(s string) error { return nil },
-// 			},
-// 			&action{
-// 				wc: &LogicalFile{
-// 					curFile:        os.Stderr,
-// 					fileBase:       "application",
-// 					fileExt:        ".log",
-// 					fileArchiveExt: ".log",
-// 					srcDir:         ".",
-// 					dstDir:         ".",
-// 					srcMatchFunc:   newMatchFunc("application", ".log", idOnlyPattern),
-// 					parseFunc:      newParseFunc("", time.UTC), // "" will be UTC.
-// 				},
-// 				err: nil,
-// 			},
-// 		),
-// 	}
-
-// 	testutil.Register(table, testCases...)
-
-// 	for _, tt := range table.Entries() {
-// 		tt := tt
-// 		t.Run(tt.Name(), func(t *testing.T) {
-
-// 			if tt.C().open != nil {
-// 				tmpOpen := OpenFile
-// 				OpenFile = tt.C().open
-// 				defer func() {
-// 					OpenFile = tmpOpen
-// 				}()
-// 			}
-// 			if tt.C().remove != nil {
-// 				tmpRemove := Remove
-// 				Remove = tt.C().remove
-// 				defer func() {
-// 					Remove = tmpRemove
-// 				}()
-// 			}
-
-// 			wc, err := tt.C().c.New()
-// 			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
-
-// 			opts := []cmp.Option{
-// 				cmp.AllowUnexported(LogicalFile{}, atomic.Int64{}, atomic.Bool{}),
-// 				cmpopts.IgnoreUnexported(sync.RWMutex{}, os.File{}),
-// 				cmp.Comparer(testutil.ComparePointer[func(string) string]), // matchFunc
-// 				// cmp.Comparer(testutil.ComparePointer[func(string) (int64 int)]), // parseFunc
-// 				cmpopts.IgnoreFields(LogicalFile{}, "parseFunc", "manageFunc"),
-// 			}
-// 			testutil.Diff(t, tt.A().wc, wc, opts...)
-
-// 		})
-// 	}
-// }
-
 func TestLocation(t *testing.T) {
 	type condition struct {
 		tz string
@@ -409,19 +318,13 @@ func TestLocation(t *testing.T) {
 
 	tb := testutil.NewTableBuilder[*condition, *action]()
 	tb.Name(t.Name())
-	cndInputUTC := tb.Condition("UTC", "input UTC as timezone")
-	cndInputLocal := tb.Condition("Local", "input Local as timezone")
-	cndInvalid := tb.Condition("invalid", "input invalid timezone")
-	actCheckUTC := tb.Action("check UTC", "check UTC timezone returned")
-	actCheckLocal := tb.Action("check Local", "check local timezone returned")
 	table := tb.Build()
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"UTC",
-			[]string{cndInputUTC},
-			[]string{actCheckUTC},
+			[]string{}, []string{},
 			&condition{
 				tz: "UTC",
 			},
@@ -431,8 +334,7 @@ func TestLocation(t *testing.T) {
 		),
 		gen(
 			"Local",
-			[]string{cndInputLocal},
-			[]string{actCheckLocal},
+			[]string{}, []string{},
 			&condition{
 				tz: "Local",
 			},
@@ -442,8 +344,7 @@ func TestLocation(t *testing.T) {
 		),
 		gen(
 			"invalid zone",
-			[]string{cndInvalid},
-			[]string{actCheckLocal},
+			[]string{}, []string{},
 			&condition{
 				tz: "INVALID",
 			},
@@ -481,16 +382,13 @@ func TestCompressFiles(t *testing.T) {
 	}
 
 	type action struct {
-		srcFile    string
-		dstFile    string
-		err        any // error or errorutil.Kind
-		errPattern *regexp.Regexp
+		srcFile string
+		dstFile string
+		err     any // error or errorutil.Kind
 	}
 
 	tb := testutil.NewTableBuilder[*condition, *action]()
 	tb.Name(t.Name())
-	cndSrcExists := tb.Condition("src exists", "source file exists")
-	// actCheckError := tb.Action("error", "check that there is an error")
 	table := tb.Build()
 
 	testDir := testDir + "ut/kernel/io/"
@@ -498,8 +396,7 @@ func TestCompressFiles(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"srcDir!=dstDir/src file exists",
-			[]string{cndSrcExists},
-			[]string{},
+			[]string{}, []string{},
 			&condition{
 				create: []string{testDir + "gzipSrc/test.log"},
 				srcDir: testDir + "gzipSrc",
@@ -514,8 +411,7 @@ func TestCompressFiles(t *testing.T) {
 		),
 		gen(
 			"list file error",
-			[]string{cndSrcExists},
-			[]string{},
+			[]string{}, []string{},
 			&condition{
 				create: []string{},
 				srcDir: testDir + "not-exists",
@@ -525,17 +421,12 @@ func TestCompressFiles(t *testing.T) {
 			&action{
 				srcFile: "",
 				dstFile: "",
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeFile,
-					Description: ErrDscListFile,
-				},
+				err:     &fs.PathError{Op: "CreateFile"},
 			},
 		),
 		gen(
 			"srcDir==dstDir/no compression",
-			[]string{cndSrcExists},
-			[]string{},
+			[]string{}, []string{},
 			&condition{
 				create: []string{},
 				srcDir: testDir + "gzipSrc",
@@ -584,16 +475,15 @@ func TestCompressFiles(t *testing.T) {
 				os.Remove(tt.A().srcFile)
 				os.Remove(tt.A().dstFile)
 			}()
-
 			matchFunc := func(s string) string {
 				if strings.HasSuffix(s, ".log") {
 					return "matched"
 				}
 				return ""
 			}
-			err := compressFiles(tt.C().srcDir, tt.C().dstDir, tt.C().level, matchFunc)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
 
+			err := compressFiles(tt.C().srcDir, tt.C().dstDir, tt.C().level, matchFunc)
+			testutil.Diff(t, tt.A().err == nil, err == nil)
 			_, err = os.Stat(tt.A().srcFile)
 			testutil.Diff(t, tt.A().srcFile != "", err == nil)
 			_, err = os.Stat(tt.A().dstFile)

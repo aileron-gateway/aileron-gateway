@@ -7,11 +7,9 @@ package httplogger_test
 
 import (
 	"bytes"
-	"cmp"
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"regexp"
 	"testing"
 
@@ -24,8 +22,7 @@ import (
 )
 
 // testDataDir is the path to the test data.
-// This path can be changed by the environmental variable.
-var testDataDir = cmp.Or(os.Getenv("TEST_DIR"), "../../../test/") + "integration/httplogger/"
+var testDataDir = "../../../test/integration/httplogger/"
 
 func testHTTPLoggerMiddleware(t *testing.T, lg core.Middleware) {
 

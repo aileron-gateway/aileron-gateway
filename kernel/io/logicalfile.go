@@ -8,6 +8,7 @@ import (
 	"compress/gzip"
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -22,6 +23,7 @@ import (
 	"unsafe"
 
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
+	"github.com/aileron-projects/go/zos"
 )
 
 var (
@@ -447,7 +449,7 @@ func (f *LogicalFile) issueArchiveFileName() string {
 
 	var values []int
 	srcMatchFunc := newMatchFunc(filename, f.fileExt, idOnlyPattern)
-	srcFilePaths, _ := ListFiles(false, f.srcDir)
+	srcFilePaths, _ := zos.ListFiles(false, f.srcDir)
 	for _, path := range srcFilePaths {
 		base := filepath.Base(path)
 		if s := srcMatchFunc(base); s != "" {
@@ -456,7 +458,7 @@ func (f *LogicalFile) issueArchiveFileName() string {
 		}
 	}
 	dstMatchFunc := newMatchFunc(filename, f.fileArchiveExt, idOnlyPattern)
-	dstFilePaths, _ := ListFiles(false, f.dstDir)
+	dstFilePaths, _ := zos.ListFiles(false, f.dstDir)
 	for _, path := range dstFilePaths {
 		base := filepath.Base(path)
 		if s := dstMatchFunc(base); s != "" {
@@ -512,7 +514,7 @@ type fileManager struct {
 // Calling this method may take time because
 // of the file operation such as compression.
 func (m *fileManager) manage() error {
-	filePaths, _ := ListFiles(false, m.targetDir)
+	filePaths, _ := zos.ListFiles(false, m.targetDir)
 	fs := []*fileInfo{}
 	now := time.Now().Unix()
 	for _, path := range filePaths {
@@ -577,7 +579,7 @@ func compressFiles(srcDir, dstDir string, level int, matchFunc func(string) stri
 	if srcDir == dstDir && level == gzip.NoCompression {
 		return nil
 	}
-	filePaths, err := ListFiles(false, srcDir)
+	filePaths, err := zos.ListFiles(false, srcDir)
 	if err != nil {
 		return err
 	}
@@ -589,8 +591,6 @@ func compressFiles(srcDir, dstDir string, level int, matchFunc func(string) stri
 			errs = append(errs, err)
 		}
 	}
-	// errors.Join ignores nil error.
-	// If no errors found, nil wil be returned.
 	return errors.Join(errs...)
 }
 
@@ -659,7 +659,7 @@ func gzipFile(srcDir, dstDir, filename string, level int) error {
 	gw, _ := gzip.NewWriterLevel(dst, level)
 	defer gw.Close() // gw must be closed before dst file closed.
 
-	if _, err := CopyBuffer(gw, src); err != nil {
+	if _, err := io.Copy(gw, src); err != nil {
 		gw.Close() // gw must be closed before dst file closed.
 		dst.Close()
 		logErr(Remove(dstFile)) // Remove unused destination file.
