@@ -113,15 +113,11 @@ func (e *SecureEncoder) Decode(b []byte) ([]byte, error) {
 		if n < 0 {
 			return nil, errors.New("util/security: invalid hash")
 		}
-
 		text, digest := b[:n], b[n:]
-
 		d := e.hmac(text, e.key)
-
 		if !bytes.Equal(d, digest) {
 			return nil, errors.New("util/security: hashes are not matched")
 		}
-
 		data = text
 	}
 
@@ -130,7 +126,6 @@ func (e *SecureEncoder) Decode(b []byte) ([]byte, error) {
 		if err != nil {
 			return nil, errors.New("util/security: invalid data")
 		}
-
 		data = plaintext
 	}
 

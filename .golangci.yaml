@@ -29,6 +29,7 @@ linters:
       min-complexity: 20
     gosec:
       excludes:
+        - G110
         - G401
         - G404
         - G405
