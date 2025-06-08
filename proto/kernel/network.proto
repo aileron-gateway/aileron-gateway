@@ -2,6 +2,7 @@ syntax = "proto3";
 package kernel;
 
 import "buf/validate/validate.proto";
+import "kernel/sockopts.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/kernel";
 
@@ -114,12 +115,6 @@ message HTTPTransportConfig {
     // The unit is milliseconds.
     // Default is [0] milliseconds.
     int64 ExpectContinueTimeout = 10 [json_name = "expectContinueTimeout"];
-
-    // [OPTIONAL]
-    // ProxyConnectHeader optionally specifies headers to send to proxies during
-    // CONNECT requests.
-    // Default is not set.
-    map<string, string> ProxyConnectHeaders = 11 [json_name = "proxyConnectHeaders"];
 
     // [OPTIONAL]
     // MaxResponseHeaderBytes specifies a limit on how many response bytes
@@ -295,29 +290,19 @@ message DialConfig {
     TLSConfig TLSConfig = 1 [json_name = "tlsConfig"];
 
     // [OPTIONAL]
-    // LocalNetwork is network type used for local network.
-    // Available values are "ip", "ip4", "ip6",
-    // "tcp", "tcp4" (IPv4-only), "tcp6" (IPv6-only),
-    // "udp", "udp4" (IPv4-only), "udp6" (IPv6-only),
-    // "unix", "unixpacket" and "unixgram".
-    // Check out the valid values at https://pkg.go.dev/net#Dial.
-    // Example addresses for unix type are "/var/run/gateway.sock" for
-    // pathname socket and "@gateway" for abstract socket.
-    // Unix socket can be used from curl as follows.
-    // (curl --unix-socket "/var/run/gateway.sock" http://foo.com/bar)
-    // (curl --abstract-unix-socket "gateway" http://foo.com/bar)
-    // Default is not set.
-    string LocalNetwork = 3 [json_name = "localNetwork"];
-
-    // [OPTIONAL]
-    // LocalAddress is the local address to listen to.
-    // Check out the valid values at https://pkg.go.dev/net#Dial.
-    // The value must be valid for the LocalNetwork type.
+    // LocalAddress is the local address to listen to in the format of "<Network>://<Address>".
+    // Check out the valid address format at https://pkg.go.dev/net#Dial.
     // If not set, local address is automatically selected from available ones.
     // If the port in the address parameter is empty or "0",
     // as in "127.0.0.1:" or "[::1]:0", a port number is automatically chosen.
+    // Available network types are "ip", "ip4", "ip6",
+    // "tcp", "tcp4" (IPv4-only), "tcp6" (IPv6-only),
+    // "udp", "udp4" (IPv4-only), "udp6" (IPv6-only),
+    // "unix", "unixpacket" and "unixgram".
+    // Example addresses for unix type are "/var/run/gateway.sock" for
+    // pathname socket and "@gateway" for abstract socket.
     // Default is not set.
-    string LocalAddress = 4 [json_name = "localAddress"];
+    string LocalAddress = 2 [json_name = "localAddress"];
 
     // [OPTIONAL]
     // ReplaceTargets is the dial target address to be replaced.
@@ -335,7 +320,7 @@ message DialConfig {
     // That means "example.com" not works. Set with a port number like "example.com:80".
     // If nothing set, requested network and address are used as-is.
     // Default is not set.
-    repeated string ReplaceTargets = 5 [json_name                                          = "replaceTargets",
+    repeated string ReplaceTargets = 3 [json_name                                          = "replaceTargets",
                                         (buf.validate.field).repeated.items.string.pattern = "^\\([\\w:\\-]+\\|.+\\)[ >]*\\([\\w:\\-]+\\|.+\\)$"];
 
     // [OPTIONAL]
@@ -344,18 +329,18 @@ message DialConfig {
     // There will be no timeout when not set or 0.
     // This field will be used as https://pkg.go.dev/net#Dialer.Timeout.
     // Default is [0] milliseconds.
-    int32 Timeout = 6 [json_name = "timeout"];
+    int32 Timeout = 4 [json_name = "timeout"];
 
     // [OPTIONAL]
     // FallbackDelay is the fallback delay duration in milliseconds.
     // This field will be used as https://pkg.go.dev/net#Dialer.FallbackDelay.
     // Default is [0] milliseconds.
-    int32 FallbackDelay = 7 [json_name = "fallbackDelay"];
+    int32 FallbackDelay = 5 [json_name = "fallbackDelay"];
 
     // [OPTIONAL]
     // SockOption is the socket options.
     // Default is not set.
-    SockOption SockOption = 8 [json_name = "sockOption"];
+    SockOption SockOption = 6 [json_name = "sockOption"];
 }
 
 // HTTP3TransportConfig is the specifications for the HTTP3 TransportConfig object.
@@ -403,13 +388,6 @@ message HTTP3TransportConfig {
     int64 MaxResponseHeaderBytes = 5 [json_name = "maxResponseHeaderBytes"];
 }
 
-// QuickVersion is the version of QUIC protocol.
-// See https://pkg.go.dev/github.com/quic-go/quic-go#pkg-constants
-enum QuickVersion {
-    Version1 = 0;  // Version1 is RFC 9000
-    Version2 = 1;  // Version2 is RFC 9369
-}
-
 // ListenConfig is the configurations for stream listner.
 message ListenConfig {
     // [OPTIONAL]
@@ -418,27 +396,20 @@ message ListenConfig {
     // Default is not set.
     TLSConfig TLSConfig = 1 [json_name = "tlsConfig"];
 
-    // [REQUIRED]
-    // Network is network type used for dialing.
-    // Available values are "tcp", "tcp4" (IPv4-only), "tcp6" (IPv6-only), and "unix".
-    // Check out the valid values at https://pkg.go.dev/net#Dial.
-    // Example addresses for unix type are "/var/run/gateway.sock" for
-    // pathname socket and "@gateway" for abstract socket.
-    // Unix socket can be used from curl as follows.
-    // (curl --unix-socket "/var/run/gateway.sock" http://foo.com/bar)
-    // (curl --abstract-unix-socket "gateway" http://foo.com/bar)
-    // Default is not set.
-    string Network = 3 [json_name = "network"];
-
     // [OPTIONAL]
     // Addr is the local address to listen to.
     // Check out the valid values at https://pkg.go.dev/net#Dial.
-    // The value must be valid for the specified network type.
     // For TCP networks, if the host in the address parameter is empty or
     // a literal unspecified IP address, all available unicast and anycast IP addresses
     // of the local system are used.
     // If the port in the address parameter is empty or "0",
     // as in "127.0.0.1:" or "[::1]:0", a port number is automatically chosen.
+    // Addr can have network type as prefix in the format of "<Network>://<Address>".
+    // Available network tyep prefixes are "tcp", "tcp4" (IPv4-only), "tcp6" (IPv6-only), and "unix".
+    // Example addresses for unix type are "/var/run/gateway.sock" for pathname socket and
+    // "@gateway" for abstract socket. Unix socket can be used from curl as follows.
+    // (curl --unix-socket "/var/run/gateway.sock" http://foo.com/bar)
+    // (curl --abstract-unix-socket "gateway" http://foo.com/bar)
     // Default is not set, or empty string [""].
     string Addr = 4 [json_name = "addr"];
 
@@ -450,24 +421,13 @@ message ListenConfig {
     int32 ConnectionLimit = 5 [json_name = "connectionLimit"];
 
     // [OPTIONAL]
-    // Networks is the network address list which can be used as whitelist or blacklist
-    // that the server can accept.
-    // This list is considered to be a whitelist by default.
-    // Set "blacklist" to true to use this list as a blacklist.
-    // For example, to restrict connection only to the private networks,
-    // set "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "127.0.0.1/32".
+    // Networks is the allowed network address list.
+    // If set, listed network or ip addresses are considered as whitelist.
+    // If not set, all networks are allowed.
+    // For example, "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "127.0.0.1/32".
     // IPv6 can also be set like "::1/128".
-    // In addition to the network addresses, port number can be set.
-    // TCP/UDP connections line in "127.0.0.1/32:8080" or "127.0.0.1/32:8080-80809"
     // Default is not set.
     repeated string Networks = 6 [json_name = "networks", (buf.validate.field).repeated.unique = true];
-
-    // [OPTIONAL]
-    // Blacklist is the flag to use the Networks as a blacklist.
-    // Networks field will be used as whitelist if
-    // this field is not set or false.
-    // Default is [false].
-    bool Blacklist = 7 [json_name = "blacklist"];
 
     // [OPTIONAL]
     // Timeout is the timeout duration as an client in millisecond.
@@ -532,338 +492,6 @@ message KeepAliveConfig {
     // If zero or not set, a default value of 9 is used.
     // Default is not set.
     int32 Count = 4 [json_name = "count"];
-}
-
-// SockOption is the options for networking sockets.
-message SockOption {
-    // [OPTIONAL]
-    // SOOption is the socket options.
-    // See https://man7.org/linux/man-pages/man7/socket.7.html
-    SockSOOption SOOption = 1 [json_name = "soOption"];
-
-    // [OPTIONAL]
-    // IPOption is the ip socket options.
-    // See https://man7.org/linux/man-pages/man7/ip.7.html
-    SockIPOption IPOption = 2 [json_name = "ipOption"];
-
-    // [OPTIONAL]
-    // IPV6Option is the ipv6 socket options.
-    // See https://man7.org/linux/man-pages/man7/ipv6.7.html
-    SockIPV6Option IPV6Option = 3 [json_name = "ipv6Option"];
-
-    // [OPTIONAL]
-    // TCPOption is the TCP socket options.
-    // See https://man7.org/linux/man-pages/man7/tcp.7.html
-    SockTCPOption TCPOption = 4 [json_name = "tcpOption"];
-
-    // [OPTIONAL]
-    // UDPOption is the UDP socket options.
-    // See https://man7.org/linux/man-pages/man7/udp.7.html
-    SockUDPOption UDPOption = 5 [json_name = "udpOption"];
-}
-
-// SockSOOption is socket options for SOL_SOCKET level.
-// See https://man7.org/linux/man-pages/man7/socket.7.html
-message SockSOOption {
-    // [OPTIONAL]
-    // BindToDevice is the value of SO_BINDTODEVICE.
-    // See socket(7) of linux manual page for the details.
-    // This option works only for unix.
-    // This field will be ignored if the value is not set or set to empty string.
-    // Default is not set.
-    string BindToDevice = 1 [json_name = "bindToDevice"];
-
-    // [OPTIONAL]
-    // Debug is the value of SO_DEBUG.
-    // See socket(7) of linux manual page for the details.
-    // This socket option is defined in POSIX.
-    // This field will be ignored if the value is not set or set to false.
-    // Default is not set.
-    bool Debug = 2 [json_name = "debug"];
-
-    // [OPTIONAL]
-    // IncomingCPU is the value of SO_INCOMING_CPU.
-    // See socket(7) of linux manual page for the details.
-    // This option works only for unix.
-    // This field will be ignored if the value is not set or set to false.
-    // Default is not set.
-    bool IncomingCPU = 3 [json_name = "incomingCPU"];
-
-    // [OPTIONAL]
-    // KeepAlive is the value of SO_KEEPALIVE.
-    // See socket(7) of linux manual page for the details.
-    // This field will be ignored if the value is not set or set to false.
-    // Default is not set.
-    bool KeepAlive = 4 [json_name = "keepAlive"];
-
-    // [OPTIONAL]
-    // Linger is the value of SO_LINGER.
-    // See socket(7) of linux manual page for the details.
-    // This field will be ignored if the value is zero or negative.
-    // Default is not set.
-    int32 Linger = 5 [json_name = "linger"];
-
-    // [OPTIONAL]
-    // Mark is the value of SO_MARK.
-    // See socket(7) of linux manual page for the details.
-    // This option works only for unix.
-    // This field will be ignored if the value is zero or negative.
-    // Default is not set.
-    int32 Mark = 6 [json_name = "mark"];
-
-    // [OPTIONAL]
-    // ReceiveBuffer is the value of SO_RCVBUF.
-    // See socket(7) of linux manual page for the details.
-    // This field will be ignored if the value is zero or negative.
-    // Default is not set.
-    int32 ReceiveBuffer = 7 [json_name = "receiveBuffer"];
-
-    // [OPTIONAL]
-    // ReceiveBufferForce is the value of SO_RCVBUFFORCE.
-    // See socket(7) of linux manual page for the details.
-    // This option works only for unix.
-    // This field will be ignored if the value is zero or negative.
-    // Default is not set.
-    int32 ReceiveBufferForce = 8 [json_name = "receiveBufferForce"];
-
-    // [OPTIONAL]
-    // ReceiveTimeout is the value of SO_RCVTIMEO.
-    // See socket(7) of linux manual page for the details.
-    // This option works only for unix.
-    // Operatin system's default will be used if the value is zero.
-    // Default is not set.
-    double ReceiveTimeout = 9 [json_name = "receiveTimeout"];
-
-    // [OPTIONAL]
-    // SendTimeout is the value of SO_SNDTIMEO.
-    // See socket(7) of linux manual page for the details.
-    // This option works only for unix.
-    // This field will be ignored if the value is zero or negative.
-    // Default is not set.
-    double SendTimeout = 10 [json_name = "sendTimeout"];
-
-    // [OPTIONAL]
-    // ReuseAddr is the value of SO_REUSEADDR.
-    // See socket(7) of linux manual page for the details.
-    // This field will be ignored if the value is not set or set to false.
-    // Default is not set.
-    bool ReuseAddr = 11 [json_name = "reuseAddr"];
-
-    // [OPTIONAL]
-    // ReusePort is the value of SO_REUSEPORT.
-    // See socket(7) of linux manual page for the details.
-    // This option works only for unix.
-    // This field will be ignored if the value is not set or set to false.
-    // Default is not set.
-    bool ReusePort = 12 [json_name = "reusePort"];
-
-    // [OPTIONAL]
-    // SendBuffer is the value of SO_SNDBUF.
-    // See socket(7) of linux manual page for the details.
-    // This field will be ignored if the value is zero or negative.
-    // Default is not set.
-    int32 SendBuffer = 13 [json_name = "sendBuffer"];
-
-    // [OPTIONAL]
-    // SendBufferForce is the value of SO_SNDBUFFORCE.
-    // See socket(7) of linux manual page for the details.
-    // This option works only for unix.
-    // This field will be ignored if the value is zero or negative.
-    // Default is not set.
-    int32 SendBufferForce = 14 [json_name = "sendBufferForce"];
-}
-
-// SockIPOption is socket options for IPPROTO_IP level.
-// See https://man7.org/linux/man-pages/man7/ip.7.html
-message SockIPOption {
-    // [OPTIONAL]
-    // BindAddressNoPort is the value of IP_BIND_ADDRESS_NO_PORT.
-    // See ip(7) of linux manual page for the details.
-    // This option works only for unix.
-    // This field will be ignored if the value is not set or set to false.
-    // Default is not set.
-    bool BindAddressNoPort = 1 [json_name = "bindAddressNoPort"];
-
-    // [OPTIONAL]
-    // FreeBind is the value of IP_FREEBIND.
-    // See ip(7) of linux manual page for the details.
-    // This option works only for unix.
-    // This field will be ignored if the value is not set or set to false.
-    // Default is not set.
-    bool FreeBind = 2 [json_name = "freeBind"];
-
-    // [OPTIONAL]
-    // LocalPortRangeUpper is the upper port of IP_LOCAL_PORT_RANGE.
-    // See ip(7) of linux manual page for the details.
-    // This option works only for unix.
-    // Operatin system's default will be used if the value is zero or negative.
-    // Default is not set.
-    int32 LocalPortRangeUpper = 3 [json_name = "localPortRangeUpper", (buf.validate.field).int32 = {lte : 65535}];
-
-    // [OPTIONAL]
-    // LocalPortRangeLower is the lower port of IP_LOCAL_PORT_RANGE.
-    // See ip(7) of linux manual page for the details.
-    // This option works only for unix.
-    // This field will be ignored if the value is zero or negative.
-    // Default is not set.
-    int32 LocalPortRangeLower = 4 [json_name = "localPortRangeLower", (buf.validate.field).int32 = {lte : 65535}];
-
-    // [OPTIONAL]
-    // Transparent is the value of IP_TRANSPARENT.
-    // See ip(7) of linux manual page for the details.
-    // This option works only for unix.
-    // This field will be ignored if the value is not set or set to false.
-    // Default is not set.
-    bool Transparent = 5 [json_name = "transparent"];
-
-    // [OPTIONAL]
-    // TTL is the value of IP_TTL.
-    // See ip(7) of linux manual page for the details.
-    // This field will be ignored if the value is zero or negative.
-    // Default is not set.
-    int32 TTL = 6 [json_name = "ttl"];
-}
-
-// SockIPV6Option is socket options for IPPROTO_IPV6 level.
-// See https://man7.org/linux/man-pages/man7/ipv6.7.html
-message SockIPV6Option {
-}
-
-// SockTCPOption is socket options for IPPROTO_TCP level.
-// See https://man7.org/linux/man-pages/man7/tcp.7.html
-message SockTCPOption {
-    // [OPTIONAL]
-    // CORK is the value of TCP_CORK.
-    // See tcp(7) of linux manual page for the details.
-    // This option works only for unix.
-    // This field will be ignored if the value is not set or set to false.
-    // Default is not set.
-    bool CORK = 1 [json_name = "cork"];
-
-    // [OPTIONAL]
-    // DeferAccept is the value of TCP_DEFER_ACCEPT.
-    // See tcp(7) of linux manual page for the details.
-    // This field will be ignored if the value is zero or negative.
-    // Default is not set.
-    int32 DeferAccept = 2 [json_name = "deferAccept"];
-
-    // [OPTIONAL]
-    // KeepCount is the value of TCP_KEEPCNT.
-    // See tcp(7) of linux manual page for the details.
-    // This option works only for unix.
-    // This field will be ignored if the value is zero or negative.
-    // Default is not set.
-    int32 KeepCount = 3 [json_name = "keepCount"];
-
-    // [OPTIONAL]
-    // KeepIdle is the value of TCP_KEEPIDLE.
-    // See tcp(7) of linux manual page for the details.
-    // This field will be ignored if the value is zero or negative.
-    // Default is not set.
-    int32 KeepIdle = 4 [json_name = "keepIdle"];
-
-    // [OPTIONAL]
-    // KeepInterval is the value of TCP_KEEPINTVL.
-    // See tcp(7) of linux manual page for the details.
-    // This option works only for unix.
-    // This field will be ignored if the value is zero or negative.
-    // Default is not set.
-    int32 KeepInterval = 5 [json_name = "keepInterval"];
-
-    // [OPTIONAL]
-    // Linger2 is the value of TCP_LINGER2.
-    // See tcp(7) of linux manual page for the details.
-    // This field will be ignored if the value is zero or negative.
-    // Default is not set.
-    int32 Linger2 = 6 [json_name = "linger2"];
-
-    // [OPTIONAL]
-    // MaxSegment is the value of TCP_MAXSEG.
-    // See tcp(7) of linux manual page for the details.
-    // This option works only for unix.
-    // This field will be ignored if the value is zero or negative.
-    // Default is not set.
-    int32 MaxSegment = 7 [json_name = "maxSegment"];
-
-    // [OPTIONAL]
-    // NoDelay is the value of TCP_NODELAY.
-    // See tcp(7) of linux manual page for the details.
-    // This field will be ignored if the value is not set or set to false.
-    // Default is not set.
-    bool NoDelay = 8 [json_name = "noDelay"];
-
-    // [OPTIONAL]
-    // QuickAck is the value of TCP_QUICKACK.
-    // See tcp(7) of linux manual page for the details.
-    // This field will be ignored if the value is not set or set to false.
-    // Default is not set.
-    bool QuickAck = 9 [json_name = "quickAck"];
-
-    // [OPTIONAL]
-    // SynCount is the value of TCP_SYNCNT.
-    // See tcp(7) of linux manual page for the details.
-    // This field will be ignored if the value is zero or negative.
-    // Default is not set.
-    int32 SynCount = 10 [json_name = "synCount"];
-
-    // [OPTIONAL]
-    // UserTimeout is the value of TCP_USER_TIMEOUT.
-    // See tcp(7) of linux manual page for the details.
-    // This option works only for unix.
-    // This field will be ignored if the value is zero or negative.
-    // Default is not set.
-    int32 UserTimeout = 11 [json_name = "userTimeout"];
-
-    // [OPTIONAL]
-    // WindowClamp is the value of TCP_FASTOPEN.
-    // See tcp(7) of linux manual page for the details.
-    // This option works only for unix.
-    // This field will be ignored if the value is zero or negative.
-    // Default is not set.
-    int32 WindowClamp = 12 [json_name = "windowClamp"];
-
-    // [OPTIONAL]
-    // FastOpen is the value of TCP_QUICKACK.
-    // See tcp(7) of linux manual page for the details.
-    // This option works only for unix.
-    // This field will be ignored if the value is not set or set to false.
-    // Default is not set.
-    bool FastOpen = 13 [json_name = "fastOpen"];
-
-    // [OPTIONAL]
-    // FastOpenConnect is the value of TCP_FASTOPEN_CONNECT.
-    // See tcp(7) of linux manual page for the details.
-    // This field will be ignored if the value is not set or set to false.
-    // Default is not set.
-    bool FastOpenConnect = 14 [json_name = "fastOpenConnect"];
-}
-
-// SockUDPOption is socket options for IPPROTO_UDP level.
-// See https://man7.org/linux/man-pages/man7/udp.7.html
-message SockUDPOption {
-    // [OPTIONAL]
-    // CORK is the value of UDP_CORK.
-    // See udp(7) of linux manual page for the details.
-    // This option works only for unix.
-    // This field will be ignored if the value is not set or set to false.
-    // Default is not set.
-    bool CORK = 1 [json_name = "cork"];
-
-    // [OPTIONAL]
-    // Sement is the upper port of UDP_SEGMENT.
-    // See udp(7) of linux manual page for the details.
-    // This option works only for unix.
-    // This field will be ignored if the value is zero or negative.
-    // Default is not set.
-    int32 Segment = 2 [json_name = "segment"];
-
-    // [OPTIONAL]
-    // GRO is the value of UDP_GRO.
-    // See udp(7) of linux manual page for the details.
-    // This option works only for unix.
-    // This field will be ignored if the value is not set or set to false.
-    // Default is not set.
-    bool GRO = 3 [json_name = "gro"];
 }
 
 // TLSConfig is the configuration for TLS.
@@ -1103,10 +731,17 @@ enum TLSCipher {
 // QuicConfig is related to "https://pkg.go.dev/github.com/quic-go/quic-go" package
 // beside QUICConfig is related to "https://pkg.go.dev/golang.org/x/net/quic".
 message QuicConfig {
+    // QuickVersion is the version of QUIC protocol.
+    // See https://pkg.go.dev/github.com/quic-go/quic-go#pkg-constants
+    enum Version {
+        Version1 = 0;  // Version1 is RFC 9000
+        Version2 = 1;  // Version2 is RFC 9369
+    }
+
     // [OPTIONAL]
     // The QUIC versions that can be negotiated.
     // If not set, it uses all versions available.
-    repeated QuickVersion Versions = 1 [json_name = "versions", (buf.validate.field).repeated.unique = true];
+    repeated Version Versions = 1 [json_name = "versions", (buf.validate.field).repeated.unique = true];
 
     // [OPTIONAL]
     // The QUIC versions that can be negotiated.

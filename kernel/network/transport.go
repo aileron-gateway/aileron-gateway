@@ -56,10 +56,6 @@ func HTTPTransport(spec *k.HTTPTransportConfig) (*http.Transport, error) {
 		}).Wrap(err)
 	}
 
-	h := make(http.Header, len(spec.ProxyConnectHeaders))
-	for k, v := range spec.ProxyConnectHeaders {
-		h.Set(k, v)
-	}
 	transport := &http.Transport{
 		Proxy:                  http.ProxyFromEnvironment,
 		TLSClientConfig:        tlsConfig,
@@ -72,7 +68,7 @@ func HTTPTransport(spec *k.HTTPTransportConfig) (*http.Transport, error) {
 		IdleConnTimeout:        time.Millisecond * time.Duration(spec.IdleConnTimeout),
 		ResponseHeaderTimeout:  time.Millisecond * time.Duration(spec.ResponseHeaderTimeout),
 		ExpectContinueTimeout:  time.Millisecond * time.Duration(spec.ExpectContinueTimeout),
-		ProxyConnectHeader:     h,
+		ProxyConnectHeader:     nil,
 		MaxResponseHeaderBytes: spec.MaxResponseHeaderBytes,
 		WriteBufferSize:        int(spec.WriteBufferSize),
 		ReadBufferSize:         int(spec.ReadBufferSize),
@@ -212,17 +208,15 @@ func QuicConfig(spec *k.QuicConfig) (*quic.Config, error) {
 	if spec == nil {
 		return nil, nil
 	}
-
 	vs := make([]quic.Version, len(spec.Versions))
 	for i, v := range spec.Versions {
 		switch v {
-		case k.QuickVersion_Version1:
+		case k.QuicConfig_Version1:
 			vs[i] = quic.Version1
-		case k.QuickVersion_Version2:
+		case k.QuicConfig_Version2:
 			vs[i] = quic.Version2
 		}
 	}
-
 	return &quic.Config{
 		Versions:                       vs,
 		HandshakeIdleTimeout:           time.Millisecond * time.Duration(spec.HandshakeIdleTimeout),

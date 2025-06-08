@@ -17,9 +17,9 @@ import (
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/aileron-projects/go/zsyscall"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"github.com/pion/dtls/v3"
 )
 
 // ServerCert is a self-signed server certification.
@@ -128,10 +128,8 @@ var rootCAs = func() *x509.CertPool {
 	return pool
 }
 
-// Check interfaces.
 var (
 	_ Dialer = struct{ *net.Dialer }{}
-	_ Dialer = &dtlsDialer{}
 )
 
 type recordTargetDialer struct {
@@ -717,8 +715,7 @@ func TestNewDialerFromSpec(t *testing.T) {
 			[]string{},
 			&condition{
 				spec: &k.DialConfig{
-					LocalNetwork: "tcp",
-					LocalAddress: "127.0.0.1:8080",
+					LocalAddress: "tcp://127.0.0.1:8080",
 				},
 			},
 			&action{
@@ -775,8 +772,7 @@ func TestNewDialerFromSpec(t *testing.T) {
 			[]string{},
 			&condition{
 				spec: &k.DialConfig{
-					LocalNetwork:   "tcp",
-					LocalAddress:   "127.0.0.1:8080",
+					LocalAddress:   "tcp://127.0.0.1:8080",
 					ReplaceTargets: []string{`(tcp|localhost:80) (unix|/var/run/test.sock)`},
 					Timeout:        1,
 					FallbackDelay:  2,
@@ -909,28 +905,12 @@ func TestNewDialer(t *testing.T) {
 			},
 		),
 		gen(
-			"zero dtls config",
-			[]string{},
-			[]string{},
-			&condition{
-				c: &DialConfig{
-					DTLSConfig: &dtls.Config{},
-				},
-			},
-			&action{
-				dialer: &dtlsDialer{
-					tlsConfig: &dtls.Config{},
-				},
-			},
-		),
-		gen(
 			"with local addr",
 			[]string{},
 			[]string{},
 			&condition{
 				c: &DialConfig{
-					LocalNetwork: "tcp",
-					LocalAddress: "127.0.0.2:8080",
+					LocalAddress: "tcp://127.0.0.2:8080",
 				},
 			},
 			&action{
@@ -946,8 +926,7 @@ func TestNewDialer(t *testing.T) {
 			&condition{
 				c: &DialConfig{
 					TLSConfig:    &tls.Config{},
-					LocalNetwork: "unix",
-					LocalAddress: "test.sock",
+					LocalAddress: "unix://test.sock",
 				},
 			},
 			&action{
@@ -960,32 +939,12 @@ func TestNewDialer(t *testing.T) {
 			},
 		),
 		gen(
-			"dtls with local addr",
-			[]string{},
-			[]string{},
-			&condition{
-				c: &DialConfig{
-					DTLSConfig:   &dtls.Config{},
-					LocalNetwork: "udp",
-					LocalAddress: "127.0.0.2:8080",
-				},
-			},
-			&action{
-				dialer: &dtlsDialer{
-					tlsConfig:    &dtls.Config{},
-					localNetwork: "udp",
-					localAddress: "127.0.0.2:8080",
-				},
-			},
-		),
-		gen(
 			"invalid network",
 			[]string{},
 			[]string{},
 			&condition{
 				c: &DialConfig{
-					LocalNetwork: "tcp",
-					LocalAddress: "127.0.0.2", // Port missing.
+					LocalAddress: "tcp://127.0.0.2", // Port missing.
 				},
 			},
 			&action{
@@ -1036,40 +995,22 @@ func TestNewDialer(t *testing.T) {
 			},
 		),
 		gen(
-			"dtls with side opts",
-			[]string{},
-			[]string{},
-			&condition{
-				c: &DialConfig{
-					DTLSConfig:    &dtls.Config{},
-					Timeout:       2 * time.Second,
-					FallbackDelay: 3 * time.Second,
-				},
-			},
-			&action{
-				dialer: &dtlsDialer{
-					tlsConfig: &dtls.Config{},
-					// No fallback delay.
-				},
-			},
-		),
-		gen(
 			"with socket opts",
 			[]string{},
 			[]string{},
 			&condition{
 				c: &DialConfig{
-					SockOption: &SockOption{
-						SO:   &SockSOOption{ReceiveBuffer: 5000},
-						IP:   &SockIPOption{TTL: 20},
-						IPV6: &SockIPV6Option{},
-						TCP:  &SockTCPOption{NoDelay: true},
+					SockOption: &zsyscall.SockOption{
+						SO:   &zsyscall.SockSOOption{ReceiveBuffer: 5000},
+						IP:   &zsyscall.SockIPOption{TTL: 20},
+						IPV6: &zsyscall.SockIPV6Option{},
+						TCP:  &zsyscall.SockTCPOption{NoDelay: true},
 					},
 				},
 			},
 			&action{
 				dialer: &net.Dialer{
-					Control: (&SockOption{SO: &SockSOOption{KeepAlive: true}}).ControlFunc(SockOptSO),
+					Control: (&zsyscall.SockOption{SO: &zsyscall.SockSOOption{KeepAlive: true}}).ControlFunc(zsyscall.SockOptSO),
 				},
 			},
 		),
@@ -1080,42 +1021,20 @@ func TestNewDialer(t *testing.T) {
 			&condition{
 				c: &DialConfig{
 					TLSConfig: &tls.Config{},
-					SockOption: &SockOption{
-						SO:   &SockSOOption{ReceiveBuffer: 5000},
-						IP:   &SockIPOption{TTL: 20},
-						IPV6: &SockIPV6Option{},
-						TCP:  &SockTCPOption{NoDelay: true},
+					SockOption: &zsyscall.SockOption{
+						SO:   &zsyscall.SockSOOption{ReceiveBuffer: 5000},
+						IP:   &zsyscall.SockIPOption{TTL: 20},
+						IPV6: &zsyscall.SockIPV6Option{},
+						TCP:  &zsyscall.SockTCPOption{NoDelay: true},
 					},
 				},
 			},
 			&action{
 				dialer: &tls.Dialer{
 					NetDialer: &net.Dialer{
-						Control: (&SockOption{SO: &SockSOOption{KeepAlive: true}}).ControlFunc(SockOptSO),
+						Control: (&zsyscall.SockOption{SO: &zsyscall.SockSOOption{KeepAlive: true}}).ControlFunc(zsyscall.SockOptSO),
 					},
 					Config: &tls.Config{},
-				},
-			},
-		),
-		gen(
-			"dtls with socket opts",
-			[]string{},
-			[]string{},
-			&condition{
-				c: &DialConfig{
-					DTLSConfig: &dtls.Config{},
-					SockOption: &SockOption{
-						SO:   &SockSOOption{ReceiveBuffer: 5000},
-						IP:   &SockIPOption{TTL: 20},
-						IPV6: &SockIPV6Option{},
-						TCP:  &SockTCPOption{NoDelay: true},
-					},
-				},
-			},
-			&action{
-				dialer: &dtlsDialer{
-					tlsConfig: &dtls.Config{},
-					control:   (&SockOption{SO: &SockSOOption{KeepAlive: true}}).ControlFunc(SockOptSO),
 				},
 			},
 		),
@@ -1126,15 +1045,14 @@ func TestNewDialer(t *testing.T) {
 			&condition{
 				c: &DialConfig{
 					TLSConfig:     &tls.Config{},
-					LocalNetwork:  "tcp",
-					LocalAddress:  "127.0.0.2:8080",
+					LocalAddress:  "tcp://127.0.0.2:8080",
 					Timeout:       1 * time.Second,
 					FallbackDelay: 2 * time.Second,
-					SockOption: &SockOption{
-						SO:   &SockSOOption{ReceiveBuffer: 5000},
-						IP:   &SockIPOption{TTL: 20},
-						IPV6: &SockIPV6Option{},
-						TCP:  &SockTCPOption{NoDelay: true},
+					SockOption: &zsyscall.SockOption{
+						SO:   &zsyscall.SockSOOption{ReceiveBuffer: 5000},
+						IP:   &zsyscall.SockIPOption{TTL: 20},
+						IPV6: &zsyscall.SockIPV6Option{},
+						TCP:  &zsyscall.SockTCPOption{NoDelay: true},
 					},
 				},
 			},
@@ -1144,7 +1062,7 @@ func TestNewDialer(t *testing.T) {
 						Timeout:       1 * time.Second,
 						LocalAddr:     &net.TCPAddr{IP: net.ParseIP("127.0.0.2"), Port: 8080},
 						FallbackDelay: 2 * time.Second,
-						Control:       (&SockOption{SO: &SockSOOption{KeepAlive: true}}).ControlFunc(SockOptSO),
+						Control:       (&zsyscall.SockOption{SO: &zsyscall.SockSOOption{KeepAlive: true}}).ControlFunc(zsyscall.SockOptSO),
 					},
 					Config: &tls.Config{},
 				},
@@ -1162,230 +1080,9 @@ func TestNewDialer(t *testing.T) {
 
 			opts := []cmp.Option{
 				cmpopts.IgnoreUnexported(net.Dialer{}, tls.Dialer{}, tls.Config{}),
-				cmpopts.IgnoreUnexported(dtlsDialer{}, dtls.Config{}),
 				cmp.Comparer(testutil.ComparePointer[func(string, string, syscall.RawConn) error]),
 			}
 			testutil.Diff(t, tt.A().dialer, d, opts...)
-		})
-	}
-}
-
-func TestDTLSDialer_Dial(t *testing.T) {
-	type condition struct {
-		dialer       *dtlsDialer
-		network      string
-		address      string
-		sysCertError bool
-	}
-
-	type action struct {
-		address string
-		err     error
-	}
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
-	// We want to know an available port for test.
-	checker, _ := net.ListenPacket("udp", "127.0.0.1:0")
-	checker.Close()
-	testAddr := checker.LocalAddr().(*net.UDPAddr)
-	testConfig := &dtls.Config{Certificates: []tls.Certificate{x509KeyPair}}
-	ln, _ := dtls.Listen("udp", checker.LocalAddr().(*net.UDPAddr), testConfig)
-	defer ln.Close()
-	go func() {
-		for {
-			conn, err := ln.Accept()
-			if err != nil {
-				return // Exit goroutine on exit of this test.
-			}
-			conn.Read(make([]byte, 100)) // Read once.
-		}
-	}()
-
-	gen := testutil.NewCase[*condition, *action]
-	testCases := []*testutil.Case[*condition, *action]{
-		gen(
-			"dial udp",
-			[]string{},
-			[]string{},
-			&condition{
-				dialer: &dtlsDialer{
-					tlsConfig: &dtls.Config{
-						RootCAs: rootCAs(),
-					},
-					localNetwork: "",
-					localAddress: "",
-				},
-				network: "udp",
-				address: testAddr.String(),
-			},
-			&action{
-				address: testAddr.String(),
-				err:     nil,
-			},
-		),
-		gen(
-			"invalid network",
-			[]string{},
-			[]string{},
-			&condition{
-				dialer:  &dtlsDialer{},
-				network: "invalid",
-				address: testAddr.String(),
-			},
-			&action{
-				address: "",
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeDialer,
-					Description: ErrDscDialer,
-				},
-			},
-		),
-		gen(
-			"invalid UDP address",
-			[]string{},
-			[]string{},
-			&condition{
-				dialer: &dtlsDialer{
-					tlsConfig: &dtls.Config{
-						RootCAs: rootCAs(),
-					},
-					localNetwork: "",
-					localAddress: "",
-				},
-				network: "udp",
-				address: "127.0.0.1",
-			},
-			&action{
-				address: "",
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeDialer,
-					Description: ErrDscDialer,
-				},
-			},
-		),
-		gen(
-			"nil TLS config",
-			[]string{},
-			[]string{},
-			&condition{
-				dialer: &dtlsDialer{
-					tlsConfig:    nil,
-					localNetwork: "",
-					localAddress: "",
-				},
-				network: "udp",
-				address: testAddr.String(),
-			},
-			&action{
-				address: "",
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeDialer,
-					Description: ErrDscDialer,
-				},
-			},
-		),
-		gen(
-			"invalid local address",
-			[]string{},
-			[]string{},
-			&condition{
-				dialer: &dtlsDialer{
-					tlsConfig: &dtls.Config{
-						RootCAs: rootCAs(),
-					},
-					localNetwork: "udp",
-					localAddress: "127.0.0.0.1",
-				},
-				network: "udp",
-				address: testAddr.String(),
-			},
-			&action{
-				address: "",
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeDialer,
-					Description: ErrDscDialer,
-				},
-			},
-		),
-		gen(
-			"valid socket option",
-			[]string{},
-			[]string{},
-			&condition{
-				dialer: &dtlsDialer{
-					tlsConfig: &dtls.Config{
-						RootCAs: rootCAs(),
-					},
-					control: (&SockOption{SO: &SockSOOption{SendBuffer: 1 << 10}}).ControlFunc(SockOptSO),
-				},
-				network: "udp",
-				address: testAddr.String(),
-			},
-			&action{
-				address: testAddr.String(),
-				err:     nil,
-			},
-		),
-		// This case succeed in macos
-		// gen(
-		// 	"invalid socket options",
-		// 	[]string{},
-		// 	[]string{},
-		// 	&condition{
-		// 		dialer: &dtlsDialer{
-		// 			tlsConfig: &dtls.Config{
-		// 				RootCAs: rootCAs(),
-		// 			},
-		// 			control: (&SockOption{
-		// 				SO:  &SockSOOption{KeepAlive: true},
-		// 				TCP: &SockTCPOption{NoDelay: true, FastOpenConnect: true},
-		// 			}).ControlFunc(SockOptSO | SockOptTCP),
-		// 		},
-		// 		network: "udp",
-		// 		address: testAddr.String(),
-		// 	},
-		// 	&action{
-		// 		address: "",
-		// 		err: &er.Error{
-		// 			Package:     ErrPkg,
-		// 			Type:        ErrTypeDialer,
-		// 			Description: ErrDscDialer,
-		// 		},
-		// 	},
-		// ),
-	}
-
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
-		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			if tt.C().sysCertError {
-				systemCertPool = func() (*x509.CertPool, error) {
-					return nil, errors.New("test error")
-				}
-				defer func() {
-					systemCertPool = x509.SystemCertPool
-				}()
-			}
-
-			conn, err := tt.C().dialer.Dial(tt.C().network, tt.C().address)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
-			if tt.A().address != "" {
-				n, err := conn.Write([]byte("ok"))
-				testutil.Diff(t, 2, n)
-				testutil.Diff(t, nil, err)
-				testutil.Diff(t, tt.A().address, conn.RemoteAddr().String())
-			} else {
-				testutil.Diff(t, nil, conn)
-			}
 		})
 	}
 }

@@ -74,7 +74,7 @@ func TestQuickConfig(t *testing.T) {
 			[]string{actCheckNoError},
 			&condition{
 				spec: &k.QuicConfig{
-					Versions:                       []k.QuickVersion{k.QuickVersion_Version1, k.QuickVersion_Version2},
+					Versions:                       []k.QuicConfig_Version{k.QuicConfig_Version1, k.QuicConfig_Version2},
 					HandshakeIdleTimeout:           10,
 					MaxIdleTimeout:                 11,
 					InitialStreamReceiveWindow:     12,
@@ -190,7 +190,6 @@ func TestHTTPTransport(t *testing.T) {
 			&action{
 				tp: &http.Transport{
 					Proxy:               http.ProxyFromEnvironment,
-					ProxyConnectHeader:  http.Header{},
 					MaxIdleConnsPerHost: 1024,
 					TLSNextProto:        make(map[string]func(authority string, c *tls.Conn) http.RoundTripper, 0),
 				},
@@ -212,7 +211,6 @@ func TestHTTPTransport(t *testing.T) {
 					IdleConnTimeout:        14,
 					ResponseHeaderTimeout:  15,
 					ExpectContinueTimeout:  16,
-					ProxyConnectHeaders:    map[string]string{"foo": "bar"},
 					MaxResponseHeaderBytes: 17,
 					WriteBufferSize:        18,
 					ReadBufferSize:         19,
@@ -231,7 +229,6 @@ func TestHTTPTransport(t *testing.T) {
 					IdleConnTimeout:        time.Millisecond * 14,
 					ResponseHeaderTimeout:  time.Millisecond * 15,
 					ExpectContinueTimeout:  time.Millisecond * 16,
-					ProxyConnectHeader:     http.Header{"Foo": []string{"bar"}},
 					MaxResponseHeaderBytes: 17,
 					WriteBufferSize:        18,
 					ReadBufferSize:         19,
@@ -259,8 +256,7 @@ func TestHTTPTransport(t *testing.T) {
 						Certificates:     []tls.Certificate{},
 						CurvePreferences: []tls.CurveID{},
 					},
-					ProxyConnectHeader: http.Header{},
-					TLSNextProto:       make(map[string]func(authority string, c *tls.Conn) http.RoundTripper, 0),
+					TLSNextProto: make(map[string]func(authority string, c *tls.Conn) http.RoundTripper, 0),
 				},
 				err: nil,
 			},
@@ -299,7 +295,6 @@ func TestHTTPTransport(t *testing.T) {
 				tp: &http.Transport{
 					Proxy:               http.ProxyFromEnvironment,
 					MaxIdleConnsPerHost: 1024,
-					ProxyConnectHeader:  http.Header{},
 					TLSNextProto:        make(map[string]func(authority string, c *tls.Conn) http.RoundTripper, 0),
 				},
 				err: nil,
@@ -319,7 +314,6 @@ func TestHTTPTransport(t *testing.T) {
 				tp: &http.Transport{
 					Proxy:               http.ProxyFromEnvironment,
 					MaxIdleConnsPerHost: 1024,
-					ProxyConnectHeader:  http.Header{},
 					ForceAttemptHTTP2:   true,
 				},
 				err: nil,
@@ -332,8 +326,7 @@ func TestHTTPTransport(t *testing.T) {
 			&condition{
 				spec: &k.HTTPTransportConfig{
 					DialConfig: &k.DialConfig{
-						LocalNetwork: "tcp",
-						LocalAddress: "INVALID_ADDRESS",
+						LocalAddress: "tcp://INVALID_ADDRESS",
 					},
 				},
 			},
@@ -358,15 +351,11 @@ func TestHTTPTransport(t *testing.T) {
 			if err != nil {
 				return
 			}
-
 			opts := []cmp.Option{
 				cmpopts.IgnoreUnexported(http.Transport{}, tls.Config{}),
 				cmpopts.IgnoreFields(http.Transport{}, "Proxy", "DialContext", "DialTLSContext"),
 			}
 			testutil.Diff(t, tt.A().tp, tp, opts...)
-
-			// Check that the dialer is applied.
-			// testutil.Diff(t, true, tp.DialContext != nil)
 		})
 	}
 }
@@ -541,8 +530,7 @@ func TestHTTP2Transport(t *testing.T) {
 			&condition{
 				spec: &k.HTTP2TransportConfig{
 					DialConfig: &k.DialConfig{
-						LocalNetwork: "tcp",
-						LocalAddress: "INVALID_ADDRESS",
+						LocalAddress: "tcp://INVALID_ADDRESS",
 					},
 				},
 			},
@@ -641,7 +629,7 @@ func TestHTTP3Transport(t *testing.T) {
 			&condition{
 				spec: &k.HTTP3TransportConfig{
 					QuicConfig: &k.QuicConfig{
-						Versions:                       []k.QuickVersion{k.QuickVersion_Version1, k.QuickVersion_Version2},
+						Versions:                       []k.QuicConfig_Version{k.QuicConfig_Version1, k.QuicConfig_Version2},
 						HandshakeIdleTimeout:           10,
 						MaxIdleTimeout:                 11,
 						InitialStreamReceiveWindow:     12,

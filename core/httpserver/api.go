@@ -138,7 +138,6 @@ func newHTTP2Server(addr string, h http.Handler, c *v1.HTTPConfig, c2 *v1.HTTP2C
 	}
 
 	c.ListenConfig = cmp.Or(c.ListenConfig, &kernel.ListenConfig{})
-	c.ListenConfig.Network = cmp.Or(c.ListenConfig.Network, "tcp")
 	c.ListenConfig.Addr = cmp.Or(c.ListenConfig.Addr, addr)
 	listener, err := network.NewListenerFromSpec(c.ListenConfig)
 	if err != nil {

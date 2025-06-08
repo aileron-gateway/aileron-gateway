@@ -41,22 +41,13 @@ func TestCreate(t *testing.T) {
 
 	tb := testutil.NewTableBuilder[*condition, *action]()
 	tb.Name(t.Name())
-	cndDefaultManifest := tb.Condition("default manifest", "input default manifest")
-	cndHTTP := tb.Condition("http config", "input and expect http transport")
-	cndHTTP2 := tb.Condition("http2 config", "input and expect http2 transport")
-	cndHTTP3 := tb.Condition("http3 config", "input and expect http3 transport")
-	cndValid := tb.Condition("valid config", "input valid config")
-	cndErrorReference := tb.Condition("input error reference", "input an error reference to an object")
-	actCheckError := tb.Action("check the returned error", "check that the returned error is the one expected")
-	actCheckNoError := tb.Action("check no error", "check that there is no error returned")
 	table := tb.Build()
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"create with default manifest",
-			[]string{cndDefaultManifest, cndValid},
-			[]string{actCheckNoError},
+			[]string{}, []string{},
 			&condition{
 				manifest: Resource.Default(),
 			},
@@ -67,8 +58,7 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create http",
-			[]string{cndHTTP, cndValid},
-			[]string{actCheckNoError},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.HTTPClient{
 					Metadata: &k.Metadata{},
@@ -82,7 +72,6 @@ func TestCreate(t *testing.T) {
 			&action{
 				expect: &http.Transport{
 					Proxy:               http.ProxyFromEnvironment,
-					ProxyConnectHeader:  http.Header{},
 					MaxIdleConnsPerHost: 1024,
 					TLSNextProto:        make(map[string]func(authority string, c *tls.Conn) http.RoundTripper),
 				},
@@ -91,8 +80,7 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create http2",
-			[]string{cndHTTP3, cndValid},
-			[]string{actCheckNoError},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.HTTPClient{
 					Metadata: &k.Metadata{},
@@ -110,8 +98,7 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create http3",
-			[]string{cndHTTP3, cndValid},
-			[]string{actCheckNoError},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.HTTPClient{
 					Metadata: &k.Metadata{},
@@ -129,8 +116,7 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create with retry",
-			[]string{cndHTTP, cndValid},
-			[]string{actCheckNoError},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.HTTPClient{
 					Metadata: &k.Metadata{},
@@ -149,8 +135,7 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"fail to get http transport config",
-			[]string{cndHTTP2},
-			[]string{actCheckError},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.HTTPClient{
 					Metadata: &k.Metadata{},
@@ -171,8 +156,7 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"fail to get http2 transport config",
-			[]string{cndHTTP2},
-			[]string{actCheckError},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.HTTPClient{
 					Metadata: &k.Metadata{},
@@ -193,8 +177,7 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"fail to get http3 transport config",
-			[]string{cndHTTP3},
-			[]string{actCheckError},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.HTTPClient{
 					Metadata: &k.Metadata{},
@@ -215,8 +198,7 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"fail to get tripperware",
-			[]string{cndErrorReference},
-			[]string{actCheckError},
+			[]string{}, []string{},
 			&condition{
 				manifest: &v1.HTTPClient{
 					Metadata: &k.Metadata{},

@@ -16,9 +16,9 @@ import (
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/aileron-projects/go/zsyscall"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"github.com/pion/dtls/v3"
 )
 
 // testDir is the path to the test data.
@@ -427,10 +427,10 @@ func TestNewPacketConn(t *testing.T) {
 				c: &PacketConnConfig{
 					Network: "ip:1",
 					Address: "127.0.0.0.1",
-					SockOption: &SockOption{
-						SO:   &SockSOOption{ReceiveBuffer: 5000},
-						IP:   &SockIPOption{TTL: 20},
-						IPV6: &SockIPV6Option{},
+					SockOption: &zsyscall.SockOption{
+						SO:   &zsyscall.SockSOOption{ReceiveBuffer: 5000},
+						IP:   &zsyscall.SockIPOption{TTL: 20},
+						IPV6: &zsyscall.SockIPV6Option{},
 					},
 				},
 			},
@@ -451,11 +451,11 @@ func TestNewPacketConn(t *testing.T) {
 				c: &PacketConnConfig{
 					Network: "udp",
 					Address: testUDPAddr,
-					SockOption: &SockOption{
-						SO:   &SockSOOption{ReceiveBuffer: 5000},
-						IP:   &SockIPOption{TTL: 20},
-						IPV6: &SockIPV6Option{},
-						UDP:  &SockUDPOption{GRO: true},
+					SockOption: &zsyscall.SockOption{
+						SO:   &zsyscall.SockSOOption{ReceiveBuffer: 5000},
+						IP:   &zsyscall.SockIPOption{TTL: 20},
+						IPV6: &zsyscall.SockIPV6Option{},
+						UDP:  &zsyscall.SockUDPOption{GRO: true},
 					},
 				},
 			},
@@ -472,11 +472,11 @@ func TestNewPacketConn(t *testing.T) {
 				c: &PacketConnConfig{
 					Network: "udp",
 					Address: "127.0.0.0.1",
-					SockOption: &SockOption{
-						SO:   &SockSOOption{ReceiveBuffer: 5000},
-						IP:   &SockIPOption{TTL: 20},
-						IPV6: &SockIPV6Option{},
-						UDP:  &SockUDPOption{GRO: true},
+					SockOption: &zsyscall.SockOption{
+						SO:   &zsyscall.SockSOOption{ReceiveBuffer: 5000},
+						IP:   &zsyscall.SockIPOption{TTL: 20},
+						IPV6: &zsyscall.SockIPV6Option{},
+						UDP:  &zsyscall.SockUDPOption{GRO: true},
 					},
 				},
 			},
@@ -497,7 +497,7 @@ func TestNewPacketConn(t *testing.T) {
 				c: &PacketConnConfig{
 					Network:    "unixgram",
 					Address:    ` !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_abcdefghijklmnopqrstuvwxyz{|}~`,
-					SockOption: &SockOption{},
+					SockOption: &zsyscall.SockOption{},
 				},
 			},
 			&action{
@@ -537,10 +537,10 @@ func TestNewPacketConn(t *testing.T) {
 		// 		c: &PacketConnConfig{
 		// 			Network: "udp",
 		// 			Address: testUDPAddr,
-		// 			SockOption: &SockOption{
-		// 				SO:  &SockSOOption{KeepAlive: true},
-		// 				IP:  &SockIPOption{LocalPortRangeLower: -100},
-		// 				UDP: &SockUDPOption{Segment: math.MaxInt},
+		// 			SockOption: &zsyscall.SockOption{
+		// 				SO:  &zsyscall.SockSOOption{KeepAlive: true},
+		// 				IP:  &zsyscall.SockIPOption{LocalPortRangeLower: -100},
+		// 				UDP: &zsyscall.SockUDPOption{Segment: math.MaxInt},
 		// 			},
 		// 		},
 		// 	},
@@ -606,14 +606,6 @@ func (l *testListener) Addr() net.Addr {
 	return l.addr
 }
 
-func mustNetContainers(addresses []string) []Container {
-	cs, err := netContainers(addresses)
-	if err != nil {
-		panic(err)
-	}
-	return cs
-}
-
 func TestNewListenerFromSpec(t *testing.T) {
 	type condition struct {
 		spec *k.ListenConfig
@@ -648,31 +640,14 @@ func TestNewListenerFromSpec(t *testing.T) {
 			},
 		),
 		gen(
-			"zero spec",
-			[]string{},
-			[]string{},
-			&condition{
-				spec: &k.ListenConfig{},
-			},
-			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeListener,
-					Description: ErrDscListener,
-				},
-			},
-		),
-		gen(
 			"valid tls config",
 			[]string{},
 			[]string{},
 			&condition{
 				spec: &k.ListenConfig{
-					Network:         "tcp",
-					Addr:            testAddr,
+					Addr:            "tcp://" + testAddr,
 					ConnectionLimit: 10,
 					Networks:        []string{"127.0.0.1/32"},
-					Blacklist:       true,
 					ReadDeadline:    10,
 					WriteDeadline:   20,
 				},
@@ -707,8 +682,7 @@ func TestNewListenerFromSpec(t *testing.T) {
 			[]string{},
 			&condition{
 				spec: &k.ListenConfig{
-					Network: "tcp",
-					Addr:    testAddr,
+					Addr: "tcp://" + testAddr,
 					KeepAliveConfig: &k.KeepAliveConfig{
 						Disable: true,
 					},
@@ -725,8 +699,7 @@ func TestNewListenerFromSpec(t *testing.T) {
 			[]string{},
 			&condition{
 				spec: &k.ListenConfig{
-					Network: "tcp",
-					Addr:    testAddr,
+					Addr: "tcp://" + testAddr,
 					KeepAliveConfig: &k.KeepAliveConfig{
 						Disable:  false,
 						Idle:     1,
@@ -808,13 +781,12 @@ func TestNewListener(t *testing.T) {
 			[]string{},
 			&condition{
 				c: &ListenConfig{
-					Network: "tcp",
-					Address: testAddr,
-					SockOption: &SockOption{
-						SO:   &SockSOOption{ReceiveBuffer: 5000},
-						IP:   &SockIPOption{TTL: 20},
-						IPV6: &SockIPV6Option{},
-						TCP:  &SockTCPOption{NoDelay: true},
+					Address: "tcp://" + testAddr,
+					SockOption: &zsyscall.SockOption{
+						SO:   &zsyscall.SockSOOption{ReceiveBuffer: 5000},
+						IP:   &zsyscall.SockIPOption{TTL: 20},
+						IPV6: &zsyscall.SockIPV6Option{},
+						TCP:  &zsyscall.SockTCPOption{NoDelay: true},
 					},
 				},
 			},
@@ -829,13 +801,12 @@ func TestNewListener(t *testing.T) {
 			[]string{},
 			&condition{
 				c: &ListenConfig{
-					Network: "tcp",
-					Address: testAddr,
-					SockOption: &SockOption{
-						SO:   &SockSOOption{ReceiveBuffer: 5000},
-						IP:   &SockIPOption{TTL: 20},
-						IPV6: &SockIPV6Option{},
-						TCP:  &SockTCPOption{NoDelay: true},
+					Address: "tcp://" + testAddr,
+					SockOption: &zsyscall.SockOption{
+						SO:   &zsyscall.SockSOOption{ReceiveBuffer: 5000},
+						IP:   &zsyscall.SockIPOption{TTL: 20},
+						IPV6: &zsyscall.SockIPV6Option{},
+						TCP:  &zsyscall.SockTCPOption{NoDelay: true},
 					},
 					TLSConfig: &tls.Config{
 						ServerName: "test",
@@ -853,9 +824,8 @@ func TestNewListener(t *testing.T) {
 			[]string{},
 			&condition{
 				c: &ListenConfig{
-					Network:    "tcp",
-					Address:    "127.0.0.0.0.1",
-					SockOption: &SockOption{},
+					Address:    "tcp://" + "127.0.0.0.0.1",
+					SockOption: &zsyscall.SockOption{},
 				},
 			},
 			&action{
@@ -873,62 +843,9 @@ func TestNewListener(t *testing.T) {
 			[]string{},
 			&condition{
 				c: &ListenConfig{
-					Network:    "tcp",
-					Address:    "127.0.0.0.0.1",
-					SockOption: &SockOption{},
+					Address:    "tcp://" + "127.0.0.0.0.1",
+					SockOption: &zsyscall.SockOption{},
 					TLSConfig: &tls.Config{
-						ServerName: "test",
-					},
-				},
-			},
-			&action{
-				address: "",
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeListener,
-					Description: ErrDscListener,
-				},
-			},
-		),
-		gen(
-			"valid udp with TLS",
-			[]string{},
-			[]string{},
-			&condition{
-				c: &ListenConfig{
-					Network: "udp",
-					Address: testAddr,
-					SockOption: &SockOption{
-						SO:   &SockSOOption{ReceiveBuffer: 5000},
-						IP:   &SockIPOption{TTL: 20},
-						IPV6: &SockIPV6Option{},
-						TCP:  &SockTCPOption{NoDelay: true},
-					},
-					DTLSConfig: &dtls.Config{
-						ServerName: "test",
-					},
-				},
-			},
-			&action{
-				address: testAddr,
-				err:     nil,
-			},
-		),
-		gen(
-			"invalid udp with TLS",
-			[]string{},
-			[]string{},
-			&condition{
-				c: &ListenConfig{
-					Network: "udp",
-					Address: "127.0.0.0.0.1",
-					SockOption: &SockOption{
-						SO:   &SockSOOption{ReceiveBuffer: 5000},
-						IP:   &SockIPOption{TTL: 20},
-						IPV6: &SockIPV6Option{},
-						TCP:  &SockTCPOption{NoDelay: true},
-					},
-					DTLSConfig: &dtls.Config{
 						ServerName: "test",
 					},
 				},
@@ -948,9 +865,8 @@ func TestNewListener(t *testing.T) {
 			[]string{},
 			&condition{
 				c: &ListenConfig{
-					Network:    "unix",
-					Address:    "@test",
-					SockOption: &SockOption{},
+					Address:    "unix://" + "@test",
+					SockOption: &zsyscall.SockOption{},
 				},
 			},
 			&action{
@@ -967,7 +883,7 @@ func TestNewListener(t *testing.T) {
 		// 		c: &ListenConfig{
 		// 			Network:    "unix",
 		// 			Address:    "@test",
-		// 			SockOption: &SockOption{},
+		// 			SockOption: &zsyscall.SockOption{},
 		// 			TLSConfig: &tls.Config{
 		// 				ServerName: "test",
 		// 			},
@@ -984,8 +900,7 @@ func TestNewListener(t *testing.T) {
 			[]string{},
 			&condition{
 				c: &ListenConfig{
-					Network:  "tcp",
-					Address:  testAddr,
+					Address:  "tcp://" + testAddr,
 					Networks: []string{"127.0.0.0.1"},
 				},
 			},
@@ -1004,8 +919,7 @@ func TestNewListener(t *testing.T) {
 			[]string{},
 			&condition{
 				c: &ListenConfig{
-					Network: "invalid",
-					Address: "127.0.0.1:12358",
+					Address: "invalid://" + "127.0.0.1:12358",
 				},
 			},
 			&action{
@@ -1023,29 +937,8 @@ func TestNewListener(t *testing.T) {
 			[]string{},
 			&condition{
 				c: &ListenConfig{
-					Network:   "invalid",
-					Address:   "127.0.0.1:12358",
+					Address:   "invalid://" + "127.0.0.1:12358",
 					TLSConfig: &tls.Config{},
-				},
-			},
-			&action{
-				address: "",
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeListener,
-					Description: ErrDscListener,
-				},
-			},
-		),
-		gen(
-			"invalid network with DTLS",
-			[]string{},
-			[]string{},
-			&condition{
-				c: &ListenConfig{
-					Network:    "invalid",
-					Address:    "127.0.0.1:12358",
-					DTLSConfig: &dtls.Config{},
 				},
 			},
 			&action{
@@ -1063,14 +956,10 @@ func TestNewListener(t *testing.T) {
 			[]string{},
 			&condition{
 				c: &ListenConfig{
-					Network: "unix",
-					Address: "@test",
-					SockOption: &SockOption{
-						SO:  &SockSOOption{KeepAlive: true},
-						TCP: &SockTCPOption{NoDelay: true, FastOpenConnect: true},
-					},
-					DTLSConfig: &dtls.Config{
-						ServerName: "test",
+					Address: "unix://" + "@test",
+					SockOption: &zsyscall.SockOption{
+						SO:  &zsyscall.SockSOOption{KeepAlive: true},
+						TCP: &zsyscall.SockTCPOption{NoDelay: true, FastOpenConnect: true},
 					},
 				},
 			},
@@ -1092,7 +981,6 @@ func TestNewListener(t *testing.T) {
 		t.Run(tt.Name(), func(t *testing.T) {
 			ln, err := NewListener(tt.C().c)
 			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
-
 			// TODO: better way to check the result.
 			// opts := []cmp.Option{
 			// 	cmp.AllowUnexported(testListener{}),
@@ -1100,356 +988,11 @@ func TestNewListener(t *testing.T) {
 			// 	cmpopts.IgnoreUnexported(net.TCPListener{}),
 			// }
 			// testutil.Diff(t, tt.A().listener, ln, opts...)
-
 			if tt.A().address != "" {
 				testutil.Diff(t, tt.A().address, ln.Addr().String())
 				ln.Close()
 			} else {
 				testutil.Diff(t, nil, ln)
-			}
-		})
-	}
-}
-
-func TestListenerWithSecure(t *testing.T) {
-	type condition struct {
-		inner     net.Listener
-		list      []Container
-		blacklist bool
-	}
-
-	type action struct {
-		listener net.Listener
-	}
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndNonNilListener := tb.Condition("listener", "input non nil listener as inner")
-	cndWithContainers := tb.Condition("with containers", "input non zero containers")
-	actCheckInner := tb.Action("inner", "check that the inner listener was returned")
-	actCheckSecure := tb.Action("secure lister", "check that the secure listener was returned")
-	table := tb.Build()
-
-	gen := testutil.NewCase[*condition, *action]
-	testCases := []*testutil.Case[*condition, *action]{
-		gen(
-			"input nil listener",
-			[]string{},
-			[]string{actCheckInner},
-			&condition{
-				inner: nil,
-			},
-			&action{
-				listener: nil,
-			},
-		),
-		gen(
-			"zero containers",
-			[]string{cndNonNilListener},
-			[]string{actCheckInner},
-			&condition{
-				inner: &testListener{
-					clientAddr: "127.0.0.1:1234",
-				},
-				list: []Container{},
-			},
-			&action{
-				listener: &testListener{
-					clientAddr: "127.0.0.1:1234",
-				},
-			},
-		),
-		gen(
-			"whitelist listener",
-			[]string{cndWithContainers, cndNonNilListener},
-			[]string{actCheckSecure},
-			&condition{
-				inner: &testListener{
-					clientAddr: "127.0.0.1:1234",
-				},
-				list:      mustNetContainers([]string{"127.0.0.1/32:1234"}),
-				blacklist: false,
-			},
-			&action{
-				listener: &secureListener{
-					Listener: &testListener{
-						clientAddr: "127.0.0.1:1234",
-					},
-					list: mustNetContainers([]string{"127.0.0.1/32:1234"}),
-				},
-			},
-		),
-		gen(
-			"blacklist listener",
-			[]string{cndWithContainers, cndNonNilListener},
-			[]string{actCheckSecure},
-			&condition{
-				inner: &testListener{
-					clientAddr: "127.0.0.1:1234",
-				},
-				list:      mustNetContainers([]string{"127.0.0.1/32:1234"}),
-				blacklist: true,
-			},
-			&action{
-				listener: &secureListener{
-					Listener: &testListener{
-						clientAddr: "127.0.0.1:1234",
-					},
-					list:      mustNetContainers([]string{"127.0.0.1/32:1234"}),
-					blacklist: true,
-				},
-			},
-		),
-	}
-
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
-		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			l := ListenerWithSecure(tt.C().inner, tt.C().list, tt.C().blacklist)
-
-			opts := []cmp.Option{
-				cmp.AllowUnexported(testListener{}),
-				cmp.AllowUnexported(secureListener{}),
-			}
-			testutil.Diff(t, tt.A().listener, l, opts...)
-		})
-	}
-}
-
-func TestSecureListener(t *testing.T) {
-	type condition struct {
-		listener *secureListener
-	}
-
-	type action struct {
-		allowed   bool
-		acceptErr error
-	}
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndWhitelist := tb.Condition("whitelist", "use whitelist")
-	cndBlacklist := tb.Condition("blacklist", "use blacklist")
-	cndContained := tb.Condition("contained", "client address is contained in the list")
-	actCheckAllowed := tb.Action("allowed", "check that the connection was not allowed")
-	actCheckNotAllowed := tb.Action("dis-allowed", "check that the connection was allowed")
-	table := tb.Build()
-
-	testError := errors.New("test error")
-
-	gen := testutil.NewCase[*condition, *action]
-	testCases := []*testutil.Case[*condition, *action]{
-		gen(
-			"whitelist/nil-list",
-			[]string{cndWhitelist},
-			[]string{actCheckNotAllowed},
-			&condition{
-				listener: &secureListener{
-					Listener: &testListener{
-						clientAddr: "127.0.0.1:1234",
-					},
-					list: nil,
-				},
-			},
-			&action{
-				allowed: false,
-			},
-		),
-		gen(
-			"whitelist/not-contained",
-			[]string{cndWhitelist},
-			[]string{actCheckNotAllowed},
-			&condition{
-				listener: &secureListener{
-					Listener: &testListener{
-						clientAddr: "127.0.0.1:1234",
-					},
-					list: mustNetContainers([]string{"123.4.5.6/16"}),
-				},
-			},
-			&action{
-				allowed: false,
-			},
-		),
-		gen(
-			"whitelist/ip-allowed/port-allowed",
-			[]string{cndWhitelist, cndContained},
-			[]string{actCheckAllowed},
-			&condition{
-				listener: &secureListener{
-					Listener: &testListener{
-						clientAddr: "127.0.0.1:1234",
-					},
-					list: mustNetContainers([]string{"127.0.0.1/32:1234"}),
-				},
-			},
-			&action{
-				allowed: true,
-			},
-		),
-		gen(
-			"whitelist/ip-not-allowed/port-allowed",
-			[]string{cndWhitelist},
-			[]string{actCheckNotAllowed},
-			&condition{
-				listener: &secureListener{
-					Listener: &testListener{
-						clientAddr: "127.0.0.1:1234",
-					},
-					list: mustNetContainers([]string{"127.0.0.2/32:1234"}),
-				},
-			},
-			&action{
-				allowed: false,
-			},
-		),
-		gen(
-			"whitelist/ip-allowed/port-not-allowed",
-			[]string{cndWhitelist},
-			[]string{actCheckNotAllowed},
-			&condition{
-				listener: &secureListener{
-					Listener: &testListener{
-						clientAddr: "127.0.0.1:1234",
-					},
-					list: mustNetContainers([]string{"127.0.0.1/32:0-1000"}),
-				},
-			},
-			&action{
-				allowed: false,
-			},
-		),
-		gen(
-			"blacklist/nil-list",
-			[]string{cndBlacklist},
-			[]string{actCheckAllowed},
-			&condition{
-				listener: &secureListener{
-					Listener: &testListener{
-						clientAddr: "127.0.0.1:1234",
-					},
-					list:      nil,
-					blacklist: true,
-				},
-			},
-			&action{
-				allowed: true,
-			},
-		),
-		gen(
-			"blacklist/not-contained",
-			[]string{cndBlacklist},
-			[]string{actCheckAllowed},
-			&condition{
-				listener: &secureListener{
-					Listener: &testListener{
-						clientAddr: "127.0.0.1:1234",
-					},
-					list:      mustNetContainers([]string{"123.4.5.6/16"}),
-					blacklist: true,
-				},
-			},
-			&action{
-				allowed: true,
-			},
-		),
-		gen(
-			"blacklist/ip-not-allowed/port-not-allowed",
-			[]string{cndBlacklist, cndContained},
-			[]string{actCheckNotAllowed},
-			&condition{
-				listener: &secureListener{
-					Listener: &testListener{
-						clientAddr: "127.0.0.1:1234",
-					},
-					list:      mustNetContainers([]string{"127.0.0.1/32:1234"}),
-					blacklist: true,
-				},
-			},
-			&action{
-				allowed: false,
-			},
-		),
-		gen(
-			"blacklist/ip-allowed/port-not-allowed",
-			[]string{cndBlacklist},
-			[]string{actCheckAllowed},
-			&condition{
-				listener: &secureListener{
-					Listener: &testListener{
-						clientAddr: "127.0.0.1:1234",
-					},
-					list:      mustNetContainers([]string{"127.0.0.2/32:1234"}),
-					blacklist: true,
-				},
-			},
-			&action{
-				allowed: true,
-			},
-		),
-		gen(
-			"blacklist/ip-not-allowed/port-allowed",
-			[]string{cndBlacklist},
-			[]string{actCheckAllowed},
-			&condition{
-				listener: &secureListener{
-					Listener: &testListener{
-						clientAddr: "127.0.0.1:1234",
-					},
-					list:      mustNetContainers([]string{"127.0.0.1/32:0-1000"}),
-					blacklist: true,
-				},
-			},
-			&action{
-				allowed: true,
-			},
-		),
-		gen(
-			"invalid client address",
-			[]string{},
-			[]string{actCheckNotAllowed},
-			&condition{
-				listener: &secureListener{
-					Listener: &testListener{
-						clientAddr: "127.0.0.0.1",
-					},
-				},
-			},
-			&action{
-				allowed:   false,
-				acceptErr: nil,
-			},
-		),
-		gen(
-			"error on accept",
-			[]string{},
-			[]string{actCheckNotAllowed},
-			&condition{
-				listener: &secureListener{
-					Listener: &testListener{
-						clientAddr: "127.0.0.1:1234",
-						acceptErr:  testError,
-					},
-				},
-			},
-			&action{
-				acceptErr: testError,
-			},
-		),
-	}
-
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
-		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			c, err := tt.C().listener.Accept()
-			testutil.Diff(t, tt.A().acceptErr, err, cmpopts.EquateErrors())
-			if err == nil {
-				cc := c.(*testConn)
-				testutil.Diff(t, tt.A().allowed, !cc.closed)
 			}
 		})
 	}
@@ -1870,218 +1413,6 @@ func TestWriteDeadlineListener(t *testing.T) {
 				cc := c.(*testConn)
 				testutil.Diff(t, tt.A().deadline, cc.writeDead, cmpopts.EquateApproxTime(5*time.Second))
 			}
-		})
-	}
-}
-
-func TestListenerWithLimit(t *testing.T) {
-	type condition struct {
-		inner net.Listener
-		limit int
-	}
-
-	type action struct {
-		listener net.Listener
-	}
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndNonNilListener := tb.Condition("listener", "input non nil listener as inner")
-	cndLimitNegative := tb.Condition("negative limit", "input negative value as limit")
-	cndLimitZero := tb.Condition("zero limit", "input zero as limit")
-	cndLimitPositive := tb.Condition("positive limit", "input positive value as limit")
-	actCheckInner := tb.Action("inner", "check that the inner listener was returned")
-	actCheckLimit := tb.Action("limit lister", "check that the limit listener was returned")
-	table := tb.Build()
-
-	gen := testutil.NewCase[*condition, *action]
-	testCases := []*testutil.Case[*condition, *action]{
-		gen(
-			"input nil listener",
-			[]string{cndLimitPositive},
-			[]string{actCheckInner},
-			&condition{
-				inner: nil,
-				limit: 10,
-			},
-			&action{
-				listener: nil,
-			},
-		),
-		gen(
-			"limit is -1",
-			[]string{cndLimitNegative, cndNonNilListener},
-			[]string{actCheckInner},
-			&condition{
-				inner: &testListener{},
-				limit: -1,
-			},
-			&action{
-				listener: &testListener{},
-			},
-		),
-		gen(
-			"limit is 0",
-			[]string{cndLimitZero, cndNonNilListener},
-			[]string{actCheckInner},
-			&condition{
-				inner: &testListener{},
-				limit: 0,
-			},
-			&action{
-				listener: &testListener{},
-			},
-		),
-		gen(
-			"limit is 10",
-			[]string{cndLimitPositive, cndNonNilListener},
-			[]string{actCheckLimit},
-			&condition{
-				inner: &testListener{
-					clientAddr: "127.0.0.1:1234",
-				},
-				limit: 10,
-			},
-			&action{
-				listener: &limitListener{
-					Listener: &testListener{
-						clientAddr: "127.0.0.1:1234",
-					},
-					sem: make(chan struct{}, 10),
-				},
-			},
-		),
-	}
-
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
-		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			l := ListenerWithLimit(tt.C().inner, tt.C().limit)
-
-			opts := []cmp.Option{
-				cmp.AllowUnexported(testListener{}),
-				cmp.AllowUnexported(limitListener{}),
-				cmpopts.IgnoreFields(limitListener{}, "sem"),
-			}
-			testutil.Diff(t, tt.A().listener, l, opts...)
-			if ll, ok := l.(*limitListener); ok {
-				testutil.Diff(t, tt.C().limit, cap(ll.sem))
-			}
-		})
-	}
-}
-
-func TestLimitListener(t *testing.T) {
-	type condition struct {
-		listener     *limitListener
-		successUntil int
-	}
-
-	type action struct {
-		acceptErr error
-	}
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndConnect1 := tb.Condition("accept 1", "try to accept 1 connection without block")
-	cndConnect5 := tb.Condition("accept 5", "try to accept 5 connection without block")
-	cndAcceptError := tb.Condition("accept error", "return an error on accept called")
-	actCheckAccepted := tb.Action("accepted", "check that the expected number of connection was accepted without blocking")
-	actCheckWaited := tb.Action("waited", "check that the accept was waited when the connection exceeded limits")
-	actCheckError := tb.Action("error", "check that there was an error")
-	actCheckNoError := tb.Action("no error", "check that there was no error")
-	table := tb.Build()
-
-	testError := errors.New("test error")
-
-	gen := testutil.NewCase[*condition, *action]
-	testCases := []*testutil.Case[*condition, *action]{
-		gen(
-			"1 connection accepted",
-			[]string{cndConnect1},
-			[]string{actCheckAccepted, actCheckWaited, actCheckNoError},
-			&condition{
-				listener: &limitListener{
-					Listener: &testListener{
-						clientAddr: "127.0.0.1:1234",
-						acceptErr:  nil,
-					},
-					sem: make(chan struct{}, 1),
-				},
-				successUntil: 1,
-			},
-			&action{
-				acceptErr: nil,
-			},
-		),
-		gen(
-			"5 connection accepted",
-			[]string{cndConnect5},
-			[]string{actCheckAccepted, actCheckWaited, actCheckNoError},
-			&condition{
-				listener: &limitListener{
-					Listener: &testListener{
-						clientAddr: "127.0.0.1:1234",
-						acceptErr:  nil,
-					},
-					sem: make(chan struct{}, 5),
-				},
-				successUntil: 5,
-			},
-			&action{
-				acceptErr: nil,
-			},
-		),
-		gen(
-			"error on accept",
-			[]string{cndConnect1, cndAcceptError},
-			[]string{actCheckAccepted, actCheckWaited, actCheckError},
-			&condition{
-				listener: &limitListener{
-					Listener: &testListener{
-						clientAddr:     "127.0.0.1:1234",
-						acceptErr:      testError,
-						acceptErrAfter: 1,
-					},
-					sem: make(chan struct{}, 1),
-				},
-				successUntil: 1,
-			},
-			&action{
-				acceptErr: testError,
-			},
-		),
-	}
-
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
-		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			conns := []net.Conn{}
-			for i := 0; i < tt.C().successUntil; i++ {
-				before := time.Now()
-				c, err := tt.C().listener.Accept() // Should successfully be accepted immediately.
-				duration := time.Now().Sub(before)
-				testutil.Diff(t, nil, err)
-				testutil.Diff(t, true, duration < 5*time.Millisecond) // Should be accepted immediately.
-				conns = append(conns, c)
-			}
-
-			// Close connection after 50 msec.
-			time.AfterFunc(50*time.Millisecond, func() {
-				for _, c := range conns {
-					c.Close()
-				}
-			})
-
-			before := time.Now()
-			_, err := tt.C().listener.Accept()
-			duration := time.Now().Sub(before)
-			testutil.Diff(t, true, duration > 50*time.Millisecond)
-			testutil.Diff(t, tt.A().acceptErr, err, cmpopts.EquateErrors())
 		})
 	}
 }

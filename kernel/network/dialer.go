@@ -7,16 +7,42 @@ import (
 	"context"
 	"crypto/tls"
 	"errors"
+	"fmt"
 	"net"
 	"regexp"
 	"strings"
-	"syscall"
 	"time"
 
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
-	"github.com/pion/dtls/v3"
+	"github.com/aileron-projects/go/znet"
+	"github.com/aileron-projects/go/zsyscall"
 )
+
+// Dialer is an interface for dialer, or network client.
+// This interface is intended to be used for *net.Dialer and *tls.Dialer
+// and *DTLSDialer.
+type Dialer interface {
+	// Dial connects to the address on the named network.
+	// Known networks are "tcp", "tcp4" (IPv4-only), "tcp6" (IPv6-only),
+	// "udp", "udp4" (IPv4-only), "udp6" (IPv6-only), "ip", "ip4"
+	// (IPv4-only), "ip6" (IPv6-only), "unix", "unixgram" and "unixpacket".
+	// See https://pkg.go.dev/net#Dialer for more information.
+	Dial(network string, address string) (net.Conn, error)
+
+	// DialContext connects to the address on the named network using
+	// the provided context.
+	// Known networks are "tcp", "tcp4" (IPv4-only), "tcp6" (IPv6-only),
+	// "udp", "udp4" (IPv4-only), "udp6" (IPv6-only), "ip", "ip4"
+	// (IPv4-only), "ip6" (IPv6-only), "unix", "unixgram" and "unixpacket".
+	// See https://pkg.go.dev/net#Dialer for more information.
+	//
+	// The provided Context must be non-nil. If the context expires before
+	// the connection is complete, an error is returned. Once successfully
+	// connected, any expiration of the context will not affect the
+	// connection.
+	DialContext(ctx context.Context, network string, address string) (net.Conn, error)
+}
 
 // NetworkType is the type that the net.Dialer can accept.
 // See https://pkg.go.dev/net#Dial.
@@ -134,7 +160,6 @@ func NewDialerFromSpec(spec *k.DialConfig) (Dialer, error) {
 	if spec == nil {
 		return nil, nil
 	}
-
 	tlsConfig, err := TLSConfig(spec.TLSConfig)
 	if err != nil {
 		return nil, (&er.Error{
@@ -144,10 +169,8 @@ func NewDialerFromSpec(spec *k.DialConfig) (Dialer, error) {
 			Detail:      "create new dialer.",
 		}).Wrap(err)
 	}
-
 	config := &DialConfig{
 		TLSConfig:      tlsConfig,
-		LocalNetwork:   spec.LocalNetwork,
 		LocalAddress:   spec.LocalAddress,
 		ReplaceTargets: spec.ReplaceTargets,
 		Timeout:        time.Duration(spec.Timeout) * time.Millisecond,
@@ -171,9 +194,11 @@ func NewDialer(c *DialConfig) (Dialer, error) {
 		}
 	}
 
+	network, address := znet.ParseNetAddr(c.LocalAddress)
 	var localAddr net.Addr
-	if c.LocalNetwork != "" && c.LocalAddress != "" {
-		addr, err := resolveAddr(c.LocalNetwork, c.LocalAddress)
+	if network != "" && address != "" {
+		addr, err := resolveAddr(network, address)
+		fmt.Println(network, address, addr, err)
 		if err != nil {
 			return nil, (&er.Error{
 				Package:     ErrPkg,
@@ -186,26 +211,17 @@ func NewDialer(c *DialConfig) (Dialer, error) {
 	}
 
 	var d Dialer
-	if c.DTLSConfig != nil {
-		d = &dtlsDialer{
-			tlsConfig:    c.DTLSConfig,
-			localNetwork: c.LocalNetwork,
-			localAddress: c.LocalAddress,
-			control:      c.SockOption.ControlFunc(SockOptSO | SockOptIP | SockOptIPV6 | SockOptTCP | SockOptUDP),
-		}
-	} else {
-		dd := &net.Dialer{
-			LocalAddr:     localAddr,
-			FallbackDelay: c.FallbackDelay,
-			Timeout:       c.Timeout,
-			Control:       c.SockOption.ControlFunc(SockOptSO | SockOptIP | SockOptIPV6 | SockOptTCP | SockOptUDP),
-		}
-		d = dd
-		if c.TLSConfig != nil {
-			d = &tls.Dialer{
-				NetDialer: dd,
-				Config:    c.TLSConfig,
-			}
+	dd := &net.Dialer{
+		LocalAddr:     localAddr,
+		FallbackDelay: c.FallbackDelay,
+		Timeout:       c.Timeout,
+		Control:       c.SockOption.ControlFunc(zsyscall.SockOptSO | zsyscall.SockOptIP | zsyscall.SockOptIPV6 | zsyscall.SockOptTCP | zsyscall.SockOptUDP),
+	}
+	d = dd
+	if c.TLSConfig != nil {
+		d = &tls.Dialer{
+			NetDialer: dd,
+			Config:    c.TLSConfig,
 		}
 	}
 
@@ -219,7 +235,6 @@ func NewDialer(c *DialConfig) (Dialer, error) {
 			Detail:      "create new dialer.",
 		}).Wrap(err)
 	}
-
 	return d, nil
 }
 
@@ -231,13 +246,6 @@ type DialConfig struct {
 	// net.Dialer will be used when not set,
 	// and tls.Dialer will be used when set.
 	TLSConfig *tls.Config
-	// TLSConfig is the TLS configuration to use for new connections.
-	// A nil configuration is equivalent to the zero configuration.
-	DTLSConfig *dtls.Config
-
-	// LocalNetwork is the local network type to listen.
-	// https://pkg.go.dev/net#Dialer
-	LocalNetwork string
 	// LocalAddress is the local address to listen to.
 	LocalAddress string
 
@@ -262,90 +270,5 @@ type DialConfig struct {
 	// See https://pkg.go.dev/net#Dialer
 	FallbackDelay time.Duration
 	// SockOption is the socket option.
-	SockOption *SockOption
-}
-
-// dtlsDialer is the dialer for DTLS.
-// This implements Dialer interface.
-type dtlsDialer struct {
-	tlsConfig    *dtls.Config
-	localNetwork string
-	localAddress string
-	control      ControlFunc
-}
-
-// Dial connects to the address with DTL.
-// Networks have to be one of the udp types.
-// Those are "udp", "udp4" (IPv4-only), "udp6" (IPv6-only) or "unixgram".
-// For example:
-//   - Dial("udp", "[2001:db8::1]:8443")
-//   - Dial("udp", ":8443")
-func (d *dtlsDialer) Dial(network string, address string) (net.Conn, error) {
-	return d.DialContext(context.Background(), network, address)
-}
-
-// DialContext connects to the address with the provided context.
-// The provided Context must be non-nil. If the context expires before
-// the connection is complete, an error is returned. Once successfully
-// connected, any expiration of the context will not affect the connection.
-func (d *dtlsDialer) DialContext(ctx context.Context, network string, address string) (net.Conn, error) {
-	var conn net.PacketConn
-	var syscallConn interface {
-		SyscallConn() (syscall.RawConn, error)
-	}
-	var addr net.Addr
-	var err error
-
-	// For DTLS, Network must be one of "udp", "udp4", "udp6".
-	switch network {
-	case "udp", "udp4", "udp6":
-		rAddr, resolveErr1 := net.ResolveUDPAddr(network, address)
-		lAddr, resolveErr2 := net.ResolveUDPAddr(d.localNetwork, d.localAddress)
-		udpConn, listenErr := net.ListenUDP(network, lAddr)
-		err = errors.Join(listenErr, resolveErr1, resolveErr2)
-		syscallConn = udpConn
-		conn = udpConn
-		addr = rAddr
-	default:
-		err = errors.New("network not supported by DTLS `" + network + "`")
-	}
-	if err != nil {
-		return nil, (&er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeDialer,
-			Description: ErrDscDialer,
-			Detail:      "dial DTLS.",
-		}).Wrap(err)
-	}
-
-	if d.control != nil && syscallConn != nil {
-		conn, err := syscallConn.SyscallConn()
-		if err != nil {
-			return nil, (&er.Error{
-				Package:     ErrPkg,
-				Type:        ErrTypeDialer,
-				Description: ErrDscDialer,
-				Detail:      "dial DTLS.",
-			}).Wrap(err)
-		}
-		if err := d.control("", "", conn); err != nil {
-			return nil, (&er.Error{
-				Package:     ErrPkg,
-				Type:        ErrTypeDialer,
-				Description: ErrDscDialer,
-				Detail:      "dial DTLS.",
-			}).Wrap(err)
-		}
-	}
-
-	dtlsConn, err := dtls.Client(conn, addr, d.tlsConfig)
-	if err != nil {
-		return nil, (&er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeDialer,
-			Description: ErrDscDialer,
-			Detail:      "create QUIC dialer.",
-		}).Wrap(err)
-	}
-	return dtlsConn, nil
+	SockOption *zsyscall.SockOption
 }

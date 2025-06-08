@@ -9,10 +9,8 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"time"
 
 	"github.com/aileron-gateway/aileron-gateway/kernel/network"
-	"github.com/pion/dtls/v3"
 )
 
 // ServerCert is a self-signed server certification.
@@ -124,22 +122,13 @@ var rootCAs = func() *x509.CertPool {
 }
 
 func ExampleNewListener_listenTCP() {
-	// This example shows TCP communication.
-	// Note that errors are ignored to simplify.
-	// In this example,
-	// - 1. Get a local address that is available
-	// - 2. Listen TCP at the local address with TLS.
-	// - 3. Dial TCP to the address with TLS.
-	// - 4. Send/Receive a message "hello!!".
-
 	available, _ := net.Listen("tcp", "127.0.0.1:0")
 	available.Close()
 	testAddr := available.Addr().String()
 
 	// Listen TCP at the local address.
 	lc := &network.ListenConfig{
-		Network: "tcp",
-		Address: testAddr,
+		Address: "tcp://" + testAddr,
 	}
 	ln, _ := network.NewListener(lc)
 	defer ln.Close()
@@ -164,66 +153,13 @@ func ExampleNewListener_listenTCP() {
 	// hello!!
 }
 
-func ZExampleNewListener_listenTCP_AbstractSocket() {
-	// NOTE:
-	// This example may fail on windows
-	// that can't use an abstract socket.
-	// To run this test, remove "Z" at the head of this function name.
-
-	// This example shows TCP communication.
-	// This example uses an abstract socket.
-	// Note that errors are ignored to simplify.
-	// In this example,
-	// - 1. Listen TCP at an abstract socket.
-	// - 2. Dial TCP to the socket.
-	// - 3. Send/Receive a message "hello!!".
-
-	// PathNameSocket is like "/var/run/test.sock"
-	// AbstractSocket is like "@test"
-	lc := &network.ListenConfig{
-		Network: "unix",
-		Address: "@test",
-	}
-	ln, _ := network.NewListener(lc)
-	defer ln.Close()
-
-	go func() {
-		dc := &network.DialConfig{}
-		dl, _ := network.NewDialer(dc)
-		conn, _ := dl.Dial("unix", "@test")
-		conn.Write([]byte("hello!!"))
-		conn.Close()
-	}()
-
-	// Accept the connection created in the goroutine above.
-	conn, _ := ln.Accept()
-	defer conn.Close()
-
-	b := make([]byte, 7) // Expect "hello!!".
-	conn.Read(b)         // Receive "hello!!".
-
-	fmt.Println(string(b))
-	// Output:
-	// hello!!
-}
-
 func ExampleNewListener_listenTLS() {
-	// This example shows TLS over TCP communication.
-	// Note that errors are ignored to simplify.
-	// In this example,
-	// - 1. Get a local address that is available for the test.
-	// - 2. Listen TCP at the local address.
-	// - 3. Dial TCP to the address.
-	// - 4. Send/Receive a message "hello!!" through the address.
-
 	available, _ := net.Listen("tcp", "127.0.0.1:0")
 	available.Close()
 	testAddr := available.Addr().String()
 
-	// Listen TCP at the local address with TLS.
 	lc := &network.ListenConfig{
-		Network: "tcp",
-		Address: testAddr,
+		Address: "tcp://" + testAddr,
 		TLSConfig: &tls.Config{
 			Certificates: []tls.Certificate{x509KeyPair},
 		},
@@ -242,11 +178,9 @@ func ExampleNewListener_listenTLS() {
 		conn.Write([]byte("hello!!"))
 		conn.Close()
 	}()
-
 	// Accept the connection created in the goroutine above.
 	conn, _ := ln.Accept()
 	defer conn.Close()
-
 	b := make([]byte, 7) // Expect "hello!!".
 	conn.Read(b)         // Receive "hello!!".
 
@@ -255,71 +189,11 @@ func ExampleNewListener_listenTLS() {
 	// hello!!
 }
 
-func ExampleNewListener_listenDTLS() {
-	// This example shows TLS over UDP communication.
-	// Note that errors are ignored to simplify.
-	// In this example,
-	// - 1. Get a local address that is available for the test.
-	// - 2. Listen UDP at the local address with TLS.
-	// - 3. Dial UDP to the address with TLS.
-	// - 4. Send/Receive a message "hello!!" through the address.
-
-	available, _ := net.ListenPacket("udp", "127.0.0.1:0")
-	available.Close()
-	testAddr := available.LocalAddr().String()
-
-	// Create a new TLS over UDP listener.
-	lc := &network.ListenConfig{
-		Network: "udp",
-		Address: testAddr,
-		DTLSConfig: &dtls.Config{
-			Certificates: []tls.Certificate{x509KeyPair},
-		},
-	}
-	ln, _ := network.NewListener(lc)
-	defer ln.Close()
-
-	go func() {
-		dc := &network.DialConfig{
-			DTLSConfig: &dtls.Config{
-				RootCAs: rootCAs(),
-			},
-		}
-		dl, _ := network.NewDialer(dc)
-		conn, _ := dl.Dial("udp", testAddr)
-		conn.Write([]byte("hello!!"))
-		time.Sleep(100 * time.Millisecond) // Wait before close the connection.
-		conn.Close()
-	}()
-
-	conn, _ := ln.Accept()
-	defer conn.Close()
-
-	b := make([]byte, 7) // Expect "hello!!".
-	conn.Read(b)         // Read message from the connection.
-
-	fmt.Println(string(b))
-	// Output:
-	// hello!!
-}
-
 func ZExampleNewListener_listenTCP_PathNameSocket() {
-	// NOTE:
-	// This example may fail on linux without root privilege.
-	// To run this test, remove "Z" at the head of this function name.
-
-	// This example shows TCP communication through an unix domain socket.
-	// Note that errors are ignored to simplify.
-	// In this example,
-	// - 1. Listen TCP at the local address using a path name socket.
-	// - 2. Dial TCP to the socket.
-	// - 3. Send/Receive a message "hello!!" through the address.
-
 	// PathNameSocket is like "/var/run/test.sock"
 	// AbstractSocket is like "@test"
 	lc := &network.ListenConfig{
-		Network: "unix",
-		Address: "test.sock",
+		Address: "unix://test.sock",
 	}
 	ln, _ := network.NewListener(lc)
 	defer func() {
@@ -347,70 +221,7 @@ func ZExampleNewListener_listenTCP_PathNameSocket() {
 	// hello!!
 }
 
-func ZExampleNewListener_listenTLS_PathNameSocket() {
-	// NOTE:
-	// This example may fail on linux without root privilege.
-	// To run this test, remove "Z" at the head of this function name.
-
-	// This example shows TLS over TCP communication through an unix domain socket.
-	// Note that errors are ignored to simplify.
-	// In this example,
-	// - 1. Listen TCP at the local address over unix domain socket.
-	// - 2. Dial TCP to the domain socket.
-	// - 3. Send/Receive a message "hello!!" through the address.
-
-	// PathNameSocket is like "/var/run/test.sock"
-	// AbstractSocket is like "@test"
-	lc := &network.ListenConfig{
-		Network: "unix",
-		Address: "test.sock",
-		TLSConfig: &tls.Config{
-			Certificates: []tls.Certificate{x509KeyPair},
-		},
-	}
-	ln, _ := network.NewListener(lc) // We get listener!
-	defer func() {
-		ln.Close()
-		os.Remove("test.sock") // Remove just in case.
-	}()
-
-	go func() {
-		// Create a new TCP dialer..
-		dc := &network.DialConfig{
-			TLSConfig: &tls.Config{
-				RootCAs: rootCAs(),
-			},
-		}
-		dl, _ := network.NewDialer(dc)
-		conn, err := dl.Dial("unix", "test.sock") // We get connection!
-		if err != nil {
-			panic(err)
-		}
-		conn.Write([]byte("hello!!")) // Send the message.
-		conn.Close()
-	}()
-
-	// Accept the connection created in the goroutine above.
-	conn, _ := ln.Accept()
-	defer conn.Close()
-
-	b := make([]byte, 7) // Expect "hello!!".
-	conn.Read(b)         // Receive "hello!!".
-
-	fmt.Println(string(b))
-	// Output:
-	// hello!!
-}
-
 func ExampleNewPacketConn_connectUDP() {
-	// This example shows UDP communication.
-	// Note that errors are ignored to simplify.
-	// In this example,
-	// - 1. Get a local address that is available for the test.
-	// - 2. Listen UDP at the local address.
-	// - 3. Dial UDP to the address.
-	// - 4. Send/Receive a message "hello!!" through the address.
-
 	// Get a local address that is available for the test.
 	available, _ := net.ListenPacket("udp", "127.0.0.1:0")
 	available.Close()
