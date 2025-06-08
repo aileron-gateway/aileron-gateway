@@ -13,8 +13,8 @@ import (
 	"strings"
 
 	"github.com/aileron-gateway/aileron-gateway/core"
-	"github.com/aileron-gateway/aileron-gateway/kernel/uid"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
+	"github.com/aileron-projects/go/zx/zuid"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/propagation"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -66,7 +66,7 @@ func (t *otelTracer) Middleware(next http.Handler) http.Handler {
 			// If you set more than one OpenTelemetryTracer middleware, context propagation may not function properly.
 			t.pg.Inject(ctx, propagation.HeaderCarrier(r.Header))
 
-			span.SetAttributes(attribute.String("http.id", uid.IDFromContext(ctx)))
+			span.SetAttributes(attribute.String("http.id", zuid.FromContext(ctx, "context")))
 			span.SetAttributes(attribute.String("http.schema", schema(r.TLS)))
 			span.SetAttributes(attribute.String("http.method", r.Method))
 			span.SetAttributes(attribute.String("http.path", r.URL.Path))
@@ -119,7 +119,7 @@ func (t *otelTracer) Tripperware(next http.RoundTripper) http.RoundTripper {
 		res, err := next.RoundTrip(r)
 
 		if c == 0 {
-			span.SetAttributes(attribute.String("http.id", uid.IDFromContext(ctx)))
+			span.SetAttributes(attribute.String("http.id", zuid.FromContext(ctx, "context")))
 			span.SetAttributes(attribute.String("http.schema", schema(r.TLS)))
 			span.SetAttributes(attribute.String("http.method", r.Method))
 			span.SetAttributes(attribute.String("http.path", r.URL.Path))

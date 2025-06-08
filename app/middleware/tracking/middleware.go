@@ -9,7 +9,6 @@ import (
 
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
-	"github.com/aileron-gateway/aileron-gateway/kernel/uid"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 	"github.com/aileron-projects/go/zx/zuid"
 )
@@ -41,10 +40,10 @@ func (m *tracker) Middleware(next http.Handler) http.Handler {
 		var trcID string // Trace ID
 
 		ctx := r.Context()
-		reqID = uid.IDFromContext(ctx)
+		reqID = zuid.FromContext(ctx, "context")
 		if reqID == "" {
 			reqID = base32HexEscaped.EncodeToString(zuid.NewHost())
-			ctx = uid.ContextWithID(ctx, reqID)
+			ctx = zuid.ContextWithID(ctx, "context", reqID)
 		}
 
 		if m.trcExtractHeader != "" {
