@@ -11,9 +11,10 @@ import (
 	"testing"
 
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
-	"github.com/aileron-gateway/aileron-gateway/kernel/mac"
+	"github.com/aileron-gateway/aileron-gateway/kernel/hash"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/aileron-gateway/aileron-gateway/util/session"
+	"github.com/aileron-projects/go/zcrypto/zsha256"
 )
 
 type mockExtractor struct {
@@ -125,7 +126,7 @@ func TestCustomRequestHeaders(t *testing.T) {
 				secret:   []byte("some-secret"),
 				seedSize: 32,
 				hashSize: 32,
-				hmac:     mac.FromHashAlg(kernel.HashAlg_SHA256),
+				hmac:     hash.HMACFromHashAlg(kernel.HashAlg_SHA256),
 			}
 
 			// Generate if a valid token is required.
@@ -268,7 +269,7 @@ func TestDoubleSubmitCookies(t *testing.T) {
 				secret:   []byte("some-secret"),
 				seedSize: 32,
 				hashSize: 32,
-				hmac:     mac.HMACFunc(mac.SHA256),
+				hmac:     zsha256.HMACSum256,
 			}
 
 			cookieToken, _ := csrfToken.new()
@@ -507,7 +508,7 @@ func TestSynchronizerToken(t *testing.T) {
 				secret:   []byte("some-secret"),
 				seedSize: 32,
 				hashSize: 32,
-				hmac:     mac.HMACFunc(mac.SHA256),
+				hmac:     zsha256.HMACSum256,
 			}
 
 			sessionToken, _ := csrfToken.new()

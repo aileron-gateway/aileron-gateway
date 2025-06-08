@@ -17,6 +17,11 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/app"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/hash"
+
+	"github.com/aileron-projects/go/zcrypto/zsha1"
+	"github.com/aileron-projects/go/zcrypto/zsha256"
+	"github.com/aileron-projects/go/zcrypto/zsha3"
+	"github.com/aileron-projects/go/zcrypto/zsha512"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 )
@@ -130,19 +135,19 @@ var (
 	// 	- jwt.PS384 for RSASSA-PSS using SHA-384 and MGF1 with SHA-384
 	// 	- jwt.PS512 for RSASSA-PSS using SHA-512 and MGF1 with SHA-512
 	HashAlgorithm = map[Algorithm]hash.HashFunc{
-		ES256: hash.SHA256,
-		ES384: hash.SHA384,
-		ES512: hash.SHA512,
-		EdDSA: hash.SHA512,
-		HS256: hash.SHA256,
-		HS384: hash.SHA384,
-		HS512: hash.SHA512,
-		RS256: hash.SHA256,
-		RS384: hash.SHA384,
-		RS512: hash.SHA512,
-		PS256: hash.SHA256,
-		PS384: hash.SHA384,
-		PS512: hash.SHA512,
+		ES256: zsha256.Sum256,
+		ES384: zsha512.Sum384,
+		ES512: zsha512.Sum512,
+		EdDSA: zsha512.Sum512,
+		HS256: zsha256.Sum256,
+		HS384: zsha512.Sum384,
+		HS512: zsha512.Sum512,
+		RS256: zsha256.Sum256,
+		RS384: zsha512.Sum384,
+		RS512: zsha512.Sum512,
+		PS256: zsha256.Sum256,
+		PS384: zsha512.Sum384,
+		PS512: zsha512.Sum512,
 	}
 )
 
@@ -175,7 +180,7 @@ func SigningKeys(private bool, specs ...*v1.SigningKeySpec) ([]*SigningKey, erro
 			// So, use the calculated value from the signature of the spec when not set.
 			b, _ := json.Marshal(spec.JWTHeader)
 			signature := spec.Algorithm.String() + spec.KeyType.String() + spec.KeyFilePath + string(b)
-			kid = base32.StdEncoding.EncodeToString(hash.SHA1(hash.SHA3_512([]byte(signature))))
+			kid = base32.StdEncoding.EncodeToString(zsha1.Sum(zsha3.Sum512([]byte(signature))))
 		}
 
 		header := map[string]any{

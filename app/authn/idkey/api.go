@@ -18,7 +18,6 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/kernel/hash"
 	"github.com/aileron-gateway/aileron-gateway/kernel/kvs"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
-	"github.com/aileron-gateway/aileron-gateway/kernel/mac"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -135,7 +134,7 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.Prot
 		decryptFunc: encrypt.DecrypterFromType(c.Spec.CommonKeyCryptType),
 
 		hmacKey:  hmacKey, // If hmacKey is not empty, do hmac.
-		hmacFunc: mac.FromHashAlg(c.Spec.HashAlg),
+		hmacFunc: hash.HMACFromHashAlg(c.Spec.HashAlg),
 		hashFunc: hash.FromHashAlg(c.Spec.HashAlg),
 	}, nil
 }

@@ -14,7 +14,7 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/mac"
+	"github.com/aileron-gateway/aileron-gateway/kernel/hash"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 	"github.com/google/go-cmp/cmp"
@@ -364,7 +364,7 @@ func TestCreate(t *testing.T) {
 						secret:   defaultSecret[:],
 						seedSize: 32,
 						hashSize: 32,
-						hmac:     mac.FromHashAlg(kernel.HashAlg_SHA256),
+						hmac:     hash.HMACFromHashAlg(kernel.HashAlg_SHA256),
 					},
 					st: &customRequestHeaders{
 						headerName: "X-Requested-With",
@@ -372,7 +372,7 @@ func TestCreate(t *testing.T) {
 							secret:   defaultSecret[:],
 							seedSize: 32,
 							hashSize: 32,
-							hmac:     mac.FromHashAlg(kernel.HashAlg_SHA256),
+							hmac:     hash.HMACFromHashAlg(kernel.HashAlg_SHA256),
 						},
 					},
 				},
@@ -453,7 +453,7 @@ func TestCreate(t *testing.T) {
 						secret:   []byte{},
 						seedSize: 32,
 						hashSize: 32,
-						hmac:     mac.FromHashAlg(kernel.HashAlg_SHA256),
+						hmac:     hash.HMACFromHashAlg(kernel.HashAlg_SHA256),
 					},
 					st: &customRequestHeaders{
 						headerName: "X-Requested-With",
@@ -461,7 +461,7 @@ func TestCreate(t *testing.T) {
 							secret:   []byte{},
 							seedSize: 32,
 							hashSize: 32,
-							hmac:     mac.FromHashAlg(kernel.HashAlg_SHA256),
+							hmac:     hash.HMACFromHashAlg(kernel.HashAlg_SHA256),
 						},
 					},
 				},
@@ -526,7 +526,7 @@ func TestCreate(t *testing.T) {
 						secret:   []byte{},
 						seedSize: 32,
 						hashSize: 32,
-						hmac:     mac.FromHashAlg(kernel.HashAlg_SHA256),
+						hmac:     hash.HMACFromHashAlg(kernel.HashAlg_SHA256),
 					},
 					st: &doubleSubmitCookies{
 						cookieName: "__csrfToken",
@@ -536,7 +536,7 @@ func TestCreate(t *testing.T) {
 							secret:   []byte{},
 							seedSize: 32,
 							hashSize: 32,
-							hmac:     mac.FromHashAlg(kernel.HashAlg_SHA256),
+							hmac:     hash.HMACFromHashAlg(kernel.HashAlg_SHA256),
 						},
 					},
 				},
@@ -575,7 +575,7 @@ func TestCreate(t *testing.T) {
 						secret:   []byte{},
 						seedSize: 32,
 						hashSize: 32,
-						hmac:     mac.FromHashAlg(kernel.HashAlg_SHA256),
+						hmac:     hash.HMACFromHashAlg(kernel.HashAlg_SHA256),
 					},
 					st: &doubleSubmitCookies{
 						cookieName: "__csrfToken",
@@ -587,7 +587,7 @@ func TestCreate(t *testing.T) {
 							secret:   []byte{},
 							seedSize: 32,
 							hashSize: 32,
-							hmac:     mac.FromHashAlg(kernel.HashAlg_SHA256),
+							hmac:     hash.HMACFromHashAlg(kernel.HashAlg_SHA256),
 						},
 					},
 				},
@@ -626,7 +626,7 @@ func TestCreate(t *testing.T) {
 						secret:   []byte{},
 						seedSize: 32,
 						hashSize: 32,
-						hmac:     mac.FromHashAlg(kernel.HashAlg_SHA256),
+						hmac:     hash.HMACFromHashAlg(kernel.HashAlg_SHA256),
 					},
 					st: &doubleSubmitCookies{
 						cookieName: "__csrfToken",
@@ -638,7 +638,7 @@ func TestCreate(t *testing.T) {
 							secret:   []byte{},
 							seedSize: 32,
 							hashSize: 32,
-							hmac:     mac.FromHashAlg(kernel.HashAlg_SHA256),
+							hmac:     hash.HMACFromHashAlg(kernel.HashAlg_SHA256),
 						},
 					},
 				},
@@ -675,7 +675,7 @@ func TestCreate(t *testing.T) {
 						secret:   []byte{},
 						seedSize: 32,
 						hashSize: 32,
-						hmac:     mac.FromHashAlg(kernel.HashAlg_SHA256),
+						hmac:     hash.HMACFromHashAlg(kernel.HashAlg_SHA256),
 					},
 					st: &synchronizerToken{
 						ext: &headerExtractor{headerName: "__csrftoken"},
@@ -683,7 +683,7 @@ func TestCreate(t *testing.T) {
 							secret:   []byte{},
 							seedSize: 32,
 							hashSize: 32,
-							hmac:     mac.FromHashAlg(kernel.HashAlg_SHA256),
+							hmac:     hash.HMACFromHashAlg(kernel.HashAlg_SHA256),
 						},
 					},
 				},
@@ -721,7 +721,7 @@ func TestCreate(t *testing.T) {
 						secret:   []byte{},
 						seedSize: 32,
 						hashSize: 32,
-						hmac:     mac.FromHashAlg(kernel.HashAlg_SHA256),
+						hmac:     hash.HMACFromHashAlg(kernel.HashAlg_SHA256),
 					},
 					st: &synchronizerToken{
 						ext: &formExtractor{
@@ -731,7 +731,7 @@ func TestCreate(t *testing.T) {
 							secret:   []byte{},
 							seedSize: 32,
 							hashSize: 32,
-							hmac:     mac.FromHashAlg(kernel.HashAlg_SHA256),
+							hmac:     hash.HMACFromHashAlg(kernel.HashAlg_SHA256),
 						},
 					},
 				},
@@ -769,7 +769,7 @@ func TestCreate(t *testing.T) {
 						secret:   []byte{},
 						seedSize: 32,
 						hashSize: 32,
-						hmac:     mac.FromHashAlg(kernel.HashAlg_SHA256),
+						hmac:     hash.HMACFromHashAlg(kernel.HashAlg_SHA256),
 					},
 					st: &synchronizerToken{
 						ext: &jsonExtractor{
@@ -779,7 +779,7 @@ func TestCreate(t *testing.T) {
 							secret:   []byte{},
 							seedSize: 32,
 							hashSize: 32,
-							hmac:     mac.FromHashAlg(kernel.HashAlg_SHA256),
+							hmac:     hash.HMACFromHashAlg(kernel.HashAlg_SHA256),
 						},
 					},
 				},
