@@ -468,8 +468,8 @@ func SockIPOptionFromSpec(spec *kernel.SockIPOption) *zsyscall.SockIPOption {
 	return &zsyscall.SockIPOption{
 		BindAddressNoPort:   spec.BindAddressNoPort,
 		FreeBind:            spec.FreeBind,
-		LocalPortRangeUpper: uint16(spec.LocalPortRangeUpper),
-		LocalPortRangeLower: uint16(spec.LocalPortRangeLower),
+		LocalPortRangeUpper: uint16(spec.LocalPortRangeUpper), //nolint:gosec // G115: integer overflow conversion int32 -> uint16
+		LocalPortRangeLower: uint16(spec.LocalPortRangeLower), //nolint:gosec // G115: integer overflow conversion int32 -> uint16
 		Transparent:         spec.Transparent,
 		TTL:                 int(spec.TTL),
 	}
