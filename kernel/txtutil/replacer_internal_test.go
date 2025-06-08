@@ -1173,10 +1173,10 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 			&action{
 				inout: map[string]string{
-					"":             "!ERROR[encrypt: aes: failed to encrypt plain text. aes cbc failed. [ crypto/aes: invalid key size 14 ]]",
-					"123-456-7890": "!ERROR[encrypt: aes: failed to encrypt plain text. aes cbc failed. [ crypto/aes: invalid key size 14 ]]",
-					"foo=bar":      "!ERROR[encrypt: aes: failed to encrypt plain text. aes cbc failed. [ crypto/aes: invalid key size 14 ]]",
-					"alice,bob":    "!ERROR[encrypt: aes: failed to encrypt plain text. aes cbc failed. [ crypto/aes: invalid key size 14 ]]",
+					"":             "!ERROR[crypto/aes: invalid key size 14]",
+					"123-456-7890": "!ERROR[crypto/aes: invalid key size 14]",
+					"foo=bar":      "!ERROR[crypto/aes: invalid key size 14]",
+					"alice,bob":    "!ERROR[crypto/aes: invalid key size 14]",
 				},
 			},
 		),
@@ -1199,9 +1199,9 @@ func TestNewStringReplacer(t *testing.T) {
 			&action{
 				inout: map[string]string{
 					"":             "",
-					"123-456-7890": "123-!ERROR[encrypt: aes: failed to encrypt plain text. aes cbc failed. [ crypto/aes: invalid key size 14 ]]-7890",
-					"foo=bar":      "!ERROR[encrypt: aes: failed to encrypt plain text. aes cbc failed. [ crypto/aes: invalid key size 14 ]]=bar",
-					"alice,bob":    "!ERROR[encrypt: aes: failed to encrypt plain text. aes cbc failed. [ crypto/aes: invalid key size 14 ]],bob",
+					"123-456-7890": "123-!ERROR[crypto/aes: invalid key size 14]-7890",
+					"foo=bar":      "!ERROR[crypto/aes: invalid key size 14]=bar",
+					"alice,bob":    "!ERROR[crypto/aes: invalid key size 14],bob",
 				},
 			},
 		),
@@ -2598,10 +2598,10 @@ func TestNewBytesReplacer(t *testing.T) {
 			},
 			&action{
 				inout: map[string]string{
-					"":             "!ERROR[encrypt: aes: failed to encrypt plain text. aes cbc failed. [ crypto/aes: invalid key size 14 ]]",
-					"123-456-7890": "!ERROR[encrypt: aes: failed to encrypt plain text. aes cbc failed. [ crypto/aes: invalid key size 14 ]]",
-					"foo=bar":      "!ERROR[encrypt: aes: failed to encrypt plain text. aes cbc failed. [ crypto/aes: invalid key size 14 ]]",
-					"alice,bob":    "!ERROR[encrypt: aes: failed to encrypt plain text. aes cbc failed. [ crypto/aes: invalid key size 14 ]]",
+					"":             "!ERROR[crypto/aes: invalid key size 14]",
+					"123-456-7890": "!ERROR[crypto/aes: invalid key size 14]",
+					"foo=bar":      "!ERROR[crypto/aes: invalid key size 14]",
+					"alice,bob":    "!ERROR[crypto/aes: invalid key size 14]",
 				},
 			},
 		),
@@ -2624,9 +2624,9 @@ func TestNewBytesReplacer(t *testing.T) {
 			&action{
 				inout: map[string]string{
 					"":             "",
-					"123-456-7890": "123-!ERROR[encrypt: aes: failed to encrypt plain text. aes cbc failed. [ crypto/aes: invalid key size 14 ]]-7890",
-					"foo=bar":      "!ERROR[encrypt: aes: failed to encrypt plain text. aes cbc failed. [ crypto/aes: invalid key size 14 ]]=bar",
-					"alice,bob":    "!ERROR[encrypt: aes: failed to encrypt plain text. aes cbc failed. [ crypto/aes: invalid key size 14 ]],bob",
+					"123-456-7890": "123-!ERROR[crypto/aes: invalid key size 14]-7890",
+					"foo=bar":      "!ERROR[crypto/aes: invalid key size 14]=bar",
+					"alice,bob":    "!ERROR[crypto/aes: invalid key size 14],bob",
 				},
 			},
 		),

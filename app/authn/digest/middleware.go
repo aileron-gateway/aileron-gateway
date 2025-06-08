@@ -170,7 +170,7 @@ func (h *handler) authenticate(ctx context.Context, auth, method string) (userna
 	kd := h.hashFunc(a1 + ":" + nonce + ":" + nc + ":" + cnonce + ":" + qop + ":" + a2)
 
 	if response != kd {
-		return username, nil, encrypt.ErrNotMatch
+		return username, nil, ErrNotMatch
 	}
 
 	return username, cred, nil
