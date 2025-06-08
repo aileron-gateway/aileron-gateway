@@ -6,7 +6,6 @@ package encoder
 import (
 	"bytes"
 	"encoding/json"
-	"os"
 
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
 )
@@ -45,27 +44,6 @@ func UnmarshalJSON(in []byte, into any) error {
 			Description: ErrDscUnmarshal,
 			Detail:      string(addLineNumber(in)),
 		}).Wrap(err)
-	}
-	return nil
-}
-
-// UnmarshalJSONFile reads json file and unmarshal it into struct.
-// If the target struct is nil, this method do nothing and return nil.
-func UnmarshalJSONFile(path string, into any) error {
-	if into == nil {
-		return nil
-	}
-	b, err := os.ReadFile(path)
-	if err != nil {
-		return (&er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeJSON,
-			Description: ErrDscUnmarshal,
-			Detail:      path,
-		}).Wrap(err)
-	}
-	if err := UnmarshalJSON(b, into); err != nil {
-		return err
 	}
 	return nil
 }

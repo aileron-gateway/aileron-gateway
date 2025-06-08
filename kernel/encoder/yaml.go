@@ -6,7 +6,6 @@ package encoder
 import (
 	"bytes"
 	"fmt"
-	"os"
 
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
 	"gopkg.in/yaml.v3"
@@ -51,28 +50,6 @@ func UnmarshalYAML(in []byte, into any) error {
 			Description: ErrDscUnmarshal,
 			Detail:      string(addLineNumber(in)),
 		}).Wrap(err)
-	}
-	return nil
-}
-
-// UnmarshalYAMLFile reads yaml file and unmarshal it into a struct.
-// If given file path is an empty string or target struct is nil,
-// This method do nothing and return nil.
-func UnmarshalYAMLFile(path string, into any) error {
-	if into == nil {
-		return nil
-	}
-	b, err := os.ReadFile(path)
-	if err != nil {
-		return (&er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeYaml,
-			Description: ErrDscUnmarshal,
-			Detail:      path,
-		}).Wrap(err)
-	}
-	if err := UnmarshalYAML(b, into); err != nil {
-		return err // Return err as-is.
 	}
 	return nil
 }
