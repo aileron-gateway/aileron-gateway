@@ -14,13 +14,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func Must[T any](val T, err error) T {
-	if err != nil {
-		panic(err)
-	}
-	return val
-}
-
 // Diff compares two value using go-comp.
 func Diff(t *testing.T, want, got any, opts ...cmp.Option) {
 	t.Helper()
@@ -31,43 +24,23 @@ func Diff(t *testing.T, want, got any, opts ...cmp.Option) {
 	}
 }
 
-func Equal(t *testing.T, want, got any, opts ...cmp.Option) {
-	t.Helper()
-	// opts = append(opts, cmpopts.EquateEmpty())
-	if ok := cmp.Equal(want, got, opts...); !ok {
-		t.Errorf("mismatch :\n")
-		t.Errorf("StackTrace:\n%s", debug.Stack())
-	}
-}
-
-// Iser is the interface which check if the given error is
-// the same as this error instance.
-// See https://pkg.go.dev/errors#Is
-type Iser interface {
-	Is(error) bool
-}
-
 // DiffError compares two error.
 func DiffError(t *testing.T, want any, pattern *regexp.Regexp, got error, opts ...cmp.Option) {
 	t.Helper()
-
 	if want == nil || got == nil {
 		Diff(t, want, got, opts...)
 		return
 	}
-
 	if pattern != nil && !pattern.MatchString(got.Error()) {
 		t.Errorf("error message mismatch :\n")
 		t.Errorf(" (-want) %s\n", pattern.String())
 		t.Errorf(" (+got)  %s\n", got.Error())
 	}
-
-	iser, ok := want.(Iser)
+	iser, ok := want.(interface{ Is(error) bool })
 	if !ok {
 		Diff(t, want, got, opts...)
 		return
 	}
-
 	if !iser.Is(got) {
 		t.Errorf("error mismatch :\n")
 		t.Errorf(" (-want) %#v\n", want)

@@ -4,18 +4,8 @@
 package testutil
 
 import (
-	"bytes"
 	"fmt"
-	"html/template"
-	"os"
-	"path/filepath"
-	"runtime"
-)
-
-var (
-	_, file, _, _ = runtime.Caller(0)
-	dir           = filepath.Dir(file)
-	tpl           = template.Must(template.New("").ParseFiles(dir + "/table.gohtml"))
+	"slices"
 )
 
 // Record represents one row of a decision table.
@@ -58,146 +48,6 @@ type TableInfo struct {
 	// ActDescriptions are the descriptions for each actions.
 	// The order is the same as the Actions field.
 	ActDescriptions []string
-}
-
-// NewSaver creates a new instance of Saver.
-//
-// Usage:
-//
-//	s := NewSaver().Title("TestsDecisionTable").FileName("table.html")
-//	s.Add(x.Info(), y.Info(), z.Info()) //x,y,x are the instance of Table.
-//	s.Save() // output decision table html.
-//
-// When saving a html on the end of unit tests, TestMain function may be helpful like below.
-//
-//	func TestMain(m *testing.M) {
-//		flag.Parse()
-//		code := m.Run()
-//		s.Save()
-//		os.Exit(code)
-//	}
-func NewSaver() *Saver {
-	s := &Saver{}
-	return s
-}
-
-// Saver holds a HTML file info and output a decision table html using Go template.
-//
-// Usage:
-//
-//	s := NewSaver().Title("TestsDecisionTable").FileDir(../tables/).FileName("table.html")
-//	s.Add(x.Info(), y.Info(), z.Info()) //x,y,x are the instance of Table.
-//	s.Save() // output decision table html.
-type Saver struct {
-	title    string
-	fileDir  string
-	fileName string
-	infos    []*TableInfo
-}
-
-// Title sets the title of the html content.
-// The title comes to the top of the html.
-// Calling this multiple times overwrites the already set one.
-func (s *Saver) Title(t string) *Saver {
-	s.title = t
-	return s
-}
-
-// FileDir sets the directory to save html.
-// Calling this multiple times overwrites the already set one.
-func (s *Saver) FileDir(d string) *Saver {
-	s.fileDir = d
-	return s
-}
-
-// FileName sets the filename of the html.
-// The file name should be end with ".html".
-// Calling this multiple times overwrites the already set one.
-func (s *Saver) FileName(f string) *Saver {
-	s.fileName = f
-	return s
-}
-
-// Add register table information for this saver.
-// Tables are listed in the html as the same order as added.
-func (s *Saver) Add(infos ...*TableInfo) *Saver {
-	if s != nil {
-		s.infos = append(s.infos, infos...)
-	}
-	return s
-}
-
-// Save outputs a html file.
-// This panics if failed to create the file.
-func (s *Saver) Save() *Saver {
-	caller := ""
-	if _, file, _, ok := runtime.Caller(1); ok {
-		caller = filepath.Base(file)
-	}
-	if s.fileName == "" {
-		if caller != "" {
-			s.fileName = caller + ".html"
-		} else {
-			s.fileName = "DecisionTable.html"
-		}
-	}
-	if s.title == "" {
-		if caller != "" {
-			s.title = caller
-		} else {
-			s.title = "DecisionTable"
-		}
-	}
-	output := filepath.Join(s.fileDir, s.fileName)
-
-	root := struct {
-		Title string
-		Infos []*TableInfo
-	}{
-		s.title,
-		s.infos,
-	}
-
-	// Generate html from the template.
-	buf := new(bytes.Buffer)
-	if err := tpl.Execute(buf, root); err != nil {
-		panic(err)
-	}
-	// compress the html.
-	content := buf.String()
-	// content = strings.ReplaceAll(content, "\t", "")
-	// content = strings.ReplaceAll(content, "\n", "")
-
-	// Output to a file.
-	if _, err := os.Stat(s.fileDir); os.IsNotExist(err) {
-		if err := os.Mkdir(s.fileDir, os.ModePerm); err != nil {
-			panic(err)
-		}
-	}
-	f, err := os.Create(output)
-	if err != nil {
-		panic(err)
-	}
-	defer func() {
-		err := f.Close()
-		if err != nil {
-			panic(err)
-		}
-	}()
-	if _, err := f.WriteString(content); err != nil {
-		panic(err)
-	}
-	return s
-}
-
-// contains checks if the given array of the string contains the given string.
-func contains(s string, list []string) bool {
-	for _, val := range list {
-		if s == val {
-			return true
-		}
-	}
-	return false
 }
 
 // Table holds all information of a table.
@@ -355,7 +205,7 @@ func (b *TableBuilder[C, A]) Description(d string) *TableBuilder[C, A] {
 // Condition adds new condition entry.
 // The order of conditions shown in the table becomes the same as the order added.
 func (b *TableBuilder[C, A]) Condition(condition string, description string) string {
-	if contains(condition, b.conditions) {
+	if slices.Contains(b.conditions, condition) {
 		return condition
 	}
 	b.conditions = append(b.conditions, condition)
@@ -366,7 +216,7 @@ func (b *TableBuilder[C, A]) Condition(condition string, description string) str
 // Action adds new action entry.
 // The order of actions shown in the table becomes the same as the order added.
 func (b *TableBuilder[C, A]) Action(action string, d string) string {
-	if contains(action, b.actions) {
+	if slices.Contains(b.actions, action) {
 		return action
 	}
 	b.actions = append(b.actions, action)
