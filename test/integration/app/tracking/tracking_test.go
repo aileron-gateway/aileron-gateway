@@ -16,9 +16,9 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
-	"github.com/aileron-gateway/aileron-gateway/kernel/uid"
 	"github.com/aileron-gateway/aileron-gateway/test/integration/common"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
+	"github.com/aileron-projects/go/zx/zuid"
 )
 
 func TestProxyID(t *testing.T) {
@@ -39,7 +39,7 @@ func TestProxyID(t *testing.T) {
 	w1 := httptest.NewRecorder()
 
 	m.Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		reqID := uid.IDFromContext(r.Context())
+		reqID := zuid.FromContext(r.Context(), "context")
 		h := utilhttp.ProxyHeaderFromContext(r.Context())
 		testutil.Diff(t, reqID, h.Get("X-Request-ID"))
 		testutil.Diff(t, true, h.Get("X-Request-ID") != "")

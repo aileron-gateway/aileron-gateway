@@ -9,8 +9,8 @@ import (
 	"testing"
 
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
-	"github.com/aileron-gateway/aileron-gateway/kernel/uid"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
+	"github.com/aileron-projects/go/zx/zuid"
 )
 
 func TestMiddleware(t *testing.T) {
@@ -77,7 +77,7 @@ func TestMiddleware(t *testing.T) {
 			resp := httptest.NewRecorder()
 
 			h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				testutil.Diff(t, true, uid.IDFromContext(r.Context()) != "")
+				testutil.Diff(t, true, zuid.FromContext(r.Context(), "context") != "")
 				if tt.C().trcExtractHeader != "" {
 					h := utilhttp.ProxyHeaderFromContext(r.Context())
 					testutil.Diff(t, tt.C().traceID, h.Get("X-Trace-ID"))

@@ -10,8 +10,8 @@ import (
 
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
-	"github.com/aileron-gateway/aileron-gateway/kernel/uid"
 	httputil "github.com/aileron-gateway/aileron-gateway/util/http"
+	"github.com/aileron-projects/go/zx/zuid"
 )
 
 func TestMiddleware(t *testing.T) {
@@ -105,7 +105,7 @@ func TestMiddleware(t *testing.T) {
 			}
 
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
-			ctx := uid.ContextWithID(req.Context(), tt.C().requestID)
+			ctx := zuid.ContextWithID(req.Context(), "context", tt.C().requestID)
 			req = req.WithContext(ctx)
 
 			resp := httptest.NewRecorder()

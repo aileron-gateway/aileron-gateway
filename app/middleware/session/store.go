@@ -12,10 +12,10 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/app"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/kvs"
-	"github.com/aileron-gateway/aileron-gateway/kernel/uid"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 	"github.com/aileron-gateway/aileron-gateway/util/security"
 	"github.com/aileron-gateway/aileron-gateway/util/session"
+	"github.com/aileron-projects/go/zx/zuid"
 )
 
 // noopFunc is the function that do nothing.
@@ -220,11 +220,7 @@ func (s *kvsSessionStore) Save(ctx context.Context, w http.ResponseWriter, ss se
 	}
 
 	if flags&session.Refresh > 0 {
-		b, err := uid.NewHostedID()
-		if err != nil {
-			return err
-		}
-		ssid = base32.HexEncoding.EncodeToString(b)
+		ssid = base32.HexEncoding.EncodeToString(zuid.NewHost())
 	}
 
 	// Get a byte slice of the session.

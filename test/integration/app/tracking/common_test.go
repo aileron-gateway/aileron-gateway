@@ -17,9 +17,9 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
-	"github.com/aileron-gateway/aileron-gateway/kernel/uid"
 	"github.com/aileron-gateway/aileron-gateway/test/integration/common"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
+	"github.com/aileron-projects/go/zx/zuid"
 )
 
 func check(t *testing.T, m core.Middleware, rID, tID bool) {
@@ -27,7 +27,7 @@ func check(t *testing.T, m core.Middleware, rID, tID bool) {
 
 	var reqID, trcID string
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		testutil.Diff(t, true, uid.IDFromContext(r.Context()) != "")
+		testutil.Diff(t, true, zuid.FromContext(r.Context(), "context") != "")
 		h := utilhttp.ProxyHeaderFromContext(r.Context())
 		reqID = h.Get("X-Request-ID")
 		trcID = h.Get("X-Trace-ID")
