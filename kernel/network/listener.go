@@ -4,21 +4,22 @@
 package network
 
 import (
+	"cmp"
 	"context"
 	"crypto/tls"
 	"errors"
 	"net"
 	"os"
 	"reflect"
-	"slices"
 	"strings"
-	"sync"
 	"syscall"
 	"time"
 
+	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
-	"github.com/pion/dtls/v3"
+	"github.com/aileron-projects/go/znet"
+	"github.com/aileron-projects/go/zsyscall"
 )
 
 // removeSocketConn wraps net.PacketConn
@@ -95,7 +96,6 @@ type PacketConnConfig struct {
 	// See the net.ListenPacket documents.
 	// https://pkg.go.dev/net#ListenPacket
 	Network string
-
 	// Address is the local address to listen to.
 	// The value must be a valid address for the given network type.
 	// See the net.Dial document for valid value examples.
@@ -103,9 +103,8 @@ type PacketConnConfig struct {
 	// For unix type networks, "/var/run/example.sock" or "@example"
 	// address can be specified.
 	Address string
-
 	// SockOption is the socket option.
-	SockOption *SockOption
+	SockOption *zsyscall.SockOption
 }
 
 // NewPacketConn returns a new net.PacketConn from the given config.
@@ -161,7 +160,7 @@ func NewPacketConn(c *PacketConnConfig) (net.PacketConn, error) {
 		}).Wrap(err)
 	}
 
-	controlFunc := c.SockOption.ControlFunc(SockOptSO | SockOptIP | SockOptIPV6 | SockOptUDP)
+	controlFunc := c.SockOption.ControlFunc(zsyscall.SockOptSO | zsyscall.SockOptIP | zsyscall.SockOptIPV6 | zsyscall.SockOptUDP)
 	if controlFunc != nil && syscallConn != nil {
 		conn, err := syscallConn.SyscallConn()
 		if err != nil {
@@ -186,59 +185,42 @@ func NewPacketConn(c *PacketConnConfig) (net.PacketConn, error) {
 }
 
 type ListenConfig struct {
-	// Network is the network type to listen.
+	// Address is the local address to listen to.
+	// The value must be a valid TCP or Unix address.
+	// If not set, the address will be automatically chosen.
+	// Address can have network type prefix in the format of "<Network>://<Address>".
 	// Known networks are "tcp", "tcp4" (IPv4-only), "tcp6" (IPv6-only),
 	// "udp", "udp4" (IPv4-only), "udp6" (IPv6-only), "unix", and "unixpacket".
 	// See the net.Dial document for valid values.
 	// https://pkg.go.dev/net#Dial
-	Network string
-	// Address is the local address to listen to.
-	// The value must be a valid TCP or Unix address.
-	// If not set, the address will be automatically chosen.
-	// See the net.Dial document for valid values.
-	// https://pkg.go.dev/net#Dial
 	Address string
-
 	// TLSConfig is the TLS configuration.
 	// Network must be "tcp", "tcp4", "tcp6", "unix" or "unixpacket".
 	// otherwise, networking may not be work properly.
 	TLSConfig *tls.Config
-	// DTLSConfig is the TLS configuration.
-	// Network must be "udp", "udp4" or "udp6".
-	// otherwise, networking may not be work properly.
-	DTLSConfig *dtls.Config
-
 	// ConnectionLimit is the maximum number of connection
 	// that allowed to connect at a point of time.
 	// Connections that exceeds this limit until
 	// they dis-connect the connections or
 	// until they are accepted.
 	ConnectionLimit int
-
 	// ReadDeadline apply read deadline for connection.
 	// If zero, the deadline is not explicitly applied.
 	ReadDeadline time.Duration
 	// WriteDeadline apply read deadline for connection.
 	// If zero, the deadline is not explicitly applied.
 	WriteDeadline time.Duration
-
 	// Networks is the blacklist/whitelist of
 	// networks that can be connected.
 	// By default, Networks works as a whitelist.
 	// To use as a blacklist, set Blacklist to true.
 	Networks []string
-
-	// Blacklist if true, consider the networks listed in the
-	// Networks as blacklist.
-	Blacklist bool
-
 	// KeepAliveConfig is the keep-alive configuration.
 	// This config is not used for DTLS.
 	KeepAliveConfig net.KeepAliveConfig
-
 	// SockOption is the socket option.
 	// SocketOption is not applied for DTLS.
-	SockOption *SockOption
+	SockOption *zsyscall.SockOption
 }
 
 // NewListenerFromSpec returns a new net.Listener from the given spec.
@@ -262,12 +244,9 @@ func NewListenerFromSpec(spec *k.ListenConfig) (net.Listener, error) {
 
 	config := &ListenConfig{
 		TLSConfig:       tlsConfig,
-		DTLSConfig:      nil, // TODO: make DTLSConfig configurable.
-		Network:         spec.Network,
 		Address:         spec.Addr,
 		ConnectionLimit: int(spec.ConnectionLimit),
 		Networks:        spec.Networks,
-		Blacklist:       spec.Blacklist,
 		ReadDeadline:    time.Duration(spec.ReadDeadline) * time.Millisecond,
 		WriteDeadline:   time.Duration(spec.WriteDeadline) * time.Millisecond,
 		SockOption:      SockOptionFromSpec(spec.SockOption),
@@ -309,32 +288,29 @@ func NewListener(c *ListenConfig) (net.Listener, error) {
 	}
 
 	lc := &net.ListenConfig{
-		Control:         c.SockOption.ControlFunc(SockOptSO | SockOptIP | SockOptIPV6 | SockOptTCP),
+		Control:         c.SockOption.ControlFunc(zsyscall.SockOptSO | zsyscall.SockOptIP | zsyscall.SockOptIPV6 | zsyscall.SockOptTCP),
 		KeepAlive:       c.KeepAliveConfig.Idle,
 		KeepAliveConfig: c.KeepAliveConfig,
 	}
 
 	var ln net.Listener
 	var err error
-	switch c.Network {
-	case "tcp", "tcp4", "tcp6":
-		ln, err = lc.Listen(context.Background(), c.Network, c.Address)
+	net, addr := znet.ParseNetAddr(c.Address)
+	switch net {
+	case "", "tcp", "tcp4", "tcp6":
+		net = cmp.Or(net, "tcp") // Default tcp.
+		ln, err = lc.Listen(context.Background(), net, addr)
 		if c.TLSConfig != nil {
 			ln = tls.NewListener(ln, c.TLSConfig)
 		}
-	case "udp", "udp4", "udp6":
-		addr, resolveErr := net.ResolveUDPAddr(c.Network, c.Address)
-		listener, listenErr := dtls.Listen(c.Network, addr, c.DTLSConfig)
-		ln = listener
-		err = errors.Join(listenErr, resolveErr)
 	case "unix", "unixpacket":
-		ln, err = lc.Listen(context.Background(), c.Network, c.Address)
+		ln, err = lc.Listen(context.Background(), net, addr)
 		if c.TLSConfig != nil {
 			ln = tls.NewListener(ln, c.TLSConfig)
 		}
 		ln = RemoveSocketListener(ln) // Remove .socket file when closed if necessary.
 	default:
-		err = errors.New("kernel/network: unsupported network `" + c.Network + "`")
+		err = errors.New("kernel/network: unknown address `" + c.Address + "`")
 	}
 	if err != nil {
 		return nil, (&er.Error{
@@ -348,96 +324,23 @@ func NewListener(c *ListenConfig) (net.Listener, error) {
 	// Apply deadlines for connections.
 	ln = ListenerWithReadDeadline(ln, c.ReadDeadline)
 	ln = ListenerWithWriteDeadline(ln, c.WriteDeadline)
-
-	// Apply whitelist/blacklist to the listener.
-	list, err := netContainers(c.Networks)
-	if err != nil {
-		ln.Close() // Make sure to close internal listener.
-		return nil, (&er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeListener,
-			Description: ErrDscListener,
-			Detail:      "create new listener.",
-		}).Wrap(err)
-	}
-	ln = ListenerWithSecure(ln, list, c.Blacklist)
-
-	// Apply connection limit is the limit is >0.
-	ln = ListenerWithLimit(ln, c.ConnectionLimit)
-
-	return ln, nil
-}
-
-// ListenerWithSecure returns a net listener with ip address and/or port filter.
-// The given list will be considered as a whitelist when the blacklist=false,
-// and blacklist when the blacklist=true.
-// This function do nothing when the given Listener was nil
-// or the length of given containers was 0.
-func ListenerWithSecure(inner net.Listener, list []Container, blacklist bool) net.Listener {
-	if inner == nil || len(list) == 0 {
-		return inner
-	}
-	return &secureListener{
-		Listener:  inner,
-		list:      slices.Clip(list),
-		blacklist: blacklist,
-	}
-}
-
-// secureListener protects connections from not allowed clients.
-// This listener allows or dis-allows connections by whitelist or blacklist.
-// Closed connections will be returned by Accept() method when a connection
-// was not allowed.
-type secureListener struct {
-	net.Listener
-	// list is the list of ip or ip/port containers.
-	// This list is used as whitelist or blacklist.
-	// This list is used as whitelist by default and
-	// blacklist when the "blacklist" is set to true.
-	list []Container
-	// blacklist is the flag to use the list as blacklist.
-	// In most cases, securing by blacklist is not recommended.
-	blacklist bool
-}
-
-func (l *secureListener) Accept() (net.Conn, error) {
-	// Wait for the next connection.
-	// Accept block the process until the next connection obtained.
-	// If the listener is closed, Accept() unblock and return an error.
-	c, err := l.Listener.Accept()
-	if err != nil {
-		return nil, (&er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeListener,
-			Description: ErrDscListener,
-			Detail:      "accept connection.",
-		}).Wrap(err)
-	}
-
-	ip, port := splitHostPort(c.RemoteAddr().String())
-	if ip == nil {
-		c.Close() // Connection not allowed for invalid network.
-		return c, nil
-	}
-
-	// When blacklist=false, dis-allowed by default(allowed=false) and allowed(allowed=true) if contained.
-	// When blacklist=true, allowed by default(allowed=true) and dis-allowed(allowed=false) if contained.
-	allowed := l.blacklist
-	for _, item := range l.list {
-		if item.Contains(ip, port) {
-			if l.blacklist {
-				allowed = false
-			} else {
-				allowed = true
-			}
-			break
+	if len(c.Networks) > 0 {
+		wln, err := znet.NewWhiteListListener(ln, c.Networks...)
+		if err != nil {
+			ln.Close() // Make sure to close internal listener.
+			return nil, (&er.Error{
+				Package:     ErrPkg,
+				Type:        ErrTypeListener,
+				Description: ErrDscListener,
+				Detail:      "create new listener.",
+			}).Wrap(err)
 		}
+		ln = wln
 	}
-
-	if !allowed {
-		c.Close() // Connection not allowed.
+	if c.ConnectionLimit > 0 { // Connection limit if >0.
+		ln = znet.NewLimitListener(ln, c.ConnectionLimit)
 	}
-	return c, nil
+	return ln, nil
 }
 
 // ListenerWithReadDeadline returns a net listener which set deadlines to the connection.
@@ -524,71 +427,90 @@ func (l *writeDeadlineListener) Accept() (net.Conn, error) {
 	return c, nil
 }
 
-// ListenerWithLimit returns a net listener with connection limit.
-// This function do nothing when the given Listener was nil
-// or the given limit was less than or equal to 0.
-func ListenerWithLimit(inner net.Listener, limit int) net.Listener {
-	if inner == nil || limit <= 0 {
-		return inner
+func SockOptionFromSpec(spec *kernel.SockOption) *zsyscall.SockOption {
+	if spec == nil {
+		return nil
 	}
-	return &limitListener{
-		Listener: inner,
-		sem:      make(chan struct{}, limit), // limit must be positive.
+	return &zsyscall.SockOption{
+		SO:   SockSOOptionFromSpec(spec.SOOption),
+		IP:   SockIPOptionFromSpec(spec.IPOption),
+		IPV6: SockIPV6OptionFromSpec(spec.IPV6Option),
+		TCP:  SockTCPOptionFromSpec(spec.TCPOption),
+		UDP:  SockUDPOptionFromSpec(spec.UDPOption),
 	}
 }
 
-// limitListener is the net listener which can limit the number of simultaneous connections.
-// Note that the linux command "netstat" or "ss" like below
-// does not show the right number of connections currently accepted.
-//   - netstat -uant | grep ESTABLISHED | grep 8080 | wc
-//   - ss -o state established "( dport = :8080 )" -np | wc
-//
-// This is described in https://github.com/golang/go/issues/36212#issuecomment-567838193
-// Use "lsof" command instead. For example,
-//   - lsof -i:8080 | grep aileron
-type limitListener struct {
-	net.Listener
-	// sem is the semaphore variable.
-	// A new semaphore(struct{}) will be sent to this sem
-	// when a new connection was acceptable.
-	// The sent struct{} was removed from this sem when the connection was released.
-	// The length of the sem must be grater than or equal to 1.
-	sem chan struct{}
-}
-
-func (l *limitListener) Accept() (net.Conn, error) {
-	l.sem <- struct{}{} // Accept semaphore.
-	// Wait and accept the next connection.
-	// Accept blocks the process until the next connection was obtained.
-	// If the listener is closed, Accept() unblock and return an error.
-	c, err := l.Listener.Accept()
-	if err != nil {
-		<-l.sem // Make sure to release accepted semaphore.
-		return nil, (&er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeListener,
-			Description: ErrDscListener,
-			Detail:      "accept connection.",
-		}).Wrap(err)
+func SockSOOptionFromSpec(spec *kernel.SockSOOption) *zsyscall.SockSOOption {
+	if spec == nil {
+		return nil
 	}
-	return &limitListenerConn{
-		Conn:    c,
-		release: func() { <-l.sem },
-	}, nil
+	return &zsyscall.SockSOOption{
+		BindToDevice:       spec.BindToDevice,
+		Debug:              spec.Debug,
+		KeepAlive:          spec.KeepAlive,
+		Linger:             spec.Linger,
+		Mark:               int(spec.Mark),
+		ReceiveBuffer:      int(spec.ReceiveBuffer),
+		ReceiveBufferForce: int(spec.ReceiveBufferForce),
+		ReceiveTimeout:     time.Duration(spec.ReceiveTimeout) * time.Millisecond,
+		SendTimeout:        time.Duration(spec.SendTimeout) * time.Millisecond,
+		ReuseAddr:          spec.ReuseAddr,
+		ReusePort:          spec.ReusePort,
+		SendBuffer:         int(spec.SendBuffer),
+		SendBufferForce:    int(spec.SendBufferForce),
+	}
 }
 
-// limitListenerConn is the connection generated by limitListener with release function.
-// release function is called when the connection is disconnected.
-// Any occupied resources such as semaphore should be released in the release function.
-type limitListenerConn struct {
-	net.Conn
-	once    sync.Once
-	release func()
+func SockIPOptionFromSpec(spec *kernel.SockIPOption) *zsyscall.SockIPOption {
+	if spec == nil {
+		return nil
+	}
+	return &zsyscall.SockIPOption{
+		BindAddressNoPort:   spec.BindAddressNoPort,
+		FreeBind:            spec.FreeBind,
+		LocalPortRangeUpper: uint16(spec.LocalPortRangeUpper),
+		LocalPortRangeLower: uint16(spec.LocalPortRangeLower),
+		Transparent:         spec.Transparent,
+		TTL:                 int(spec.TTL),
+	}
 }
 
-// Close closes the connection and release resources.
-func (l *limitListenerConn) Close() error {
-	err := l.Conn.Close()
-	l.once.Do(l.release)
-	return err
+func SockIPV6OptionFromSpec(spec *kernel.SockIPV6Option) *zsyscall.SockIPV6Option {
+	if spec == nil {
+		return nil
+	}
+	return &zsyscall.SockIPV6Option{}
+}
+
+func SockTCPOptionFromSpec(spec *kernel.SockTCPOption) *zsyscall.SockTCPOption {
+	if spec == nil {
+		return nil
+	}
+	return &zsyscall.SockTCPOption{
+		CORK:            spec.CORK,
+		DeferAccept:     int(spec.DeferAccept),
+		KeepCount:       int(spec.KeepCount),
+		KeepIdle:        int(spec.KeepIdle),
+		KeepInterval:    int(spec.KeepInterval),
+		Linger2:         spec.Linger2,
+		MaxSegment:      int(spec.MaxSegment),
+		NoDelay:         spec.NoDelay,
+		QuickAck:        spec.QuickAck,
+		SynCount:        int(spec.SynCount),
+		UserTimeout:     int(spec.UserTimeout),
+		WindowClamp:     int(spec.WindowClamp),
+		FastOpen:        spec.FastOpen,
+		FastOpenConnect: spec.FastOpenConnect,
+	}
+}
+
+func SockUDPOptionFromSpec(spec *kernel.SockUDPOption) *zsyscall.SockUDPOption {
+	if spec == nil {
+		return nil
+	}
+	return &zsyscall.SockUDPOption{
+		CORK:    spec.CORK,
+		Segment: int(spec.Segment),
+		GRO:     spec.GRO,
+	}
 }

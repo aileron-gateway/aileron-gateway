@@ -6,7 +6,6 @@ package network
 const (
 	ErrPkg = "network"
 
-	ErrTypeSocket    = "socket"
 	ErrTypePackConn  = "packet conn"
 	ErrTypeDialer    = "dialer"
 	ErrTypeListener  = "listener"

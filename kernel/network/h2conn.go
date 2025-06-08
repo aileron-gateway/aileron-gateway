@@ -10,13 +10,24 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"slices"
+	"strings"
 	"sync"
 	"time"
 
 	"golang.org/x/net/http/httpguts"
 	"golang.org/x/net/http2"
 )
+
+// VerboseLogs is the flag to enable
+// networking debug logs.
+var VerboseLogs bool
+
+func init() {
+	e := os.Getenv("GODEBUG")
+	VerboseLogs = strings.Contains(e, "network=1")
+}
 
 // HTTP2AddrResolver is used for resolving
 // ip addresses in http2ClientConn pool.

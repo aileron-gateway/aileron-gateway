@@ -7,7 +7,6 @@ import (
 	"context"
 	"crypto/tls"
 	"errors"
-	"fmt"
 	"net"
 	"net/http"
 	"regexp"
@@ -533,8 +532,6 @@ func TestHostConns_getClientConn(t *testing.T) {
 
 			hc := tt.C().hc
 			conn, err := hc.getClientConn(context.Background())
-			fmt.Println(tt.Name())
-			fmt.Println("***************\n", conn, err)
 			if tt.A().errPattern != nil {
 				t.Log(err.Error())
 				testutil.Diff(t, true, tt.A().errPattern.MatchString(err.Error()))
