@@ -144,5 +144,7 @@ func equal(a, b []byte) error {
 	if string(a) == string(b) {
 		return nil
 	}
-	return encrypt.ErrNotMatch
+	return ErrNotMatch
 }
+
+var ErrNotMatch = errors.New("password hash not matched")
