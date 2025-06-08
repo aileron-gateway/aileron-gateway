@@ -12,7 +12,7 @@ import (
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
 	"github.com/aileron-gateway/aileron-gateway/kernel/encrypt"
-	"github.com/aileron-gateway/aileron-gateway/kernel/mac"
+	"github.com/aileron-gateway/aileron-gateway/kernel/hash"
 )
 
 func NewSecureEncoder(spec *v1.SecureEncoderSpec) (*SecureEncoder, error) {
@@ -20,8 +20,8 @@ func NewSecureEncoder(spec *v1.SecureEncoderSpec) (*SecureEncoder, error) {
 		return nil, nil
 	}
 
-	hmac := mac.FromHashAlg(spec.HashAlg)
-	size := mac.HashSize[spec.HashAlg]
+	hmac := hash.HMACFromHashAlg(spec.HashAlg)
+	size := hash.HashSize[spec.HashAlg]
 	enc := encrypt.EncrypterFromType(spec.CommonKeyCryptType)
 	dec := encrypt.DecrypterFromType(spec.CommonKeyCryptType)
 
@@ -55,7 +55,7 @@ func NewSecureEncoder(spec *v1.SecureEncoderSpec) (*SecureEncoder, error) {
 }
 
 type SecureEncoder struct {
-	hmac mac.HMACFunc
+	hmac hash.HMACFunc
 	size int
 	key  []byte
 

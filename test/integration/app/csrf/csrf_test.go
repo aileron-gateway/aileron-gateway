@@ -21,7 +21,7 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/cmd/aileron/app"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/mac"
+	"github.com/aileron-gateway/aileron-gateway/kernel/hash"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/aileron-gateway/aileron-gateway/test/integration/common"
 	"github.com/aileron-gateway/aileron-gateway/util/session"
@@ -107,7 +107,7 @@ func TestDoubleSubmitHeader(t *testing.T) {
 	decodedSecret, _ := base64.StdEncoding.DecodeString(secret)
 	seedSize := 32
 	hashSize := 32
-	hmacFunc := mac.FromHashAlg(kernel.HashAlg_SHA256)
+	hmacFunc := hash.HMACFromHashAlg(kernel.HashAlg_SHA256)
 	validToken := generateValidToken(t, string(decodedSecret), seedSize, hashSize, hmacFunc)
 
 	// Valid token in cookie and header.
@@ -160,7 +160,7 @@ func TestDoubleSubmitForm(t *testing.T) {
 	decodedSecret, _ := base64.StdEncoding.DecodeString(secret)
 	seedSize := 32
 	hashSize := 32
-	hmacFunc := mac.FromHashAlg(kernel.HashAlg_SHA256)
+	hmacFunc := hash.HMACFromHashAlg(kernel.HashAlg_SHA256)
 	validToken := generateValidToken(t, string(decodedSecret), seedSize, hashSize, hmacFunc)
 
 	// Valid token in cookie and header.
@@ -215,7 +215,7 @@ func TestDoubleSubmitJSON(t *testing.T) {
 	decodedSecret, _ := base64.StdEncoding.DecodeString(secret)
 	seedSize := 32
 	hashSize := 32
-	hmacFunc := mac.FromHashAlg(kernel.HashAlg_SHA256)
+	hmacFunc := hash.HMACFromHashAlg(kernel.HashAlg_SHA256)
 	validToken := generateValidToken(t, string(decodedSecret), seedSize, hashSize, hmacFunc)
 
 	// Valid token in cookie and header.
@@ -276,7 +276,7 @@ func TestSynchronizerToken(t *testing.T) {
 	decodedSecret, _ := base64.StdEncoding.DecodeString(secret)
 	seedSize := 32
 	hashSize := 32
-	hmacFunc := mac.FromHashAlg(kernel.HashAlg_SHA256)
+	hmacFunc := hash.HMACFromHashAlg(kernel.HashAlg_SHA256)
 	validToken := generateValidToken(t, string(decodedSecret), seedSize, hashSize, hmacFunc)
 
 	// request valid CSRF token

@@ -13,7 +13,7 @@ import (
 	"testing"
 
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
-	"github.com/aileron-gateway/aileron-gateway/kernel/mac"
+	"github.com/aileron-gateway/aileron-gateway/kernel/hash"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 )
 
@@ -109,7 +109,7 @@ func TestCsrfToken_New(t *testing.T) {
 				secret:   []byte("some-secret-key"),
 				seedSize: tt.C().seedSize,
 				hashSize: tt.C().hashSize,
-				hmac:     mac.FromHashAlg(kernel.HashAlg_SHA256),
+				hmac:     hash.HMACFromHashAlg(kernel.HashAlg_SHA256),
 			}
 
 			token, err := csrfToken.new()
@@ -214,7 +214,7 @@ func TestCsrfToken_Verify(t *testing.T) {
 				secret:   []byte("some-secret-key"),
 				seedSize: tt.C().seedSize,
 				hashSize: tt.C().hashSize,
-				hmac:     mac.FromHashAlg(kernel.HashAlg_SHA256),
+				hmac:     hash.HMACFromHashAlg(kernel.HashAlg_SHA256),
 			}
 
 			var token string

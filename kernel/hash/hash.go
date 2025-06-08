@@ -4,18 +4,20 @@
 package hash
 
 import (
-	"crypto/sha1"
-	"crypto/sha256"
-	"crypto/sha512"
-
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
-	"golang.org/x/crypto/blake2b"
-	"golang.org/x/crypto/blake2s"
-	"golang.org/x/crypto/sha3"
+	"github.com/aileron-projects/go/zcrypto/zblake2b"
+	"github.com/aileron-projects/go/zcrypto/zblake2s"
+	"github.com/aileron-projects/go/zcrypto/zsha1"
+	"github.com/aileron-projects/go/zcrypto/zsha256"
+	"github.com/aileron-projects/go/zcrypto/zsha3"
+	"github.com/aileron-projects/go/zcrypto/zsha512"
 )
 
 // HashFunc is the function that returns hash value of the given data.
 type HashFunc func(data []byte) (hash []byte)
+
+// HMACFunc is the function of Hash-based Message Authentication Code.
+type HMACFunc func(message []byte, key []byte) (hash []byte)
 
 // Algorithm is the hash algorithm.
 type Algorithm int
@@ -86,23 +88,23 @@ var HashSize = map[k.HashAlg]int{
 // This function returns nil when hash function not found.
 func FromAlgorithm(a Algorithm) HashFunc {
 	algToFunc := map[Algorithm]HashFunc{
-		AlgSHA1:        SHA1,
-		AlgSHA224:      SHA224,
-		AlgSHA256:      SHA256,
-		AlgSHA384:      SHA384,
-		AlgSHA512:      SHA512,
-		AlgSHA512_224:  SHA512_224,
-		AlgSHA512_256:  SHA512_256,
-		AlgSHA3_224:    SHA3_224,
-		AlgSHA3_256:    SHA3_256,
-		AlgSHA3_384:    SHA3_384,
-		AlgSHA3_512:    SHA3_512,
-		AlgSHAKE128:    SHAKE128,
-		AlgSHAKE256:    SHAKE256,
-		AlgBLAKE2s_256: BLAKE2s_256,
-		AlgBLAKE2b_256: BLAKE2b_256,
-		AlgBLAKE2b_384: BLAKE2b_384,
-		AlgBLAKE2b_512: BLAKE2b_512,
+		AlgSHA1:        zsha1.Sum,
+		AlgSHA224:      zsha256.Sum224,
+		AlgSHA256:      zsha256.Sum256,
+		AlgSHA384:      zsha512.Sum384,
+		AlgSHA512:      zsha512.Sum512,
+		AlgSHA512_224:  zsha512.Sum224,
+		AlgSHA512_256:  zsha512.Sum256,
+		AlgSHA3_224:    zsha3.Sum224,
+		AlgSHA3_256:    zsha3.Sum256,
+		AlgSHA3_384:    zsha3.Sum384,
+		AlgSHA3_512:    zsha3.Sum512,
+		AlgSHAKE128:    zsha3.SumShake128,
+		AlgSHAKE256:    zsha3.SumShake256,
+		AlgBLAKE2s_256: zblake2s.Sum256,
+		AlgBLAKE2b_256: zblake2b.Sum256,
+		AlgBLAKE2b_384: zblake2b.Sum384,
+		AlgBLAKE2b_512: zblake2b.Sum512,
 	}
 	return algToFunc[a]
 }
@@ -112,202 +114,73 @@ func FromAlgorithm(a Algorithm) HashFunc {
 // This function returns nil when hash function not found.
 func FromHashAlg(t k.HashAlg) HashFunc {
 	typeToFunc := map[k.HashAlg]HashFunc{
-		k.HashAlg_SHA1:        SHA1,
-		k.HashAlg_SHA224:      SHA224,
-		k.HashAlg_SHA256:      SHA256,
-		k.HashAlg_SHA384:      SHA384,
-		k.HashAlg_SHA512:      SHA512,
-		k.HashAlg_SHA512_224:  SHA512_224,
-		k.HashAlg_SHA512_256:  SHA512_256,
-		k.HashAlg_SHA3_224:    SHA3_224,
-		k.HashAlg_SHA3_256:    SHA3_256,
-		k.HashAlg_SHA3_384:    SHA3_384,
-		k.HashAlg_SHA3_512:    SHA3_512,
-		k.HashAlg_SHAKE128:    SHAKE128,
-		k.HashAlg_SHAKE256:    SHAKE256,
-		k.HashAlg_BLAKE2s_256: BLAKE2s_256,
-		k.HashAlg_BLAKE2b_256: BLAKE2b_256,
-		k.HashAlg_BLAKE2b_384: BLAKE2b_384,
-		k.HashAlg_BLAKE2b_512: BLAKE2b_512,
+		k.HashAlg_SHA1:        zsha1.Sum,
+		k.HashAlg_SHA224:      zsha256.Sum224,
+		k.HashAlg_SHA256:      zsha256.Sum256,
+		k.HashAlg_SHA384:      zsha512.Sum384,
+		k.HashAlg_SHA512:      zsha512.Sum512,
+		k.HashAlg_SHA512_224:  zsha512.Sum224,
+		k.HashAlg_SHA512_256:  zsha512.Sum256,
+		k.HashAlg_SHA3_224:    zsha3.Sum224,
+		k.HashAlg_SHA3_256:    zsha3.Sum256,
+		k.HashAlg_SHA3_384:    zsha3.Sum384,
+		k.HashAlg_SHA3_512:    zsha3.Sum512,
+		k.HashAlg_SHAKE128:    zsha3.SumShake128,
+		k.HashAlg_SHAKE256:    zsha3.SumShake256,
+		k.HashAlg_BLAKE2s_256: zblake2s.Sum256,
+		k.HashAlg_BLAKE2b_256: zblake2b.Sum256,
+		k.HashAlg_BLAKE2b_384: zblake2b.Sum384,
+		k.HashAlg_BLAKE2b_512: zblake2b.Sum512,
 	}
 	return typeToFunc[t]
 }
 
-// SHA1 returns SHA1 checksum of the given bytes.
-// [20]byte slice is returned.
-// Technically, sha1.Sum(b) is used.
-//   - https://pkg.go.dev/crypto/sha1
-func SHA1(b []byte) []byte {
-	x := sha1.Sum(b)
-	return x[:]
+// FromAlgorithm returns HMAC function by searching with the given hash algorithm.
+// This function returns nil when no HMAC function found.
+func HMACFromAlgorithm(a Algorithm) HMACFunc {
+	algToFunc := map[Algorithm]HMACFunc{
+		AlgSHA1:        zsha1.HMACSum,
+		AlgSHA224:      zsha256.HMACSum224,
+		AlgSHA256:      zsha256.HMACSum256,
+		AlgSHA384:      zsha512.HMACSum384,
+		AlgSHA512:      zsha512.HMACSum512,
+		AlgSHA512_224:  zsha512.HMACSum224,
+		AlgSHA512_256:  zsha512.HMACSum256,
+		AlgSHA3_224:    zsha3.HMACSum224,
+		AlgSHA3_256:    zsha3.HMACSum256,
+		AlgSHA3_384:    zsha3.HMACSum384,
+		AlgSHA3_512:    zsha3.HMACSum512,
+		AlgSHAKE128:    nil,
+		AlgSHAKE256:    nil,
+		AlgBLAKE2s_256: zblake2s.HMACSum256,
+		AlgBLAKE2b_256: zblake2b.HMACSum256,
+		AlgBLAKE2b_384: zblake2b.HMACSum384,
+		AlgBLAKE2b_512: zblake2b.HMACSum512,
+	}
+	return algToFunc[a]
 }
 
-// SHA224 returns SHA224 checksum of the given data.
-// [28]byte slice is returned.
-// Technically, sha256.Sum224(b) is used.
-//   - https://pkg.go.dev/crypto/sha256
-func SHA224(b []byte) []byte {
-	x := sha256.Sum224(b)
-	return x[:]
-}
-
-// SHA256 returns SHA256 checksum of the given data.
-// [32]byte slice is returned.
-// Technically, sha256.Sum256(b) is used.
-//   - https://pkg.go.dev/crypto/sha256
-func SHA256(b []byte) []byte {
-	x := sha256.Sum256(b)
-	return x[:]
-}
-
-// SHA384 returns SHA384 checksum of the given data.
-// [48]byte slice is returned.
-// Technically, sha512.Sum384(b) is used.
-//   - https://pkg.go.dev/crypto/sha512
-func SHA384(b []byte) []byte {
-	x := sha512.Sum384(b)
-	return x[:]
-}
-
-// SHA512 returns SHA512 checksum of the given data.
-// [64]byte slice is returned.
-// Technically, sha512.Sum512(b) is used.
-//   - https://pkg.go.dev/crypto/sha512
-func SHA512(b []byte) []byte {
-	x := sha512.Sum512(b)
-	return x[:]
-}
-
-// SHA512_224 returns SHA512/224 checksum of the given data.
-// [28]byte slice is returned.
-// Technically, sha512.Sum512_224(b) is used.
-//   - https://pkg.go.dev/crypto/sha512
-//
-//lint:ignore ST1003 should not use ALL_CAPS in Go names; use CamelCase instead
-func SHA512_224(b []byte) []byte {
-	x := sha512.Sum512_224(b)
-	return x[:]
-}
-
-// SHA512_256 returns SHA512/256 checksum of the given data.
-// [32]byte slice is returned.
-// Technically, sha512.Sum512_256(b) is used.
-//   - https://pkg.go.dev/crypto/sha512
-//
-//lint:ignore ST1003 should not use ALL_CAPS in Go names; use CamelCase instead
-func SHA512_256(b []byte) []byte {
-	x := sha512.Sum512_256(b)
-	return x[:]
-}
-
-// SHA3_224 returns SHA3/224 checksum of the given data.
-// [28]byte slice is returned.
-// Technically, sha3.Sum224(b) is used.
-//   - https://pkg.go.dev/golang.org/x/crypto/sha3
-//
-//lint:ignore ST1003 should not use ALL_CAPS in Go names; use CamelCase instead
-func SHA3_224(b []byte) []byte {
-	x := sha3.Sum224(b)
-	return x[:]
-}
-
-// SHA3_256 returns SHA3/256 checksum of the given data.
-// [32]byte slice is returned.
-// Technically, sha3.Sum256(b) is used.
-//   - https://pkg.go.dev/golang.org/x/crypto/sha3
-//
-//lint:ignore ST1003 should not use ALL_CAPS in Go names; use CamelCase instead
-func SHA3_256(b []byte) []byte {
-	x := sha3.Sum256(b)
-	return x[:]
-}
-
-// SHA3_384 returns SHA3/384 checksum of the given data.
-// [48]byte slice is returned.
-// Technically, sha3.Sum384(b) is used.
-//   - https://pkg.go.dev/golang.org/x/crypto/sha3
-//
-//lint:ignore ST1003 should not use ALL_CAPS in Go names; use CamelCase instead
-func SHA3_384(b []byte) []byte {
-	x := sha3.Sum384(b)
-	return x[:]
-}
-
-// SHA3_512 returns SHA3/512 checksum of the given data.
-// [64]byte slice is returned.
-// Technically, sha3.Sum512(b) is used.
-//   - https://pkg.go.dev/golang.org/x/crypto/sha3
-//
-//lint:ignore ST1003 should not use ALL_CAPS in Go names; use CamelCase instead
-func SHA3_512(b []byte) []byte {
-	x := sha3.Sum512(b)
-	return x[:]
-}
-
-// SHAKE128 returns SHAKE128 checksum of the given data.
-// [32]byte slice is returned.
-// Technically, sha3.NewShake128() is used.
-//   - https://pkg.go.dev/golang.org/x/crypto/sha3
-func SHAKE128(b []byte) []byte {
-	h := sha3.NewShake128()
-	h.Write(b)
-	return h.Sum(make([]byte, 0, SizeSHAKE128))
-}
-
-// SHAKE256 returns SHAKE256 checksum of the given data.
-// [32]byte slice is returned.
-// Technically, sha3.NewShake256() is used.
-//   - https://pkg.go.dev/golang.org/x/crypto/sha3
-func SHAKE256(b []byte) []byte {
-	h := sha3.NewShake256()
-	h.Write(b)
-	return h.Sum(make([]byte, 0, SizeSHAKE256))
-}
-
-// BLAKE2s_256 returns BLAKE2s/256 checksum of the given data.
-// [32]byte slice is returned.
-// Technically, blake2s.New256(nil) is used.
-//   - https://pkg.go.dev/golang.org/x/crypto/blake2s
-//
-//lint:ignore ST1003 should not use underscores in Go names; func BLAKE2s_256 should be BLAKE2s256
-func BLAKE2s_256(b []byte) []byte {
-	h, _ := blake2s.New256(nil)
-	h.Write(b)
-	return h.Sum(make([]byte, 0, SizeBLAKE2s_256))
-}
-
-// BLAKE2b_256 returns BLAKE2b/256 checksum of the given data.
-// [32]byte slice is returned.
-// Technically, blake2b.New256(nil) is used.
-//   - https://pkg.go.dev/golang.org/x/crypto/blake2b
-//
-//lint:ignore ST1003 should not use underscores in Go names; func BLAKE2b_256 should be BLAKE2b256
-func BLAKE2b_256(b []byte) []byte {
-	h, _ := blake2b.New256(nil)
-	h.Write(b)
-	return h.Sum(make([]byte, 0, SizeBLAKE2b_256))
-}
-
-// BLAKE2b_384 returns BLAKE2b/384 checksum of the given data.
-// [48]byte slice is returned.
-// Technically, blake2b.New384(nil) is used.
-//   - https://pkg.go.dev/golang.org/x/crypto/blake2b
-//
-//lint:ignore ST1003 should not use underscores in Go names; func BLAKE2b_384 should be BLAKE2b384
-func BLAKE2b_384(b []byte) []byte {
-	h, _ := blake2b.New384(nil)
-	h.Write(b)
-	return h.Sum(make([]byte, 0, SizeBLAKE2b_384))
-}
-
-// BLAKE2b_512 returns BLAKE2b/512 checksum of the given data.
-// [64]byte slice is returned.
-// Technically, blake2b.New512(nil) is used.
-//   - https://pkg.go.dev/golang.org/x/crypto/blake2b
-//
-//lint:ignore ST1003 should not use underscores in Go names; func BLAKE2b_512 should be BLAKE2b512
-func BLAKE2b_512(b []byte) []byte {
-	h, _ := blake2b.New512(nil)
-	h.Write(b)
-	return h.Sum(make([]byte, 0, SizeBLAKE2b_512))
+// FromHashAlg returns HMAC function by searching with the given hash algorithm.
+// This function returns nil when no HMAC function found.
+func HMACFromHashAlg(t k.HashAlg) HMACFunc {
+	typeToFunc := map[k.HashAlg]HMACFunc{
+		k.HashAlg_SHA1:        zsha1.HMACSum,
+		k.HashAlg_SHA224:      zsha256.HMACSum224,
+		k.HashAlg_SHA256:      zsha256.HMACSum256,
+		k.HashAlg_SHA384:      zsha512.HMACSum384,
+		k.HashAlg_SHA512:      zsha512.HMACSum512,
+		k.HashAlg_SHA512_224:  zsha512.HMACSum224,
+		k.HashAlg_SHA512_256:  zsha512.HMACSum256,
+		k.HashAlg_SHA3_224:    zsha3.HMACSum224,
+		k.HashAlg_SHA3_256:    zsha3.HMACSum256,
+		k.HashAlg_SHA3_384:    zsha3.HMACSum384,
+		k.HashAlg_SHA3_512:    zsha3.HMACSum512,
+		k.HashAlg_SHAKE128:    nil,
+		k.HashAlg_SHAKE256:    nil,
+		k.HashAlg_BLAKE2s_256: zblake2s.HMACSum256,
+		k.HashAlg_BLAKE2b_256: zblake2b.HMACSum256,
+		k.HashAlg_BLAKE2b_384: zblake2b.HMACSum384,
+		k.HashAlg_BLAKE2b_512: zblake2b.HMACSum512,
+	}
+	return typeToFunc[t]
 }

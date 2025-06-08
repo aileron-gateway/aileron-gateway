@@ -11,7 +11,7 @@ import (
 	"mime"
 	"net/http"
 
-	"github.com/aileron-gateway/aileron-gateway/kernel/mac"
+	"github.com/aileron-gateway/aileron-gateway/kernel/hash"
 	"github.com/tidwall/gjson"
 )
 
@@ -27,7 +27,7 @@ type csrfToken struct {
 	secret   []byte
 	seedSize int
 	hashSize int
-	hmac     mac.HMACFunc
+	hmac     hash.HMACFunc
 }
 
 func (h *csrfToken) new() (string, error) {

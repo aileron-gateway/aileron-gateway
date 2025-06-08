@@ -12,9 +12,10 @@ import (
 
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/core"
-	"github.com/aileron-gateway/aileron-gateway/kernel/mac"
+	"github.com/aileron-gateway/aileron-gateway/kernel/hash"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
+	"github.com/aileron-projects/go/zcrypto/zsha256"
 )
 
 type mockStrategy struct {
@@ -192,7 +193,7 @@ func TestServeHTTP(t *testing.T) {
 					secret:   []byte("some-secret-key"),
 					seedSize: 32,
 					hashSize: 32,
-					hmac:     mac.FromHashAlg(kernel.HashAlg_SHA256),
+					hmac:     hash.HMACFromHashAlg(kernel.HashAlg_SHA256),
 				},
 				strategy: &mockStrategy{},
 			},
@@ -212,7 +213,7 @@ func TestServeHTTP(t *testing.T) {
 					secret:   []byte("some-secret-key"),
 					seedSize: 32,
 					hashSize: 32,
-					hmac:     mac.FromHashAlg(kernel.HashAlg_SHA256),
+					hmac:     hash.HMACFromHashAlg(kernel.HashAlg_SHA256),
 				},
 				strategy: &mockStrategy{
 					getToken: "existing-token",
@@ -234,7 +235,7 @@ func TestServeHTTP(t *testing.T) {
 					secret:   []byte("some-secret-key"),
 					seedSize: 32,
 					hashSize: 32,
-					hmac:     mac.FromHashAlg(kernel.HashAlg_SHA256),
+					hmac:     hash.HMACFromHashAlg(kernel.HashAlg_SHA256),
 				},
 				accept:   "text/plain",
 				strategy: &mockStrategy{},
@@ -256,7 +257,7 @@ func TestServeHTTP(t *testing.T) {
 					secret:   []byte("some-secret-key"),
 					seedSize: 32,
 					hashSize: 32,
-					hmac:     mac.FromHashAlg(kernel.HashAlg_SHA256),
+					hmac:     hash.HMACFromHashAlg(kernel.HashAlg_SHA256),
 				},
 				accept:   "application/json",
 				strategy: &mockStrategy{},
@@ -278,7 +279,7 @@ func TestServeHTTP(t *testing.T) {
 					secret:   []byte("some-secret-key"),
 					seedSize: 32,
 					hashSize: 32,
-					hmac:     mac.FromHashAlg(kernel.HashAlg_SHA256),
+					hmac:     hash.HMACFromHashAlg(kernel.HashAlg_SHA256),
 				},
 				accept:   "application/xml",
 				strategy: &mockStrategy{},
@@ -348,7 +349,7 @@ func TestServeHTTPWithRandError(t *testing.T) {
 		secret:   []byte("some-secret"),
 		seedSize: 32,
 		hashSize: 32,
-		hmac:     mac.HMACFunc(mac.SHA256),
+		hmac:     zsha256.HMACSum256,
 	}
 
 	strategy := &mockStrategy{
@@ -381,7 +382,7 @@ func TestServeHTTPWithSetError(t *testing.T) {
 		secret:   []byte("some-secret"),
 		seedSize: 32,
 		hashSize: 32,
-		hmac:     mac.HMACFunc(mac.SHA256),
+		hmac:     zsha256.HMACSum256,
 	}
 
 	strategy := &mockStrategy{

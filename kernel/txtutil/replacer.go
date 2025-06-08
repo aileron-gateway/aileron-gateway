@@ -15,7 +15,6 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/kernel/encrypt"
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
 	"github.com/aileron-gateway/aileron-gateway/kernel/hash"
-	"github.com/aileron-gateway/aileron-gateway/kernel/mac"
 )
 
 // ReplaceFunc is the function that
@@ -342,8 +341,8 @@ func hashFunc(alg k.HashAlg) (hash.HashFunc, error) {
 	return f, nil
 }
 
-func hmacFunc(alg k.HashAlg, key string) (mac.HMACFunc, []byte, error) {
-	f := mac.FromHashAlg(alg)
+func hmacFunc(alg k.HashAlg, key string) (hash.HMACFunc, []byte, error) {
+	f := hash.HMACFromHashAlg(alg)
 	if f == nil {
 		return nil, nil, &er.Error{
 			Package:     ErrPkg,
@@ -893,7 +892,7 @@ func (r *encryptBytesReplacer) Replace(in []byte) (b []byte) {
 // This implements Replacer[string] interface.
 type hmacStringReplacer struct {
 	pattern    *regexp.Regexp
-	hmacFunc   mac.HMACFunc
+	hmacFunc   hash.HMACFunc
 	encodeFunc encoder.EncodeToStringFunc
 	key        []byte
 }
@@ -912,7 +911,7 @@ func (r *hmacStringReplacer) Replace(in string) string {
 // This implements Replacer[[]byte] interface.
 type hmacBytesReplacer struct {
 	pattern    *regexp.Regexp
-	hmacFunc   mac.HMACFunc
+	hmacFunc   hash.HMACFunc
 	encodeFunc encoder.EncodeToStringFunc
 	key        []byte
 }

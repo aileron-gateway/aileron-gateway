@@ -18,7 +18,6 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/hash"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
-	"github.com/aileron-gateway/aileron-gateway/kernel/mac"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -103,7 +102,7 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.Prot
 	if err != nil {
 		return nil, core.ErrCoreGenCreateObject.WithStack(err, map[string]any{"kind": kind})
 	}
-	mac := mac.FromHashAlg(c.Spec.HashAlg)
+	mac := hash.HMACFromHashAlg(c.Spec.HashAlg)
 	if mac == nil {
 		err := errors.New("invalid hash algorithm " + c.Spec.HashAlg.String())
 		return nil, core.ErrCoreGenCreateObject.WithStack(err, map[string]any{"kind": kind})

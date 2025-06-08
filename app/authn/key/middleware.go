@@ -14,7 +14,6 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/kernel/encoder"
 	"github.com/aileron-gateway/aileron-gateway/kernel/hash"
 	"github.com/aileron-gateway/aileron-gateway/kernel/kvs"
-	"github.com/aileron-gateway/aileron-gateway/kernel/mac"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 )
 
@@ -44,7 +43,7 @@ type handler struct {
 	encodeFunc encoder.EncodeToStringFunc
 
 	hashFunc hash.HashFunc
-	hmacFunc mac.HMACFunc
+	hmacFunc hash.HMACFunc
 	hmacKey  []byte
 }
 
