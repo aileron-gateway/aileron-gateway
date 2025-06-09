@@ -38,19 +38,17 @@ In this example, following directory structure and files are supposed.
 If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt
-vanilla-server/           ----- Working directory.
-├── aileron               ----- AILERON Gateway binary (aileron.exe on windows).
-├── config-single.yaml    ----- AILERON Gateway config file for single server.
-└── config-multiple.yaml  ----- AILERON Gateway config file for multiple servers.
+vanilla-server/  ----- Working directory.
+├── aileron      ----- AILERON Gateway binary (aileron.exe on windows).
+└── config.yaml  ----- AILERON Gateway config file.
 ```
 
 ## Config
 
 Configuration yaml to run multiple vanilla servers would becomes as follows.
-Config for a single server would be more simple than this (See the config-single.yaml).
 
 ```yaml
-# config-multiple.yaml
+# config.yaml
 
 apiVersion: core/v1
 kind: Entrypoint
@@ -116,7 +114,7 @@ graph TD
 Run the AILERON Gateway with command:
 
 ```bash
-./aileron -f ./config-multiple.yaml
+./aileron -f ./config.yaml
 ```
 
 ## Check

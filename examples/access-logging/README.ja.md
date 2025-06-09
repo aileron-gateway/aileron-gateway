@@ -1,12 +1,12 @@
-## Overview
+## 概要
 
-This example shows access logging.
-Access logging is the feature to log server-side requests and responses and client-side requests and responses.
+この例ではアクセスログの記録方法を示します。  
+アクセスログとは、サーバー側のリクエストおよびレスポンス、クライアント側のリクエストおよびレスポンスを記録する機能です。
 
-In the AILERON Gateway, HTTP requests and response logging is done by `HTTPLogger` API.
-Because `HTTPLogger` works both as server-side middleware and client-side middleware, it can be used for both server-side and client-side access logger.
+AILERON Gateway では、HTTPリクエストおよびレスポンスのログ記録は `HTTPLogger` API によって行われます。  
+`HTTPLogger` はサーバー側のミドルウェアとしても、クライアント側のミドルウェアとしても動作するため、サーバーおよびクライアント両方のアクセスロガーとして使用できます。
 
-This is an overview how this example runs the AILERON Gateway and uses its features.
+この図は、`HTTPLogger` がゲートウェイ内でミドルウェアまたはトリッパーウェアとして動作する様子を示しています。
 
 ```mermaid
 block-beta
@@ -34,25 +34,25 @@ style HTTPLoggerM stroke:#77dd77,stroke-width:2px
 style HTTPLoggerT stroke:#89CFF0,stroke-width:2px
 ```
 
-**Legend**:
+**凡例**:
 
-- 🟥 `#ff6961` Handler resources.
-- 🟩 `#77dd77` Middleware resources (Server-side middleware).
-- 🟦 `#89CFF0` Tripperware resources (Client-side middleware).
-- 🟪 `#9370DB` Other resources.
+- 🟥 `#ff6961` ハンドラーリソース
+- 🟩 `#77dd77` ミドルウェアリソース（サーバー側ミドルウェア）
+- 🟦 `#89CFF0` トリッパーウェアリソース（クライアント側ミドルウェア）
+- 🟪 `#9370DB` その他のリソース
 
-In this example, following directory structure and files are supposed.
-If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
+この例では、以下のディレクトリ構成とファイルが想定されています。  
+ビルド済みのバイナリが必要な場合は、[GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases) からダウンロードしてください。
 
 ```txt
-access-logging/  ----- Working directory.
-├── aileron      ----- AILERON Gateway binary (aileron.exe on windows).
-└── config.yaml  ----- AILERON Gateway config file.
+access-logging/  ----- 作業ディレクトリ
+├── aileron      ----- AILERON Gateway バイナリ (Windowsではaileron.exe)
+└── config.yaml  ----- AILERON Gateway configファイル
 ```
 
 ## Config
 
-Configuration yaml to run a server with access logging becomes as follows.
+アクセスログ付きでサーバーを実行するための設定 YAML は次のようになります。
 
 ```yaml
 # config.yaml
@@ -104,19 +104,19 @@ spec:
       - name: "*" # Log all response headers.
 ```
 
-The config tells:
+この設定は次の内容を示しています：
 
-- Start a `HTTPServer` with port 8080.
-- ReverseProxy is applied for the path having prefix `/`.
-  - Upstream service is [http://httpbin.org](http://httpbin.org).
-- Use `HTTPLogger` with all request and response header logging.
-  - Apply `HTTPLogger` as server-side middleware.
-  - Apply `HTTPLogger` as client-side middleware (tripperware) .
+- ポート8080で `HTTPServer` を起動します。
+- `/` プレフィックスを持つパスに対して ReverseProxy を適用します。
+  - アップストリームサービスは [http://httpbin.org](http://httpbin.org) です。
+- `HTTPLogger` を使用して、すべてのリクエストおよびレスポンスヘッダーをログ出力します。
+  - `HTTPLogger` をサーバー側ミドルウェアとして適用します。
+  - `HTTPLogger` をクライアント側ミドルウェア（トリッパーウェア）として適用します。
 
-Note that the HTTPLogger is used as both middleware and tripperware here.
-Defined two HTTPLogger if different configuration is necessary for middleware and tripperware.
+ここでは、`HTTPLogger` をミドルウェアとトリッパーウェアの両方として使用している点に注意してください。  
+ミドルウェアとトリッパーウェアで異なる設定が必要な場合は、`HTTPLogger` をそれぞれ別に定義します。
 
-This graph shows the resource dependencies of the configuration.
+このグラフは、上記の設定におけるリソースの依存関係を示しています。
 
 ```mermaid
 graph TD
@@ -135,7 +135,7 @@ style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
 
 ## Run
 
-Just run the following command to start the AILERON Gateway.
+次のコマンドを実行するだけで、AILERON Gateway を起動できます。
 
 ```bash
 ./aileron -f ./config.yaml
@@ -143,11 +143,11 @@ Just run the following command to start the AILERON Gateway.
 
 ## Check
 
-After starting up the server, send HTTP requests like below.
-Access logs will be output on the terminal.
+サーバーの起動後、以下のように HTTP リクエストを送信してください。  
+アクセスログはターミナル上に出力されます。
 
-Make sure the internet access is available because this examples uses [http://httpbin.org/](http://httpbin.org/) as proxy upstream.
-Use `http_proxy` and `https_proxy` environmental variable as described in [ProxyFromEnvironment](https://pkg.go.dev/net/http#ProxyFromEnvironment) if you are working behind a http proxy.
+この例ではプロキシのアップストリームとして [http://httpbin.org/](http://httpbin.org/) を使用しているため、実行環境でインターネット接続が有効であることを確認してください。  
+HTTP プロキシ下で作業している場合は、[ProxyFromEnvironment](https://pkg.go.dev/net/http#ProxyFromEnvironment) に記載されているように、`http_proxy` および `https_proxy` 環境変数を使用してください。
 
 ```bash
 $ curl http://localhost:8080/get
@@ -168,16 +168,16 @@ $ curl http://localhost:8080/get
 }
 ```
 
-These json are the example of formatted access logs.
+これらの JSON は、整形されたアクセスログの例です。
 
-4 json entries are output for a single request.
+1 回のリクエストにつき、4 つの JSON エントリが出力されます。
 
-1. Server-side (middleware) request
-2. Server-side (middleware) response
-3. Client-side (tripperware) request
-4. Client-side (tripperware) response
+1. サーバー側（ミドルウェア）のリクエスト  
+2. サーバー側（ミドルウェア）のレスポンス  
+3. クライアント側（トリッパーウェア）のリクエスト  
+4. クライアント側（トリッパーウェア）のレスポンス  
 
-They are associated to the request with an unique id `"id":"LbdZiWgwJJ4AAAAAAAAC"`.
+これらのログは、`"id":"LbdZiWgwJJ4AAAAAAAAC"` のような一意の ID によってリクエストと関連付けられています。
 
 ```json
 {
@@ -308,4 +308,38 @@ They are associated to the request with an unique id `"id":"LbdZiWgwJJ4AAAAAAAAC
       "time":"2025-05-23 16:32:46.689"
    }
 }
+```
+
+## Customizing
+
+### カスタムロガーの使用
+
+`HTTPLogger` にはカスタムロガーを設定することができます。  
+新しいロガーを定義し、以下のように `HTTPLogger` にリソース参照として設定してください。
+
+```yaml
+apiVersion: core/v1
+kind: HTTPLogger
+spec:
+  logger:
+    apiVersion: core/v1
+    kind: SLogger
+    name: access-logger
+  request:
+    headers:
+      - name: "*" # Log all request headers.
+  response:
+    headers:
+      - name: "*" # Log all response headers.
+
+---
+apiVersion: core/v1
+kind: SLogger
+metadata:
+  name: access-logger
+spec:
+  level: Debug
+  unstructured: false
+  noLocation: true
+  noDatetime: true
 ```

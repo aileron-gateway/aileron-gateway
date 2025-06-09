@@ -34,14 +34,14 @@ In this example, following directory structure and files are supposed.
 If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt
-access-logging/  ----- Working directory.
+bodylimit/       ----- Working directory.
 ├── aileron      ----- AILERON Gateway binary (aileron.exe on windows).
 └── config.yaml  ----- AILERON Gateway config file.
 ```
 
 ## Config
 
-Configuration yaml to run a server with access logging becomes as follows.
+Configuration yaml to run a server with body size limiting becomes as follows.
 
 ```yaml
 # config.yaml
@@ -105,7 +105,7 @@ style BodyLimitMiddleware stroke:#77dd77,stroke-width:2px
 
 ## Run
 
-Run the AILEROn Gateway with the command:
+Run the AILERON Gateway with the command:
 
 ```bash
 ./aileron -f ./config.yaml

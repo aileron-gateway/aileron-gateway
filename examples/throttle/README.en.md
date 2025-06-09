@@ -36,9 +36,9 @@ In this example, following directory structure and files are supposed.
 If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
 
 ```txt
-throttle/          ----- Working directory.
-├── aileron        ----- AILERON Gateway binary (aileron.exe on windows).
-└── config.yaml    ----- AILERON Gateway config file.
+throttle/        ----- Working directory.
+├── aileron      ----- AILERON Gateway binary (aileron.exe on windows).
+└── config.yaml  ----- AILERON Gateway config file.
 ```
 
 ## Config

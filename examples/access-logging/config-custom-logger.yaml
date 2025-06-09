@@ -1,0 +1,60 @@
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  runners:
+    - apiVersion: core/v1
+      kind: HTTPServer
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+spec:
+  addr: ":8080"
+  virtualHosts:
+    - middleware:
+        - apiVersion: core/v1 # Use as server-side middleware
+          kind: HTTPLogger
+      handlers:
+        - handler:
+            apiVersion: core/v1
+            kind: ReverseProxyHandler
+
+---
+apiVersion: core/v1
+kind: ReverseProxyHandler
+spec:
+  tripperwares:
+    - apiVersion: core/v1 # Use as client-side middleware
+      kind: HTTPLogger
+  loadBalancers:
+    - pathMatcher:
+        match: "/"
+        matchType: Prefix
+      upstreams:
+        - url: http://httpbin.org
+
+---
+apiVersion: core/v1
+kind: HTTPLogger
+spec:
+  logger:
+    apiVersion: core/v1
+    kind: SLogger
+    name: access-logger
+  request:
+    headers:
+      - name: "*" # Log all request headers.
+  response:
+    headers:
+      - name: "*" # Log all response headers.
+
+---
+apiVersion: core/v1
+kind: SLogger
+metadata:
+  name: access-logger
+spec:
+  level: Debug
+  unstructured: false
+  noLocation: true
+  noDatetime: true

@@ -1,9 +1,11 @@
 # CORS Middleware
 
-## Overview
+## 概要
 
-This example shows application of [CORS: Cross-Origin Resource Sharing](https://en.wikipedia.org/wiki/Cross-origin_resource_sharing).
-CORS restricts cross-origin API requests.
+この例は、[CORS: クロスオリジンリソース共有](https://ja.wikipedia.org/wiki/Cross-origin_resource_sharing) の利用方法を示しています。  
+CORSはクロスオリジンのAPIリクエストを制限します。
+
+CORSMiddlewareはサーバーサイドミドルウェアとして動作します。
 
 ```mermaid
 block-beta
@@ -24,15 +26,15 @@ style EchoHandler stroke:#ff6961,stroke-width:2px
 style CORSMiddleware stroke:#77dd77,stroke-width:2px
 ```
 
-**Legend**:
+**凡例**:
 
-- 🟥 `#ff6961` Handler resources.
-- 🟩 `#77dd77` Middleware resources (Server-side middleware).
-- 🟦 `#89CFF0` Tripperware resources (Client-side middleware).
-- 🟪 `#9370DB` Other resources.
+- 🟥 `#ff6961` ハンドラーリソース
+- 🟩 `#77dd77` ミドルウェアリソース（サーバー側ミドルウェア）
+- 🟦 `#89CFF0` トリッパーウェアリソース（クライアント側ミドルウェア）
+- 🟪 `#9370DB` その他のリソース
 
-In this example, following directory structure and files are supposed.
-If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
+この例では、以下のディレクトリ構成とファイルが想定されています。  
+ビルド済みのバイナリが必要な場合は、[GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases) からダウンロードしてください。
 
 ```txt
 cors/             ----- Working directory.
@@ -42,7 +44,7 @@ cors/             ----- Working directory.
 
 ## Config
 
-Configuration yaml to run a server with CORS middleware becomes as follows.
+CORS ミドルウェア付きでサーバーを実行するための設定 YAML は次のようになります。
 
 ```yaml
 # config.yaml
@@ -85,15 +87,15 @@ spec:
       - HEAD
 ```
 
-The config tells:
+この設定は次の内容を示しています：
 
-- Start a `HTTPServer` with port 8080.
-- An echo handler is applied.
-- Cross-origin requests are limited by CORSMiddleware.
-  - Allow origins `http://localhost:8080` and `http://example.com`
-  - Allow methods `GET` and `HEAD`
+- ポート8080で `HTTPServer` を起動します。
+- エコーハンドラーが適用されます。
+- クロスオリジンリクエストは `CORSMiddleware` によって制限されます。
+  - 許可されるオリジンは `http://localhost:8080` と `http://example.com`
+  - 許可されるメソッドは `GET` と `HEAD`
 
-This graph shows the resource dependencies of the configuration.
+このグラフは、設定におけるリソースの依存関係を示しています。
 
 ```mermaid
 graph TD
@@ -112,7 +114,7 @@ style CORSMiddleware stroke:#77dd77,stroke-width:2px
 
 ## Run
 
-Run the AILEROn Gateway with command:
+以下のコマンドで AILERON Gateway を起動します：
 
 ```bash
 ./aileron -f ./config.yaml
@@ -120,10 +122,10 @@ Run the AILEROn Gateway with command:
 
 ## Check
 
-After runngin the server, send HTTP requests with `Origin` header.
+サーバーを起動したら、`Origin` ヘッダーを付けて HTTP リクエストを送信してください。
 
-`GET` requests with `Origin http://localhost:8080` is allowed.
-See the following curl example.
+`Origin: http://localhost:8080` の `GET` リクエストは許可されます。  
+以下の curl の例を参照してください。
 
 ```bash
 $ curl -H "Origin: http://localhost:8080" http://localhost:8080 -v
@@ -151,8 +153,8 @@ $ curl -H "Origin: http://localhost:8080" http://localhost:8080 -v
 --------------------------
 ```
 
-`GET` requests with `Origin http://malicious.origin` is not allowed.
-See the following curl example.
+`Origin: http://malicious.origin` の `GET` リクエストは許可されません。  
+以下の curl の例を参照してください。
 
 ```bash
 $ curl -H "Origin: http://malicious.origin" http://localhost:8080
@@ -160,7 +162,7 @@ $ curl -H "Origin: http://malicious.origin" http://localhost:8080
 {"status":403,"statusText":"Forbidden"}
 ```
 
-`POST` requests from any origin are not allowed as follows.
+`POST` リクエストはどのOriginからも許可されていないため以下のようになります。
 
 ```bash
 $ curl -XPOST -H "Origin: http://localhost:8080" http://localhost:8080

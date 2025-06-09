@@ -1,0 +1,35 @@
+apiVersion: core/v1
+kind: Entrypoint
+spec:
+  runners:
+    - apiVersion: core/v1
+      kind: HTTPServer
+
+---
+apiVersion: core/v1
+kind: HTTPServer
+spec:
+  addr: ":8080"
+  virtualHosts:
+    - handlers:
+        - handler:
+            apiVersion: core/v1
+            kind: ReverseProxyHandler
+
+---
+apiVersion: core/v1
+kind: ReverseProxyHandler
+spec:
+  loadBalancers:
+    - pathMatcher:
+        match: "/anything"
+        matchType: Prefix
+        trimPrefix: "/get" # trimmed befor matching.
+      upstreams:
+        - url: http://httpbin.org
+    - pathMatcher:
+        match: "/"
+        matchType: Prefix
+        appendPrefix: "/anything" # appended after matching.
+      upstreams:
+        - url: http://httpbin.org

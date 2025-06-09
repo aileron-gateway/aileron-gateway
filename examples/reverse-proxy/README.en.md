@@ -5,6 +5,8 @@
 This example runs a reverse-proxy server.
 A revere-proxy server, which is the very basic feature in API Gateways, proxy requests from client to upstream services.
 
+This figure shows the proxy works as a handler in the gateway.
+
 ```mermaid
 
 block-beta
@@ -133,6 +135,52 @@ $ curl http://localhost:8080/get
 }
 ```
 
+## Customizing
+
+### Multiple upstreams
+
+This yaml set multiple upstream with different weights.
+
+```yaml
+apiVersion: core/v1
+kind: ReverseProxyHandler
+spec:
+  loadBalancers:
+    - pathMatcher:
+        match: "/"
+        matchType: Prefix
+      upstreams:
+        - url: http://ipconfig.io
+          weight: 2
+        - url: http://ifconfig.io
+          weight: 1
+```
+
+### Modifying prefix
+
+Path prefix can be added or removed.
+`pathMatcher.trimPrefix` trims path prefix **befor** path match.
+`pathMatcher.appendPrefix` appends path prefix **after** path match.
+
+```yaml
+apiVersion: core/v1
+kind: ReverseProxyHandler
+spec:
+  loadBalancers:
+    - pathMatcher:
+        match: "/anything"
+        matchType: Prefix
+        trimPrefix: "/get" # trimmed befor matching.
+      upstreams:
+        - url: http://httpbin.org
+    - pathMatcher:
+        match: "/"
+        matchType: Prefix
+        appendPrefix: "/anything" # appended after matching.
+      upstreams:
+        - url: http://httpbin.org
+```
+
 ## Additional resources
 
 Here's the some nice apis that can be used for testing.
@@ -142,7 +190,6 @@ Here's the some nice apis that can be used for testing.
 - [http://httpbin.org/](http://httpbin.org/)
 - [http://worldtimeapi.org](http://worldtimeapi.org)
 - [http://ipconfig.io](http://ipconfig.io)
-- [http://ifconfig.io](http://ifconfig.io)
 - [http://ifconfig.io](http://ifconfig.io)
 - [http://sse.dev/](http://sse.dev/)
 - [https://websocket.org/](https://websocket.org/tools/websocket-echo-server)

@@ -1,8 +1,8 @@
 # Compression Middleware
 
-## Overview
+## 概要
 
-This example shows response compression.
+この例ではレスポンス圧縮を行う例を示します。
 
 ```mermaid
 block-beta
@@ -28,25 +28,25 @@ style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
 style CompressionMiddleware stroke:#77dd77,stroke-width:2px
 ```
 
-**Legend**:
+**凡例**:
 
-- 🟥 `#ff6961` Handler resources.
-- 🟩 `#77dd77` Middleware resources (Server-side middleware).
-- 🟦 `#89CFF0` Tripperware resources (Client-side middleware).
-- 🟪 `#9370DB` Other resources.
+- 🟥 `#ff6961` ハンドラーリソース
+- 🟩 `#77dd77` ミドルウェアリソース（サーバーサイドミドルウェア）
+- 🟦 `#89CFF0` トリッパーウェアリソース（クライアントサイドミドルウェア）
+- 🟪 `#9370DB` その他のリソース
 
-In this example, following directory structure and files are supposed.
-If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
+この例では、以下のディレクトリ構成とファイルを想定しています。  
+事前ビルド済みバイナリが必要な場合は、[GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases)からダウンロードしてください。
 
 ```txt
-access-logging/  ----- Working directory.
-├── aileron      ----- AILERON Gateway binary (aileron.exe on windows).
-└── config.yaml  ----- AILERON Gateway config file.
+compression/     ----- 作業ディレクトリ
+├── aileron      ----- AILERON Gateway バイナリ（Windowsでは aileron.exe）
+└── config.yaml  ----- AILERON Gateway 設定ファイル
 ```
 
 ## Config
 
-Configuration yaml to run a server with access logging becomes as follows.
+アクセスログを有効にしたサーバーを実行するための設定ファイルは以下のようになります。
 
 ```yaml
 # config.yaml
@@ -90,14 +90,14 @@ spec:
   minimumSize: 10 # bytes
 ```
 
-The config tells:
+この設定は以下を示しています：
 
-- Start a `HTTPServer` with port 8080.
-- A ReverseProxy handler is applied.
-- Response compression is applied with CompressionMiddleware.
-  - Minimum compression size is 10 bytes.
+- ポート8080で`HTTPServer`を起動
+- ReverseProxyハンドラーを適用
+- CompressionMiddlewareによるレスポンス圧縮を適用
+  - 圧縮の最小サイズは10バイト
 
-This graph shows the resource dependencies of the configuration.
+この図は設定のリソース依存関係を示しています。
 
 ```mermaid
 graph TD
@@ -116,7 +116,7 @@ style CompressionMiddleware stroke:#77dd77,stroke-width:2px
 
 ## Run
 
-Run the command to start AILERON Gateway.
+AILERON Gatewayを起動するコマンドは以下の通りです。
 
 ```bash
 ./aileron -f ./config.yaml
@@ -124,10 +124,11 @@ Run the command to start AILERON Gateway.
 
 ## Check
 
-Send HTTP requests with `Accept-Encoding` header.
-**gzip** and **br** are allowed.
+`Accept-Encoding` ヘッダーを付けて HTTP リクエストを送信してください。  
+**gzip** と **br** が許可されています。
 
-If response body size is known and the size is larger than the minimumSize, response body will be returned in compressed.
+レスポンスボディのサイズが分かっていて、かつ最小サイズ（minimumSize）より大きい場合は、  
+レスポンスボディが圧縮された状態で返されます。
 
 ```bash
 $ curl -H "Accept-Encoding: gzip" http://localhost:8080/get --compressed -v

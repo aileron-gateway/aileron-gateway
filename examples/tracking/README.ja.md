@@ -1,9 +1,9 @@
 # Tracking Middleware
 
-## Overview
+## 概要
 
-This example runs a reverse-proxy server with tracking middleware.
-Tracking middleware have ability to handle request IDs and tracing IDs.
+この例では、トラッキングミドルウェアを備えたリバースプロキシサーバーを実行します。  
+トラッキングミドルウェアは、リクエストIDやトレースIDの管理機能を提供します。
 
 ```mermaid
 block-beta
@@ -29,25 +29,25 @@ style TrackingMiddleware stroke:#77dd77,stroke-width:2px
 style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
 ```
 
-**Legend**:
+**凡例**:
 
-- 🟥 `#ff6961` Handler resources.
-- 🟩 `#77dd77` Middleware resources (Server-side middleware).
-- 🟦 `#89CFF0` Tripperware resources (Client-side middleware).
-- 🟪 `#9370DB` Other resources.
+- 🟥 `#ff6961` ハンドラーリソース
+- 🟩 `#77dd77` ミドルウェアリソース（サーバー側ミドルウェア）
+- 🟦 `#89CFF0` トリッパーウェアリソース（クライアント側ミドルウェア）
+- 🟪 `#9370DB` その他のリソース
 
-In this example, following directory structure and files are supposed.
-If you need a pre-built binary, download from [GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases).
+この例では、以下のディレクトリ構成とファイルが想定されています。  
+ビルド済みのバイナリが必要な場合は、[GitHub Releases](https://github.com/aileron-gateway/aileron-gateway/releases) からダウンロードしてください。
 
 ```txt
-tracking/          ----- Working directory.
-├── aileron        ----- AILERON Gateway binary (aileron.exe on windows).
-└── config.yaml    ----- AILERON Gateway config file.
+tracking/        ----- 作業ディレクトリ
+├── aileron      ----- AILERON Gateway バイナリ (Windowsではaileron.exe)
+└── config.yaml  ----- AILERON Gateway configファイル.
 ```
 
 ## Config
 
-Configuration yaml to run a reverse-proxy server would becomes as follows.
+リバースプロキシサーバーを実行するための設定は以下のようになります。
 
 ```yaml
 # config.yaml
@@ -92,14 +92,14 @@ spec:
   traceIDProxyName: X-Aileron-Trace-ID
 ```
 
-The config tells:
+この設定は以下の内容を示しています：
 
-- Start a `HTTPServer` with port 8080.
-- ReverseProxy is registered to the server (all paths match).
-- Apply tracking middleware to the proxy.
-- Proxy upstream is [http://httpbin.org](http://httpbin.org).
+- ポート `8080` で `HTTPServer` を起動します。
+- すべてのパスにマッチするように `ReverseProxy` をサーバーに登録します。
+- プロキシにはTrackingMiddlewareを適用します。
+- プロキシのアップストリームは [http://httpbin.org](http://httpbin.org) です。
 
-This graph shows the resource dependencies of the configuration.
+以下のグラフは、この構成におけるリソースの依存関係を示しています。
 
 ```mermaid
 graph TD
@@ -118,7 +118,7 @@ style ReverseProxyHandler stroke:#ff6961,stroke-width:2px
 
 ## Run
 
-Run the AILERON Gateway with command:
+以下のコマンドで AILERON Gateway を実行します：
 
 ```bash
 ./aileron -f ./config.yaml
@@ -126,14 +126,14 @@ Run the AILERON Gateway with command:
 
 ## Check
 
-After running a reverse-proxy server with tracking middleware, send HTTP requests to it.
+トラッキングミドルウェア付きのリバースプロキシサーバを起動した後、HTTPリクエストを送信します。
 
-A json response will be returned when the reverse-proxy server is correctly running.
+リバースプロキシサーバが正しく動作していれば、JSONレスポンスが返されます。
 
-We can check
+以下の内容を確認できます：
 
-- `X-Aileron-Request-Id` is added to the proxy request.
-- `X-Aileron-Trace-Id` is added to the proxy request.
+- `X-Aileron-Request-Id` がプロキシリクエストに含まれている。
+- `X-Aileron-Trace-Id` がプロキシリクエストに含まれている。
 
 ```bash
 $ curl http://localhost:8080/get
