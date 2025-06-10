@@ -8,7 +8,6 @@
 *.tmp
 *.temp
 *.html
-*.env
 /*.mk
 
 # Ignore directories.
