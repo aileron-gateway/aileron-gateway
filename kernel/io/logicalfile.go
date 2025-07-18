@@ -306,7 +306,7 @@ func (c *LogicalFileConfig) New() (*LogicalFile, error) {
 		}).Wrap(err)
 	}
 
-	return f, nil
+	return f, f.manageFunc()
 }
 
 type LogicalFile struct {
