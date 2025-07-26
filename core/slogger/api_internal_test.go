@@ -7,22 +7,21 @@ import (
 	"bufio"
 	"context"
 	"io"
+	"io/fs"
 	"os"
 	"regexp"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
-	"time"
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
-	kio "github.com/aileron-gateway/aileron-gateway/kernel/io"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/aileron-projects/go/zlog"
 	"github.com/aileron-projects/go/ztime/zcron"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -375,7 +374,7 @@ func TestNewFileWriter(t *testing.T) {
 	}
 
 	type action struct {
-		w   *kio.LogicalFile
+		w   *zlog.LogicalFile
 		err error
 	}
 
@@ -383,12 +382,15 @@ func TestNewFileWriter(t *testing.T) {
 	tb.Name(t.Name())
 	table := tb.Build()
 
-	testConfig := &kio.LogicalFileConfig{
-		SrcDir:   os.TempDir(),
-		DstDir:   os.TempDir(),
+	testConfig := &zlog.LogicalFileConfig{
+		Manager: &zlog.FileManagerConfig{
+			SrcDir:  os.TempDir(),
+			DstDir:  os.TempDir(),
+			Pattern: "TestNewFileWriter.%i.log",
+		},
 		FileName: "TestNewFileWriter.log",
 	}
-	testFW, _ := testConfig.New()
+	testFW, _ := zlog.NewLogicalFile(testConfig)
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
@@ -452,12 +454,8 @@ func TestNewFileWriter(t *testing.T) {
 				},
 			},
 			&action{
-				w: nil,
-				err: &er.Error{
-					Package:     kio.ErrPkg,
-					Type:        kio.ErrTypeFile,
-					Description: kio.ErrDscFileSys,
-				},
+				w:   nil,
+				err: &fs.PathError{Op: "mkdir", Path: "this dir is not exist \x00\n"},
 			},
 		),
 		gen(
@@ -472,12 +470,8 @@ func TestNewFileWriter(t *testing.T) {
 				},
 			},
 			&action{
-				w: nil,
-				err: &er.Error{
-					Package:     kio.ErrPkg,
-					Type:        kio.ErrTypeFile,
-					Description: kio.ErrDscFileSys,
-				},
+				w:   nil,
+				err: &fs.PathError{Op: "mkdir", Path: "this dir is not exist \x00\n"},
 			},
 		),
 	}
@@ -487,22 +481,16 @@ func TestNewFileWriter(t *testing.T) {
 	for _, tt := range table.Entries() {
 		tt := tt
 		t.Run(tt.Name(), func(t *testing.T) {
-			w, err := newFileWriter(tt.C().spec, time.UTC)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
+			w, err := newFileWriter(tt.C().spec)
+			t.Logf("%#v\n", err)
+			testutil.DiffError(t, tt.A().err, nil, err, cmpopts.IgnoreFields(fs.PathError{}, "Err"))
 
 			opts := []cmp.Option{
-				cmp.AllowUnexported(sync.Mutex{}, sync.RWMutex{}, atomic.Int32{}, atomic.Int64{}, atomic.Bool{}),
-				cmp.Comparer(testutil.ComparePointer[*os.File]),
-				// Options for bufferef writer.
+				cmp.AllowUnexported(sync.RWMutex{}, atomic.Int32{}, atomic.Int64{}, atomic.Bool{}),
+				cmpopts.IgnoreUnexported(sync.Mutex{}, os.File{}),
+				cmp.AllowUnexported(zlog.LogicalFile{}, zlog.FileManager{}),
 				cmp.AllowUnexported(bufio.Writer{}),
-				// Options for file writer.
-				cmp.AllowUnexported(kio.LogicalFile{}),
-				cmpopts.IgnoreFields(kio.LogicalFile{}, "curFile", "mu"),
-				cmp.Comparer(testutil.ComparePointer[func() error]),              // manageFunc in LogicalFile.
-				cmp.Comparer(testutil.ComparePointer[func(string) string]),       // matchFunc in LogicalFile.
-				cmp.Comparer(testutil.ComparePointer[func(string) (int64, int)]), // parseFunc in LogicalFile.
 			}
-
 			testutil.Diff(t, tt.A().w, w, opts...)
 		})
 	}

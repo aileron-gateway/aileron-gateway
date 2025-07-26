@@ -18,7 +18,6 @@ import (
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
-	kio "github.com/aileron-gateway/aileron-gateway/kernel/io"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
@@ -269,24 +268,6 @@ func TestNewBaseLogger(t *testing.T) {
 					headerKeys: []string{},
 					bodies:     map[string][]bytesReplFunc{},
 					bodyPath:   "tmp/",
-				},
-			},
-		),
-		gen(
-			"invalid body output path",
-			[]string{},
-			[]string{},
-			&condition{
-				spec: &v1.LoggingSpec{
-					BodyOutputPath: "\n\r\t\x00",
-				},
-				lg: log.GlobalLogger(log.DefaultLoggerName),
-			},
-			&action{
-				err: &er.Error{
-					Package:     kio.ErrPkg,
-					Type:        kio.ErrTypeFile,
-					Description: kio.ErrDscFileSys,
 				},
 			},
 		),

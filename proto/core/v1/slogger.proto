@@ -91,7 +91,7 @@ message FieldReplacerSpec {
     // [REQUIRED]
     // Field is the field name to replace value.
     // Inner fields, if having map structure,
-    // can be accessed by paath expression
+    // can be accessed by path expression
     // line "foo.bar.baz".
     // Default is not set.
     string Field = 1 [json_name = "field"];
@@ -106,7 +106,7 @@ message FieldReplacerSpec {
 // LogOutputSpec is the specification for log output.
 message LogOutputSpec {
     // [OPTIONAL]
-    // OutputTarget is the destination of log outsput.
+    // OutputTarget is the destination of log output.
     // Default is [Stdout].
     OutputTarget OutputTarget = 1 [json_name = "outputTarget"];
 
@@ -129,6 +129,26 @@ message LogOutputSpec {
     string LogFileName = 4 [json_name = "logFileName"];
 
     // [OPTIONAL]
+    // ArchivedFilePattern is the pattern of archived log files.
+    // This field is used only for "File" output.
+    // Valid format specifiers are as follows.
+    //   %Y : YYYY 4 digits year. 0 <= YYYY
+    //   %M : MM 2 digits month. 1 <= MM <= 12
+    //   %D : DD 2 digits day of month. 1 <= DD <= 31
+    //   %h : hh 2 digits hour. 0 <= hh <= 23
+    //   %m : mm 2 digits minute. 0 <= mm <= 59
+    //   %s : ss 2 digits second. 0 <= ss <= 59
+    //   %u : unix second with free digits. 0 <= unix
+    //   %i : index with free digits. 0 <= index
+    //   %H : hostname
+    //   %U : user id. "-1" on windows.
+    //   %G : user group id. "-1" on windows.
+    //   %p : pid (process id)
+    //   %P : ppid (parent process id)
+    // Default is ["application.%i.log"].
+    string ArchivedFilePattern = 5 [json_name = "archivedFilePattern"];
+
+    // [OPTIONAL]
     // Cron is the cron expression for time based log rotation.
     // If not set, time based rotation will be disabled.
     // Format should be "second minute hour day month week"
@@ -137,34 +157,35 @@ message LogOutputSpec {
     // Value ranges are `0-59` for second, `0-59` for minute,
     // `0-23` for hour, `1-31` for day of month,
     // `1-12 or JAN-DEC` for month, `0-6 or SUN-SAT` for day of week.
-    // Special caharacters `* / , -` are allowed for all fields.
+    // Special characters `* / , -` are allowed for all fields.
     // Timezone can be specified like "TZ=UTC * * * * *".
     // For example, "0 * * * *" means hourly rotation,
     // "0 0 * * *" means daily rotation.
     // Multiple jobs won't be run at the same time.
     // Default is not set.
-    string Cron = 5 [json_name = "cron"];
+    string Cron = 6 [json_name = "cron"];
 
     // [OPTIONAL]
     // RotateSize is the log file size in MiB to be rotated.
     // This field is used only for "File" output.
     // Default is [1024], or 1GiB.
-    uint32 RotateSize = 6 [json_name = "rotateSize"];
+    uint32 RotateSize = 7 [json_name = "rotateSize"];
 
     // [OPTIONAL]
+    // [DEPRECATED] Use ArchivedFilePattern.
     // TimeLayout is the timestamp layout in the backup-ed log files.
     // This field is used only for "File" output.
     // Go's time format can be used.
     // See https://pkg.go.dev/time#pkg-constants for more details.
     // Default is ["2006-01-02_15-04-05"].
-    string TimeLayout = 7 [json_name = "timeLayout"];
+    string TimeLayout = 8 [json_name = "timeLayout", deprecated = true];
 
     // [OPTIONAL]
     // TimeZone is the timezone of the timestamp in the archived log files.
     // For example, "UTC", "Local", "Asia/Tokyo".
     // See https://pkg.go.dev/time#LoadLocation for more details.
     // Default is ["Local"].
-    string TimeZone = 8 [json_name = "timeZone"];
+    string TimeZone = 9 [json_name = "timeZone"];
 
     // [OPTIONAL]
     // CompressLevel is the gzip compression level.
@@ -175,7 +196,7 @@ message LogOutputSpec {
     // See https://pkg.go.dev/compress/gzip#pkg-constants for more detail.
     // This field is used only for "File" output.
     // Default is [0], or no compression.
-    int32 CompressLevel = 9 [json_name = "compressLevel", (buf.validate.field).int32 = {gte : -2, lte : 9}];
+    int32 CompressLevel = 10 [json_name = "compressLevel", (buf.validate.field).int32 = {gte : -2, lte : 9}];
 
     // [OPTIONAL]
     // MaxAge is maximum age of backup logs in seconds.
@@ -183,7 +204,7 @@ message LogOutputSpec {
     // This field is used only for "File" output.
     // This field will be ignored when not set or set to negative.
     // Default is not set.
-    int32 MaxAge = 10 [json_name = "maxAge"];
+    int32 MaxAge = 11 [json_name = "maxAge"];
 
     // [OPTIONAL]
     // MaxBackup is the maximum number of log backups.
@@ -191,7 +212,7 @@ message LogOutputSpec {
     // This field is used only for "File" output.
     // This field will be ignored when not set or set to negative.
     // Default is not set.
-    int32 MaxBackup = 11 [json_name = "maxBackup"];
+    int32 MaxBackup = 12 [json_name = "maxBackup"];
 
     // [OPTIONAL]
     // MaxTotalSize is the maximum total size of backups in MiB.
@@ -200,7 +221,7 @@ message LogOutputSpec {
     // This field is used only for "File" output.
     // This field will be ignored when not set.
     // Default is not set.
-    uint32 MaxTotalSize = 12 [json_name = "maxTotalSize"];
+    uint32 MaxTotalSize = 13 [json_name = "maxTotalSize"];
 }
 
 // OutputTarget is the output destination.
