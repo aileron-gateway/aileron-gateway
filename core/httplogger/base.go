@@ -17,7 +17,6 @@ import (
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
-	kio "github.com/aileron-gateway/aileron-gateway/kernel/io"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
 	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
 	"github.com/aileron-projects/go/ztext"
@@ -107,8 +106,7 @@ func newBaseLogger(spec *v1.LoggingSpec, lg log.Logger) (*baseLogger, error) {
 
 	if spec.BodyOutputPath != "" {
 		bl.bodyPath = filepath.Clean(spec.BodyOutputPath) + "/"
-		_ = os.MkdirAll(bl.bodyPath, os.ModePerm)
-		if err := kio.ReadWriteTest(bl.bodyPath); err != nil {
+		if err := os.MkdirAll(bl.bodyPath, os.ModePerm); err != nil {
 			return nil, err
 		}
 	}

@@ -16,8 +16,8 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	kio "github.com/aileron-gateway/aileron-gateway/kernel/io"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
+	"github.com/aileron-projects/go/zlog"
 	"github.com/aileron-projects/go/ztime/zcron"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -82,7 +82,7 @@ func (*API) Create(_ api.API[*api.Request, *api.Response], msg protoreflect.Prot
 	case v1.OutputTarget_Stderr:
 		w = os.Stderr
 	case v1.OutputTarget_File:
-		w, err = newFileWriter(c.Spec.LogOutput, timeZone)
+		w, err = newFileWriter(c.Spec.LogOutput)
 		if err != nil {
 			return nil, core.ErrCoreGenCreateObject.WithStack(err, map[string]any{"kind": kind})
 		}
@@ -134,20 +134,21 @@ func (l *finalizableLogger) Finalize() error {
 	return nil
 }
 
-func newFileWriter(spec *v1.LogOutputSpec, loc *time.Location) (*kio.LogicalFile, error) {
-	lfConfig := &kio.LogicalFileConfig{
-		FileName:     spec.LogFileName,
-		TimeLayout:   spec.TimeLayout,
-		TimeZone:     spec.TimeZone,
-		SrcDir:       filepath.Clean(spec.LogDir),
-		DstDir:       filepath.Clean(cmp.Or(spec.BackupDir, spec.LogDir)), // Default is the same as SrcDir.
-		RotateSize:   1024 * 1024 * int64(spec.RotateSize),                // Convert MiB to B
-		CompressLv:   int(spec.CompressLevel),                             // Gzip compression level.
-		MaxAge:       int64(spec.MaxAge),
-		MaxBackup:    int(spec.MaxBackup),
-		MaxTotalSize: 1024 * 1024 * int64(spec.MaxTotalSize), // Convert MiB to B
+func newFileWriter(spec *v1.LogOutputSpec) (*zlog.LogicalFile, error) {
+	config := &zlog.LogicalFileConfig{
+		Manager: &zlog.FileManagerConfig{
+			MaxAge:        time.Duration(spec.MaxAge) * time.Second,
+			MaxHistory:    int(spec.MaxBackup),
+			MaxTotalBytes: 1024 * 1024 * int64(spec.MaxTotalSize),
+			GzipLv:        int(spec.CompressLevel),
+			SrcDir:        filepath.Clean(spec.LogDir),
+			DstDir:        filepath.Clean(cmp.Or(spec.BackupDir, spec.LogDir)), // Default is SrcDir.
+			Pattern:       cmp.Or(spec.ArchivedFilePattern, spec.LogFileName),
+		},
+		RotateBytes: 1024 * 1024 * int64(spec.RotateSize), // Max size of a single file.
+		FileName:    spec.LogFileName,                     // Active file name.
 	}
-	lf, err := lfConfig.New()
+	lf, err := zlog.NewLogicalFile(config)
 	if err != nil {
 		return nil, err
 	}
@@ -157,13 +158,12 @@ func newFileWriter(spec *v1.LogOutputSpec, loc *time.Location) (*kio.LogicalFile
 	}
 	c := &zcron.Config{
 		Crontab: spec.Cron,
-		JobFunc: func(ctx context.Context) error { return lf.SwapFile() },
+		JobFunc: func(ctx context.Context) error { return lf.Swap() },
 	}
 	cron, err := zcron.NewCron(c)
 	if err != nil {
 		return nil, err
 	}
-	cron.WithTimeFunc(func() time.Time { return time.Now().In(loc) })
 	go cron.Start()
 	return lf, nil
 }
