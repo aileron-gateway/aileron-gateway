@@ -216,12 +216,10 @@ func TestOutputFileRotate(t *testing.T) {
 		backupDirFiles = append(backupDirFiles, f.Name())
 	}
 	testutil.Diff(t, nil, err)
-	testutil.Diff(t, []string{"application.0.log", "application.1.log"}, backupDirFiles, opts...)
-
+	testutil.Diff(t, []string{"application.1.log", "application.2.log"}, backupDirFiles, opts...)
 }
 
 func TestOutputFileMaxBackup(t *testing.T) {
-
 	configs := []string{
 		testDataDir + "config-output-file-max-backup.yaml",
 	}
@@ -249,7 +247,7 @@ func TestOutputFileMaxBackup(t *testing.T) {
 	// rotate log file twice.
 	ctx := context.Background()
 	for i := 0; i < 13_000; i++ {
-		lg.Error(ctx, "test error", "name", "alice", "age", 20) // 262 bytes per 1 line.
+		lg.Error(ctx, "test error", "name", "alice", "age", 20) // 263 bytes per 1 line.
 	}
 	lg.(core.Finalizer).Finalize()
 
@@ -272,10 +270,8 @@ func TestOutputFileMaxBackup(t *testing.T) {
 		backupDirFiles = append(backupDirFiles, f.Name())
 	}
 	testutil.Diff(t, nil, err)
-	// "application.0.log" should be removed because of the maxBackup=2.
-	// The backup number does not include the last active log "application.3.log"
-	testutil.Diff(t, []string{"application.1.log", "application.2.log", "application.3.log"}, backupDirFiles, opts...)
-
+	// "application.1.log" and "application.2.log" should be removed because of the maxBackup=2.
+	testutil.Diff(t, []string{"application.3.log", "application.4.log"}, backupDirFiles, opts...)
 }
 
 func TestOutputFileMaxTotal(t *testing.T) {
@@ -330,9 +326,9 @@ func TestOutputFileMaxTotal(t *testing.T) {
 		backupDirFiles = append(backupDirFiles, f.Name())
 	}
 	testutil.Diff(t, nil, err)
-	// "application.0.log" - "application.1.log" exceed the max total size 2MiB.
+	// "application.1.log" - "application.2.log" exceed the max total size 2MiB.
 	// The size does not include the last active log "application.3.log"
-	testutil.Diff(t, []string{"application.2.log", "application.3.log"}, backupDirFiles, opts...)
+	testutil.Diff(t, []string{"application.3.log", "application.4.log"}, backupDirFiles, opts...)
 
 }
 
@@ -388,7 +384,7 @@ func TestOutputFileNoDir_logDir(t *testing.T) {
 		backupDirFiles = append(backupDirFiles, f.Name())
 	}
 	testutil.Diff(t, nil, err)
-	testutil.Diff(t, []string{"application.0.log", "application.1.log"}, backupDirFiles, opts...)
+	testutil.Diff(t, []string{"application.1.log", "application.2.log"}, backupDirFiles, opts...)
 
 }
 
@@ -444,6 +440,6 @@ func TestOutputFileNoDir_backupDir(t *testing.T) {
 		backupDirFiles = append(backupDirFiles, f.Name())
 	}
 	testutil.Diff(t, nil, err)
-	testutil.Diff(t, []string{"application.0.log", "application.1.log"}, backupDirFiles, opts...)
+	testutil.Diff(t, []string{"application.1.log", "application.2.log"}, backupDirFiles, opts...)
 
 }
