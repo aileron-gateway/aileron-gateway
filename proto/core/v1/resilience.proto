@@ -171,45 +171,29 @@ enum LBAlgorithm {
 
 // HTTPHasherSpec is the specifications for hasher
 // that calculate hashes from http requests.
-// RingHash, Maglev and DirectHash.
 message HTTPHasherSpec {
+    // HashSource is the value source for calculating hash source.
+    enum HashSourceType {
+        ClientAddr  = 0;  // ClientAddr uses client IP:Port.
+        Header      = 1;  // Header uses single HTTP header.
+        Cookie      = 2;  // Cookie uses cookie value.
+        Query       = 3;  // Query uses URL query parameter.
+        PathParam   = 4;  // PathParam uses path parameter.
+    }
+
     // [OPTIONAL]
-    // HasherType is the hashing type to use.
+    // HashSource is the source for calculating hash value.
     // This field is used by hash-based load balancers.
     // Non hash-based load balancers ignore this field.
-    // Currently,  RingHash, Maglev and DirectHash
-    // are the hash-based load balancer.
     // Default is ["ClientAddr"].
-    HTTPHasherType HasherType = 1 [json_name = "hasherType"];
+    HashSourceType HashSource = 1 [json_name = "hashSource"];
 
     // [OPTIONAL]
     // Key is the data source key.
-    // This is the header name for Header hasher,
-    // query parameter name for Query hasher
-    // and path parameter name for PathParam hasher.
+    // This is the header name for Header source type,
+    // query parameter name for Query
+    // and path parameter name for PathParam.
     // ClientAddr and MultiHeader hasher ignore this field.
-    // This field is optional but set non empty string for
-    // Header, Query and PathParam hashers.
     // Default is not set.
     string Key = 2 [json_name = "key"];
-
-    // [OPTIONAL]
-    // Keys are the data source keys.
-    // This is the header names for MultiHeader hasher.
-    // Other hashers ignore this field.
-    // This field is optional but should be set atleast 1
-    // for MultiHeader hashers.
-    // Default is not set.
-    repeated string Keys = 3 [json_name = "keys"];
-}
-
-// HTTPHasherType is the hashing method types
-// which calculate hash values from HTTP requests.
-enum HTTPHasherType {
-    ClientAddr  = 0;  // ClientAddr hasher hashes client IP:Port.
-    Header      = 1;  // Header hasher hashed single HTTP header.
-    MultiHeader = 2;  // MultiHeader hasher hashed multiple HTTP headers.
-    Cookie      = 3;  // Cookie hasher hashed cookie value.
-    Query       = 4;  // Query hasher hashed URL query parameter.
-    PathParam   = 5;  // PathParam hasher hashed path parameter.
 }

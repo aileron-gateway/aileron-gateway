@@ -119,7 +119,7 @@ message LoadBalancerSpec {
     // HeaderMatcher is the header value matcher to check
     // if this loadbalancer can accept the target request.
     // If multiple header values were found, they are joined
-    // with a comma "," and agggregated to a singled string.
+    // with a comma "," and aggregated to a singled string.
     // For example ["foo", "bar"] will be "foo,bar" and the matcher
     // is applied to the joined value "foo,bar".
     // Listed matchers are evaluated by AND condition.
@@ -131,7 +131,7 @@ message LoadBalancerSpec {
     // QueryMatcher is the URL query value matcher to check
     // this loadbalancer can accept the target request.
     // If multiple query values were found, they are joined
-    // with a comma "," and agggregated to a singled string.
+    // with a comma "," and aggregated to a singled string.
     // For example ["foo", "bar"] will be "foo,bar" and the matcher
     // is applied to the joined value "foo,bar".
     // Listed matchers are evaluated by AND condition.
@@ -140,18 +140,10 @@ message LoadBalancerSpec {
     repeated ParamMatcherSpec QueryMatchers = 9 [json_name = "queryMatchers"];
 
     // [OPTIONAL]
-    // HashTableSize is the size of hash tables for hash-based load balancers.
-    // This field is used by Maglev and RingHash load balancers.
-    // If not set, default value is used.
-    // Default value depends on the load balancer.
-    int32 HashTableSize = 10 [json_name = "hashTableSize"];
-
-    // [OPTIONAL]
-    // Hashers is the hashing methods for hash-based load balancers.
-    // This field is optional but should be set at least 1
-    // for hash-based load balancers.
+    // Hasher is the hashing methods for hash-based load balancers.
     // Default is not set.
-    repeated HTTPHasherSpec Hashers = 11 [json_name = "hashers"];
+    HTTPHasherSpec Hasher = 10 [json_name = "hasher"];
+
 }
 
 // PathMatcherSpec is the specification of PathMatcher object
@@ -214,7 +206,7 @@ message ParamMatcherSpec {
     // The grammar of the pattern depends on the MatchType.
     // Patterns are evaluated by OR condition.
     // It will be considered that at least 1 pattern matched to a target,
-    // this macher object returns true.
+    // this matcher object returns true.
     // Default is not set, which means an empty string.
     repeated string Patterns = 2 [json_name = "patterns"];
 
@@ -240,32 +232,32 @@ message UpstreamSpec {
     // Set -1 to disable this upstream.
     // 0 is the same as default value 1.
     // Default is [1].
-    int32 Weight = 2 [json_name = "weight", (buf.validate.field).int32 = {gte : -1, lte : 1000}];
+    int32 Weight = 2 [json_name = "weight", (buf.validate.field).int32 = {gte : -1, lte : 65535}];
 
     // [OPTIONAL]
     // EnablePassive enables passive health check.
     // Default is [false].
-    // NOTE: This fiels is not used for now.
+    // NOTE: This field is not used for now.
     bool EnablePassive = 3 [json_name = "enablePassive"];
 
     // [OPTIONAL]
     // EnableActive enables active health check.
     // Default is [false].
-    // NOTE: This fiels is not used for now.
+    // NOTE: This field is not used for now.
     bool EnableActive = 4 [json_name = "enableActive"];
 
     // [OPTIONAL]
     // InitialDelay is the wait time in seconds until to start active health checking after starts.
     // Note that this field is used only when the active health checking is configured.
     // Default is [0].
-    // NOTE: This fiels is not used for now.
+    // NOTE: This field is not used for now.
     int32 InitialDelay = 7 [json_name = "initialDelay"];
 
     // [OPTIONAL]
     // HealthCheckInterval is the interval of active health check in seconds.
     // Note that this field is used only when the active health checking is configured.
     // Default is [1].
-    // NOTE: This fiels is not used for now.
+    // NOTE: This field is not used for now.
     int32 HealthCheckInterval = 8 [json_name = "healthCheckInterval"];
 
     // [OPTIONAL]
@@ -273,6 +265,6 @@ message UpstreamSpec {
     // For example, specify a url "http://example.com/healthy" for HTTP network type
     // and "tcp://127.0.0.1:8080" for TCP.
     // Default is not set.
-    // NOTE: This fiels is not used for now.
+    // NOTE: This field is not used for now.
     string HealthCheckAddr = 9 [json_name = "healthCheckAddr"];
 }

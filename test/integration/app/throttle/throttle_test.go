@@ -158,7 +158,6 @@ func TestThrottleMiddleware_FixedWindow(t *testing.T) {
 
 	// Run the test case 10 times to check reproducibility.
 	for iter := 0; iter < 10; iter++ {
-
 		// Send 10 requests (5 succeeded, 5 failed)
 		var wg sync.WaitGroup
 		success := atomic.Int32{}
@@ -186,9 +185,7 @@ func TestThrottleMiddleware_FixedWindow(t *testing.T) {
 		testutil.Diff(t, int32(5), success.Load())
 		testutil.Diff(t, int32(5), failure.Load())
 		time.Sleep(150 * time.Millisecond)
-
 	}
-
 }
 
 func TestThrottleMiddleware_LeakyBucket(t *testing.T) {

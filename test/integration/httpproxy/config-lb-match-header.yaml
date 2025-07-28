@@ -10,4 +10,4 @@ spec:
           patterns: ["foo", "bar"]
           matchType: Exact
       upstreams:
-        - url: http://127.0.0.1:10001
+        - url: http://127.0.0.1:12301

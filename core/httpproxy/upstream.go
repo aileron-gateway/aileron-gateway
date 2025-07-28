@@ -6,12 +6,12 @@ package httpproxy
 import (
 	"net/url"
 
-	"github.com/aileron-gateway/aileron-gateway/util/resilience"
+	"github.com/aileron-projects/go/zx/zlb"
 )
 
-// upstream is the interface of a target of circuit breaker.
+// upstream is interface for upstream servers.
 type upstream interface {
-	resilience.Entry
+	zlb.Target
 	// url returns url string of this target.
 	url() *url.URL
 	// notify is the notification interface to this target.
@@ -22,16 +22,17 @@ type upstream interface {
 // noopUpstream is no-operation load balancer upstream.
 // This implements upstream interface.
 type noopUpstream struct {
-	weight    int
+	id        uint64
+	weight    uint16
 	rawURL    string
 	parsedURL *url.URL
 }
 
-func (t *noopUpstream) ID() string {
-	return t.rawURL
+func (t *noopUpstream) ID() uint64 {
+	return t.id
 }
 
-func (t *noopUpstream) Weight() int {
+func (t *noopUpstream) Weight() uint16 {
 	return t.weight
 }
 
@@ -39,10 +40,6 @@ func (t *noopUpstream) Weight() int {
 // Noop load balancer upstream always return true.
 func (t *noopUpstream) Active() bool {
 	return true
-}
-
-func (t *noopUpstream) Hint() int {
-	return 0 // Currently not used.
 }
 
 // url returns the proxy url for this upstream.
@@ -53,35 +50,27 @@ func (t *noopUpstream) url() *url.URL {
 // notify count proxy result for this upstream tu update active status.
 // Noop load balancer upstream does not accept any result
 // because it is considered to e always active.
-func (t *noopUpstream) notify(_ int, _ error) {
-}
+func (t *noopUpstream) notify(_ int, _ error) {}
 
 // lbUpstream is a load balancer upstream with circuit breaker.
 // This implements proxy.upstream interface.
 type lbUpstream struct {
-	// upstream is the url of this upstream server.
-	weight    int
-	rawURL    string
+	id        uint64
+	weight    uint16
 	parsedURL *url.URL
-
 	// passiveEnabled enables passive health checking.
 	// Enabling this reflect the result of actual request.
 	passiveEnabled bool
-
 	// closer is the close channel.
 	closer chan struct{}
 }
 
-func (t *lbUpstream) ID() string {
-	return t.rawURL
+func (t *lbUpstream) ID() uint64 {
+	return t.id
 }
 
-func (t *lbUpstream) Weight() int {
+func (t *lbUpstream) Weight() uint16 {
 	return t.weight
-}
-
-func (t *lbUpstream) Hint() int {
-	return 0 // Currently not used.
 }
 
 func (t *lbUpstream) Active() bool {

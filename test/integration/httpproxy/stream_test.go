@@ -54,7 +54,7 @@ func TestStream_SSE(t *testing.T) {
 	testutil.DiffError(t, nil, nil, err)
 
 	svr := &http.Server{
-		Addr: ":10001",
+		Addr: ":12301",
 		Handler: &returnChunkedHandler{
 			header: http.Header{
 				"Content-Type":      []string{"text/event-stream"},
@@ -79,13 +79,8 @@ func TestStream_SSE(t *testing.T) {
 }
 
 func TestStream_ChunkedResponse(t *testing.T) {
-
-	configs := []string{
-		testDataDir + "config-stream.yaml",
-	}
-
 	server := common.NewAPI()
-	err := app.LoadConfigFiles(server, configs)
+	err := app.LoadConfigFiles(server, []string{testDataDir + "config-stream.yaml"})
 	testutil.DiffError(t, nil, nil, err)
 
 	ref := &kernel.Reference{
@@ -98,7 +93,7 @@ func TestStream_ChunkedResponse(t *testing.T) {
 	testutil.DiffError(t, nil, nil, err)
 
 	svr := &http.Server{
-		Addr: ":10001",
+		Addr: ":12301",
 		Handler: &returnChunkedHandler{
 			header: http.Header{
 				"Content-Type":      []string{"text/plain"},
@@ -119,17 +114,11 @@ func TestStream_ChunkedResponse(t *testing.T) {
 	testutil.Diff(t, http.StatusOK, w.Result().StatusCode)
 	testutil.Diff(t, []string{"1", "2", "3", "4", "5"}, ww.bodies)
 	t.Logf("%#v\n", ww.milliTimes)
-
 }
 
 func TestStream_ChunkedRequest(t *testing.T) {
-
-	configs := []string{
-		testDataDir + "config-stream.yaml",
-	}
-
 	server := common.NewAPI()
-	err := app.LoadConfigFiles(server, configs)
+	err := app.LoadConfigFiles(server, []string{testDataDir + "config-stream.yaml"})
 	testutil.DiffError(t, nil, nil, err)
 
 	ref := &kernel.Reference{
@@ -143,7 +132,7 @@ func TestStream_ChunkedRequest(t *testing.T) {
 
 	ch := &receiveChunkedHandler{}
 	svr := &http.Server{
-		Addr:    ":10001",
+		Addr:    ":12301",
 		Handler: ch,
 	}
 	go func() { svr.ListenAndServe() }()
@@ -167,17 +156,11 @@ func TestStream_ChunkedRequest(t *testing.T) {
 	testutil.Diff(t, "ok", string(b))
 	testutil.Diff(t, []string{"1", "2", "3", "4", "5"}, ch.bodies)
 	t.Logf("%#v\n", ch.milliTimes)
-
 }
 
 func TestStream_WebSocket(t *testing.T) {
-
-	configs := []string{
-		testDataDir + "config-stream-websocket.yaml",
-	}
-
 	server := common.NewAPI()
-	err := app.LoadConfigFiles(server, configs)
+	err := app.LoadConfigFiles(server, []string{testDataDir + "config-stream-websocket.yaml"})
 	testutil.DiffError(t, nil, nil, err)
 
 	ref := &kernel.Reference{
@@ -191,7 +174,7 @@ func TestStream_WebSocket(t *testing.T) {
 
 	wsh := &webSocketHandler{}
 	svr := &http.Server{
-		Addr:    ":10001",
+		Addr:    ":12301",
 		Handler: websocket.Handler(wsh.ServeWebSocket),
 	}
 	go func() { svr.ListenAndServe() }()
@@ -203,7 +186,7 @@ func TestStream_WebSocket(t *testing.T) {
 	go func() { runner.Run(ctx) }()
 	time.Sleep(time.Second) // Wait a little until the server starts.
 
-	ws, err := websocket.Dial("ws://localhost:11000/test", "", "http://localhost:11000")
+	ws, err := websocket.Dial("ws://localhost:12300/test", "", "http://localhost:12300")
 	testutil.DiffError(t, nil, nil, err)
 	defer ws.Close()
 
@@ -222,17 +205,11 @@ func TestStream_WebSocket(t *testing.T) {
 	}
 	testutil.Diff(t, []string{"1", "2", "3", "4", "5"}, wsh.bodies)
 	t.Logf("%#v\n", wsh.milliTimes)
-
 }
 
 func TestStream_SendOctetStream(t *testing.T) {
-
-	configs := []string{
-		testDataDir + "config-stream.yaml",
-	}
-
 	server := common.NewAPI()
-	err := app.LoadConfigFiles(server, configs)
+	err := app.LoadConfigFiles(server, []string{testDataDir + "config-stream.yaml"})
 	testutil.DiffError(t, nil, nil, err)
 
 	ref := &kernel.Reference{
@@ -246,7 +223,7 @@ func TestStream_SendOctetStream(t *testing.T) {
 
 	bh := &receiveBinaryHandler{}
 	svr := &http.Server{
-		Addr:    ":10001",
+		Addr:    ":12301",
 		Handler: bh,
 	}
 	go func() { svr.ListenAndServe() }()
@@ -276,7 +253,6 @@ func TestStream_SendOctetStream(t *testing.T) {
 	testutil.Diff(t, int64(10_000*1000), bh.size)
 	testutil.Diff(t, hex.EncodeToString(md5Hash), hex.EncodeToString(bh.md5Hash))
 	t.Log(hex.EncodeToString(md5Hash), hex.EncodeToString(bh.md5Hash))
-
 }
 
 func TestStream_ReceiveOctetStream(t *testing.T) {
@@ -300,7 +276,7 @@ func TestStream_ReceiveOctetStream(t *testing.T) {
 
 	bh := &returnBinaryHandler{}
 	svr := &http.Server{
-		Addr:    ":10001",
+		Addr:    ":12301",
 		Handler: bh,
 	}
 	go func() { svr.ListenAndServe() }()
@@ -348,7 +324,7 @@ func TestStream_Grpc(t *testing.T) {
 	mux := &http.ServeMux{}
 	mux.Handle("/", handler)
 	proxy := &http.Server{
-		Addr:    ":14444",
+		Addr:    ":12344",
 		Handler: mux,
 		TLSConfig: &tls.Config{
 			InsecureSkipVerify: true,
@@ -358,7 +334,7 @@ func TestStream_Grpc(t *testing.T) {
 	time.Sleep(time.Second) // Wait a little until server starts.
 	defer proxy.Close()
 
-	svr := newGrpcServer("localhost:15555")
+	svr := newGrpcServer(":12355")
 	defer svr.Stop()
 
 	pem, _ := os.ReadFile(testDataDir + "testdata/cert.pem")
@@ -367,7 +343,7 @@ func TestStream_Grpc(t *testing.T) {
 	opts := []grpc.DialOption{
 		grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{RootCAs: pool})),
 	}
-	conn, client := newGrpcClient("localhost:14444", opts...)
+	conn, client := newGrpcClient("127.0.0.1:12344", opts...)
 	defer conn.Close()
 
 	// A simple RPC
@@ -427,7 +403,7 @@ func TestStream_GrpcNonTLSServer(t *testing.T) {
 	mux := &http.ServeMux{}
 	mux.Handle("/", handler)
 	proxy := &http.Server{
-		Addr:    ":14444",
+		Addr:    ":12344",
 		Handler: h2c.NewHandler(handler, &http2.Server{}),
 	}
 
@@ -435,7 +411,7 @@ func TestStream_GrpcNonTLSServer(t *testing.T) {
 	time.Sleep(time.Second) // Wait a little until server starts.
 	defer proxy.Close()
 
-	svr := newGrpcServer("localhost:15555")
+	svr := newGrpcServer(":12355")
 	defer svr.Stop()
 
 	opts := []grpc.DialOption{
@@ -443,7 +419,7 @@ func TestStream_GrpcNonTLSServer(t *testing.T) {
 		// we can use insecure.NewCredentials().
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	}
-	conn, client := newGrpcClient("localhost:14444", opts...)
+	conn, client := newGrpcClient("127.0.0.1:12344", opts...)
 	defer conn.Close()
 
 	// A server-side streaming RPC
@@ -498,14 +474,14 @@ func TestStream_GrpcNonTLSClient(t *testing.T) {
 	mux := &http.ServeMux{}
 	mux.Handle("/", handler)
 	proxy := &http.Server{
-		Addr:    ":14444",
+		Addr:    ":12344",
 		Handler: handler,
 	}
 	go func() { proxy.ListenAndServeTLS(testDataDir+"testdata/cert.pem", testDataDir+"testdata/key.pem") }()
 	time.Sleep(time.Second) // Wait a little until server starts.
 	defer proxy.Close()
 
-	svr := newGrpcServer("localhost:15555")
+	svr := newGrpcServer("127.0.0.1:12355")
 	defer svr.Stop()
 
 	pem, _ := os.ReadFile(testDataDir + "testdata/cert.pem")
@@ -516,7 +492,7 @@ func TestStream_GrpcNonTLSClient(t *testing.T) {
 		// Instead of using insecure client, we skip and ignore insecure certification.
 		grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{InsecureSkipVerify: true})),
 	}
-	conn, client := newGrpcClient("localhost:14444", opts...)
+	conn, client := newGrpcClient("127.0.0.1:12344", opts...)
 	defer conn.Close()
 
 	// A server-side streaming RPC

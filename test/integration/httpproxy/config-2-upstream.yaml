@@ -6,5 +6,5 @@ spec:
         match: "/test"
         matchType: Prefix
       upstreams:
-        - url: http://127.0.0.1:10001
-        - url: http://127.0.0.1:10002
+        - url: http://127.0.0.1:12301
+        - url: http://127.0.0.1:12302

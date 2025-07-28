@@ -7,9 +7,9 @@ spec:
         matchType: Prefix
       lbAlgorithm: RoundRobin
       upstreams:
-        - url: http://127.0.0.1:10001
+        - url: http://127.0.0.1:12301
           weight: 1
-        - url: http://127.0.0.1:10002
+        - url: http://127.0.0.1:12302
           weight: 2
-        - url: http://127.0.0.1:10003
+        - url: http://127.0.0.1:12303
           weight: 3

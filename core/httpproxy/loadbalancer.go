@@ -9,7 +9,7 @@ import (
 	"slices"
 
 	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
-	"github.com/aileron-gateway/aileron-gateway/util/resilience"
+	"github.com/aileron-projects/go/zx/zlb"
 )
 
 // loadBalancer is the interface of load balancers.
@@ -75,118 +75,32 @@ func (lb *lbMatcher) match(r *http.Request) (string, bool) {
 	return "", false
 }
 
-type nonHashLB struct {
+type loadbalancer struct {
 	// lbMatcher is the underlying matcher object.
 	// Requests that this load balancer can accept are
 	// determined by the match function of this object.
 	// This must not be nil, otherwise panics.
 	*lbMatcher
-
 	//  LoadBalancer is the internal load balancer.
 	// This LoadBalancer should not be a hash-based.
-	// Use one of following LBs.
-	//  - resilience.RandomLB
-	//  - resilience.RoundRobinLB
-	resilience.LoadBalancer[upstream]
+	zlb.LoadBalancer[upstream]
+	// hasher is the hasher to calculate hash values of a request.
+	hasher HTTPHasher
 }
 
-func (lb *nonHashLB) upstream(r *http.Request) (upstream, *url.URL, bool) {
+func (lb *loadbalancer) upstream(r *http.Request) (upstream, *url.URL, bool) {
 	path, ok := lb.match(r)
 	if !ok {
 		return nil, nil, false
 	}
-
-	ups := lb.Get(-1)
-	if ups == nil || !ups.Active() {
+	digest := uint64(0)
+	if lb.hasher != nil {
+		digest = lb.hasher.Hash(r) // hash value will be 0-65,535 when ok.
+	}
+	ups, found := lb.Get(digest)
+	if !found || ups == nil || !ups.Active() {
 		return nil, nil, true // Upstream not available.
 	}
-
-	u := toProxyURL(ups.url(), path)
-	return ups, u, true // Upstream available.
-}
-
-type directHashLB struct {
-	// lbMatcher is the underlying matcher object.
-	// Requests that this load balancer can accept are
-	// determined by the match function of this object.
-	// This must not be nil, otherwise panics.
-	*lbMatcher
-
-	//  LoadBalancer is the internal load balancer.
-	// This LoadBalancer should be a hash-based.
-	// Use following LB.
-	//  - resilience.DirectHashLB
-	resilience.LoadBalancer[upstream]
-
-	// hashers is the list of hasher that will be used for
-	// calculating hash values of each requests.
-	hashers []resilience.HTTPHasher
-}
-
-func (lb *directHashLB) upstream(r *http.Request) (upstream, *url.URL, bool) {
-	path, ok := lb.match(r)
-	if !ok {
-		return nil, nil, false
-	}
-
-	for _, h := range lb.hashers {
-		val, ok := h.Hash(r) // hash value will be 0-65,535 when ok.
-		if !ok {
-			continue // Try next hash.
-		}
-		ups := lb.Get(val)
-		if ups == nil || !ups.Active() {
-			continue // Try next hash.
-		}
-
-		u := toProxyURL(ups.url(), path)
-		return ups, u, true // Upstream available.
-	}
-
-	return nil, nil, true // Upstream not available
-}
-
-type hashBasedLB struct {
-	// lbMatcher is the underlying matcher object.
-	// Requests that this load balancer can accept are
-	// determined by the match function of this object.
-	// This must not be nil, otherwise panics.
-	*lbMatcher
-
-	//  LoadBalancer is the internal load balancer.
-	// This LoadBalancer should be a hash-based.
-	// Use one of following LBs.
-	//  - resilience.MaglevLB
-	//  - resilience.RingHashLB
-	resilience.LoadBalancer[upstream]
-
-	// hashers is the list of hasher that will be used for
-	// calculating hash values of each requests.
-	hashers []resilience.HTTPHasher
-}
-
-func (lb *hashBasedLB) upstream(r *http.Request) (upstream, *url.URL, bool) {
-	path, ok := lb.match(r)
-	if !ok {
-		return nil, nil, false
-	}
-
-	ok = false
-	var val int // hash value will be 0-65,535 when valid.
-	for _, h := range lb.hashers {
-		if val, ok = h.Hash(r); ok {
-			break
-		}
-	}
-	if !ok {
-		return nil, nil, true // Hash not available.
-	}
-
-	ups := lb.Get(val)
-	if ups == nil || !ups.Active() {
-		return nil, nil, true // Upstream not available.
-	}
-
 	u := toProxyURL(ups.url(), path)
 	return ups, u, true // Upstream available.
 }

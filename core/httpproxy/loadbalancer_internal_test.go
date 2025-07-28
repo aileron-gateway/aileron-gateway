@@ -13,7 +13,7 @@ import (
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
-	"github.com/aileron-gateway/aileron-gateway/util/resilience"
+	"github.com/aileron-projects/go/zx/zlb"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -399,7 +399,7 @@ func TestLBMatcher(t *testing.T) {
 	}
 }
 
-func TestNonHashLB(t *testing.T) {
+func TestLoadbalancer_nonHash(t *testing.T) {
 	type condition struct {
 		matcher   func(string) (string, bool)
 		upstreams []upstream
@@ -485,13 +485,11 @@ func TestNonHashLB(t *testing.T) {
 	for _, tt := range table.Entries() {
 		tt := tt
 		t.Run(tt.Name(), func(t *testing.T) {
-			rlb := &resilience.RoundRobinLB[upstream]{}
-			rlb.Add(tt.C().upstreams...)
-			lb := &nonHashLB{
+			lb := &loadbalancer{
 				lbMatcher: &lbMatcher{
 					pathMatchers: []matcherFunc{tt.C().matcher},
 				},
-				LoadBalancer: rlb,
+				LoadBalancer: zlb.NewBasicRoundRobin(tt.C().upstreams...),
 			}
 
 			r := httptest.NewRequest(http.MethodGet, "http://test.com/foo", nil)
@@ -506,11 +504,11 @@ func TestNonHashLB(t *testing.T) {
 	}
 }
 
-func TestDirectHashLB(t *testing.T) {
+func TestLoadbalancer_hash(t *testing.T) {
 	type condition struct {
 		matcher   func(string) (string, bool)
 		upstreams []upstream
-		hashers   []resilience.HTTPHasher
+		hasher    HTTPHasher
 	}
 
 	type action struct {
@@ -527,11 +525,8 @@ func TestDirectHashLB(t *testing.T) {
 	ups2 := &noopUpstream{rawURL: "http://test2.com", weight: 1, parsedURL: &url.URL{Scheme: "http", Host: "test.com", RawQuery: "bar2=baz2"}}
 	ups3 := &noopUpstream{rawURL: "http://test3.com", weight: 1, parsedURL: &url.URL{Scheme: "http", Host: "test.com", RawQuery: "bar3=baz3"}}
 	url1 := &url.URL{Scheme: "http", Host: "test.com", Path: "/foo", RawPath: "/foo", RawQuery: "bar1=baz1"}
-	// url2 := &url.URL{Scheme: "http", Host: "test.com", Path: "/foo", RawPath: "/foo", RawQuery: "bar2=baz2"}
-	url3 := &url.URL{Scheme: "http", Host: "test.com", Path: "/foo", RawPath: "/foo", RawQuery: "bar3=baz3"}
-	hasher1 := resilience.NewHTTPHasher(&v1.HTTPHasherSpec{HasherType: v1.HTTPHasherType_Header, Key: "test"})
-	hasher2 := resilience.NewHTTPHasher(&v1.HTTPHasherSpec{HasherType: v1.HTTPHasherType_Header, Key: "foo"})
-	hasher3 := resilience.NewHTTPHasher(&v1.HTTPHasherSpec{HasherType: v1.HTTPHasherType_Header, Key: "test"})
+	url2 := &url.URL{Scheme: "http", Host: "test.com", Path: "/foo", RawPath: "/foo", RawQuery: "bar2=baz2"}
+	// url3 := &url.URL{Scheme: "http", Host: "test.com", Path: "/foo", RawPath: "/foo", RawQuery: "bar3=baz3"}
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
@@ -558,8 +553,8 @@ func TestDirectHashLB(t *testing.T) {
 				matcher:   func(s string) (string, bool) { return s, true },
 			},
 			&action{
-				upstream: []upstream{nil},
-				url:      []*url.URL{nil},
+				upstream: []upstream{ups1},
+				url:      []*url.URL{url1},
 				matched:  []bool{true},
 			},
 		),
@@ -572,19 +567,19 @@ func TestDirectHashLB(t *testing.T) {
 				matcher:   func(s string) (string, bool) { return s, true },
 			},
 			&action{
-				upstream: []upstream{nil},
-				url:      []*url.URL{nil},
+				upstream: []upstream{ups2},
+				url:      []*url.URL{url2},
 				matched:  []bool{true},
 			},
 		),
 		gen(
-			"no upstream/single hasher",
+			"no upstream",
 			[]string{},
 			[]string{},
 			&condition{
 				upstreams: []upstream{},
 				matcher:   func(s string) (string, bool) { return s, true },
-				hashers:   []resilience.HTTPHasher{hasher1},
+				hasher:    newHTTPHasher(&v1.HTTPHasherSpec{HashSource: v1.HTTPHasherSpec_Header, Key: "test"}),
 			},
 			&action{
 				upstream: []upstream{nil},
@@ -593,13 +588,13 @@ func TestDirectHashLB(t *testing.T) {
 			},
 		),
 		gen(
-			"single upstream/single hasher",
+			"single upstream",
 			[]string{},
 			[]string{},
 			&condition{
 				upstreams: []upstream{ups1},
 				matcher:   func(s string) (string, bool) { return s, true },
-				hashers:   []resilience.HTTPHasher{hasher1},
+				hasher:    newHTTPHasher(&v1.HTTPHasherSpec{HashSource: v1.HTTPHasherSpec_Header, Key: "test"}),
 			},
 			&action{
 				upstream: []upstream{ups1},
@@ -608,62 +603,17 @@ func TestDirectHashLB(t *testing.T) {
 			},
 		),
 		gen(
-			"multiple upstream/single hasher",
+			"multiple upstream",
 			[]string{},
 			[]string{},
 			&condition{
 				upstreams: []upstream{ups1, ups2, ups3},
 				matcher:   func(s string) (string, bool) { return s, true },
-				hashers:   []resilience.HTTPHasher{hasher1},
-			},
-			&action{
-				upstream: []upstream{ups3},
-				url:      []*url.URL{url3},
-				matched:  []bool{true},
-			},
-		),
-		gen(
-			"no upstream/multiple hasher",
-			[]string{},
-			[]string{},
-			&condition{
-				upstreams: []upstream{},
-				matcher:   func(s string) (string, bool) { return s, true },
-				hashers:   []resilience.HTTPHasher{hasher2, hasher3, hasher1},
-			},
-			&action{
-				upstream: []upstream{nil},
-				url:      []*url.URL{nil},
-				matched:  []bool{true},
-			},
-		),
-		gen(
-			"single upstream/multiple hasher",
-			[]string{},
-			[]string{},
-			&condition{
-				upstreams: []upstream{ups1},
-				matcher:   func(s string) (string, bool) { return s, true },
-				hashers:   []resilience.HTTPHasher{hasher2, hasher3, hasher1},
+				hasher:    newHTTPHasher(&v1.HTTPHasherSpec{HashSource: v1.HTTPHasherSpec_Header, Key: "test"}),
 			},
 			&action{
 				upstream: []upstream{ups1},
 				url:      []*url.URL{url1},
-				matched:  []bool{true},
-			},
-		),
-		gen(
-			"multiple upstream/multiple hasher",
-			[]string{},
-			[]string{},
-			&condition{
-				upstreams: []upstream{ups1, ups2, ups3},
-				matcher:   func(s string) (string, bool) { return s, true },
-				hashers:   []resilience.HTTPHasher{hasher2, hasher3, hasher1},
-			},
-			&action{
-				upstream: []upstream{ups3},
-				url:      []*url.URL{url3},
 				matched:  []bool{true},
 			},
 		),
@@ -681,285 +631,18 @@ func TestDirectHashLB(t *testing.T) {
 				matched:  []bool{false},
 			},
 		),
-		gen(
-			"hasher failed",
-			[]string{},
-			[]string{},
-			&condition{
-				upstreams: []upstream{ups1, ups2, ups3},
-				matcher:   func(s string) (string, bool) { return s, true },
-				hashers:   []resilience.HTTPHasher{hasher2},
-			},
-			&action{
-				upstream: []upstream{nil},
-				url:      []*url.URL{nil},
-				matched:  []bool{true},
-			},
-		),
-		gen(
-			"all hashers failed",
-			[]string{},
-			[]string{},
-			&condition{
-				upstreams: []upstream{ups1, ups2, ups3},
-				matcher:   func(s string) (string, bool) { return s, true },
-				hashers:   []resilience.HTTPHasher{hasher2, hasher2, hasher2},
-			},
-			&action{
-				upstream: []upstream{nil},
-				url:      []*url.URL{nil},
-				matched:  []bool{true},
-			},
-		),
 	}
 	testutil.Register(table, testCases...)
 
 	for _, tt := range table.Entries() {
 		tt := tt
 		t.Run(tt.Name(), func(t *testing.T) {
-			rlb := &resilience.DirectHashLB[upstream]{}
-			rlb.Add(tt.C().upstreams...)
-			lb := &directHashLB{
+			lb := &loadbalancer{
 				lbMatcher: &lbMatcher{
 					pathMatchers: []matcherFunc{tt.C().matcher},
 				},
-				LoadBalancer: rlb,
-				hashers:      tt.C().hashers,
-			}
-
-			r := httptest.NewRequest(http.MethodGet, "http://test.com/foo", nil)
-			r.Header.Set("test", "hash input")
-
-			for i := 0; i < len(tt.A().upstream); i++ {
-				upstream, url, matched := lb.upstream(r)
-				testutil.Diff(t, tt.A().upstream[i], upstream, cmp.AllowUnexported(lbUpstream{}, noopUpstream{}, atomic.Int32{}))
-				testutil.Diff(t, tt.A().url[i], url)
-				testutil.Diff(t, tt.A().matched[i], matched)
-			}
-		})
-	}
-}
-
-func TestMaglevLB(t *testing.T) {
-	type condition struct {
-		matcher   func(string) (string, bool)
-		upstreams []upstream
-		hashers   []resilience.HTTPHasher
-	}
-
-	type action struct {
-		upstream []upstream
-		url      []*url.URL
-		matched  []bool
-	}
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
-	ups1 := &noopUpstream{rawURL: "http://test1.com", weight: 1, parsedURL: &url.URL{Scheme: "http", Host: "test.com", RawQuery: "bar1=baz1"}}
-	ups2 := &noopUpstream{rawURL: "http://test2.com", weight: 1, parsedURL: &url.URL{Scheme: "http", Host: "test.com", RawQuery: "bar2=baz2"}}
-	ups3 := &noopUpstream{rawURL: "http://test3.com", weight: 1, parsedURL: &url.URL{Scheme: "http", Host: "test.com", RawQuery: "bar3=baz3"}}
-	url1 := &url.URL{Scheme: "http", Host: "test.com", Path: "/foo", RawPath: "/foo", RawQuery: "bar1=baz1"}
-	// url2 := &url.URL{Scheme: "http", Host: "test.com", Path: "/foo", RawPath: "/foo", RawQuery: "bar2=baz2"}
-	url3 := &url.URL{Scheme: "http", Host: "test.com", Path: "/foo", RawPath: "/foo", RawQuery: "bar3=baz3"}
-	hasher1 := resilience.NewHTTPHasher(&v1.HTTPHasherSpec{HasherType: v1.HTTPHasherType_Header, Key: "test"})
-	hasher2 := resilience.NewHTTPHasher(&v1.HTTPHasherSpec{HasherType: v1.HTTPHasherType_Header, Key: "foo"})
-	hasher3 := resilience.NewHTTPHasher(&v1.HTTPHasherSpec{HasherType: v1.HTTPHasherType_Header, Key: "test"})
-
-	gen := testutil.NewCase[*condition, *action]
-	testCases := []*testutil.Case[*condition, *action]{
-		gen(
-			"no upstream/no hasher",
-			[]string{},
-			[]string{},
-			&condition{
-				upstreams: []upstream{},
-				matcher:   func(s string) (string, bool) { return s, true },
-			},
-			&action{
-				upstream: []upstream{nil},
-				url:      []*url.URL{nil},
-				matched:  []bool{true},
-			},
-		),
-		gen(
-			"single upstream/no hasher",
-			[]string{},
-			[]string{},
-			&condition{
-				upstreams: []upstream{ups1},
-				matcher:   func(s string) (string, bool) { return s, true },
-			},
-			&action{
-				upstream: []upstream{nil},
-				url:      []*url.URL{nil},
-				matched:  []bool{true},
-			},
-		),
-		gen(
-			"multiple upstream/no hasher",
-			[]string{},
-			[]string{},
-			&condition{
-				upstreams: []upstream{ups1, ups2, ups3},
-				matcher:   func(s string) (string, bool) { return s, true },
-			},
-			&action{
-				upstream: []upstream{nil},
-				url:      []*url.URL{nil},
-				matched:  []bool{true},
-			},
-		),
-		gen(
-			"no upstream/single hasher",
-			[]string{},
-			[]string{},
-			&condition{
-				upstreams: []upstream{},
-				matcher:   func(s string) (string, bool) { return s, true },
-				hashers:   []resilience.HTTPHasher{hasher1},
-			},
-			&action{
-				upstream: []upstream{nil},
-				url:      []*url.URL{nil},
-				matched:  []bool{true},
-			},
-		),
-		gen(
-			"single upstream/single hasher",
-			[]string{},
-			[]string{},
-			&condition{
-				upstreams: []upstream{ups1},
-				matcher:   func(s string) (string, bool) { return s, true },
-				hashers:   []resilience.HTTPHasher{hasher1},
-			},
-			&action{
-				upstream: []upstream{ups1},
-				url:      []*url.URL{url1},
-				matched:  []bool{true},
-			},
-		),
-		gen(
-			"multiple upstream/single hasher",
-			[]string{},
-			[]string{},
-			&condition{
-				upstreams: []upstream{ups1, ups2, ups3},
-				matcher:   func(s string) (string, bool) { return s, true },
-				hashers:   []resilience.HTTPHasher{hasher1},
-			},
-			&action{
-				upstream: []upstream{ups3},
-				url:      []*url.URL{url3},
-				matched:  []bool{true},
-			},
-		),
-		gen(
-			"no upstream/multiple hasher",
-			[]string{},
-			[]string{},
-			&condition{
-				upstreams: []upstream{},
-				matcher:   func(s string) (string, bool) { return s, true },
-				hashers:   []resilience.HTTPHasher{hasher2, hasher3, hasher1},
-			},
-			&action{
-				upstream: []upstream{nil},
-				url:      []*url.URL{nil},
-				matched:  []bool{true},
-			},
-		),
-		gen(
-			"single upstream/multiple hasher",
-			[]string{},
-			[]string{},
-			&condition{
-				upstreams: []upstream{ups1},
-				matcher:   func(s string) (string, bool) { return s, true },
-				hashers:   []resilience.HTTPHasher{hasher2, hasher3, hasher1},
-			},
-			&action{
-				upstream: []upstream{ups1},
-				url:      []*url.URL{url1},
-				matched:  []bool{true},
-			},
-		),
-		gen(
-			"multiple upstream/multiple hasher",
-			[]string{},
-			[]string{},
-			&condition{
-				upstreams: []upstream{ups1, ups2, ups3},
-				matcher:   func(s string) (string, bool) { return s, true },
-				hashers:   []resilience.HTTPHasher{hasher2, hasher3, hasher1},
-			},
-			&action{
-				upstream: []upstream{ups3},
-				url:      []*url.URL{url3},
-				matched:  []bool{true},
-			},
-		),
-		gen(
-			"path not match",
-			[]string{},
-			[]string{},
-			&condition{
-				upstreams: []upstream{ups1},
-				matcher:   func(string) (string, bool) { return "", false },
-			},
-			&action{
-				upstream: []upstream{nil},
-				url:      []*url.URL{nil},
-				matched:  []bool{false},
-			},
-		),
-		gen(
-			"hasher failed",
-			[]string{},
-			[]string{},
-			&condition{
-				upstreams: []upstream{ups1, ups2, ups3},
-				matcher:   func(s string) (string, bool) { return s, true },
-				hashers:   []resilience.HTTPHasher{hasher2},
-			},
-			&action{
-				upstream: []upstream{nil},
-				url:      []*url.URL{nil},
-				matched:  []bool{true},
-			},
-		),
-		gen(
-			"all hashers failed",
-			[]string{},
-			[]string{},
-			&condition{
-				upstreams: []upstream{ups1, ups2, ups3},
-				matcher:   func(s string) (string, bool) { return s, true },
-				hashers:   []resilience.HTTPHasher{hasher2, hasher2, hasher2},
-			},
-			&action{
-				upstream: []upstream{nil},
-				url:      []*url.URL{nil},
-				matched:  []bool{true},
-			},
-		),
-	}
-
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
-		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			rlb := &resilience.MaglevLB[upstream]{}
-			rlb.Add(tt.C().upstreams...)
-			lb := &hashBasedLB{
-				lbMatcher: &lbMatcher{
-					pathMatchers: []matcherFunc{tt.C().matcher},
-				},
-				LoadBalancer: rlb,
-				hashers:      tt.C().hashers,
+				LoadBalancer: zlb.NewDirectHash(tt.C().upstreams...),
+				hasher:       tt.C().hasher,
 			}
 
 			r := httptest.NewRequest(http.MethodGet, "http://test.com/foo", nil)
