@@ -8,7 +8,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aileron-gateway/aileron-gateway/util/resilience"
+	"github.com/aileron-projects/go/ztime/zbackoff"
+)
+
+var (
+	// backoff is the backoff used for retrying.
+	// Backoff algorithm is currently fixed and not configurable.
+	backoff = zbackoff.NewExponentialBackoffFullJitter(time.Millisecond, 10*time.Second, time.Millisecond)
 )
 
 // throttler apply rate limiting to the requests.
@@ -45,8 +51,6 @@ type retryThrottler struct {
 	// maxRetry is the maximum retry count.
 	// Requests will be rejected when all retries are failed for maxRetry times.
 	maxRetry int
-	// waiter determines wait duration until next retry.
-	waiter resilience.Waiter
 }
 
 func (t *retryThrottler) accept(ctx context.Context) (bool, func()) {
@@ -59,7 +63,7 @@ func (t *retryThrottler) accept(ctx context.Context) (bool, func()) {
 
 loop:
 	for i := 1; i <= t.maxRetry; i++ {
-		ticker.Reset(t.waiter.Wait(i))
+		ticker.Reset(backoff.Attempt(i))
 		select {
 		case <-ticker.C:
 		case <-ctx.Done():

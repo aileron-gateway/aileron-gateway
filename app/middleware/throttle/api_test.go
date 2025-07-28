@@ -9,13 +9,11 @@ import (
 	"time"
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
-	corev1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
-	"github.com/aileron-gateway/aileron-gateway/util/resilience"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -66,11 +64,6 @@ func TestMutate(t *testing.T) {
 								Throttlers: &v1.APIThrottlerSpec_MaxConnections{
 									MaxConnections: &v1.MaxConnectionsSpec{},
 								},
-								Waiter: &corev1.WaiterSpec{
-									Waiter: &corev1.WaiterSpec_ExponentialBackoffFullJitter{
-										ExponentialBackoffFullJitter: &corev1.ExponentialBackoffFullJitterWaiterSpec{},
-									},
-								},
 							},
 						},
 					},
@@ -84,15 +77,6 @@ func TestMutate(t *testing.T) {
 								Throttlers: &v1.APIThrottlerSpec_MaxConnections{
 									MaxConnections: &v1.MaxConnectionsSpec{
 										MaxConns: 128,
-									},
-								},
-								Waiter: &corev1.WaiterSpec{
-									Waiter: &corev1.WaiterSpec_ExponentialBackoffFullJitter{
-										ExponentialBackoffFullJitter: &corev1.ExponentialBackoffFullJitterWaiterSpec{
-											Base: 2000,
-											Min:  0,
-											Max:  1 << 21,
-										},
 									},
 								},
 							},
@@ -112,11 +96,6 @@ func TestMutate(t *testing.T) {
 								Throttlers: &v1.APIThrottlerSpec_FixedWindow{
 									FixedWindow: &v1.FixedWindowSpec{},
 								},
-								Waiter: &corev1.WaiterSpec{
-									Waiter: &corev1.WaiterSpec_ExponentialBackoffFullJitter{
-										ExponentialBackoffFullJitter: &corev1.ExponentialBackoffFullJitterWaiterSpec{},
-									},
-								},
 							},
 						},
 					},
@@ -131,15 +110,6 @@ func TestMutate(t *testing.T) {
 									FixedWindow: &v1.FixedWindowSpec{
 										WindowSize: 1000,
 										Limit:      1000,
-									},
-								},
-								Waiter: &corev1.WaiterSpec{
-									Waiter: &corev1.WaiterSpec_ExponentialBackoffFullJitter{
-										ExponentialBackoffFullJitter: &corev1.ExponentialBackoffFullJitterWaiterSpec{
-											Base: 2000,
-											Min:  0,
-											Max:  1 << 21,
-										},
 									},
 								},
 							},
@@ -159,11 +129,6 @@ func TestMutate(t *testing.T) {
 								Throttlers: &v1.APIThrottlerSpec_TokenBucket{
 									TokenBucket: &v1.TokenBucketSpec{},
 								},
-								Waiter: &corev1.WaiterSpec{
-									Waiter: &corev1.WaiterSpec_ExponentialBackoffFullJitter{
-										ExponentialBackoffFullJitter: &corev1.ExponentialBackoffFullJitterWaiterSpec{},
-									},
-								},
 							},
 						},
 					},
@@ -179,15 +144,6 @@ func TestMutate(t *testing.T) {
 										BucketSize:   1000,
 										FillInterval: 1000,
 										FillRate:     1000,
-									},
-								},
-								Waiter: &corev1.WaiterSpec{
-									Waiter: &corev1.WaiterSpec_ExponentialBackoffFullJitter{
-										ExponentialBackoffFullJitter: &corev1.ExponentialBackoffFullJitterWaiterSpec{
-											Base: 2000,
-											Min:  0,
-											Max:  1 << 21,
-										},
 									},
 								},
 							},
@@ -207,11 +163,6 @@ func TestMutate(t *testing.T) {
 								Throttlers: &v1.APIThrottlerSpec_LeakyBucket{
 									LeakyBucket: &v1.LeakyBucketSpec{},
 								},
-								Waiter: &corev1.WaiterSpec{
-									Waiter: &corev1.WaiterSpec_ExponentialBackoffFullJitter{
-										ExponentialBackoffFullJitter: &corev1.ExponentialBackoffFullJitterWaiterSpec{},
-									},
-								},
 							},
 						},
 					},
@@ -227,15 +178,6 @@ func TestMutate(t *testing.T) {
 										BucketSize:   1000,
 										LeakInterval: 1000,
 										LeakRate:     200,
-									},
-								},
-								Waiter: &corev1.WaiterSpec{
-									Waiter: &corev1.WaiterSpec_ExponentialBackoffFullJitter{
-										ExponentialBackoffFullJitter: &corev1.ExponentialBackoffFullJitterWaiterSpec{
-											Base: 2000,
-											Min:  0,
-											Max:  1 << 21,
-										},
 									},
 								},
 							},
@@ -354,11 +296,6 @@ func TestCreate(t *testing.T) {
 										MaxConns: 128,
 									},
 								},
-								Waiter: &corev1.WaiterSpec{
-									Waiter: &corev1.WaiterSpec_ExponentialBackoffFullJitter{
-										ExponentialBackoffFullJitter: &corev1.ExponentialBackoffFullJitterWaiterSpec{},
-									},
-								},
 								Matcher: &k.MatcherSpec{
 									Patterns: []string{"/example"},
 								},
@@ -395,11 +332,6 @@ func TestCreate(t *testing.T) {
 									FixedWindow: &v1.FixedWindowSpec{
 										WindowSize: 1000,
 										Limit:      1000,
-									},
-								},
-								Waiter: &corev1.WaiterSpec{
-									Waiter: &corev1.WaiterSpec_ExponentialBackoffFullJitter{
-										ExponentialBackoffFullJitter: &corev1.ExponentialBackoffFullJitterWaiterSpec{},
 									},
 								},
 								Matcher: &k.MatcherSpec{
@@ -440,11 +372,6 @@ func TestCreate(t *testing.T) {
 										BucketSize:   1000,
 										FillInterval: 1000,
 										FillRate:     1000,
-									},
-								},
-								Waiter: &corev1.WaiterSpec{
-									Waiter: &corev1.WaiterSpec_ExponentialBackoffFullJitter{
-										ExponentialBackoffFullJitter: &corev1.ExponentialBackoffFullJitterWaiterSpec{},
 									},
 								},
 								Matcher: &k.MatcherSpec{
@@ -488,11 +415,6 @@ func TestCreate(t *testing.T) {
 										LeakRate:     200,
 									},
 								},
-								Waiter: &corev1.WaiterSpec{
-									Waiter: &corev1.WaiterSpec_ExponentialBackoffFullJitter{
-										ExponentialBackoffFullJitter: &corev1.ExponentialBackoffFullJitterWaiterSpec{},
-									},
-								},
 								Matcher: &k.MatcherSpec{
 									Patterns: []string{"/example"},
 								},
@@ -534,11 +456,6 @@ func TestCreate(t *testing.T) {
 										LeakRate:     200,
 									},
 								},
-								Waiter: &corev1.WaiterSpec{
-									Waiter: &corev1.WaiterSpec_ExponentialBackoffFullJitter{
-										ExponentialBackoffFullJitter: &corev1.ExponentialBackoffFullJitterWaiterSpec{},
-									},
-								},
 								Matcher: &k.MatcherSpec{
 									Patterns: []string{"/example"},
 								},
@@ -562,11 +479,6 @@ func TestCreate(t *testing.T) {
 									interval: 1 * time.Second,
 								},
 								maxRetry: 3,
-								waiter: resilience.NewWaiter(&corev1.WaiterSpec{
-									Waiter: &corev1.WaiterSpec_ExponentialBackoffFullJitter{
-										ExponentialBackoffFullJitter: &corev1.ExponentialBackoffFullJitterWaiterSpec{},
-									},
-								}),
 							},
 						},
 					},

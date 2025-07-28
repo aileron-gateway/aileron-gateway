@@ -13,7 +13,6 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/network"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
-	"github.com/aileron-gateway/aileron-gateway/util/resilience"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
@@ -80,7 +79,6 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.Prot
 		slices.Sort(retryStatus) // slices.Compact requires sorted slice.
 		ret := &retry{
 			maxRetry:         int(rc.MaxRetry),
-			waiter:           resilience.NewWaiter(rc.Waiter),
 			maxContentLength: int64(rc.MaxContentLength),
 			retryStatus:      slices.Clip(slices.Compact(retryStatus)), // Remove duplicates.
 		}

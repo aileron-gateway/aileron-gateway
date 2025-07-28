@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
-	"github.com/aileron-gateway/aileron-gateway/util/resilience"
 )
 
 func TestRetryThrottler(t *testing.T) {
@@ -50,7 +49,6 @@ func TestRetryThrottler(t *testing.T) {
 						releaser:   noopReleaser,
 					},
 					maxRetry: 3,
-					waiter:   resilience.NewWaiter(nil),
 				},
 			},
 			&action{
@@ -68,7 +66,6 @@ func TestRetryThrottler(t *testing.T) {
 						releaser:   noopReleaser,
 					},
 					maxRetry: 3,
-					waiter:   resilience.NewWaiter(nil),
 				},
 				secondRequest: true,
 			},
@@ -88,7 +85,6 @@ func TestRetryThrottler(t *testing.T) {
 						releaser:   noopReleaser,
 					},
 					maxRetry: 3,
-					waiter:   resilience.NewWaiter(nil),
 				},
 				firstRequestRelease: true,
 				secondRequest:       true,
@@ -109,7 +105,6 @@ func TestRetryThrottler(t *testing.T) {
 						releaser:   noopReleaser,
 					},
 					maxRetry: 3,
-					waiter:   resilience.NewWaiter(nil),
 				},
 				endContextAt: 2,
 			},

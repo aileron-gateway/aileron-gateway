@@ -3,7 +3,6 @@ package app.v1;
 
 import "buf/validate/validate.proto";
 import "core/v1/http.proto";
-import "core/v1/resilience.proto";
 import "kernel/matcher.proto";
 import "kernel/resource.proto";
 
@@ -48,14 +47,9 @@ message APIThrottlerSpec {
     // Default is [0] or no retry by default.
     int32 MaxRetry = 3 [json_name = "maxRetry", (buf.validate.field).int32 = {gte : 0}];
 
-    // [OPTIONAL]
-    // Waiter is the waiter object to determine the wait time until the next try.
-    // ExponentialBackoffFullJitterWaiter is used by default.
-    core.v1.WaiterSpec Waiter = 4 [json_name = "waiter"];
-
     // [REQUIRED]
     // Throttlers is the list of the throttlers that are applied to the requests matched to the matcher.
-    // No throttlers are applied when nothong has specified in this field.
+    // No throttlers are applied when nothing has specified in this field.
     oneof Throttlers {
         option(buf.validate.oneof).required = true;
         // MaxConnections is the setting for throttler with max connection algorithm.
