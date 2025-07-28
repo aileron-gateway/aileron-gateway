@@ -8,5 +8,4 @@ spec:
         matchType: Exact
       leakyBucket:
         bucketSize: 4
-        leakInterval: 100
-        leakRate: 2
+        leakInterval: 50

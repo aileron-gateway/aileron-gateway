@@ -11,6 +11,7 @@ import (
 
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	httputil "github.com/aileron-gateway/aileron-gateway/util/http"
+	"github.com/aileron-projects/go/ztime/zrate"
 )
 
 type testThrottler struct {
@@ -93,11 +94,9 @@ func TestMiddleware(t *testing.T) {
 					eh: nil,
 					throttlers: []*apiThrottler{
 						{
-							throttler: &testThrottler{
-								acceptedAt: 0,
-								releaser:   noopReleaser,
-							},
-							paths: testMatcher{match: true},
+							limiter:  zrate.NewConcurrentLimiter(1),
+							allowNow: true,
+							paths:    testMatcher{match: true},
 						},
 					},
 				},
@@ -115,12 +114,10 @@ func TestMiddleware(t *testing.T) {
 					eh: nil,
 					throttlers: []*apiThrottler{
 						{
-							throttler: &testThrottler{
-								acceptedAt: 0,
-								releaser:   noopReleaser,
-							},
-							methods: []string{http.MethodGet},
-							paths:   testMatcher{match: true},
+							limiter:  zrate.NewConcurrentLimiter(1),
+							allowNow: true,
+							methods:  []string{http.MethodGet},
+							paths:    testMatcher{match: true},
 						},
 					},
 				},
@@ -138,11 +135,10 @@ func TestMiddleware(t *testing.T) {
 					eh: nil,
 					throttlers: []*apiThrottler{
 						{
-							throttler: &testThrottler{
-								acceptedAt: 999999999, // Never used.
-							},
-							methods: []string{http.MethodPost},
-							paths:   testMatcher{match: true},
+							limiter:  zrate.NewConcurrentLimiter(0),
+							allowNow: true,
+							methods:  []string{http.MethodPost},
+							paths:    testMatcher{match: true},
 						},
 					},
 				},
@@ -160,11 +156,10 @@ func TestMiddleware(t *testing.T) {
 					eh: nil,
 					throttlers: []*apiThrottler{
 						{
-							throttler: &testThrottler{
-								acceptedAt: 999999999, // Never used.
-							},
-							methods: []string{http.MethodGet},
-							paths:   testMatcher{match: false},
+							limiter:  zrate.NewConcurrentLimiter(0),
+							allowNow: true,
+							methods:  []string{http.MethodGet},
+							paths:    testMatcher{match: false},
 						},
 					},
 				},
@@ -180,29 +175,6 @@ func TestMiddleware(t *testing.T) {
 			&condition{},
 			&action{
 				resp1Status: http.StatusOK,
-			},
-		),
-		gen(
-			"first request is fail, second request is success",
-			[]string{},
-			[]string{},
-			&condition{
-				throttle: throttle{
-					throttlers: []*apiThrottler{
-						{
-							throttler: &testThrottler{
-								acceptedAt: 1,
-								releaser:   noopReleaser,
-							},
-							paths: testMatcher{match: true},
-						},
-					},
-				},
-				sendSecondRequest: true,
-			},
-			&action{
-				resp1Status: http.StatusTooManyRequests,
-				resp2Status: http.StatusOK,
 			},
 		),
 	}

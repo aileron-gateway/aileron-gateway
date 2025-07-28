@@ -9,23 +9,13 @@ import (
 
 	"github.com/aileron-gateway/aileron-gateway/app"
 	"github.com/aileron-gateway/aileron-gateway/core"
-	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 )
-
-// apiThrottler applies throttling for requests
-// that matched to the method and paths.
-type apiThrottler struct {
-	throttler
-	methods []string
-	paths   txtutil.Matcher[string]
-}
 
 // throttle throttles requests.
 // This implements core.Middleware interface.
 type throttle struct {
-	eh core.ErrorHandler
-
+	eh         core.ErrorHandler
 	throttlers []*apiThrottler
 }
 

@@ -1,0 +1,136 @@
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The AILERON Gateway Authors
+
+package throttle
+
+import (
+	"context"
+	"testing"
+
+	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/aileron-projects/go/ztime/zrate"
+)
+
+func TestRetryThrottler(t *testing.T) {
+	type condition struct {
+		throttler           *apiThrottler
+		endContextAt        int
+		firstRequestRelease bool
+		secondRequest       bool
+	}
+
+	type action struct {
+		accepted              bool
+		secondRequestAccepted bool
+	}
+
+	tb := testutil.NewTableBuilder[*condition, *action]()
+	tb.Name(t.Name())
+	table := tb.Build()
+
+	gen := testutil.NewCase[*condition, *action]
+	testCases := []*testutil.Case[*condition, *action]{
+		gen(
+			"normal request",
+			[]string{}, []string{},
+			&condition{
+				throttler: &apiThrottler{
+					limiter:  zrate.NewConcurrentLimiter(1),
+					allowNow: true,
+					maxRetry: 3,
+				},
+			},
+			&action{
+				accepted: true,
+			},
+		),
+		gen(
+			"request without release",
+			[]string{}, []string{},
+			&condition{
+				throttler: &retryThrottler{
+					throttler: &testThrottler{
+						acceptedAt: 0,
+						releaser:   noopReleaser,
+					},
+					maxRetry: 3,
+				},
+				secondRequest: true,
+			},
+			&action{
+				accepted:              true,
+				secondRequestAccepted: false,
+			},
+		),
+		gen(
+			"request execute after release",
+			[]string{}, []string{},
+			&condition{
+				throttler: &retryThrottler{
+					throttler: &testThrottler{
+						acceptedAt: 2,
+						releaser:   noopReleaser,
+					},
+					maxRetry: 3,
+				},
+				firstRequestRelease: true,
+				secondRequest:       true,
+			},
+			&action{
+				accepted:              true,
+				secondRequestAccepted: true,
+			},
+		),
+		gen(
+			"resource release during retry of a request",
+			[]string{}, []string{},
+			&condition{
+				throttler: &retryThrottler{
+					throttler: &testThrottler{
+						acceptedAt: 3,
+						releaser:   noopReleaser,
+					},
+					maxRetry: 3,
+				},
+				endContextAt: 2,
+			},
+			&action{
+				accepted: false,
+			},
+		),
+	}
+
+	testutil.Register(table, testCases...)
+
+	for _, tt := range table.Entries() {
+		tt := tt
+		t.Run(tt.Name(), func(t *testing.T) {
+			rt := tt.C().throttler
+			ctx, cancel := context.WithCancel(context.Background())
+			rt.throttler.(*testThrottler).hook = func(count int) {
+				if tt.C().endContextAt > 0 && count >= tt.C().endContextAt {
+					cancel()
+				}
+			}
+
+			ok, release := rt.accept(ctx)
+			if release != nil {
+				defer release()
+			}
+			if tt.C().firstRequestRelease {
+				if release != nil {
+					release()
+				}
+			}
+			testutil.Diff(t, tt.A().accepted, ok)
+
+			if tt.C().secondRequest {
+				ok, release = rt.accept(ctx)
+				if release != nil {
+					defer release()
+				}
+				testutil.Diff(t, tt.A().secondRequestAccepted, ok)
+			}
+		})
+	}
+}

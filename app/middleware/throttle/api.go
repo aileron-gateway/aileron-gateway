@@ -14,6 +14,7 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
 	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
+	"github.com/aileron-projects/go/ztime/zrate"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -75,8 +76,7 @@ func (*API) Mutate(msg protoreflect.ProtoMessage) protoreflect.ProtoMessage {
 		case *v1.APIThrottlerSpec_LeakyBucket:
 			baseSpec := &v1.LeakyBucketSpec{
 				BucketSize:   1000,
-				LeakInterval: 1000, // 1000 ms
-				LeakRate:     200,  // 200 req / 1000 ms
+				LeakInterval: 1, // 1 ms
 			}
 			proto.Merge(baseSpec, t.LeakyBucket)
 			t.LeakyBucket = baseSpec
@@ -108,73 +108,39 @@ func apiThrottlers(specs ...*v1.APIThrottlerSpec) ([]*apiThrottler, error) {
 		if spec == nil || spec.Matcher == nil {
 			continue
 		}
-
 		m, err := txtutil.NewStringMatcher(txtutil.MatchTypes[spec.Matcher.MatchType], spec.Matcher.Patterns...)
 		if err != nil {
 			return nil, err // Return err as-is.
 		}
 
-		var tt throttler
+		var limiter zrate.Limiter
+		var allowNow bool
 		switch spec.Throttlers.(type) {
 		case *v1.APIThrottlerSpec_MaxConnections:
 			s := spec.GetMaxConnections()
-			t := &maxConnections{
-				sem: make(chan struct{}, s.MaxConns),
-			}
-			tt = t
-
+			limiter = zrate.NewConcurrentLimiter(int(s.MaxConns))
+			allowNow = true
 		case *v1.APIThrottlerSpec_FixedWindow:
 			s := spec.GetFixedWindow()
-			t := &fixedWindow{
-				bucket: make(chan struct{}, s.Limit),
-				window: time.Millisecond * time.Duration(s.WindowSize),
-			}
-			fullFill(t.bucket)
-			go t.fill()
-			tt = t
-
+			limiter = zrate.NewFixedWindowLimiterWidth(int(s.Limit), time.Millisecond*time.Duration(s.WindowSize))
+			allowNow = true
 		case *v1.APIThrottlerSpec_LeakyBucket:
 			s := spec.GetLeakyBucket()
-			t := &leakyBucket{
-				bucket:   make(chan chan struct{}, s.BucketSize),
-				rate:     int(s.LeakRate),
-				interval: time.Millisecond * time.Duration(s.LeakInterval),
-			}
-			go t.leak()
-			tt = t
-
+			limiter = zrate.NewLeakyBucketLimiter(int(s.BucketSize), time.Millisecond*time.Duration(s.LeakInterval))
+			allowNow = false
 		case *v1.APIThrottlerSpec_TokenBucket:
 			s := spec.GetTokenBucket()
-			t := &tokenBucket{
-				bucket:   make(chan struct{}, s.BucketSize),
-				rate:     int(s.FillRate),
-				interval: time.Millisecond * time.Duration(s.FillInterval),
-			}
-			fullFill(t.bucket)
-			go t.fill()
-			tt = t
-		}
-
-		if spec.MaxRetry > 0 {
-			tt = &retryThrottler{
-				throttler: tt,
-				maxRetry:  int(spec.MaxRetry),
-			}
+			limiter = zrate.NewTokenBucketInterval(int(s.BucketSize), int(s.FillRate), time.Millisecond*time.Duration(s.FillInterval))
+			allowNow = true
 		}
 
 		ths = append(ths, &apiThrottler{
-			throttler: tt,
-			methods:   utilhttp.Methods(spec.Methods),
-			paths:     m,
+			limiter:  limiter,
+			allowNow: allowNow,
+			methods:  utilhttp.Methods(spec.Methods),
+			paths:    m,
+			maxRetry: int(spec.MaxRetry),
 		})
 	}
-
 	return ths, nil
-}
-
-func fullFill(bucket chan struct{}) {
-	n := cap(bucket) - len(bucket)
-	for i := 0; i < n; i++ {
-		bucket <- struct{}{}
-	}
 }
