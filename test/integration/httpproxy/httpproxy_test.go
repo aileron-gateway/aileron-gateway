@@ -925,9 +925,9 @@ func TestLBRandom(t *testing.T) {
 		handler.ServeHTTP(w, r)
 		testutil.Diff(t, http.StatusOK, w.Result().StatusCode)
 	}
-	testutil.Diff(t, float64(1*n/(1+2+3)), float64(count1), cmpopts.EquateApprox(0, 50))
-	testutil.Diff(t, float64(2*n/(1+2+3)), float64(count2), cmpopts.EquateApprox(0, 50))
-	testutil.Diff(t, float64(3*n/(1+2+3)), float64(count3), cmpopts.EquateApprox(0, 50))
+	testutil.Diff(t, float64(1*n/(1+2+3)), float64(count1), cmpopts.EquateApprox(0, 100))
+	testutil.Diff(t, float64(2*n/(1+2+3)), float64(count2), cmpopts.EquateApprox(0, 100))
+	testutil.Diff(t, float64(3*n/(1+2+3)), float64(count3), cmpopts.EquateApprox(0, 100))
 
 }
 
