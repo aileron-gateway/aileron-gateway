@@ -10,7 +10,7 @@ spec:
         match: ".*"
         matchType: Regex
       upstreams:
-        - url: http://127.0.0.1:15555
+        - url: http://127.0.0.1:12355
 
 ---
 apiVersion: core/v1

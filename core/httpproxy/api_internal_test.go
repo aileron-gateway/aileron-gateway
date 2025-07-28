@@ -21,7 +21,8 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
-	"github.com/aileron-gateway/aileron-gateway/util/resilience"
+	"github.com/aileron-projects/go/zx/zlb"
+	"github.com/cespare/xxhash/v2"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -349,14 +350,12 @@ func TestNewLoadBalancers(t *testing.T) {
 			},
 			&action{
 				lbs: []loadBalancer{
-					&nonHashLB{
+					&loadbalancer{
 						lbMatcher: &lbMatcher{
 							pathMatchers:  []matcherFunc{(&matcher{pattern: "/"}).prefix},
 							paramMatchers: []txtutil.Matcher[*http.Request]{},
 						},
-						LoadBalancer: &resilience.RoundRobinLB[upstream]{
-							// Content not checked.
-						},
+						LoadBalancer: zlb.NewBasicRoundRobin[upstream](),
 					},
 				},
 				err: nil,
@@ -379,7 +378,7 @@ func TestNewLoadBalancers(t *testing.T) {
 			},
 			&action{
 				lbs: []loadBalancer{
-					&nonHashLB{
+					&loadbalancer{
 						lbMatcher: &lbMatcher{
 							pathMatchers: []matcherFunc{
 								(&matcher{pattern: "/"}).prefix,
@@ -388,9 +387,7 @@ func TestNewLoadBalancers(t *testing.T) {
 							},
 							paramMatchers: []txtutil.Matcher[*http.Request]{},
 						},
-						LoadBalancer: &resilience.RoundRobinLB[upstream]{
-							// Content not checked.
-						},
+						LoadBalancer: zlb.NewBasicRoundRobin[upstream](),
 					},
 				},
 				err: nil,
@@ -414,16 +411,14 @@ func TestNewLoadBalancers(t *testing.T) {
 			},
 			&action{
 				lbs: []loadBalancer{
-					&nonHashLB{
+					&loadbalancer{
 						lbMatcher: &lbMatcher{
 							pathMatchers:  []matcherFunc{(&matcher{pattern: "/"}).prefix},
 							hosts:         []string{"test1.com"},
 							methods:       []string{http.MethodGet},
 							paramMatchers: []txtutil.Matcher[*http.Request]{},
 						},
-						LoadBalancer: &resilience.RoundRobinLB[upstream]{
-							// Content not checked.
-						},
+						LoadBalancer: zlb.NewBasicRoundRobin[upstream](),
 					},
 				},
 				err: nil,
@@ -447,16 +442,14 @@ func TestNewLoadBalancers(t *testing.T) {
 			},
 			&action{
 				lbs: []loadBalancer{
-					&nonHashLB{
+					&loadbalancer{
 						lbMatcher: &lbMatcher{
 							pathMatchers:  []matcherFunc{(&matcher{pattern: "/"}).prefix},
 							hosts:         []string{"test1.com", "test2.com"},
 							methods:       []string{http.MethodGet, http.MethodHead},
 							paramMatchers: []txtutil.Matcher[*http.Request]{},
 						},
-						LoadBalancer: &resilience.RoundRobinLB[upstream]{
-							// Content not checked.
-						},
+						LoadBalancer: zlb.NewBasicRoundRobin[upstream](),
 					},
 				},
 				err: nil,
@@ -481,7 +474,7 @@ func TestNewLoadBalancers(t *testing.T) {
 			},
 			&action{
 				lbs: []loadBalancer{
-					&nonHashLB{
+					&loadbalancer{
 						lbMatcher: &lbMatcher{
 							pathMatchers: []matcherFunc{(&matcher{pattern: "/"}).prefix},
 							paramMatchers: []txtutil.Matcher[*http.Request]{
@@ -490,9 +483,7 @@ func TestNewLoadBalancers(t *testing.T) {
 								&pathParamMatcher{key: "pathParam", f: mustMatcher(txtutil.MatchTypePrefix, "/pp")},
 							},
 						},
-						LoadBalancer: &resilience.RoundRobinLB[upstream]{
-							// Content not checked.
-						},
+						LoadBalancer: zlb.NewBasicRoundRobin[upstream](),
 					},
 				},
 				err: nil,
@@ -515,14 +506,12 @@ func TestNewLoadBalancers(t *testing.T) {
 			},
 			&action{
 				lbs: []loadBalancer{
-					&nonHashLB{
+					&loadbalancer{
 						lbMatcher: &lbMatcher{
 							pathMatchers:  []matcherFunc{(&matcher{pattern: "/"}).prefix},
 							paramMatchers: []txtutil.Matcher[*http.Request]{},
 						},
-						LoadBalancer: &resilience.RoundRobinLB[upstream]{
-							// Content not checked.
-						},
+						LoadBalancer: zlb.NewBasicRoundRobin[upstream](),
 					},
 				},
 				err: nil,
@@ -547,14 +536,12 @@ func TestNewLoadBalancers(t *testing.T) {
 			},
 			&action{
 				lbs: []loadBalancer{
-					&nonHashLB{
+					&loadbalancer{
 						lbMatcher: &lbMatcher{
 							pathMatchers:  []matcherFunc{(&matcher{pattern: "/"}).prefix},
 							paramMatchers: []txtutil.Matcher[*http.Request]{},
 						},
-						LoadBalancer: &resilience.RoundRobinLB[upstream]{
-							// Content not checked.
-						},
+						LoadBalancer: zlb.NewBasicRoundRobin[upstream](),
 					},
 				},
 				err: nil,
@@ -579,14 +566,12 @@ func TestNewLoadBalancers(t *testing.T) {
 			},
 			&action{
 				lbs: []loadBalancer{
-					&nonHashLB{
+					&loadbalancer{
 						lbMatcher: &lbMatcher{
 							pathMatchers:  []matcherFunc{(&matcher{pattern: "/"}).prefix},
 							paramMatchers: []txtutil.Matcher[*http.Request]{},
 						},
-						LoadBalancer: &resilience.RoundRobinLB[upstream]{
-							// Content not checked.
-						},
+						LoadBalancer: zlb.NewBasicRoundRobin[upstream](),
 					},
 				},
 				err: nil,
@@ -612,14 +597,12 @@ func TestNewLoadBalancers(t *testing.T) {
 			},
 			&action{
 				lbs: []loadBalancer{
-					&nonHashLB{
+					&loadbalancer{
 						lbMatcher: &lbMatcher{
 							pathMatchers:  []matcherFunc{(&matcher{pattern: "/"}).prefix},
 							paramMatchers: []txtutil.Matcher[*http.Request]{},
 						},
-						LoadBalancer: &resilience.RoundRobinLB[upstream]{
-							// Content not checked.
-						},
+						LoadBalancer: zlb.NewBasicRoundRobin[upstream](),
 					},
 				},
 				err: nil,
@@ -645,14 +628,12 @@ func TestNewLoadBalancers(t *testing.T) {
 			},
 			&action{
 				lbs: []loadBalancer{
-					&nonHashLB{
+					&loadbalancer{
 						lbMatcher: &lbMatcher{
 							pathMatchers:  []matcherFunc{(&matcher{pattern: "/"}).prefix},
 							paramMatchers: []txtutil.Matcher[*http.Request]{},
 						},
-						LoadBalancer: &resilience.RoundRobinLB[upstream]{
-							// Content not checked.
-						},
+						LoadBalancer: zlb.NewBasicRoundRobin[upstream](),
 					},
 				},
 				err: nil,
@@ -678,14 +659,12 @@ func TestNewLoadBalancers(t *testing.T) {
 			},
 			&action{
 				lbs: []loadBalancer{
-					&nonHashLB{
+					&loadbalancer{
 						lbMatcher: &lbMatcher{
 							pathMatchers:  []matcherFunc{(&matcher{pattern: "/"}).prefix},
 							paramMatchers: []txtutil.Matcher[*http.Request]{},
 						},
-						LoadBalancer: &resilience.RoundRobinLB[upstream]{
-							// Content not checked.
-						},
+						LoadBalancer: zlb.NewBasicRoundRobin[upstream](),
 					},
 				},
 				err: nil,
@@ -710,16 +689,14 @@ func TestNewLoadBalancers(t *testing.T) {
 			},
 			&action{
 				lbs: []loadBalancer{
-					&nonHashLB{
+					&loadbalancer{
 						lbMatcher: &lbMatcher{
 							pathMatchers:  []matcherFunc{(&matcher{pattern: "/"}).prefix},
 							hosts:         []string{"test1.com"},
 							methods:       []string{http.MethodGet},
 							paramMatchers: []txtutil.Matcher[*http.Request]{},
 						},
-						LoadBalancer: &resilience.RandomLB[upstream]{
-							// Content not checked.
-						},
+						LoadBalancer: zlb.NewRandomW[upstream](),
 					},
 				},
 				err: nil,
@@ -744,17 +721,15 @@ func TestNewLoadBalancers(t *testing.T) {
 			},
 			&action{
 				lbs: []loadBalancer{
-					&hashBasedLB{
+					&loadbalancer{
 						lbMatcher: &lbMatcher{
 							pathMatchers:  []matcherFunc{(&matcher{pattern: "/"}).prefix},
 							hosts:         []string{"test1.com"},
 							methods:       []string{http.MethodGet},
 							paramMatchers: []txtutil.Matcher[*http.Request]{},
 						},
-						LoadBalancer: &resilience.MaglevLB[upstream]{
-							// Content not checked.
-						},
-						hashers: []resilience.HTTPHasher{},
+						LoadBalancer: zlb.NewMaglev[upstream](),
+						hasher:       clientAddrHasher(""),
 					},
 				},
 				err: nil,
@@ -779,17 +754,15 @@ func TestNewLoadBalancers(t *testing.T) {
 			},
 			&action{
 				lbs: []loadBalancer{
-					&hashBasedLB{
+					&loadbalancer{
 						lbMatcher: &lbMatcher{
 							pathMatchers:  []matcherFunc{(&matcher{pattern: "/"}).prefix},
 							hosts:         []string{"test1.com"},
 							methods:       []string{http.MethodGet},
 							paramMatchers: []txtutil.Matcher[*http.Request]{},
 						},
-						LoadBalancer: &resilience.RingHashLB[upstream]{
-							// Content not checked.
-						},
-						hashers: []resilience.HTTPHasher{},
+						LoadBalancer: zlb.NewRingHash[upstream](),
+						hasher:       clientAddrHasher(""),
 					},
 				},
 				err: nil,
@@ -814,17 +787,15 @@ func TestNewLoadBalancers(t *testing.T) {
 			},
 			&action{
 				lbs: []loadBalancer{
-					&directHashLB{
+					&loadbalancer{
 						lbMatcher: &lbMatcher{
 							pathMatchers:  []matcherFunc{(&matcher{pattern: "/"}).prefix},
 							hosts:         []string{"test1.com"},
 							methods:       []string{http.MethodGet},
 							paramMatchers: []txtutil.Matcher[*http.Request]{},
 						},
-						LoadBalancer: &resilience.DirectHashLB[upstream]{
-							// Content not checked.
-						},
-						hashers: []resilience.HTTPHasher{},
+						LoadBalancer: zlb.NewDirectHashW[upstream](),
+						hasher:       clientAddrHasher(""),
 					},
 				},
 				err: nil,
@@ -957,17 +928,18 @@ func TestNewLoadBalancers(t *testing.T) {
 			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
 
 			opts := []cmp.Option{
-				cmp.AllowUnexported(lbMatcher{}, nonHashLB{}, hashBasedLB{}, directHashLB{}),
+				cmp.AllowUnexported(lbMatcher{}, loadbalancer{}),
 				cmp.AllowUnexported(noopUpstream{}),
 				cmp.AllowUnexported(headerMatcher{}, queryMatcher{}, pathParamMatcher{}),
 				cmp.AllowUnexported(sync.Mutex{}, sync.RWMutex{}, atomic.Int32{}),
 				cmp.Comparer(testutil.ComparePointer[matcherFunc]),
 				cmp.Comparer(testutil.ComparePointer[txtutil.MatchFunc[string]]),
-				cmpopts.IgnoreTypes(resilience.RoundRobinLB[upstream]{}),
-				cmpopts.IgnoreTypes(resilience.RandomLB[upstream]{}),
-				cmpopts.IgnoreTypes(resilience.MaglevLB[upstream]{}),
-				cmpopts.IgnoreTypes(resilience.DirectHashLB[upstream]{}),
-				cmpopts.IgnoreTypes(resilience.RingHashLB[upstream]{}),
+				cmpopts.IgnoreTypes(zlb.BasicRoundRobin[upstream]{}),
+				cmpopts.IgnoreTypes(zlb.RoundRobin[upstream]{}),
+				cmpopts.IgnoreTypes(zlb.RandomW[upstream]{}),
+				cmpopts.IgnoreTypes(zlb.Maglev[upstream]{}),
+				cmpopts.IgnoreTypes(zlb.DirectHashW[upstream]{}),
+				cmpopts.IgnoreTypes(zlb.RingHash[upstream]{}),
 			}
 			testutil.Diff(t, tt.A().lbs, lbs, opts...)
 			// testutil.Diff(t, tt.A().upstreams, lbs., opts...)
@@ -975,7 +947,7 @@ func TestNewLoadBalancers(t *testing.T) {
 	}
 }
 
-func TestNewLBUpstreams(t *testing.T) {
+func TestNewUpstreams(t *testing.T) {
 	type condition struct {
 		specs []*v1.UpstreamSpec
 	}
@@ -1018,6 +990,7 @@ func TestNewLBUpstreams(t *testing.T) {
 			&action{
 				ups: []upstream{
 					&noopUpstream{
+						id:        xxhash.Sum64String("http://test.com"),
 						weight:    1,
 						rawURL:    "http://test.com",
 						parsedURL: &url.URL{Scheme: "http", Host: "test.com"},
@@ -1046,11 +1019,13 @@ func TestNewLBUpstreams(t *testing.T) {
 			&action{
 				ups: []upstream{
 					&noopUpstream{
+						id:        xxhash.Sum64String("http://test.com/foo"),
 						weight:    1,
 						rawURL:    "http://test.com/foo",
 						parsedURL: &url.URL{Scheme: "http", Host: "test.com", Path: "/foo"},
 					},
 					&noopUpstream{
+						id:        xxhash.Sum64String("http://test.com/bar"),
 						weight:    2,
 						rawURL:    "http://test.com/bar",
 						parsedURL: &url.URL{Scheme: "http", Host: "test.com", Path: "/bar"},
@@ -1091,6 +1066,7 @@ func TestNewLBUpstreams(t *testing.T) {
 			&action{
 				ups: []upstream{
 					&noopUpstream{
+						id:        xxhash.Sum64String("http://test.com"),
 						weight:    1,
 						rawURL:    "http://test.com",
 						parsedURL: &url.URL{Scheme: "http", Host: "test.com"},
@@ -1122,92 +1098,7 @@ func TestNewLBUpstreams(t *testing.T) {
 	for _, tt := range table.Entries() {
 		tt := tt
 		t.Run(tt.Name(), func(t *testing.T) {
-			ups, err := newLBUpstreams(http.DefaultTransport, tt.C().specs)
-			if tt.A().shouldErr {
-				testutil.Diff(t, true, err != nil)
-			}
-			opts := []cmp.Option{
-				cmp.AllowUnexported(lbUpstream{}, noopUpstream{}),
-				cmpopts.IgnoreFields(lbUpstream{}, "closer"),
-			}
-			testutil.Diff(t, tt.A().ups, ups, opts...)
-		})
-	}
-}
-
-func TestNewLBUpstream(t *testing.T) {
-	type condition struct {
-		spec *v1.UpstreamSpec
-	}
-
-	type action struct {
-		ups       upstream
-		shouldErr bool
-	}
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
-	gen := testutil.NewCase[*condition, *action]
-	testCases := []*testutil.Case[*condition, *action]{
-		gen(
-			"noop upstream",
-			[]string{},
-			[]string{},
-			&condition{
-				spec: &v1.UpstreamSpec{
-					URL:          "http://test.com",
-					EnableActive: false,
-				},
-			},
-			&action{
-				ups: &noopUpstream{
-					rawURL:    "http://test.com",
-					parsedURL: &url.URL{Scheme: "http", Host: "test.com"},
-				},
-			},
-		),
-		gen(
-			"url has trailing slash",
-			[]string{},
-			[]string{},
-			&condition{
-				spec: &v1.UpstreamSpec{
-					URL:          "http://test.com/",
-					EnableActive: false,
-				},
-			},
-			&action{
-				ups: &noopUpstream{
-					rawURL:    "http://test.com", // Suffix "/" will be trimmed.
-					parsedURL: &url.URL{Scheme: "http", Host: "test.com"},
-				},
-			},
-		),
-		gen(
-			"invalid url",
-			[]string{},
-			[]string{},
-			&condition{
-				spec: &v1.UpstreamSpec{
-					URL:          "http://test com",
-					EnableActive: false,
-				},
-			},
-			&action{
-				ups:       nil,
-				shouldErr: true,
-			},
-		),
-	}
-
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
-		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			ups, err := newLBUpstream(http.DefaultTransport, tt.C().spec)
+			ups, err := newUpstreams(http.DefaultTransport, tt.C().specs)
 			if tt.A().shouldErr {
 				testutil.Diff(t, true, err != nil)
 			}

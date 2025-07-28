@@ -6,39 +6,39 @@ spec:
         match: "/test1"
         matchType: Exact
       upstreams:
-        - url: http://127.0.0.1:10001
+        - url: http://127.0.0.1:12301
     - pathMatcher:
         match: "/test2"
         matchType: Prefix
       upstreams:
-        - url: http://127.0.0.1:10002
+        - url: http://127.0.0.1:12302
     - pathMatcher:
         match: "/test3"
         matchType: Suffix
       upstreams:
-        - url: http://127.0.0.1:10003
+        - url: http://127.0.0.1:12303
     - pathMatcher:
         match: "/test4"
         matchType: Contains
       upstreams:
-        - url: http://127.0.0.1:10004
+        - url: http://127.0.0.1:12304
     - pathMatcher:
         match: "/test5/*"
         matchType: Path
       upstreams:
-        - url: http://127.0.0.1:10005
+        - url: http://127.0.0.1:12305
     - pathMatcher:
         match: "/test6/*"
         matchType: FilePath
       upstreams:
-        - url: http://127.0.0.1:10006
+        - url: http://127.0.0.1:12306
     - pathMatcher:
         match: "^/test/[0-9]{3}/.*$"
         matchType: Regex
       upstreams:
-        - url: http://127.0.0.1:10007
+        - url: http://127.0.0.1:12307
     - pathMatcher:
         match: "^/test/[a-z]{3}/.*$"
         matchType: RegexPOSIX
       upstreams:
-        - url: http://127.0.0.1:10008
+        - url: http://127.0.0.1:12308

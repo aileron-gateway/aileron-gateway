@@ -18,7 +18,8 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
 	"github.com/aileron-gateway/aileron-gateway/kernel/network"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
-	"github.com/aileron-gateway/aileron-gateway/util/resilience"
+	"github.com/aileron-projects/go/zx/zlb"
+	"github.com/cespare/xxhash/v2"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -117,7 +118,7 @@ func newLoadBalancers(rt http.RoundTripper, specs []*v1.LoadBalancerSpec) ([]loa
 			pathMatchers = append(pathMatchers, mf)
 		}
 
-		upstreams, err := newLBUpstreams(rt, spec.Upstreams)
+		upstreams, err := newUpstreams(rt, spec.Upstreams)
 		if err != nil {
 			return nil, core.ErrCoreGenCreateComponent.WithStack(err, map[string]any{"reason": "loadBalancer creation failed"})
 		}
@@ -136,95 +137,73 @@ func newLoadBalancers(rt http.RoundTripper, specs []*v1.LoadBalancerSpec) ([]loa
 			hosts:         slices.Clip(spec.Hosts),
 			paramMatchers: matchers,
 		}
-
-		var lb loadBalancer
 		switch spec.LBAlgorithm {
 		case v1.LBAlgorithm_Maglev:
-			rlb := &resilience.MaglevLB[upstream]{
-				Size: int(spec.HashTableSize),
-			}
-			rlb.Add(upstreams...)
-			lb = &hashBasedLB{
+			lb := &loadbalancer{
 				lbMatcher:    m,
-				LoadBalancer: rlb,
-				hashers:      resilience.NewHTTPHashers(spec.Hashers),
+				LoadBalancer: zlb.NewMaglev(upstreams...),
+				hasher:       newHTTPHasher(spec.Hasher),
 			}
+			lbs = append(lbs, lb)
 		case v1.LBAlgorithm_RingHash:
-			rlb := &resilience.RingHashLB[upstream]{
-				Size: int(spec.HashTableSize),
-			}
-			rlb.Add(upstreams...)
-			lb = &hashBasedLB{
+			lb := &loadbalancer{
 				lbMatcher:    m,
-				LoadBalancer: rlb,
-				hashers:      resilience.NewHTTPHashers(spec.Hashers),
+				LoadBalancer: zlb.NewRingHash(upstreams...),
+				hasher:       newHTTPHasher(spec.Hasher),
 			}
+			lbs = append(lbs, lb)
 		case v1.LBAlgorithm_DirectHash:
-			rlb := &resilience.DirectHashLB[upstream]{}
-			rlb.Add(upstreams...)
-			lb = &directHashLB{
+			lb := &loadbalancer{
 				lbMatcher:    m,
-				LoadBalancer: rlb,
-				hashers:      resilience.NewHTTPHashers(spec.Hashers),
+				LoadBalancer: zlb.NewDirectHashW(upstreams...),
+				hasher:       newHTTPHasher(spec.Hasher),
 			}
+			lbs = append(lbs, lb)
 		case v1.LBAlgorithm_Random:
-			rlb := &resilience.RandomLB[upstream]{}
-			rlb.Add(upstreams...)
-			lb = &nonHashLB{
+			lb := &loadbalancer{
 				lbMatcher:    m,
-				LoadBalancer: rlb,
+				LoadBalancer: zlb.NewRandomW(upstreams...),
+				hasher:       nil,
 			}
+			lbs = append(lbs, lb)
 		case v1.LBAlgorithm_RoundRobin:
 			fallthrough // Use default.
 		default:
-			rlb := &resilience.RoundRobinLB[upstream]{}
-			rlb.Add(upstreams...)
-			lb = &nonHashLB{
+			lb := &loadbalancer{
 				lbMatcher:    m,
-				LoadBalancer: rlb,
+				LoadBalancer: zlb.NewBasicRoundRobin(upstreams...),
+				hasher:       nil,
 			}
+			lbs = append(lbs, lb)
 		}
-
-		lbs = append(lbs, lb)
 	}
-
-	return slices.Clip(lbs), nil
+	return lbs, nil
 }
 
-// newLBUpstreams returns upstreams.
-// newLBUpstreams ignore specs which weight is 0 or negative.
+// newUpstreams returns upstreams.
+// newUpstreams ignore specs which weight is 0 or negative.
 // The upstreams with weights less than or equal to 0 are ignored.
-func newLBUpstreams(rt http.RoundTripper, specs []*v1.UpstreamSpec) ([]upstream, error) {
+func newUpstreams(rt http.RoundTripper, specs []*v1.UpstreamSpec) ([]upstream, error) {
 	if len(specs) == 0 {
 		return nil, nil
 	}
-	ts := make([]upstream, 0, len(specs))
+	ups := make([]upstream, 0, len(specs))
 	for _, spec := range specs {
 		if spec.Weight < 0 {
 			continue
 		}
-		spec.Weight = max(1, spec.Weight)
-		t, err := newLBUpstream(rt, spec)
+		rawURL := strings.TrimSuffix(spec.URL, "/")
+		parsedURL, err := url.Parse(rawURL)
 		if err != nil {
 			return nil, err
 		}
-		ts = append(ts, t)
+		up := &noopUpstream{
+			id:        xxhash.Sum64String(rawURL),
+			weight:    max(1, uint16(min(65535, spec.Weight))),
+			rawURL:    rawURL,
+			parsedURL: parsedURL,
+		}
+		ups = append(ups, up)
 	}
-	return ts, nil
-}
-
-// newLBUpstream returns a new upstream object from given spec.
-// The given argument rt and spec must not be nil.
-// This function panics if a nil value was given.
-func newLBUpstream(_ http.RoundTripper, spec *v1.UpstreamSpec) (upstream, error) {
-	rawURL := strings.TrimSuffix(spec.URL, "/")
-	parsedURL, err := url.Parse(rawURL)
-	if err != nil {
-		return nil, err
-	}
-	return &noopUpstream{
-		weight:    int(spec.Weight),
-		rawURL:    rawURL,
-		parsedURL: parsedURL,
-	}, nil
+	return ups, nil
 }

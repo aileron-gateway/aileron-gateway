@@ -80,13 +80,8 @@ func Test0LoadBalancer(t *testing.T) {
 }
 
 func Test0Upstream(t *testing.T) {
-
-	configs := []string{
-		testDataDir + "config-0-upstream.yaml",
-	}
-
 	server := common.NewAPI()
-	err := app.LoadConfigFiles(server, configs)
+	err := app.LoadConfigFiles(server, []string{testDataDir + "config-0-upstream.yaml"})
 	testutil.DiffError(t, nil, nil, err)
 
 	ref := &kernel.Reference{
@@ -97,18 +92,6 @@ func Test0Upstream(t *testing.T) {
 	}
 	handler, err := api.ReferTypedObject[http.Handler](server, ref)
 	testutil.DiffError(t, nil, nil, err)
-
-	svr := &http.Server{
-		Addr: ":10001",
-		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("test", "ok")
-			w.WriteHeader(http.StatusFound)
-			w.Write([]byte("test"))
-		}),
-	}
-	go func() { svr.ListenAndServe() }()
-	time.Sleep(time.Second) // Wait a little until server starts.
-	defer svr.Close()
 
 	r1 := httptest.NewRequest(http.MethodGet, "http://test.com/test", nil)
 	w1 := httptest.NewRecorder()
@@ -125,17 +108,11 @@ func Test0Upstream(t *testing.T) {
 	testutil.Diff(t, http.StatusNotFound, w2.Result().StatusCode)
 	testutil.Diff(t, "", w2.Result().Header.Get("test"))
 	testutil.Diff(t, `{"status":404,"statusText":"Not Found"}`, string(b2))
-
 }
 
 func Test1Upstream(t *testing.T) {
-
-	configs := []string{
-		testDataDir + "config-1-upstream.yaml",
-	}
-
 	server := common.NewAPI()
-	err := app.LoadConfigFiles(server, configs)
+	err := app.LoadConfigFiles(server, []string{testDataDir + "config-1-upstream.yaml"})
 	testutil.DiffError(t, nil, nil, err)
 
 	ref := &kernel.Reference{
@@ -148,7 +125,7 @@ func Test1Upstream(t *testing.T) {
 	testutil.DiffError(t, nil, nil, err)
 
 	svr := &http.Server{
-		Addr: ":10001",
+		Addr: ":12301",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("test", "ok")
 			w.WriteHeader(http.StatusFound)
@@ -174,7 +151,6 @@ func Test1Upstream(t *testing.T) {
 	testutil.Diff(t, http.StatusNotFound, w2.Result().StatusCode)
 	testutil.Diff(t, "", w2.Result().Header.Get("test"))
 	testutil.Diff(t, `{"status":404,"statusText":"Not Found"}`, string(b2))
-
 }
 
 func Test2Upstream(t *testing.T) {
@@ -197,7 +173,7 @@ func Test2Upstream(t *testing.T) {
 	testutil.DiffError(t, nil, nil, err)
 
 	svr1 := &http.Server{
-		Addr: ":10001",
+		Addr: ":12301",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("test", "h1")
 			w.WriteHeader(http.StatusFound)
@@ -205,7 +181,7 @@ func Test2Upstream(t *testing.T) {
 		}),
 	}
 	svr2 := &http.Server{
-		Addr: ":10002",
+		Addr: ":12302",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("test", "h2")
 			w.WriteHeader(http.StatusFound)
@@ -263,7 +239,7 @@ func Test2LoadBalancer(t *testing.T) {
 	testutil.DiffError(t, nil, nil, err)
 
 	svr1 := &http.Server{
-		Addr: ":10001",
+		Addr: ":12301",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("test", "h1")
 			w.WriteHeader(http.StatusFound)
@@ -271,7 +247,7 @@ func Test2LoadBalancer(t *testing.T) {
 		}),
 	}
 	svr2 := &http.Server{
-		Addr: ":10002",
+		Addr: ":12302",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("test", "h2")
 			w.WriteHeader(http.StatusFound)
@@ -329,56 +305,56 @@ func TestMatchTypes(t *testing.T) {
 	testutil.DiffError(t, nil, nil, err)
 
 	svr1 := &http.Server{
-		Addr: ":10001",
+		Addr: ":12301",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("test", "h1")
 			w.WriteHeader(http.StatusFound)
 		}),
 	}
 	svr2 := &http.Server{
-		Addr: ":10002",
+		Addr: ":12302",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("test", "h2")
 			w.WriteHeader(http.StatusFound)
 		}),
 	}
 	svr3 := &http.Server{
-		Addr: ":10003",
+		Addr: ":12303",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("test", "h3")
 			w.WriteHeader(http.StatusFound)
 		}),
 	}
 	svr4 := &http.Server{
-		Addr: ":10004",
+		Addr: ":12304",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("test", "h4")
 			w.WriteHeader(http.StatusFound)
 		}),
 	}
 	svr5 := &http.Server{
-		Addr: ":10005",
+		Addr: ":12305",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("test", "h5")
 			w.WriteHeader(http.StatusFound)
 		}),
 	}
 	svr6 := &http.Server{
-		Addr: ":10006",
+		Addr: ":12306",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("test", "h6")
 			w.WriteHeader(http.StatusFound)
 		}),
 	}
 	svr7 := &http.Server{
-		Addr: ":10007",
+		Addr: ":12307",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("test", "h7")
 			w.WriteHeader(http.StatusFound)
 		}),
 	}
 	svr8 := &http.Server{
-		Addr: ":10008",
+		Addr: ":12308",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("test", "h8")
 			w.WriteHeader(http.StatusFound)
@@ -488,7 +464,7 @@ func TestTrimPrefix(t *testing.T) {
 	testutil.DiffError(t, nil, nil, err)
 
 	svr := &http.Server{
-		Addr: ":10001",
+		Addr: ":12301",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("test", "ok")
 			w.WriteHeader(http.StatusFound)
@@ -518,13 +494,8 @@ func TestTrimPrefix(t *testing.T) {
 }
 
 func TestRoundTripper(t *testing.T) {
-
-	configs := []string{
-		testDataDir + "config-roundtripper.yaml",
-	}
-
 	server := common.NewAPI()
-	err := app.LoadConfigFiles(server, configs)
+	err := app.LoadConfigFiles(server, []string{testDataDir + "config-roundtripper.yaml"})
 	testutil.DiffError(t, nil, nil, err)
 
 	testRef := &kernel.Reference{
@@ -559,17 +530,11 @@ func TestRoundTripper(t *testing.T) {
 	testutil.Diff(t, http.StatusNotFound, w2.Result().StatusCode)
 	testutil.Diff(t, "", w2.Result().Header.Get("test"))
 	testutil.Diff(t, `{"status":404,"statusText":"Not Found"}`, string(b2))
-
 }
 
 func TestTripperware(t *testing.T) {
-
-	configs := []string{
-		testDataDir + "config-tripperware.yaml",
-	}
-
 	server := common.NewAPI()
-	err := app.LoadConfigFiles(server, configs)
+	err := app.LoadConfigFiles(server, []string{testDataDir + "config-tripperware.yaml"})
 	testutil.DiffError(t, nil, nil, err)
 
 	testRef := &kernel.Reference{
@@ -627,13 +592,8 @@ func TestTripperware(t *testing.T) {
 }
 
 func TestLBMaglev(t *testing.T) {
-
-	configs := []string{
-		testDataDir + "config-lb-maglev.yaml",
-	}
-
 	server := common.NewAPI()
-	err := app.LoadConfigFiles(server, configs)
+	err := app.LoadConfigFiles(server, []string{testDataDir + "config-lb-maglev.yaml"})
 	testutil.DiffError(t, nil, nil, err)
 
 	ref := &kernel.Reference{
@@ -647,21 +607,21 @@ func TestLBMaglev(t *testing.T) {
 
 	var count1, count2, count3 int
 	svr1 := &http.Server{
-		Addr: ":10001",
+		Addr: ":12301",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			count1 += 1
 			w.WriteHeader(http.StatusOK)
 		}),
 	}
 	svr2 := &http.Server{
-		Addr: ":10002",
+		Addr: ":12302",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			count2 += 1
 			w.WriteHeader(http.StatusOK)
 		}),
 	}
 	svr3 := &http.Server{
-		Addr: ":10003",
+		Addr: ":12303",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			count3 += 1
 			w.WriteHeader(http.StatusOK)
@@ -675,121 +635,17 @@ func TestLBMaglev(t *testing.T) {
 	defer svr2.Close()
 	defer svr3.Close()
 
-	// ?proxy=baz reached svr2.
-	r1 := httptest.NewRequest(http.MethodGet, "http://test.com/test?proxy=baz", nil)
-	for i := 0; i < 10; i++ {
-		w := httptest.NewRecorder()
-		handler.ServeHTTP(w, r1)
-		testutil.Diff(t, http.StatusOK, w.Result().StatusCode)
-		testutil.Diff(t, i+1, count2)
-	}
-
-	// ?proxy=bar reached svr3.
-	r2 := httptest.NewRequest(http.MethodGet, "http://test.com/test?proxy=bar", nil)
-	for i := 0; i < 10; i++ {
-		w := httptest.NewRecorder()
-		handler.ServeHTTP(w, r2)
-		testutil.Diff(t, http.StatusOK, w.Result().StatusCode)
-		testutil.Diff(t, i+1, count3)
-	}
-
-	// ?proxy=FooBar reached svr1.
-	r3 := httptest.NewRequest(http.MethodGet, "http://test.com/test?proxy=proxy", nil)
-	for i := 0; i < 10; i++ {
-		w := httptest.NewRecorder()
-		handler.ServeHTTP(w, r3)
-		testutil.Diff(t, http.StatusOK, w.Result().StatusCode)
-		testutil.Diff(t, i+1, count1)
-	}
-
-	count1, count2, count3 = 0, 0, 0
-	n := 1200
-	for i := 0; i < n; i++ {
-		r := httptest.NewRequest(http.MethodGet, "http://test.com/test?proxy="+strconv.Itoa(i), nil)
-		w := httptest.NewRecorder()
-		handler.ServeHTTP(w, r)
-		testutil.Diff(t, http.StatusOK, w.Result().StatusCode)
-	}
-	testutil.Diff(t, float64(1*n/(1+2+3)), float64(count1), cmpopts.EquateApprox(0, 10))
-	testutil.Diff(t, float64(2*n/(1+2+3)), float64(count2), cmpopts.EquateApprox(0, 20))
-	testutil.Diff(t, float64(3*n/(1+2+3)), float64(count3), cmpopts.EquateApprox(0, 30))
-
-}
-
-func TestLBRingHash(t *testing.T) {
-
-	configs := []string{
-		testDataDir + "config-lb-ringhash.yaml",
-	}
-
-	server := common.NewAPI()
-	err := app.LoadConfigFiles(server, configs)
-	testutil.DiffError(t, nil, nil, err)
-
-	ref := &kernel.Reference{
-		APIVersion: "core/v1",
-		Kind:       "ReverseProxyHandler",
-		Name:       "default",
-		Namespace:  "",
-	}
-	handler, err := api.ReferTypedObject[http.Handler](server, ref)
-	testutil.DiffError(t, nil, nil, err)
-
-	var count1, count2, count3 int
-	svr1 := &http.Server{
-		Addr: ":10001",
-		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			count1 += 1
-			w.WriteHeader(http.StatusOK)
-		}),
-	}
-	svr2 := &http.Server{
-		Addr: ":10002",
-		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			count2 += 1
-			w.WriteHeader(http.StatusOK)
-		}),
-	}
-	svr3 := &http.Server{
-		Addr: ":10003",
-		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			count3 += 1
-			w.WriteHeader(http.StatusOK)
-		}),
-	}
-	go func() { svr1.ListenAndServe() }()
-	go func() { svr2.ListenAndServe() }()
-	go func() { svr3.ListenAndServe() }()
-	time.Sleep(time.Second) // Wait a little until server starts.
-	defer svr1.Close()
-	defer svr2.Close()
-	defer svr3.Close()
-
-	// ?proxy=alice reached svr2.
-	r1 := httptest.NewRequest(http.MethodGet, "http://test.com/test?proxy=alice", nil)
-	for i := 0; i < 10; i++ {
-		w := httptest.NewRecorder()
-		handler.ServeHTTP(w, r1)
-		testutil.Diff(t, http.StatusOK, w.Result().StatusCode)
-		testutil.Diff(t, i+1, count2)
-	}
-
-	// ?proxy=bob reached svr3.
-	r2 := httptest.NewRequest(http.MethodGet, "http://test.com/test?proxy=bob", nil)
-	for i := 0; i < 10; i++ {
-		w := httptest.NewRecorder()
-		handler.ServeHTTP(w, r2)
-		testutil.Diff(t, http.StatusOK, w.Result().StatusCode)
-		testutil.Diff(t, i+1, count3)
-	}
-
-	// ?proxy=FooBar reached svr2.
-	r3 := httptest.NewRequest(http.MethodGet, "http://test.com/test?proxy=xyz", nil)
-	for i := 0; i < 10; i++ {
-		w := httptest.NewRecorder()
-		handler.ServeHTTP(w, r3)
-		testutil.Diff(t, http.StatusOK, w.Result().StatusCode)
-		testutil.Diff(t, i+1, count1)
+	for _, seed := range []string{"foo", "bar", "baz", "alice", "bob", "12345"} {
+		r := httptest.NewRequest(http.MethodGet, "http://test.com/test?proxy="+seed, nil)
+		count1, count2, count3 = 0, 0, 0
+		for i := 0; i < 5; i++ {
+			w := httptest.NewRecorder()
+			handler.ServeHTTP(w, r)
+			testutil.Diff(t, http.StatusOK, w.Result().StatusCode)
+		}
+		testutil.Diff(t, true, count1 == 0 || count1 == 5)
+		testutil.Diff(t, true, count2 == 0 || count2 == 5)
+		testutil.Diff(t, true, count3 == 0 || count3 == 5)
 	}
 
 	count1, count2, count3 = 0, 0, 0
@@ -803,17 +659,11 @@ func TestLBRingHash(t *testing.T) {
 	testutil.Diff(t, float64(1*n/(1+2+3)), float64(count1), cmpopts.EquateApprox(0, 50))
 	testutil.Diff(t, float64(2*n/(1+2+3)), float64(count2), cmpopts.EquateApprox(0, 50))
 	testutil.Diff(t, float64(3*n/(1+2+3)), float64(count3), cmpopts.EquateApprox(0, 50))
-
 }
 
-func TestLBDirectHash(t *testing.T) {
-
-	configs := []string{
-		testDataDir + "config-lb-directhash.yaml",
-	}
-
+func TestLBRingHash(t *testing.T) {
 	server := common.NewAPI()
-	err := app.LoadConfigFiles(server, configs)
+	err := app.LoadConfigFiles(server, []string{testDataDir + "config-lb-ringhash.yaml"})
 	testutil.DiffError(t, nil, nil, err)
 
 	ref := &kernel.Reference{
@@ -827,21 +677,21 @@ func TestLBDirectHash(t *testing.T) {
 
 	var count1, count2, count3 int
 	svr1 := &http.Server{
-		Addr: ":10001",
+		Addr: ":12301",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			count1 += 1
 			w.WriteHeader(http.StatusOK)
 		}),
 	}
 	svr2 := &http.Server{
-		Addr: ":10002",
+		Addr: ":12302",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			count2 += 1
 			w.WriteHeader(http.StatusOK)
 		}),
 	}
 	svr3 := &http.Server{
-		Addr: ":10003",
+		Addr: ":12303",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			count3 += 1
 			w.WriteHeader(http.StatusOK)
@@ -855,31 +705,17 @@ func TestLBDirectHash(t *testing.T) {
 	defer svr2.Close()
 	defer svr3.Close()
 
-	// ?proxy=foo reached svr3.
-	r1 := httptest.NewRequest(http.MethodGet, "http://test.com/test?proxy=foo", nil)
-	for i := 0; i < 10; i++ {
-		w := httptest.NewRecorder()
-		handler.ServeHTTP(w, r1)
-		testutil.Diff(t, http.StatusOK, w.Result().StatusCode)
-		testutil.Diff(t, i+1, count3)
-	}
-
-	// ?proxy=hoge reached svr2.
-	r2 := httptest.NewRequest(http.MethodGet, "http://test.com/test?proxy=bob", nil)
-	for i := 0; i < 10; i++ {
-		w := httptest.NewRecorder()
-		handler.ServeHTTP(w, r2)
-		testutil.Diff(t, http.StatusOK, w.Result().StatusCode)
-		testutil.Diff(t, i+1, count2)
-	}
-
-	// ?proxy=abcdef reached svr1.
-	r3 := httptest.NewRequest(http.MethodGet, "http://test.com/test?proxy=baz", nil)
-	for i := 0; i < 10; i++ {
-		w := httptest.NewRecorder()
-		handler.ServeHTTP(w, r3)
-		testutil.Diff(t, http.StatusOK, w.Result().StatusCode)
-		testutil.Diff(t, i+1, count1)
+	for _, seed := range []string{"foo", "bar", "baz", "alice", "bob", "12345"} {
+		r := httptest.NewRequest(http.MethodGet, "http://test.com/test?proxy="+seed, nil)
+		count1, count2, count3 = 0, 0, 0
+		for i := 0; i < 5; i++ {
+			w := httptest.NewRecorder()
+			handler.ServeHTTP(w, r)
+			testutil.Diff(t, http.StatusOK, w.Result().StatusCode)
+		}
+		testutil.Diff(t, true, count1 == 0 || count1 == 5)
+		testutil.Diff(t, true, count2 == 0 || count2 == 5)
+		testutil.Diff(t, true, count3 == 0 || count3 == 5)
 	}
 
 	count1, count2, count3 = 0, 0, 0
@@ -890,20 +726,14 @@ func TestLBDirectHash(t *testing.T) {
 		handler.ServeHTTP(w, r)
 		testutil.Diff(t, http.StatusOK, w.Result().StatusCode)
 	}
-	testutil.Diff(t, float64(1*n/(1+2+3)), float64(count1), cmpopts.EquateApprox(0, 10))
-	testutil.Diff(t, float64(2*n/(1+2+3)), float64(count2), cmpopts.EquateApprox(0, 20))
-	testutil.Diff(t, float64(3*n/(1+2+3)), float64(count3), cmpopts.EquateApprox(0, 30))
-
+	testutil.Diff(t, float64(1*n/(1+2+3)), float64(count1), cmpopts.EquateApprox(0, 50))
+	testutil.Diff(t, float64(2*n/(1+2+3)), float64(count2), cmpopts.EquateApprox(0, 50))
+	testutil.Diff(t, float64(3*n/(1+2+3)), float64(count3), cmpopts.EquateApprox(0, 50))
 }
 
-func TestLBRoundRobin(t *testing.T) {
-
-	configs := []string{
-		testDataDir + "config-lb-roundrobin.yaml",
-	}
-
+func TestLBDirectHash(t *testing.T) {
 	server := common.NewAPI()
-	err := app.LoadConfigFiles(server, configs)
+	err := app.LoadConfigFiles(server, []string{testDataDir + "config-lb-directhash.yaml"})
 	testutil.DiffError(t, nil, nil, err)
 
 	ref := &kernel.Reference{
@@ -917,21 +747,91 @@ func TestLBRoundRobin(t *testing.T) {
 
 	var count1, count2, count3 int
 	svr1 := &http.Server{
-		Addr: ":10001",
+		Addr: ":12301",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			count1 += 1
 			w.WriteHeader(http.StatusOK)
 		}),
 	}
 	svr2 := &http.Server{
-		Addr: ":10002",
+		Addr: ":12302",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			count2 += 1
 			w.WriteHeader(http.StatusOK)
 		}),
 	}
 	svr3 := &http.Server{
-		Addr: ":10003",
+		Addr: ":12303",
+		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			count3 += 1
+			w.WriteHeader(http.StatusOK)
+		}),
+	}
+	go func() { svr1.ListenAndServe() }()
+	go func() { svr2.ListenAndServe() }()
+	go func() { svr3.ListenAndServe() }()
+	time.Sleep(time.Second) // Wait a little until server starts.
+	defer svr1.Close()
+	defer svr2.Close()
+	defer svr3.Close()
+
+	for _, seed := range []string{"foo", "bar", "baz", "alice", "bob", "12345"} {
+		r := httptest.NewRequest(http.MethodGet, "http://test.com/test?proxy="+seed, nil)
+		count1, count2, count3 = 0, 0, 0
+		for i := 0; i < 5; i++ {
+			w := httptest.NewRecorder()
+			handler.ServeHTTP(w, r)
+			testutil.Diff(t, http.StatusOK, w.Result().StatusCode)
+		}
+		testutil.Diff(t, true, count1 == 0 || count1 == 5)
+		testutil.Diff(t, true, count2 == 0 || count2 == 5)
+		testutil.Diff(t, true, count3 == 0 || count3 == 5)
+	}
+
+	count1, count2, count3 = 0, 0, 0
+	n := 1200
+	for i := 0; i < n; i++ {
+		r := httptest.NewRequest(http.MethodGet, "http://test.com/test?proxy="+strconv.Itoa(i), nil)
+		w := httptest.NewRecorder()
+		handler.ServeHTTP(w, r)
+		testutil.Diff(t, http.StatusOK, w.Result().StatusCode)
+	}
+	testutil.Diff(t, float64(1*n/(1+2+3)), float64(count1), cmpopts.EquateApprox(0, 50))
+	testutil.Diff(t, float64(2*n/(1+2+3)), float64(count2), cmpopts.EquateApprox(0, 50))
+	testutil.Diff(t, float64(3*n/(1+2+3)), float64(count3), cmpopts.EquateApprox(0, 50))
+}
+
+func TestLBRoundRobin(t *testing.T) {
+	server := common.NewAPI()
+	err := app.LoadConfigFiles(server, []string{testDataDir + "config-lb-roundrobin.yaml"})
+	testutil.DiffError(t, nil, nil, err)
+
+	ref := &kernel.Reference{
+		APIVersion: "core/v1",
+		Kind:       "ReverseProxyHandler",
+		Name:       "default",
+		Namespace:  "",
+	}
+	handler, err := api.ReferTypedObject[http.Handler](server, ref)
+	testutil.DiffError(t, nil, nil, err)
+
+	var count1, count2, count3 int
+	svr1 := &http.Server{
+		Addr: ":12301",
+		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			count1 += 1
+			w.WriteHeader(http.StatusOK)
+		}),
+	}
+	svr2 := &http.Server{
+		Addr: ":12302",
+		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			count2 += 1
+			w.WriteHeader(http.StatusOK)
+		}),
+	}
+	svr3 := &http.Server{
+		Addr: ":12303",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			count3 += 1
 			w.WriteHeader(http.StatusOK)
@@ -948,7 +848,7 @@ func TestLBRoundRobin(t *testing.T) {
 	r := httptest.NewRequest(http.MethodGet, "http://test.com/test", nil)
 	for i := 0; i < 10; i++ {
 		w1 := httptest.NewRecorder()
-		handler.ServeHTTP(w1, r)
+		handler.ServeHTTP(w1, r) // Weight 1
 		testutil.Diff(t, http.StatusOK, w1.Result().StatusCode)
 		testutil.Diff(t, i+1, count1)
 
@@ -989,21 +889,21 @@ func TestLBRandom(t *testing.T) {
 
 	var count1, count2, count3 int
 	svr1 := &http.Server{
-		Addr: ":10001",
+		Addr: ":12301",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			count1 += 1
 			w.WriteHeader(http.StatusOK)
 		}),
 	}
 	svr2 := &http.Server{
-		Addr: ":10002",
+		Addr: ":12302",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			count2 += 1
 			w.WriteHeader(http.StatusOK)
 		}),
 	}
 	svr3 := &http.Server{
-		Addr: ":10003",
+		Addr: ":12303",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			count3 += 1
 			w.WriteHeader(http.StatusOK)
@@ -1032,13 +932,8 @@ func TestLBRandom(t *testing.T) {
 }
 
 func TestLBMatchHost(t *testing.T) {
-
-	configs := []string{
-		testDataDir + "config-lb-match-host.yaml",
-	}
-
 	server := common.NewAPI()
-	err := app.LoadConfigFiles(server, configs)
+	err := app.LoadConfigFiles(server, []string{testDataDir + "config-lb-match-host.yaml"})
 	testutil.DiffError(t, nil, nil, err)
 
 	ref := &kernel.Reference{
@@ -1051,7 +946,7 @@ func TestLBMatchHost(t *testing.T) {
 	testutil.DiffError(t, nil, nil, err)
 
 	svr := &http.Server{
-		Addr: ":10001",
+		Addr: ":12301",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("test", "ok")
 			w.WriteHeader(http.StatusFound)
@@ -1079,17 +974,11 @@ func TestLBMatchHost(t *testing.T) {
 	testutil.Diff(t, http.StatusNotFound, w2.Result().StatusCode)
 	testutil.Diff(t, "", w2.Result().Header.Get("test"))
 	testutil.Diff(t, `{"status":404,"statusText":"Not Found"}`, string(b2))
-
 }
 
 func TestLBMatchMethod(t *testing.T) {
-
-	configs := []string{
-		testDataDir + "config-lb-match-method.yaml",
-	}
-
 	server := common.NewAPI()
-	err := app.LoadConfigFiles(server, configs)
+	err := app.LoadConfigFiles(server, []string{testDataDir + "config-lb-match-method.yaml"})
 	testutil.DiffError(t, nil, nil, err)
 
 	ref := &kernel.Reference{
@@ -1102,7 +991,7 @@ func TestLBMatchMethod(t *testing.T) {
 	testutil.DiffError(t, nil, nil, err)
 
 	svr := &http.Server{
-		Addr: ":10001",
+		Addr: ":12301",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("test", "ok")
 			w.WriteHeader(http.StatusFound)
@@ -1139,17 +1028,11 @@ func TestLBMatchMethod(t *testing.T) {
 	testutil.Diff(t, http.StatusNotFound, w3.Result().StatusCode)
 	testutil.Diff(t, "", w3.Result().Header.Get("test"))
 	testutil.Diff(t, `{"status":404,"statusText":"Not Found"}`, string(b3))
-
 }
 
 func TestLBMatchPathParam(t *testing.T) {
-
-	configs := []string{
-		testDataDir + "config-lb-match-path-param.yaml",
-	}
-
 	server := common.NewAPI()
-	err := app.LoadConfigFiles(server, configs)
+	err := app.LoadConfigFiles(server, []string{testDataDir + "config-lb-match-path-param.yaml"})
 	testutil.DiffError(t, nil, nil, err)
 
 	ref := &kernel.Reference{
@@ -1164,7 +1047,7 @@ func TestLBMatchPathParam(t *testing.T) {
 	mux.Handle("/test/{param}", handler)
 
 	svr := &http.Server{
-		Addr: ":10001",
+		Addr: ":12301",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("test", "ok")
 			w.WriteHeader(http.StatusFound)
@@ -1201,7 +1084,6 @@ func TestLBMatchPathParam(t *testing.T) {
 	testutil.Diff(t, http.StatusNotFound, w3.Result().StatusCode)
 	testutil.Diff(t, "", w3.Result().Header.Get("test"))
 	testutil.Diff(t, `{"status":404,"statusText":"Not Found"}`, string(b3))
-
 }
 
 func TestLBMatchHeader(t *testing.T) {
@@ -1224,7 +1106,7 @@ func TestLBMatchHeader(t *testing.T) {
 	testutil.DiffError(t, nil, nil, err)
 
 	svr := &http.Server{
-		Addr: ":10001",
+		Addr: ":12301",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("test", "ok")
 			w.WriteHeader(http.StatusFound)
@@ -1285,7 +1167,7 @@ func TestLBMatchPaths(t *testing.T) {
 	testutil.DiffError(t, nil, nil, err)
 
 	svr := &http.Server{
-		Addr: ":10001",
+		Addr: ":12301",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("test", "ok")
 			w.WriteHeader(http.StatusFound)
@@ -1342,7 +1224,7 @@ func TestLBMatchQuery(t *testing.T) {
 	testutil.DiffError(t, nil, nil, err)
 
 	svr := &http.Server{
-		Addr: ":10001",
+		Addr: ":12301",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("test", "ok")
 			w.WriteHeader(http.StatusFound)

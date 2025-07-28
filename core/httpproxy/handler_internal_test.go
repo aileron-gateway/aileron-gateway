@@ -21,7 +21,7 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
-	"github.com/aileron-gateway/aileron-gateway/util/resilience"
+	"github.com/aileron-projects/go/zx/zlb"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/quic-go/quic-go/http3"
@@ -128,8 +128,7 @@ func TestReverseProxy_ServeHTTP(t *testing.T) {
 		rawURL:    "http://upstream.com/proxy",
 		parsedURL: &url.URL{Scheme: "http", Host: "upstream.com", Path: "/proxy"},
 	}
-	rlb := &resilience.RoundRobinLB[upstream]{}
-	rlb.Add(ups)
+	rlb := zlb.NewBasicRoundRobin[upstream](ups)
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
@@ -142,7 +141,7 @@ func TestReverseProxy_ServeHTTP(t *testing.T) {
 					lg: log.GlobalLogger(log.DefaultLoggerName),
 					eh: &testErrorHandler{},
 					lbs: []loadBalancer{
-						&nonHashLB{
+						&loadbalancer{
 							lbMatcher: &lbMatcher{
 								pathMatchers: []matcherFunc{func(string) (string, bool) { return "", true }},
 							},
@@ -170,7 +169,7 @@ func TestReverseProxy_ServeHTTP(t *testing.T) {
 					lg: log.GlobalLogger(log.DefaultLoggerName),
 					eh: &testErrorHandler{},
 					lbs: []loadBalancer{
-						&nonHashLB{
+						&loadbalancer{
 							lbMatcher: &lbMatcher{
 								pathMatchers: []matcherFunc{func(string) (string, bool) { return "", true }},
 							},
@@ -202,7 +201,7 @@ func TestReverseProxy_ServeHTTP(t *testing.T) {
 					lg: log.GlobalLogger(log.DefaultLoggerName),
 					eh: &testErrorHandler{},
 					lbs: []loadBalancer{
-						&nonHashLB{
+						&loadbalancer{
 							lbMatcher: &lbMatcher{
 								pathMatchers: []matcherFunc{func(string) (string, bool) { return "", true }},
 							},
@@ -238,7 +237,7 @@ func TestReverseProxy_ServeHTTP(t *testing.T) {
 					lg: log.GlobalLogger(log.DefaultLoggerName),
 					eh: &testErrorHandler{},
 					lbs: []loadBalancer{
-						&nonHashLB{
+						&loadbalancer{
 							lbMatcher: &lbMatcher{
 								pathMatchers: []matcherFunc{func(string) (string, bool) { return "", true }},
 							},
@@ -276,7 +275,7 @@ func TestReverseProxy_ServeHTTP(t *testing.T) {
 					lg: log.GlobalLogger(log.DefaultLoggerName),
 					eh: &testErrorHandler{},
 					lbs: []loadBalancer{
-						&nonHashLB{
+						&loadbalancer{
 							lbMatcher: &lbMatcher{
 								pathMatchers: []matcherFunc{func(string) (string, bool) { return "", true }},
 							},
@@ -315,7 +314,7 @@ func TestReverseProxy_ServeHTTP(t *testing.T) {
 					lg: log.GlobalLogger(log.DefaultLoggerName),
 					eh: &testErrorHandler{},
 					lbs: []loadBalancer{
-						&nonHashLB{
+						&loadbalancer{
 							lbMatcher: &lbMatcher{
 								pathMatchers: []matcherFunc{func(string) (string, bool) { return "", false }},
 							},
@@ -341,7 +340,7 @@ func TestReverseProxy_ServeHTTP(t *testing.T) {
 					lg: log.GlobalLogger(log.DefaultLoggerName),
 					eh: &testErrorHandler{},
 					lbs: []loadBalancer{
-						&nonHashLB{
+						&loadbalancer{
 							lbMatcher: &lbMatcher{
 								pathMatchers: []matcherFunc{func(string) (string, bool) { return "", true }},
 							},
@@ -370,7 +369,7 @@ func TestReverseProxy_ServeHTTP(t *testing.T) {
 					lg: log.GlobalLogger(log.DefaultLoggerName),
 					eh: &testErrorHandler{},
 					lbs: []loadBalancer{
-						&nonHashLB{
+						&loadbalancer{
 							lbMatcher: &lbMatcher{
 								pathMatchers: []matcherFunc{func(string) (string, bool) { return "", true }},
 							},
@@ -399,7 +398,7 @@ func TestReverseProxy_ServeHTTP(t *testing.T) {
 					lg: log.GlobalLogger(log.DefaultLoggerName),
 					eh: &testErrorHandler{},
 					lbs: []loadBalancer{
-						&nonHashLB{
+						&loadbalancer{
 							lbMatcher: &lbMatcher{
 								pathMatchers: []matcherFunc{func(string) (string, bool) { return "", true }},
 							},
@@ -431,7 +430,7 @@ func TestReverseProxy_ServeHTTP(t *testing.T) {
 					lg: log.GlobalLogger(log.DefaultLoggerName),
 					eh: &testErrorHandler{},
 					lbs: []loadBalancer{
-						&nonHashLB{
+						&loadbalancer{
 							lbMatcher: &lbMatcher{
 								pathMatchers: []matcherFunc{func(string) (string, bool) { return "", true }},
 							},

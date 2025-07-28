@@ -6,9 +6,9 @@ spec:
         match: "/test1"
         matchType: Prefix
       upstreams:
-        - url: http://127.0.0.1:10001
+        - url: http://127.0.0.1:12301
     - pathMatcher:
         match: "/test2"
         matchType: Prefix
       upstreams:
-        - url: http://127.0.0.1:10002
+        - url: http://127.0.0.1:12302

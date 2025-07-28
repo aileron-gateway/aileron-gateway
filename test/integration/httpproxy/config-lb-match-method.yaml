@@ -9,4 +9,4 @@ spec:
         - GET
         - PUT
       upstreams:
-        - url: http://127.0.0.1:10001
+        - url: http://localhost:12301

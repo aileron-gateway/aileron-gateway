@@ -1,7 +1,7 @@
 apiVersion: core/v1
 kind: HTTPServer
 spec:
-  addr: ":11000"
+  addr: ":12300"
   virtualHosts:
     - handlers:
         - handler:
@@ -18,4 +18,4 @@ spec:
         match: "/test"
         matchType: Prefix
       upstreams:
-        - url: http://127.0.0.1:10001
+        - url: http://127.0.0.1:12301

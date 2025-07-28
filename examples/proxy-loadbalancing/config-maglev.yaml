@@ -25,11 +25,9 @@ spec:
         match: "/"
         matchType: Prefix
       lbAlgorithm: Maglev # Use Maglev load balancer.
-      hashTableSize: 199 # Optional. At least 10*upstreams. Will be corrected to a prime number.
-      hashers: # Maglev requires at least 1 hasher.
-        - hasherType: Header
-          key: Hash-Key
-        - hasherType: ClientAddr
+      hasher:
+        hashSource: Header
+        key: Hash-Key
       upstreams:
         - url: http://localhost:8001
         - url: http://localhost:8002

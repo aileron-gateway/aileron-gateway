@@ -25,10 +25,9 @@ spec:
         match: "/"
         matchType: Prefix
       lbAlgorithm: DirectHash # Use DirectHash load balancer.
-      hashers: # DirectHasher requires at least 1 hasher.
-        - hasherType: Header
-          key: Hash-Key
-        - hasherType: ClientAddr
+      hasher:
+        hashSource: Header
+        key: Hash-Key
       upstreams:
         - url: http://localhost:8001
         - url: http://localhost:8002

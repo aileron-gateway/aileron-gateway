@@ -25,11 +25,9 @@ spec:
         match: "/"
         matchType: Prefix
       lbAlgorithm: RingHash # Use RingHash load balancer.
-      hashTableSize: 1009 # Optional. At least 100*upstreams.
-      hashers: # RingHash requires at least 1 hasher.
-        - hasherType: Header
-          key: Hash-Key
-        - hasherType: ClientAddr
+      hasher:
+        hashSource: Header
+        key: Hash-Key
       upstreams:
         - url: http://localhost:8001
         - url: http://localhost:8002

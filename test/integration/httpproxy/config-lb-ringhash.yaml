@@ -6,14 +6,13 @@ spec:
         match: "/test"
         matchType: Prefix
       lbAlgorithm: RingHash
-      hashTableSize: 500
-      hashers:
-        - hasherType: Query
-          key: proxy
+      hasher:
+        hashSource: Query
+        key: proxy
       upstreams:
-        - url: http://127.0.0.1:10001
-          weight: 1
-        - url: http://127.0.0.1:10002
-          weight: 2
-        - url: http://127.0.0.1:10003
-          weight: 3
+        - url: http://127.0.0.1:12301
+          weight: 100
+        - url: http://127.0.0.1:12302
+          weight: 200
+        - url: http://127.0.0.1:12303
+          weight: 300
