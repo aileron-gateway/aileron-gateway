@@ -183,7 +183,7 @@ func newLoadBalancers(rt http.RoundTripper, specs []*v1.LoadBalancerSpec) ([]loa
 // newUpstreams returns upstreams.
 // newUpstreams ignore specs which weight is 0 or negative.
 // The upstreams with weights less than or equal to 0 are ignored.
-func newUpstreams(rt http.RoundTripper, specs []*v1.UpstreamSpec) ([]upstream, error) {
+func newUpstreams(_ http.RoundTripper, specs []*v1.UpstreamSpec) ([]upstream, error) {
 	if len(specs) == 0 {
 		return nil, nil
 	}
@@ -199,7 +199,7 @@ func newUpstreams(rt http.RoundTripper, specs []*v1.UpstreamSpec) ([]upstream, e
 		}
 		up := &noopUpstream{
 			id:        xxhash.Sum64String(rawURL),
-			weight:    max(1, uint16(min(65535, spec.Weight))),
+			weight:    max(1, uint16(min(65535, spec.Weight))), //nolint:gosec // G115: integer overflow conversion int32 -> uint16
 			rawURL:    rawURL,
 			parsedURL: parsedURL,
 		}

@@ -232,7 +232,7 @@ message UpstreamSpec {
     // Set -1 to disable this upstream.
     // 0 is the same as default value 1.
     // Default is [1].
-    int32 Weight = 2 [json_name = "weight", (buf.validate.field).int32 = {gte : -1, lte : 1000}];
+    int32 Weight = 2 [json_name = "weight", (buf.validate.field).int32 = {gte : -1, lte : 65535}];
 
     // [OPTIONAL]
     // EnablePassive enables passive health check.
