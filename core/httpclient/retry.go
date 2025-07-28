@@ -16,13 +16,19 @@ import (
 
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
-	"github.com/aileron-gateway/aileron-gateway/util/resilience"
+	"github.com/aileron-projects/go/ztime/zbackoff"
 )
 
 const (
 	ErrPkg           = "core/httpclient"
 	ErrTypeRetry     = "retry"
 	ErrDescRetryFail = "sending request failed after retry."
+)
+
+var (
+	// backoff is the backoff used for retrying.
+	// Backoff algorithm is currently fixed and not configurable.
+	backoff = zbackoff.NewExponentialBackoffFullJitter(time.Millisecond, 10*time.Second, time.Millisecond)
 )
 
 // retry applies retry to HTTP requests.
@@ -36,15 +42,10 @@ type retry struct {
 	// maxRetry is maximum retry count.
 	// Initial requests is not included.
 	maxRetry int
-
-	// waiter determined wait time to the next request.
-	waiter resilience.Waiter
-
 	// maxContentLength is the maximum content length of the requests that can be retried.
 	// Because retrying the request keep the entire body on memory, this value should not be
 	// set too large.
 	maxContentLength int64
-
 	// retryStatus is the list of HTTP status codes to be retried.
 	// When this is not set, only networking errors that cannot get response status codes are retried.
 	retryStatus []int
@@ -100,7 +101,7 @@ func (t *retry) Tripperware(next http.RoundTripper) http.RoundTripper {
 				errs = append(errs, info)
 			}
 
-			ticker.Reset(t.waiter.Wait(i + 1))
+			ticker.Reset(backoff.Attempt(i + 1))
 			select {
 			case <-r.Context().Done():
 				break loop // Request should be timeout or canceled wile waiting.

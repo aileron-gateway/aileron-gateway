@@ -8,14 +8,12 @@ import (
 	"time"
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
-	corev1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
 	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
-	"github.com/aileron-gateway/aileron-gateway/util/resilience"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -51,7 +49,6 @@ type API struct {
 // Please check msg!=nil and asserting the mgs does not panic even they won't from the view of overall architecture of the gateway.
 func (*API) Mutate(msg protoreflect.ProtoMessage) protoreflect.ProtoMessage {
 	c := msg.(*v1.ThrottleMiddleware)
-
 	for _, t := range c.Spec.APIThrottlers {
 		switch t := t.Throttlers.(type) {
 		case *v1.APIThrottlerSpec_MaxConnections:
@@ -84,20 +81,7 @@ func (*API) Mutate(msg protoreflect.ProtoMessage) protoreflect.ProtoMessage {
 			proto.Merge(baseSpec, t.LeakyBucket)
 			t.LeakyBucket = baseSpec
 		}
-
-		waiter := &corev1.WaiterSpec{
-			Waiter: &corev1.WaiterSpec_ExponentialBackoffFullJitter{
-				ExponentialBackoffFullJitter: &corev1.ExponentialBackoffFullJitterWaiterSpec{
-					Base: 2_000,
-					Min:  0,
-					Max:  1 << 21,
-				},
-			},
-		}
-		proto.Merge(waiter, t.Waiter)
-		t.Waiter = waiter
 	}
-
 	return c
 }
 
@@ -175,7 +159,6 @@ func apiThrottlers(specs ...*v1.APIThrottlerSpec) ([]*apiThrottler, error) {
 			tt = &retryThrottler{
 				throttler: tt,
 				maxRetry:  int(spec.MaxRetry),
-				waiter:    resilience.NewWaiter(spec.Waiter),
 			}
 		}
 

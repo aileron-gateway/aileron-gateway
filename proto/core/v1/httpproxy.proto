@@ -3,7 +3,6 @@ package core.v1;
 
 import "buf/validate/validate.proto";
 import "core/v1/http.proto";
-import "core/v1/resilience.proto";
 import "kernel/matcher.proto";
 import "kernel/resource.proto";
 
@@ -25,7 +24,7 @@ message ReverseProxyHandlerSpec {
     // Default is not set.
     repeated string Patterns = 1 [json_name = "patterns", (buf.validate.field).repeated.unique = true];
 
-    // [OPTIONA]
+    // [OPTIONAL]
     // Methods is the list of HTTP method this handler can handle.
     // Note that it depends on the multiplexer, or HTTP router
     // if this field can be used.
@@ -143,7 +142,6 @@ message LoadBalancerSpec {
     // Hasher is the hashing methods for hash-based load balancers.
     // Default is not set.
     HTTPHasherSpec Hasher = 10 [json_name = "hasher"];
-
 }
 
 // PathMatcherSpec is the specification of PathMatcher object
@@ -267,4 +265,42 @@ message UpstreamSpec {
     // Default is not set.
     // NOTE: This field is not used for now.
     string HealthCheckAddr = 9 [json_name = "healthCheckAddr"];
+}
+
+// LBAlgorithm is the load balance algorithm.
+enum LBAlgorithm {
+    RoundRobin = 0;  // Round-robin algorithm.
+    Random     = 1;  // Random algorithm.
+    RingHash   = 2;  // RingHash algorithm.
+    Maglev     = 3;  // Maglev algorithm.
+    DirectHash = 4;  // DirectHash algorithm.
+}
+
+// HTTPHasherSpec is the specifications for hasher
+// that calculate hashes from http requests.
+message HTTPHasherSpec {
+    // HashSource is the value source for calculating hash source.
+    enum HashSourceType {
+        ClientAddr  = 0;  // ClientAddr uses client IP:Port.
+        Header      = 1;  // Header uses single HTTP header.
+        Cookie      = 2;  // Cookie uses cookie value.
+        Query       = 3;  // Query uses URL query parameter.
+        PathParam   = 4;  // PathParam uses path parameter.
+    }
+
+    // [OPTIONAL]
+    // HashSource is the source for calculating hash value.
+    // This field is used by hash-based load balancers.
+    // Non hash-based load balancers ignore this field.
+    // Default is ["ClientAddr"].
+    HashSourceType HashSource = 1 [json_name = "hashSource"];
+
+    // [OPTIONAL]
+    // Key is the data source key.
+    // This is the header name for Header source type,
+    // query parameter name for Query
+    // and path parameter name for PathParam.
+    // ClientAddr and MultiHeader hasher ignore this field.
+    // Default is not set.
+    string Key = 2 [json_name = "key"];
 }

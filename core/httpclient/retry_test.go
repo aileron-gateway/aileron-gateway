@@ -12,7 +12,6 @@ import (
 	"io"
 	"net/http"
 	"testing"
-	"time"
 
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
@@ -36,12 +35,6 @@ func (b *testBody) Read(p []byte) (n int, err error) {
 
 func (b *testBody) Close() error {
 	return b.closeErr
-}
-
-type testWaiter int64
-
-func (w testWaiter) Wait(_ int) time.Duration {
-	return time.Duration(w)
 }
 
 func TestRetry_Tripperware(t *testing.T) {
@@ -177,7 +170,6 @@ func TestRetry_Tripperware(t *testing.T) {
 				retry: &retry{
 					maxRetry:         1,
 					maxContentLength: 100,
-					waiter:           testWaiter(100),
 				},
 				status: []int{0, http.StatusFound},
 				body:   io.NopCloser(bytes.NewReader([]byte("test body"))),
@@ -195,7 +187,6 @@ func TestRetry_Tripperware(t *testing.T) {
 				retry: &retry{
 					maxRetry:         1,
 					maxContentLength: 100,
-					waiter:           testWaiter(100),
 				},
 				status: []int{0, 0}, // 0 will raise an error.
 				body:   io.NopCloser(bytes.NewReader([]byte("test body"))),
@@ -217,7 +208,6 @@ func TestRetry_Tripperware(t *testing.T) {
 				retry: &retry{
 					maxRetry:         2,
 					maxContentLength: 100,
-					waiter:           testWaiter(100),
 				},
 				status: []int{0, 0, http.StatusFound},
 				body:   io.NopCloser(bytes.NewReader([]byte("test body"))),
@@ -235,7 +225,6 @@ func TestRetry_Tripperware(t *testing.T) {
 				retry: &retry{
 					maxRetry:         2,
 					maxContentLength: 100,
-					waiter:           testWaiter(100),
 				},
 				status: []int{0, 0, 0}, // 0 will raise an error.
 				body:   io.NopCloser(bytes.NewReader([]byte("test body"))),
@@ -257,7 +246,6 @@ func TestRetry_Tripperware(t *testing.T) {
 				retry: &retry{
 					maxRetry:         3,
 					maxContentLength: 100,
-					waiter:           testWaiter(100),
 					retryStatus:      []int{http.StatusInternalServerError, http.StatusGatewayTimeout},
 				},
 				status: []int{0, http.StatusInternalServerError, http.StatusGatewayTimeout, http.StatusFound},
@@ -276,7 +264,6 @@ func TestRetry_Tripperware(t *testing.T) {
 				retry: &retry{
 					maxRetry:         3,
 					maxContentLength: 100,
-					waiter:           testWaiter(100),
 					retryStatus:      []int{http.StatusInternalServerError, http.StatusGatewayTimeout},
 				},
 				status: []int{0, http.StatusInternalServerError, http.StatusGatewayTimeout, http.StatusInternalServerError},
@@ -299,7 +286,6 @@ func TestRetry_Tripperware(t *testing.T) {
 				retry: &retry{
 					maxRetry:         1,
 					maxContentLength: 100,
-					waiter:           testWaiter(100),
 				},
 				status: []int{0, http.StatusFound},
 				body:   io.NopCloser(&testutil.ErrorReader{}),
@@ -321,7 +307,6 @@ func TestRetry_Tripperware(t *testing.T) {
 				retry: &retry{
 					maxRetry:         1,
 					maxContentLength: 100,
-					waiter:           testWaiter(100),
 				},
 				status: []int{0, http.StatusFound},
 				body:   io.NopCloser(bytes.NewReader([]byte("test body"))),
@@ -346,7 +331,6 @@ func TestRetry_Tripperware(t *testing.T) {
 				retry: &retry{
 					maxRetry:         1,
 					maxContentLength: 100,
-					waiter:           testWaiter(100),
 				},
 				status:    []int{0, http.StatusFound},
 				cancelCtx: true,
@@ -365,7 +349,6 @@ func TestRetry_Tripperware(t *testing.T) {
 				retry: &retry{
 					maxRetry:         1,
 					maxContentLength: 100,
-					waiter:           testWaiter(time.Second),
 				},
 				status:  []int{0, http.StatusFound},
 				body:    io.NopCloser(bytes.NewReader([]byte("test body"))),
