@@ -486,12 +486,12 @@ type LeakyBucketSpec struct {
 	// [OPTIONAL]
 	// BucketSize is the size of bucket.
 	// Requests will be en-queued in the bucket and will be de-queued with
-	// the rate of LeakRate/LeakInterval.
+	// the interval of LeakInterval.
 	// Default is [1000].
 	BucketSize int32 `protobuf:"varint,1,opt,name=BucketSize,json=bucketSize,proto3" json:"BucketSize,omitempty"`
 	// [OPTIONAL]
-	// LeakInterval is the interval to count the leaked tokens in millisecond.
-	// Default is [1000] or 1 second.
+	// LeakInterval is the accept interval in millisecond.
+	// Default is [1] millisecond.
 	LeakInterval  int64 `protobuf:"varint,2,opt,name=LeakInterval,json=leakInterval,proto3" json:"LeakInterval,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
