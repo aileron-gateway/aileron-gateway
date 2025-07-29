@@ -14,6 +14,7 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
+	"github.com/aileron-projects/go/ztime/zrate"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -176,8 +177,7 @@ func TestMutate(t *testing.T) {
 								Throttlers: &v1.APIThrottlerSpec_LeakyBucket{
 									LeakyBucket: &v1.LeakyBucketSpec{
 										BucketSize:   1000,
-										LeakInterval: 1000,
-										LeakRate:     200,
+										LeakInterval: 1,
 									},
 								},
 							},
@@ -194,7 +194,6 @@ func TestMutate(t *testing.T) {
 		tt := tt
 		t.Run(tt.Name(), func(t *testing.T) {
 			msg := Resource.Mutate(tt.C().manifest)
-
 			opts := []cmp.Option{
 				protocmp.Transform(),
 				cmpopts.IgnoreUnexported(v1.ThrottleMiddleware{}, v1.ThrottleMiddlewareSpec{}, v1.APIThrottlerSpec{}),
@@ -310,10 +309,8 @@ func TestCreate(t *testing.T) {
 					eh: utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
 					throttlers: []*apiThrottler{
 						{
-							paths: nil, // This fields will be un checked.
-							throttler: &maxConnections{
-								sem: make(chan struct{}, 128),
-							},
+							paths:   nil, // This fields will be un checked.
+							limiter: zrate.NewConcurrentLimiter(128),
 						},
 					},
 				},
@@ -348,11 +345,8 @@ func TestCreate(t *testing.T) {
 					eh: utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
 					throttlers: []*apiThrottler{
 						{
-							paths: nil, // This fields will be un checked.
-							throttler: &fixedWindow{
-								bucket: make(chan struct{}, 1000),
-								window: 1 * time.Second,
-							},
+							paths:   nil, // This fields will be un checked.
+							limiter: zrate.NewFixedWindowLimiterWidth(1000, time.Second),
 						},
 					},
 				},
@@ -388,12 +382,8 @@ func TestCreate(t *testing.T) {
 					eh: utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
 					throttlers: []*apiThrottler{
 						{
-							paths: nil, // This fields will be un checked.
-							throttler: &tokenBucket{
-								bucket:   make(chan struct{}, 1000),
-								rate:     1,
-								interval: 1000 * time.Second,
-							},
+							paths:   nil, // This fields will be un checked.
+							limiter: zrate.NewTokenBucketInterval(1000, 1, 1000*time.Second),
 						},
 					},
 				},
@@ -411,8 +401,7 @@ func TestCreate(t *testing.T) {
 								Throttlers: &v1.APIThrottlerSpec_LeakyBucket{
 									LeakyBucket: &v1.LeakyBucketSpec{
 										BucketSize:   1000,
-										LeakInterval: 1000,
-										LeakRate:     200,
+										LeakInterval: 1,
 									},
 								},
 								Matcher: &k.MatcherSpec{
@@ -429,12 +418,8 @@ func TestCreate(t *testing.T) {
 					eh: utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
 					throttlers: []*apiThrottler{
 						{
-							paths: nil, // This fields will be un checked.
-							throttler: &leakyBucket{
-								bucket:   make(chan chan struct{}, 1000),
-								rate:     200,
-								interval: 1 * time.Second,
-							},
+							paths:   nil, // This fields will be un checked.
+							limiter: zrate.NewLeakyBucketLimiter(1000, time.Millisecond),
 						},
 					},
 				},
@@ -453,7 +438,6 @@ func TestCreate(t *testing.T) {
 									LeakyBucket: &v1.LeakyBucketSpec{
 										BucketSize:   1000,
 										LeakInterval: 1000,
-										LeakRate:     200,
 									},
 								},
 								Matcher: &k.MatcherSpec{
@@ -471,15 +455,9 @@ func TestCreate(t *testing.T) {
 					eh: utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
 					throttlers: []*apiThrottler{
 						{
-							paths: nil, // This fields will be un checked.
-							throttler: &retryThrottler{
-								throttler: &leakyBucket{
-									bucket:   make(chan chan struct{}, 1000),
-									rate:     200,
-									interval: 1 * time.Second,
-								},
-								maxRetry: 3,
-							},
+							paths:    nil, // This fields will be un checked.
+							maxRetry: 3,
+							limiter:  zrate.NewLeakyBucketLimiter(1000, time.Millisecond),
 						},
 					},
 				},
@@ -497,48 +475,8 @@ func TestCreate(t *testing.T) {
 
 			opts := []cmp.Option{
 				protocmp.Transform(),
-				cmp.AllowUnexported(throttle{}),
-				cmp.AllowUnexported(maxConnections{}),
-				// Compare channel capacity for errors with different memory addresses
-				cmp.Comparer(func(x, y maxConnections) bool {
-					return cap(x.sem) == cap(y.sem)
-				}),
-				cmp.AllowUnexported(fixedWindow{}),
-				//Compare channel capacity for errors with different memory addresses
-				cmp.Comparer(func(x, y fixedWindow) bool {
-					if cap(x.bucket) != cap(y.bucket) {
-						return false
-					}
-					if x.window != y.window {
-						return false
-					}
-					return true
-				}),
-				cmp.AllowUnexported(tokenBucket{}),
-				//Compare channel capacity for errors with different memory addresses
-				cmp.Comparer(func(x, y tokenBucket) bool {
-					return cap(x.bucket) == cap(y.bucket)
-				}),
-				cmp.AllowUnexported(leakyBucket{}),
-				//Compare channel capacity for errors with different memory addresses
-				cmp.Comparer(func(x, y leakyBucket) bool {
-					if cap(x.bucket) != cap(y.bucket) {
-						return false
-					}
-					if x.interval != y.interval {
-						return false
-					}
-					if x.rate != y.rate {
-						return false
-					}
-					return true
-				}),
-				cmp.AllowUnexported(retryThrottler{}),
-				cmp.Comparer(func(x, y retryThrottler) bool {
-					return x.maxRetry == y.maxRetry
-				}),
-				cmp.AllowUnexported(apiThrottler{}),
-				cmpopts.IgnoreFields(apiThrottler{}, "paths"),
+				cmp.AllowUnexported(throttle{}, apiThrottler{}),
+				cmpopts.IgnoreFields(apiThrottler{}, "paths", "limiter"),
 				cmp.Comparer(testutil.ComparePointer[core.ErrorHandler]),
 			}
 

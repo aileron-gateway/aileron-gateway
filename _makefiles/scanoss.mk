@@ -32,7 +32,7 @@ SCANOSS_CMD ?= scanoss-py
 SCANOSS_TARGET ?= ./
 SCANOSS_OUTPUT ?= _output/scanoss-output.json
 SCANOSS_OPTION_SCAN ?= --no-wfp-output
-SCANOSS_OPTION_INSPECT ?= copyleft 
+SCANOSS_OPTION_INSPECT ?= copyleft
 
 
 ##### ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ #####

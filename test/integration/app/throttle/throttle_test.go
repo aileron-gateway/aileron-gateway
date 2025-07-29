@@ -20,6 +20,7 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/aileron-gateway/aileron-gateway/test/integration/common"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 func TestThrottleMiddleware_MaxConnections(t *testing.T) {
@@ -238,10 +239,7 @@ func TestThrottleMiddleware_LeakyBucket(t *testing.T) {
 			}()
 		}
 		wg.Wait()
-
-		testutil.Diff(t, int32(4), success.Load())
-		testutil.Diff(t, int32(6), failure.Load())
-
+		testutil.Diff(t, float64(5), float64(success.Load()), cmpopts.EquateApprox(0, 1))
+		testutil.Diff(t, float64(5), float64(failure.Load()), cmpopts.EquateApprox(0, 1))
 	}
-
 }

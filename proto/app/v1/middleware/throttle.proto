@@ -88,17 +88,17 @@ message FixedWindowSpec {
 message TokenBucketSpec {
     // [OPTIONAL]
     // BucketSize is the number of tokens that the bucket can keep.
-    // Defailt is [1000].
+    // Default is [1000].
     int32 BucketSize = 1 [json_name = "bucketSize", (buf.validate.field).int32 = {gte : 1}];
 
     // [OPTIONAL]
     // FillInterval is the interval to fill tokens in the bucket in millisecond.
-    // Defailt is [1000] or 1 second.
+    // Default is [1000] or 1 second.
     int64 FillInterval = 2 [json_name = "fillInterval", (buf.validate.field).int64 = {gte : 1}];
 
     // [OPTIONAL]
     // FillRate is the number of tokens to fill in the bucket at every fill interval.
-    // Defailt is [1000].
+    // Default is [1000].
     int32 FillRate = 3 [json_name = "fillRate", (buf.validate.field).int32 = {gte : 1}];
 }
 
@@ -107,17 +107,12 @@ message LeakyBucketSpec {
     // [OPTIONAL]
     // BucketSize is the size of bucket.
     // Requests will be en-queued in the bucket and will be de-queued with
-    // the rate of LeakRate/LeakInterval.
-    // Defailt is [1000].
+    // the interval of LeakInterval.
+    // Default is [1000].
     int32 BucketSize = 1 [json_name = "bucketSize", (buf.validate.field).int32 = {gte : 1}];
 
     // [OPTIONAL]
-    // LeakInterval is the interval to count the leaked tokens in millisecond.
-    // Defailt is [1000] or 1 second.
+    // LeakInterval is the accept interval in millisecond.
+    // Default is [1] millisecond.
     int64 LeakInterval = 2 [json_name = "leakInterval", (buf.validate.field).int64 = {gte : 1}];
-
-    // [OPTIONAL]
-    // LeakRate is the number of requests that will be accepted every LeakInterval.
-    // Defailt is [200].
-    int32 LeakRate = 3 [json_name = "leakRate", (buf.validate.field).int32 = {gte : 1}];
 }

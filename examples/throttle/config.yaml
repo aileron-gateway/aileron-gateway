@@ -42,4 +42,5 @@ spec:
         fillRate: 10
       # leakyBucket:
       #   bucketSize: 10
-      #   leakRate: 1000_000_000
+      #   leakInterval: 100
+
