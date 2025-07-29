@@ -26,43 +26,30 @@ var noopReleaser = func() {}
 // apiThrottler applies throttling for requests
 // that matched to the method and paths.
 type apiThrottler struct {
-	limiter  zrate.Limiter
-	allowNow bool
-	methods  []string
-	paths    txtutil.Matcher[string]
+	limiter zrate.Limiter
+	methods []string
+	paths   txtutil.Matcher[string]
 	// maxRetry is the maximum retry count.
 	// Requests will be rejected when all retries are failed for maxRetry times.
 	maxRetry int
 }
 
-func (t *apiThrottler) token(ctx context.Context) zrate.Token {
-	if t.allowNow {
-		return t.limiter.AllowNow()
-	}
-	return t.limiter.WaitNow(ctx)
-}
-
 func (t *apiThrottler) accept(ctx context.Context) (bool, func()) {
-	if tk := t.token(ctx); tk.OK() {
+	if tk := t.limiter.Accept(ctx); tk.OK() {
 		return true, tk.Release
 	}
 	if t.maxRetry <= 0 {
 		return false, noopReleaser
 	}
-
-	ticker := time.NewTicker(time.Millisecond)
-	defer ticker.Stop()
-
 loop:
-	for i := 1; i <= t.maxRetry; i++ {
-		ticker.Reset(backoff.Attempt(i))
+	for i := 0; i <= t.maxRetry; i++ {
+		println(i, ":", backoff.Attempt(i))
 		select {
-		case <-ticker.C:
+		case <-time.After(backoff.Attempt(i)):
 		case <-ctx.Done():
 			break loop
 		}
-		// Check if the request is now acceptable or not.
-		if tk := t.token(ctx); tk.OK() {
+		if tk := t.limiter.Accept(ctx); tk.OK() {
 			return true, tk.Release
 		}
 	}

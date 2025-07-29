@@ -94,9 +94,8 @@ func TestMiddleware(t *testing.T) {
 					eh: nil,
 					throttlers: []*apiThrottler{
 						{
-							limiter:  zrate.NewConcurrentLimiter(1),
-							allowNow: true,
-							paths:    testMatcher{match: true},
+							limiter: zrate.NewConcurrentLimiter(1),
+							paths:   testMatcher{match: true},
 						},
 					},
 				},
@@ -114,10 +113,9 @@ func TestMiddleware(t *testing.T) {
 					eh: nil,
 					throttlers: []*apiThrottler{
 						{
-							limiter:  zrate.NewConcurrentLimiter(1),
-							allowNow: true,
-							methods:  []string{http.MethodGet},
-							paths:    testMatcher{match: true},
+							limiter: zrate.NewConcurrentLimiter(1),
+							methods: []string{http.MethodGet},
+							paths:   testMatcher{match: true},
 						},
 					},
 				},
@@ -135,10 +133,9 @@ func TestMiddleware(t *testing.T) {
 					eh: nil,
 					throttlers: []*apiThrottler{
 						{
-							limiter:  zrate.NewConcurrentLimiter(0),
-							allowNow: true,
-							methods:  []string{http.MethodPost},
-							paths:    testMatcher{match: true},
+							limiter: zrate.NewConcurrentLimiter(0),
+							methods: []string{http.MethodPost},
+							paths:   testMatcher{match: true},
 						},
 					},
 				},
@@ -156,10 +153,9 @@ func TestMiddleware(t *testing.T) {
 					eh: nil,
 					throttlers: []*apiThrottler{
 						{
-							limiter:  zrate.NewConcurrentLimiter(0),
-							allowNow: true,
-							methods:  []string{http.MethodGet},
-							paths:    testMatcher{match: false},
+							limiter: zrate.NewConcurrentLimiter(0),
+							methods: []string{http.MethodGet},
+							paths:   testMatcher{match: false},
 						},
 					},
 				},

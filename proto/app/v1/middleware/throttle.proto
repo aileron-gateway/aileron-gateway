@@ -107,12 +107,12 @@ message LeakyBucketSpec {
     // [OPTIONAL]
     // BucketSize is the size of bucket.
     // Requests will be en-queued in the bucket and will be de-queued with
-    // the rate of LeakRate/LeakInterval.
+    // the interval of LeakInterval.
     // Default is [1000].
     int32 BucketSize = 1 [json_name = "bucketSize", (buf.validate.field).int32 = {gte : 1}];
 
     // [OPTIONAL]
-    // LeakInterval is the interval to count the leaked tokens in millisecond.
-    // Default is [1000] or 1 second.
+    // LeakInterval is the accept interval in millisecond.
+    // Default is [1] millisecond.
     int64 LeakInterval = 2 [json_name = "leakInterval", (buf.validate.field).int64 = {gte : 1}];
 }

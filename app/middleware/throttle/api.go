@@ -114,29 +114,23 @@ func apiThrottlers(specs ...*v1.APIThrottlerSpec) ([]*apiThrottler, error) {
 		}
 
 		var limiter zrate.Limiter
-		var allowNow bool
 		switch spec.Throttlers.(type) {
 		case *v1.APIThrottlerSpec_MaxConnections:
 			s := spec.GetMaxConnections()
 			limiter = zrate.NewConcurrentLimiter(int(s.MaxConns))
-			allowNow = true
 		case *v1.APIThrottlerSpec_FixedWindow:
 			s := spec.GetFixedWindow()
 			limiter = zrate.NewFixedWindowLimiterWidth(int(s.Limit), time.Millisecond*time.Duration(s.WindowSize))
-			allowNow = true
 		case *v1.APIThrottlerSpec_LeakyBucket:
 			s := spec.GetLeakyBucket()
 			limiter = zrate.NewLeakyBucketLimiter(int(s.BucketSize), time.Millisecond*time.Duration(s.LeakInterval))
-			allowNow = false
 		case *v1.APIThrottlerSpec_TokenBucket:
 			s := spec.GetTokenBucket()
 			limiter = zrate.NewTokenBucketInterval(int(s.BucketSize), int(s.FillRate), time.Millisecond*time.Duration(s.FillInterval))
-			allowNow = true
 		}
 
 		ths = append(ths, &apiThrottler{
 			limiter:  limiter,
-			allowNow: allowNow,
 			methods:  utilhttp.Methods(spec.Methods),
 			paths:    m,
 			maxRetry: int(spec.MaxRetry),

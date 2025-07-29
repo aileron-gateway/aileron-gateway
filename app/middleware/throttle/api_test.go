@@ -309,9 +309,8 @@ func TestCreate(t *testing.T) {
 					eh: utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
 					throttlers: []*apiThrottler{
 						{
-							paths:    nil, // This fields will be un checked.
-							limiter:  zrate.NewConcurrentLimiter(128),
-							allowNow: true,
+							paths:   nil, // This fields will be un checked.
+							limiter: zrate.NewConcurrentLimiter(128),
 						},
 					},
 				},
@@ -346,9 +345,8 @@ func TestCreate(t *testing.T) {
 					eh: utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
 					throttlers: []*apiThrottler{
 						{
-							paths:    nil, // This fields will be un checked.
-							limiter:  zrate.NewFixedWindowLimiterWidth(1000, time.Second),
-							allowNow: true,
+							paths:   nil, // This fields will be un checked.
+							limiter: zrate.NewFixedWindowLimiterWidth(1000, time.Second),
 						},
 					},
 				},
@@ -384,9 +382,8 @@ func TestCreate(t *testing.T) {
 					eh: utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
 					throttlers: []*apiThrottler{
 						{
-							paths:    nil, // This fields will be un checked.
-							limiter:  zrate.NewTokenBucketInterval(1000, 1, 1000*time.Second),
-							allowNow: true,
+							paths:   nil, // This fields will be un checked.
+							limiter: zrate.NewTokenBucketInterval(1000, 1, 1000*time.Second),
 						},
 					},
 				},
@@ -421,9 +418,8 @@ func TestCreate(t *testing.T) {
 					eh: utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
 					throttlers: []*apiThrottler{
 						{
-							paths:    nil, // This fields will be un checked.
-							limiter:  zrate.NewLeakyBucketLimiter(1000, time.Millisecond),
-							allowNow: false,
+							paths:   nil, // This fields will be un checked.
+							limiter: zrate.NewLeakyBucketLimiter(1000, time.Millisecond),
 						},
 					},
 				},
@@ -462,7 +458,6 @@ func TestCreate(t *testing.T) {
 							paths:    nil, // This fields will be un checked.
 							maxRetry: 3,
 							limiter:  zrate.NewLeakyBucketLimiter(1000, time.Millisecond),
-							allowNow: false,
 						},
 					},
 				},
