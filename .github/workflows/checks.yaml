@@ -46,7 +46,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
-      - run: make scanoss-run SCANOSS_OPTION_SCAN="-E drawio -E pb.go"
+      - run: make scanoss-run SCANOSS_OPTION_SCAN="-E drawio -E pb.go -E mod -E sum"
 
   licenseheader:
     runs-on: ubuntu-latest
