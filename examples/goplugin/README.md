@@ -34,7 +34,7 @@ the same as the options aileron binary built with.**
 
 ```bash
 cd <This directory>
-go build -buildmode=plugin -trimpath -tags="netgo,osusergo"
+go build -buildmode=plugin -trimpath
 ```
 
 Run the example with this command.

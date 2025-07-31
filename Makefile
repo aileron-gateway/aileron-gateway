@@ -23,10 +23,13 @@ endif
 # Check build flags with "go help build" or https://pkg.go.dev/cmd/go.
 # Check compile flags with "go tool compile -help" or https://pkg.go.dev/cmd/compile.
 BUILD_FLAGS ?= -trimpath
-BUILD_LDFLAGS ?= -w -s -extldflags \"-static\"
+BUILD_LDFLAGS ?= -w -s
 BUILD_GCFLAGS ?= #-m=0
 BUILD_TAGS ?= #netgo,osusergo
 CGO_ENABLED ?= 0
+ifeq ($(CGO_ENABLED),0)
+BUILD_LDFLAGS += -extldflags \"-static\"
+endif
 
 .PHONY: build
 build:
