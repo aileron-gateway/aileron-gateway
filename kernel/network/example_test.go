@@ -220,33 +220,3 @@ func ZExampleNewListener_listenTCP_PathNameSocket() {
 	// Output:
 	// hello!!
 }
-
-func ExampleNewPacketConn_connectUDP() {
-	// Get a local address that is available for the test.
-	available, _ := net.ListenPacket("udp", "127.0.0.1:0")
-	available.Close()
-	testAddr := available.LocalAddr().String()
-
-	pc := &network.PacketConnConfig{
-		Network: "udp",
-		Address: testAddr,
-	}
-	conn, _ := network.NewPacketConn(pc)
-	defer conn.Close()
-
-	go func() {
-		// Create a new UDP dialer..
-		dc := &network.DialConfig{}
-		dl, _ := network.NewDialer(dc)
-		conn, _ := dl.Dial("udp", testAddr)
-		conn.Write([]byte("hello!!"))
-		conn.Close()
-	}()
-
-	b := make([]byte, 7) // Expect "hello!!".
-	conn.ReadFrom(b)     // Read message from the connection.
-
-	fmt.Println(string(b))
-	// Output:
-	// hello!!
-}

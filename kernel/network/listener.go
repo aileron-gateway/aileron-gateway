@@ -12,33 +12,13 @@ import (
 	"os"
 	"reflect"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
-	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
 	"github.com/aileron-projects/go/znet"
 	"github.com/aileron-projects/go/zsyscall"
 )
-
-// removeSocketConn wraps net.PacketConn
-// which especially intended to net.UnixConn.
-// removeSocketConn removes a unix domain docket file
-// when Close method was called.
-type removeSocketConn struct {
-	net.PacketConn
-	socket string
-}
-
-func (c *removeSocketConn) Close() error {
-	defer func() {
-		if info, err := os.Stat(c.socket); err == nil && !info.IsDir() {
-			os.Remove(c.socket)
-		}
-	}()
-	return c.PacketConn.Close()
-}
 
 // removeSocketListener wraps net.Listener
 // which especially intended to net.UnixListener.
@@ -58,20 +38,6 @@ func (l *removeSocketListener) Close() error {
 	return l.Listener.Close()
 }
 
-func RemoveSocketConn(conn net.PacketConn) net.PacketConn {
-	if conn == nil || reflect.ValueOf(conn).IsNil() || conn.LocalAddr() == nil {
-		return conn
-	}
-	addr, ok := conn.LocalAddr().(*net.UnixAddr)
-	if !ok || addr.Name == "" || strings.HasPrefix(addr.Name, "@") {
-		return conn // Not a path name socket.
-	}
-	return &removeSocketConn{
-		PacketConn: conn,
-		socket:     addr.Name,
-	}
-}
-
 func RemoveSocketListener(ln net.Listener) net.Listener {
 	if ln == nil || reflect.ValueOf(ln).IsNil() || ln.Addr() == nil {
 		return ln
@@ -84,104 +50,6 @@ func RemoveSocketListener(ln net.Listener) net.Listener {
 		Listener: ln,
 		socket:   addr.Name,
 	}
-}
-
-// PacketConnConfig is the config for IP and UDP connection.
-// TLS over UDP, or DTLS is not supported.
-type PacketConnConfig struct {
-	// Network is the network type to listen packet.
-	// The network must be "udp", "udp4", "udp6", "unixgram", or an IP transport.
-	// The IP transports are "ip", "ip4", or "ip6" followed by a colon
-	// and a literal protocol number or a protocol name, as in "ip:1" or "ip:icmp".
-	// See the net.ListenPacket documents.
-	// https://pkg.go.dev/net#ListenPacket
-	Network string
-	// Address is the local address to listen to.
-	// The value must be a valid address for the given network type.
-	// See the net.Dial document for valid value examples.
-	// https://pkg.go.dev/net#Dial
-	// For unix type networks, "/var/run/example.sock" or "@example"
-	// address can be specified.
-	Address string
-	// SockOption is the socket option.
-	SockOption *zsyscall.SockOption
-}
-
-// NewPacketConn returns a new net.PacketConn from the given config.
-// The nil config is equivalent to the zero config which means
-//   - "udp" for the Network
-//   - "127.0.0.1:0" for the Address
-//   - Default TLS config defined by TLSConfig
-func NewPacketConn(c *PacketConnConfig) (net.PacketConn, error) {
-	if c == nil {
-		return nil, &er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypePackConn,
-			Description: ErrDscPackConn,
-			Detail:      "nil spec was given to new packet conn.",
-		}
-	}
-
-	var conn net.PacketConn
-	var syscallConn interface {
-		SyscallConn() (syscall.RawConn, error)
-	}
-
-	var err error
-	switch c.Network {
-	case "udp", "udp4", "udp6":
-		addr, resolveErr := net.ResolveUDPAddr(c.Network, c.Address)
-		cn, listenErr := net.ListenUDP(c.Network, addr)
-		conn, syscallConn = cn, cn
-		err = errors.Join(listenErr, resolveErr)
-	case "unixgram":
-		addr, resolveErr := net.ResolveUnixAddr(c.Network, c.Address)
-		cn, listenErr := net.ListenUnixgram(c.Network, addr)
-		conn, syscallConn = cn, cn
-		err = errors.Join(listenErr, resolveErr)
-		conn = RemoveSocketConn(conn) // Remove .socket file when closed if necessary.
-	default:
-		if strings.HasPrefix(c.Network, "ip:") || strings.HasPrefix(c.Network, "ip4:") || strings.HasPrefix(c.Network, "ip6:") {
-			addr, resolveErr := net.ResolveIPAddr(c.Network, c.Address)
-			cn, listenErr := net.ListenIP(c.Network, addr)
-			conn, syscallConn = cn, cn
-			err = errors.Join(listenErr, resolveErr)
-		} else {
-			err = errors.New("unsupported network `" + c.Network + "`")
-		}
-	}
-
-	if err != nil {
-		return nil, (&er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypePackConn,
-			Description: ErrDscPackConn,
-			Detail:      "create new packet conn.",
-		}).Wrap(err)
-	}
-
-	controlFunc := c.SockOption.ControlFunc(zsyscall.SockOptSO | zsyscall.SockOptIP | zsyscall.SockOptIPV6 | zsyscall.SockOptUDP)
-	if controlFunc != nil && syscallConn != nil {
-		conn, err := syscallConn.SyscallConn()
-		if err != nil {
-			return nil, (&er.Error{
-				Package:     ErrPkg,
-				Type:        ErrTypePackConn,
-				Description: ErrDscPackConn,
-				Detail:      "create new packet conn.",
-			}).Wrap(err)
-		}
-		if err := controlFunc("", "", conn); err != nil {
-			return nil, (&er.Error{
-				Package:     ErrPkg,
-				Type:        ErrTypePackConn,
-				Description: ErrDscPackConn,
-				Detail:      "create new packet conn.",
-			}).Wrap(err)
-		}
-	}
-
-	return conn, nil
 }
 
 type ListenConfig struct {
@@ -227,7 +95,7 @@ type ListenConfig struct {
 // This function returns nil listener and nil error when a nil spec was
 // given as an argument.
 // This function internally call network.NewListener function.
-func NewListenerFromSpec(spec *k.ListenConfig) (net.Listener, error) {
+func NewListenerFromSpec(spec *kernel.ListenConfig) (net.Listener, error) {
 	if spec == nil {
 		return nil, nil
 	}
