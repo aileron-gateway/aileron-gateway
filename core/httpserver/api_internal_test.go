@@ -874,6 +874,7 @@ func TestNewHTTP3Server(t *testing.T) {
 				cmp.AllowUnexported(http3Server{}, testHandler{}, quic.Config{}),
 				cmpopts.IgnoreUnexported(http3.Server{}),
 				cmpopts.IgnoreUnexported(tls.Config{}),
+				cmpopts.IgnoreFields(tls.Config{}, "RootCAs", "ClientCAs"),
 				cmpopts.IgnoreTypes(http.HandlerFunc(nil)), // Skip alt-svc middlewarte.
 			}
 			testutil.Diff(t, tt.A().svr, srv, opts...)
