@@ -618,28 +618,6 @@ message TLSConfig {
     // This fieled will be used as https://pkg.go.dev/crypto/tls#Config.Renegotiation.
     // Default is not set.
     RenegotiationSupport Renegotiation = 14 [json_name = "renegotiation"];
-
-    // [OPTIONAL]
-    // RootCAsIgnoreSystemCerts is the flag to ignore system
-    // certification in the default path as root CAs.
-    // TLS will be configured with system's certifications
-    // if this field is not set or false.
-    // System certification path will be found at
-    // https://cs.opensource.google/go/go/+/master:src/crypto/x509/root_linux.go.
-    // The CAs are related to the https://pkg.go.dev/crypto/tls#Config.RootCAs.
-    // Default is [false].
-    bool RootCAsIgnoreSystemCerts = 15 [json_name = "rootCAsIgnoreSystemCerts"];
-
-    // [OPTIONAL]
-    // ClientCAsIgnoreSystemCerts is the flag to ignore system
-    // certification in the default path as client CAs.
-    // TLS will be configured with system's certifications
-    // if this field is not set or false.
-    // System certification path will be found at
-    // https://cs.opensource.google/go/go/+/master:src/crypto/x509/root_linux.go
-    // The CAs are related to the https://pkg.go.dev/crypto/tls#Config.ClientCAs.
-    // Default is [false].
-    bool ClientCAsIgnoreSystemCerts = 16 [json_name = "clientCAsIgnoreSystemCerts"];
 }
 
 // CertKeyPair is the pair of TLS cert file path

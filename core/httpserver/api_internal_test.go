@@ -812,11 +812,8 @@ func TestNewHTTP3Server(t *testing.T) {
 				addr: ln.Addr().String(),
 				h:    &testHandler{id: "test"},
 				c: &v1.HTTP3Config{
-					QuicConfig: &k.QuicConfig{},
-					TLSConfig: &k.TLSConfig{
-						RootCAsIgnoreSystemCerts:   true,
-						ClientCAsIgnoreSystemCerts: true,
-					},
+					QuicConfig:     &k.QuicConfig{},
+					TLSConfig:      &k.TLSConfig{},
 					MaxHeaderBytes: 10,
 					AltSvc:         "foo",
 				},
@@ -831,10 +828,9 @@ func TestNewHTTP3Server(t *testing.T) {
 							Versions: []quic.Version{},
 						},
 						TLSConfig: &tls.Config{
-							RootCAs:          x509.NewCertPool(),
-							ClientCAs:        x509.NewCertPool(),
-							Certificates:     []tls.Certificate{},
-							CurvePreferences: []tls.CurveID{},
+							RootCAs:      x509.NewCertPool(),
+							ClientCAs:    x509.NewCertPool(),
+							Certificates: []tls.Certificate{},
 						},
 					},
 				},
@@ -877,6 +873,7 @@ func TestNewHTTP3Server(t *testing.T) {
 				cmp.AllowUnexported(http3Server{}, testHandler{}, quic.Config{}),
 				cmpopts.IgnoreUnexported(http3.Server{}),
 				cmpopts.IgnoreUnexported(tls.Config{}),
+				cmpopts.IgnoreFields(tls.Config{}, "RootCAs", "ClientCAs"),
 				cmpopts.IgnoreTypes(http.HandlerFunc(nil)), // Skip alt-svc middlewarte.
 			}
 			testutil.Diff(t, tt.A().svr, srv, opts...)

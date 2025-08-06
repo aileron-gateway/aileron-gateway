@@ -251,10 +251,9 @@ func TestHTTPTransport(t *testing.T) {
 					Proxy:               http.ProxyFromEnvironment,
 					MaxIdleConnsPerHost: 1024,
 					TLSClientConfig: &tls.Config{
-						RootCAs:          newSystemPool(),
-						ClientCAs:        newSystemPool(),
-						Certificates:     []tls.Certificate{},
-						CurvePreferences: []tls.CurveID{},
+						RootCAs:      newSystemPool(),
+						ClientCAs:    newSystemPool(),
+						Certificates: []tls.Certificate{},
 					},
 					TLSNextProto: make(map[string]func(authority string, c *tls.Conn) http.RoundTripper, 0),
 				},
@@ -463,11 +462,10 @@ func TestHTTP2Transport(t *testing.T) {
 			&action{
 				tp: &http2.Transport{
 					TLSClientConfig: &tls.Config{
-						NextProtos:       []string{http2.NextProtoTLS},
-						RootCAs:          newSystemPool(),
-						ClientCAs:        newSystemPool(),
-						Certificates:     []tls.Certificate{},
-						CurvePreferences: []tls.CurveID{},
+						NextProtos:   []string{http2.NextProtoTLS},
+						RootCAs:      newSystemPool(),
+						ClientCAs:    newSystemPool(),
+						Certificates: []tls.Certificate{},
 					},
 				},
 				err: nil,
@@ -684,10 +682,9 @@ func TestHTTP3Transport(t *testing.T) {
 			&action{
 				rt: &http3.Transport{
 					TLSClientConfig: &tls.Config{
-						RootCAs:          newSystemPool(),
-						ClientCAs:        newSystemPool(),
-						Certificates:     []tls.Certificate{},
-						CurvePreferences: []tls.CurveID{},
+						RootCAs:      newSystemPool(),
+						ClientCAs:    newSystemPool(),
+						Certificates: []tls.Certificate{},
 					},
 				},
 				err: nil,
