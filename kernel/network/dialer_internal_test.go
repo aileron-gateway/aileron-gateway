@@ -691,20 +691,16 @@ func TestNewDialerFromSpec(t *testing.T) {
 			[]string{},
 			&condition{
 				spec: &k.DialConfig{
-					TLSConfig: &k.TLSConfig{
-						RootCAsIgnoreSystemCerts:   true,
-						ClientCAsIgnoreSystemCerts: true,
-					},
+					TLSConfig: &k.TLSConfig{},
 				},
 			},
 			&action{
 				dialer: &tls.Dialer{
 					NetDialer: &net.Dialer{},
 					Config: &tls.Config{
-						RootCAs:          x509.NewCertPool(),
-						ClientCAs:        x509.NewCertPool(),
-						Certificates:     []tls.Certificate{},
-						CurvePreferences: []tls.CurveID{},
+						RootCAs:      x509.NewCertPool(),
+						ClientCAs:    x509.NewCertPool(),
+						Certificates: []tls.Certificate{},
 					},
 				},
 			},
@@ -776,10 +772,7 @@ func TestNewDialerFromSpec(t *testing.T) {
 					ReplaceTargets: []string{`(tcp|localhost:80) (unix|/var/run/test.sock)`},
 					Timeout:        1,
 					FallbackDelay:  2,
-					TLSConfig: &k.TLSConfig{
-						RootCAsIgnoreSystemCerts:   true,
-						ClientCAsIgnoreSystemCerts: true,
-					},
+					TLSConfig:      &k.TLSConfig{},
 				},
 			},
 			&action{
@@ -796,10 +789,9 @@ func TestNewDialerFromSpec(t *testing.T) {
 							FallbackDelay: 2 * time.Millisecond,
 						},
 						Config: &tls.Config{
-							RootCAs:          x509.NewCertPool(),
-							ClientCAs:        x509.NewCertPool(),
-							Certificates:     []tls.Certificate{},
-							CurvePreferences: []tls.CurveID{},
+							RootCAs:      x509.NewCertPool(),
+							ClientCAs:    x509.NewCertPool(),
+							Certificates: []tls.Certificate{},
 						},
 					},
 				},
@@ -838,6 +830,7 @@ func TestNewDialerFromSpec(t *testing.T) {
 			opts := []cmp.Option{
 				cmp.AllowUnexported(replaceTargetDialer{}),
 				cmpopts.IgnoreUnexported(net.Dialer{}, tls.Dialer{}, tls.Config{}),
+				cmpopts.IgnoreFields(tls.Config{}, "RootCAs", "ClientCAs"),
 				cmp.Comparer(testutil.ComparePointer[func(string, string, syscall.RawConn) error]),
 			}
 			testutil.Diff(t, tt.A().dialer, d, opts...)

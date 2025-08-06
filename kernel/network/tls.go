@@ -12,8 +12,8 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
 )
 
-// TLSCipher is the list of TLS cipher suites.
-var TLSCipher = map[k.TLSCipher]uint16{
+// tlsCipher is the list of TLS cipher suites.
+var tlsCipher = map[k.TLSCipher]uint16{
 	k.TLSCipher_TLS_RSA_WITH_RC4_128_SHA:                      tls.TLS_RSA_WITH_RC4_128_SHA,
 	k.TLSCipher_TLS_RSA_WITH_3DES_EDE_CBC_SHA:                 tls.TLS_RSA_WITH_3DES_EDE_CBC_SHA,
 	k.TLSCipher_TLS_RSA_WITH_AES_128_CBC_SHA:                  tls.TLS_RSA_WITH_AES_128_CBC_SHA,
@@ -44,11 +44,6 @@ var TLSCipher = map[k.TLSCipher]uint16{
 	k.TLSCipher_TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305:        tls.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,
 }
 
-// systemCertPool is the function that returns
-// the system cert pool.
-// This can be replaced when testing.
-var systemCertPool = x509.SystemCertPool
-
 // TLSConfig returns a new *tls.Config from the given spec.
 // This function returns nil config and nil error when
 // the given spec was nil.
@@ -57,7 +52,7 @@ func TLSConfig(spec *k.TLSConfig) (*tls.Config, error) {
 		return nil, nil
 	}
 
-	rootCAs, err := CAs(spec.RootCAsIgnoreSystemCerts, spec.RootCAs)
+	rootCAs, err := certPool(spec.RootCAs)
 	if err != nil {
 		return nil, (&er.Error{
 			Package:     ErrPkg,
@@ -67,7 +62,7 @@ func TLSConfig(spec *k.TLSConfig) (*tls.Config, error) {
 		}).Wrap(err)
 	}
 
-	clientCAs, err := CAs(spec.ClientCAsIgnoreSystemCerts, spec.ClientCAs)
+	clientCAs, err := certPool(spec.ClientCAs)
 	if err != nil {
 		return nil, (&er.Error{
 			Package:     ErrPkg,
@@ -94,7 +89,6 @@ func TLSConfig(spec *k.TLSConfig) (*tls.Config, error) {
 			Detail:      "RenegotiationSupport must be 0 to 2. Given " + spec.Renegotiation.String(),
 		}
 	}
-
 	certs := make([]tls.Certificate, 0, len(spec.CertKeyPairs))
 	for _, pair := range spec.CertKeyPairs {
 		cert, err := tls.LoadX509KeyPair(pair.CertFile, pair.KeyFile)
@@ -119,34 +113,37 @@ func TLSConfig(spec *k.TLSConfig) (*tls.Config, error) {
 		ClientAuth:                  tls.ClientAuthType(spec.ClientAuth),
 		ClientCAs:                   clientCAs,
 		InsecureSkipVerify:          spec.InsecureSkipVerify, //nolint:gosec // G402: TLS InsecureSkipVerify may be true.
-		CipherSuites:                TLSCiphers(spec.TLSCiphers),
+		CipherSuites:                tlsCiphers(spec.TLSCiphers),
 		SessionTicketsDisabled:      spec.SessionTicketsDisabled,
 		MinVersion:                  uint16(spec.MinVersion), //nolint:gosec // G115: integer overflow conversion uint32 -> uint16
 		MaxVersion:                  uint16(spec.MaxVersion), //nolint:gosec // G115: integer overflow conversion uint32 -> uint16
-		CurvePreferences:            CurveIDs(spec.CurvePreferences),
+		CurvePreferences:            curveIDs(spec.CurvePreferences),
 		DynamicRecordSizingDisabled: spec.DynamicRecordSizingDisabled,
 		Renegotiation:               tls.RenegotiationSupport(spec.Renegotiation),
 	}, nil
 }
 
-// TLSCiphers return a new slice of tls ciphers.
+// tlsCiphers return a new slice of tls ciphers.
 // Invalid ciphers will be ignored.
-func TLSCiphers(cs []k.TLSCipher) []uint16 {
+func tlsCiphers(cs []k.TLSCipher) []uint16 {
 	if len(cs) == 0 {
 		return nil
 	}
 	suites := make([]uint16, 0, len(cs))
 	for _, c := range cs {
-		if v, ok := TLSCipher[c]; ok {
+		if v, ok := tlsCipher[c]; ok {
 			suites = append(suites, v)
 		}
 	}
 	return suites
 }
 
-// CurveIDs returns a new slice of tls.CurveID.
+// curveIDs returns a new slice of tls.CurveID.
 // Invalid curve ids are ignored.
-func CurveIDs(ids []k.CurveID) []tls.CurveID {
+func curveIDs(ids []k.CurveID) []tls.CurveID {
+	if len(ids) == 0 {
+		return nil
+	}
 	curves := make([]tls.CurveID, 0, len(ids))
 	for _, id := range ids {
 		switch id {
@@ -163,27 +160,13 @@ func CurveIDs(ids []k.CurveID) []tls.CurveID {
 	return curves
 }
 
-// CAs reads certifications from pem files.
-// This function reads system cert pool and add certificates given by the argument.
-// Set ignore true to not to use system cert pool.
-// This function will return an empty cert pool
-// even no files are given by the argument.
-func CAs(ignore bool, files []string) (*x509.CertPool, error) {
-	var pool *x509.CertPool
-	if ignore {
+// certPool returns new cert pool with given certifications
+// reading from files.
+func certPool(files []string) (*x509.CertPool, error) {
+	pool, err := x509.SystemCertPool()
+	if err != nil {
 		pool = x509.NewCertPool()
-	} else {
-		p, err := systemCertPool()
-		if err != nil {
-			return nil, (&er.Error{
-				Package:     ErrPkg,
-				Type:        ErrTypeTLSCert,
-				Description: ErrDscTLSCert,
-			}).Wrap(err)
-		}
-		pool = p
 	}
-
 	for _, file := range files {
 		pem, err := os.ReadFile(file)
 		if err != nil {
@@ -193,7 +176,6 @@ func CAs(ignore bool, files []string) (*x509.CertPool, error) {
 				Description: ErrDscTLSCert,
 			}).Wrap(err)
 		}
-
 		if !pool.AppendCertsFromPEM(pem) {
 			return nil, &er.Error{
 				Package:     ErrPkg,
@@ -203,6 +185,5 @@ func CAs(ignore bool, files []string) (*x509.CertPool, error) {
 			}
 		}
 	}
-
 	return pool, nil
 }

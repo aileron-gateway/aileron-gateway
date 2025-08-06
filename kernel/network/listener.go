@@ -189,9 +189,13 @@ func NewListener(c *ListenConfig) (net.Listener, error) {
 		}).Wrap(err)
 	}
 
-	// Apply deadlines for connections.
-	ln = ListenerWithReadDeadline(ln, c.ReadDeadline)
-	ln = ListenerWithWriteDeadline(ln, c.WriteDeadline)
+	if c.ReadDeadline != 0 || c.WriteDeadline != 0 {
+		ln = &deadlineListener{
+			Listener: ln,
+			read:     c.ReadDeadline,
+			write:    c.WriteDeadline,
+		}
+	}
 	if len(c.Networks) > 0 {
 		wln, err := znet.NewWhiteListListener(ln, c.Networks...)
 		if err != nil {
@@ -211,86 +215,29 @@ func NewListener(c *ListenConfig) (net.Listener, error) {
 	return ln, nil
 }
 
-// ListenerWithReadDeadline returns a net listener which set deadlines to the connection.
-// This function do nothing when the given Listener was nil or the given deadline is zero.
-// To set no deadline, set read to a negative value.
-func ListenerWithReadDeadline(inner net.Listener, read time.Duration) net.Listener {
-	if inner == nil || read == 0 {
-		return inner
-	}
-	return &readDeadlineListener{
-		Listener: inner,
-		read:     read,
-	}
-}
-
-// readDeadlineListener is the net listener which
-// applies write deadline for the accepted connection.
-type readDeadlineListener struct {
+// deadlineListener applies deadline to connections.
+type deadlineListener struct {
 	net.Listener
-	// read is the duration until read deadline.
-	read time.Duration
+	read  time.Duration // read deadline duration.
+	write time.Duration // write deadline duration.
 }
 
-func (l *readDeadlineListener) Accept() (net.Conn, error) {
-	// Wait for the next connection.
-	// Accept block the process until the next connection obtained.
-	// If the listener is closed, Accept() unblock and return an error.
+func (l *deadlineListener) Accept() (net.Conn, error) {
 	c, err := l.Listener.Accept()
 	if err != nil {
-		return nil, (&er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeListener,
-			Description: ErrDscListener,
-			Detail:      "accept connection.",
-		}).Wrap(err)
+		return nil, err
 	}
-	if l.read <= 0 {
-		_ = c.SetReadDeadline(time.Time{}) // No timeouts.
-	} else {
+	switch {
+	case l.read > 0:
 		_ = c.SetReadDeadline(time.Now().Add(l.read))
+	case l.read < 0:
+		_ = c.SetReadDeadline(time.Time{}) // No timeouts.
 	}
-	return c, nil
-}
-
-// ListenerWithWriteDeadline returns a net listener which set deadlines to the connection.
-// This function do nothing when the given Listener was nil or the given deadline is zero.
-// To set no deadline, set write to a negative value.
-func ListenerWithWriteDeadline(inner net.Listener, write time.Duration) net.Listener {
-	if inner == nil || write == 0 {
-		return inner
-	}
-	return &writeDeadlineListener{
-		Listener: inner,
-		write:    write,
-	}
-}
-
-// writeDeadlineListener is the net listener which
-// applies write deadline for the accepted connection.
-type writeDeadlineListener struct {
-	net.Listener
-	// write is the duration until write deadline.
-	write time.Duration
-}
-
-func (l *writeDeadlineListener) Accept() (net.Conn, error) {
-	// Wait for the next connection.
-	// Accept block the process until the next connection obtained.
-	// If the listener is closed, Accept() unblock and return an error.
-	c, err := l.Listener.Accept()
-	if err != nil {
-		return nil, (&er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeListener,
-			Description: ErrDscListener,
-			Detail:      "accept connection.",
-		}).Wrap(err)
-	}
-	if l.write <= 0 {
-		_ = c.SetWriteDeadline(time.Time{}) // No timeouts.
-	} else {
+	switch {
+	case l.write > 0:
 		_ = c.SetWriteDeadline(time.Now().Add(l.write))
+	case l.write < 0:
+		_ = c.SetWriteDeadline(time.Time{}) // No timeouts.
 	}
 	return c, nil
 }

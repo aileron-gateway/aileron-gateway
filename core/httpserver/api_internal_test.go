@@ -812,11 +812,8 @@ func TestNewHTTP3Server(t *testing.T) {
 				addr: ln.Addr().String(),
 				h:    &testHandler{id: "test"},
 				c: &v1.HTTP3Config{
-					QuicConfig: &k.QuicConfig{},
-					TLSConfig: &k.TLSConfig{
-						RootCAsIgnoreSystemCerts:   true,
-						ClientCAsIgnoreSystemCerts: true,
-					},
+					QuicConfig:     &k.QuicConfig{},
+					TLSConfig:      &k.TLSConfig{},
 					MaxHeaderBytes: 10,
 					AltSvc:         "foo",
 				},
