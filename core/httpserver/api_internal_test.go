@@ -828,10 +828,9 @@ func TestNewHTTP3Server(t *testing.T) {
 							Versions: []quic.Version{},
 						},
 						TLSConfig: &tls.Config{
-							RootCAs:          x509.NewCertPool(),
-							ClientCAs:        x509.NewCertPool(),
-							Certificates:     []tls.Certificate{},
-							CurvePreferences: []tls.CurveID{},
+							RootCAs:      x509.NewCertPool(),
+							ClientCAs:    x509.NewCertPool(),
+							Certificates: []tls.Certificate{},
 						},
 					},
 				},
