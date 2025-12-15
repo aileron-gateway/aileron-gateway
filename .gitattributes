@@ -6,16 +6,16 @@
 * text=auto eol=lf
 
 # Scripts
-*.{mk,[mM][kK]} text eol=lf
-*.{sh,[sS][hH]} text eol=lf
-*.{cmd,[cC][mM][dD]} text eol=crlf
-*.{bat,[bB][aA][tT]} text eol=crlf
-*.{ps1,[pP][sS]1} text eol=crlf
+*.mk   text eol=lf
+*.sh   text eol=lf
+*.cmd  text eol=crlf
+*.bat  text eol=crlf
+*.ps1  text eol=crlf
 
 # Images
-*.png binary
-*.jpg binary
-*.svg binary
+*.png    binary
+*.jpg    binary
+*.svg    binary
 *.drawio binary
 
 # Protocol Buffer
