@@ -4,9 +4,9 @@ go 1.25
 
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.11-20251209175733-2a1774d88802.1
+	buf.build/go/protovalidate v1.1.0
 	github.com/aileron-projects/go v0.0.0-alpha.17
 	github.com/andybalholm/brotli v1.2.0
-	github.com/bufbuild/protovalidate-go v0.10.1
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/google/go-cmp v0.7.0
