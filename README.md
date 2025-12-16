@@ -128,36 +128,23 @@ Operating System:
 
 Go:
 
-- Current Stable: `go 1.(N).x`
-- Previous Stable: `go 1.(N-1).x`
-- Minimum Requirement: `go 1.(N-2).0`
-  - Declared in the [go.mod](go.mod)
-
-Where `N` is the current latest minor version.
-See the Go official release page [Stable versions](https://go.dev/dl/).
+- See the [go.mod](go.mod) file.
+  - Main branch supports only latest go [release](https://go.dev/dl/).
 
 In addition to the environment above, following platforms are tested on ubuntu
 using [QEMU User space emulator](https://www.qemu.org/docs/master/user/main.html).
 
-- `amd64`
-- `arm/v7`
-- `arm64`
-- `ppc64`
-- `ppc64le`
-- `riscv64`
-- `s390x`
-- `loong64`
-- `386`
-- `mips`
-- `mips64`
-- `mips64le`
-- `mipsle`
+- x86: `amd64`, `386`
+- arm: `arm/v5`, `arm/v6`, `arm/v7`, `arm64`
+- risc: `riscv64`, `loong64`
+- ppc: `ppc64`, `ppc64le`
+- mips: `mips`, `mips64`, `mips64le`, `mipsle`
+- ibm: `s390x`
 
 ## Release Cycle
 
 - Versions follow [Semantic Versioning](https://semver.org/).
   - `vX.Y.Z`
-  - `vX.Y.Z-rc.N`
   - `vX.Y.Z-beta.N`
   - `vX.Y.Z-alpha.N`
 - Minor release (update `Y`) is twice a year.
@@ -183,13 +170,3 @@ See the [Support](https://aileron-gateway.github.io/community/support/) for full
 Need enterprise support?
 
 Contact us: `aileron-gateway@nri.co.jp`
-
-## Governance
-
-We are now actively working on this topic.
-
-## License
-
-Apache License 2.0
-
-See the [LICENSE](./LICENSE) file.
