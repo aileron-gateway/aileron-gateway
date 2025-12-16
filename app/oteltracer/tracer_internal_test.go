@@ -9,6 +9,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"testing"
 
 	"github.com/aileron-gateway/aileron-gateway/core"
@@ -53,7 +54,7 @@ func TestMiddleware(t *testing.T) {
 				statusCode: http.StatusOK,
 				attributes: []attribute.KeyValue{
 					attribute.String("caller.file", "oteltracer/tracer_internal_test.go"),
-					attribute.String("caller.func", "net/http.HandlerFunc.ServeHTTP"),
+					// attribute.String("caller.func", "net/http.HandlerFunc.ServeHTTP"), // Go1.24 passes, Go1.25 fails
 					attribute.String("http.id", ""),
 					attribute.String("http.schema", "http"),
 					attribute.String("http.method", "GET"),
@@ -77,7 +78,7 @@ func TestMiddleware(t *testing.T) {
 				statusCode: http.StatusOK,
 				attributes: []attribute.KeyValue{
 					attribute.String("caller.file", "oteltracer/tracer_internal_test.go"),
-					attribute.String("caller.func", "net/http.HandlerFunc.ServeHTTP"),
+					// attribute.String("caller.func", "net/http.HandlerFunc.ServeHTTP"), // Go1.24 passes, Go1.25 fails
 				},
 				name: "2:middleware",
 			},
@@ -94,7 +95,7 @@ func TestMiddleware(t *testing.T) {
 				statusCode: http.StatusOK,
 				attributes: []attribute.KeyValue{
 					attribute.String("caller.file", "oteltracer/tracer_internal_test.go"),
-					attribute.String("caller.func", "net/http.HandlerFunc.ServeHTTP"),
+					// attribute.String("caller.func", "net/http.HandlerFunc.ServeHTTP"),  // Go1.24 passes, Go1.25 fails
 					attribute.String("http.id", ""),
 					attribute.String("http.schema", "http"),
 					attribute.String("http.method", "GET"),
@@ -119,7 +120,7 @@ func TestMiddleware(t *testing.T) {
 				statusCode: http.StatusOK,
 				attributes: []attribute.KeyValue{
 					attribute.String("caller.file", "oteltracer/tracer_internal_test.go"),
-					attribute.String("caller.func", "net/http.HandlerFunc.ServeHTTP"),
+					// attribute.String("caller.func", "net/http.HandlerFunc.ServeHTTP"),  // Go1.24 passes, Go1.25 fails
 					attribute.String("http.id", ""),
 					attribute.String("http.schema", "http"),
 					attribute.String("http.method", "GET"),
@@ -143,7 +144,7 @@ func TestMiddleware(t *testing.T) {
 				statusCode: http.StatusOK,
 				attributes: []attribute.KeyValue{
 					attribute.String("caller.file", "oteltracer/tracer_internal_test.go"),
-					attribute.String("caller.func", "net/http.HandlerFunc.ServeHTTP"),
+					// attribute.String("caller.func", "net/http.HandlerFunc.ServeHTTP"),  // Go1.24 passes, Go1.25 fails
 					attribute.String("http.id", ""),
 					attribute.String("http.schema", "http"),
 					attribute.String("http.method", "GET"),
@@ -168,7 +169,7 @@ func TestMiddleware(t *testing.T) {
 				statusCode: http.StatusOK,
 				attributes: []attribute.KeyValue{
 					attribute.String("caller.file", "oteltracer/tracer_internal_test.go"),
-					attribute.String("caller.func", "net/http.HandlerFunc.ServeHTTP"),
+					// attribute.String("caller.func", "net/http.HandlerFunc.ServeHTTP"), // Go1.24 passes, Go1.25 fails
 					attribute.String("http.id", ""),
 					attribute.String("http.schema", "https"),
 					attribute.String("http.method", "GET"),
@@ -240,7 +241,9 @@ func TestMiddleware(t *testing.T) {
 			ot.Middleware(h).ServeHTTP(resp, req)
 
 			for _, span := range exporter.GetSpans() {
-				testutil.Diff(t, tt.A().attributes, span.Attributes, cmp.AllowUnexported(attribute.Value{}))
+				// "caller.func" is different between Go1.25 and Go1.24.
+				attrs := slices.DeleteFunc(span.Attributes, func(a attribute.KeyValue) bool { return a.Key == "caller.func" })
+				testutil.Diff(t, tt.A().attributes, attrs, cmp.AllowUnexported(attribute.Value{}))
 				testutil.Diff(t, tt.A().name, span.Name)
 			}
 			testutil.Diff(t, tt.A().statusCode, resp.Code)
@@ -281,7 +284,7 @@ func TestTripperware(t *testing.T) {
 				statusCode: http.StatusOK,
 				attributes: []attribute.KeyValue{
 					attribute.String("caller.file", "oteltracer/tracer_internal_test.go"),
-					attribute.String("caller.func", "github.com/aileron-gateway/aileron-gateway/core.RoundTripperFunc.RoundTrip"),
+					// attribute.String("caller.func", "github.com/aileron-gateway/aileron-gateway/core.RoundTripperFunc.RoundTrip"), // Go1.24 passes, Go1.25 fails
 					attribute.String("http.id", ""),
 					attribute.String("http.schema", "http"),
 					attribute.String("http.method", "GET"),
@@ -304,7 +307,7 @@ func TestTripperware(t *testing.T) {
 				statusCode: http.StatusOK,
 				attributes: []attribute.KeyValue{
 					attribute.String("caller.file", "oteltracer/tracer_internal_test.go"),
-					attribute.String("caller.func", "github.com/aileron-gateway/aileron-gateway/core.RoundTripperFunc.RoundTrip"),
+					// attribute.String("caller.func", "github.com/aileron-gateway/aileron-gateway/core.RoundTripperFunc.RoundTrip"),  // Go1.24 passes, Go1.25 fails
 				},
 				name: "2:tripperware",
 			},
@@ -320,7 +323,7 @@ func TestTripperware(t *testing.T) {
 				statusCode: http.StatusOK,
 				attributes: []attribute.KeyValue{
 					attribute.String("caller.file", "oteltracer/tracer_internal_test.go"),
-					attribute.String("caller.func", "github.com/aileron-gateway/aileron-gateway/core.RoundTripperFunc.RoundTrip"),
+					// attribute.String("caller.func", "github.com/aileron-gateway/aileron-gateway/core.RoundTripperFunc.RoundTrip"), // Go1.24 passes, Go1.25 fails
 					attribute.String("http.id", ""),
 					attribute.String("http.schema", "http"),
 					attribute.String("http.method", "GET"),
@@ -344,7 +347,7 @@ func TestTripperware(t *testing.T) {
 				statusCode: http.StatusOK,
 				attributes: []attribute.KeyValue{
 					attribute.String("caller.file", "oteltracer/tracer_internal_test.go"),
-					attribute.String("caller.func", "github.com/aileron-gateway/aileron-gateway/core.RoundTripperFunc.RoundTrip"),
+					// attribute.String("caller.func", "github.com/aileron-gateway/aileron-gateway/core.RoundTripperFunc.RoundTrip"), // Go1.24 passes, Go1.25 fails
 					attribute.String("http.id", ""),
 					attribute.String("http.schema", "http"),
 					attribute.String("http.method", "GET"),
@@ -410,11 +413,14 @@ func TestTripperware(t *testing.T) {
 				cmpopts.EquateErrors(),
 			}
 
-			resp, err := ot.Tripperware(r).RoundTrip(req)
+			tw := ot.Tripperware(r)
+			resp, err := tw.RoundTrip(req)
 			testutil.Diff(t, tt.A().err, err, opts...)
 
 			for _, span := range exporter.GetSpans() {
-				testutil.Diff(t, tt.A().attributes, span.Attributes, cmp.AllowUnexported(attribute.Value{}))
+				// "caller.func" is different between Go1.25 and Go1.24.
+				attrs := slices.DeleteFunc(span.Attributes, func(a attribute.KeyValue) bool { return a.Key == "caller.func" })
+				testutil.Diff(t, tt.A().attributes, attrs, cmp.AllowUnexported(attribute.Value{}))
 				testutil.Diff(t, tt.A().name, span.Name)
 			}
 			testutil.Diff(t, tt.A().statusCode, resp.StatusCode)
