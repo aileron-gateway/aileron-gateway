@@ -9,6 +9,7 @@ jobs:
     runs-on: ${{ matrix.os }}-latest
     timeout-minutes: 10
     strategy:
+      fail-fast: false
       matrix:
         os:
           - ubuntu
