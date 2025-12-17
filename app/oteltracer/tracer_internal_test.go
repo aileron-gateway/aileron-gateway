@@ -38,40 +38,22 @@ func TestMiddleware(t *testing.T) {
 		name       string
 	}
 
-	CndSetNoOTelTracer := "set no OTelTracer"
-	CndSetmCtxKey := "set mCtxKey"
-	CndSetmNames := "set mNames"
-	CndSetStartChildSpan := "start ChildSpan"
-	CndSetParentSpan := "set ParentSpan"
-	CndSetHTTPSSchema := "set HTTPS Schema"
-	CndSetHeaders := "set Headers"
-
-	ActCheckExpected := "expected value returned"
-
 	tb := testutil.NewTableBuilder[*condition, *action]()
 	tb.Name(t.Name())
-	tb.Condition(CndSetNoOTelTracer, "set no OTelTracer")
-	tb.Condition(CndSetmCtxKey, "set mCtxKey")
-	tb.Condition(CndSetmNames, "set mNames")
-	tb.Condition(CndSetStartChildSpan, "start ChildSpan")
-	tb.Condition(CndSetParentSpan, "start ParentSpan")
-	tb.Condition(CndSetHeaders, "set Headers")
-	tb.Condition(CndSetHTTPSSchema, "set HTTPS Schema")
-	tb.Action(ActCheckExpected, "check that an expected value returned")
 	table := tb.Build()
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"nil tracer",
-			[]string{CndSetNoOTelTracer},
-			[]string{ActCheckExpected},
+			[]string{},
+			[]string{},
 			&condition{},
 			&action{
 				statusCode: http.StatusOK,
 				attributes: []attribute.KeyValue{
 					attribute.String("caller.file", "oteltracer/tracer_internal_test.go"),
-					attribute.String("caller.func", "net/http.HandlerFunc.ServeHTTP"),
+					attribute.String("caller.func", "github.com/aileron-gateway/aileron-gateway/app/oteltracer.(*otelTracer).Middleware"),
 					attribute.String("http.id", ""),
 					attribute.String("http.schema", "http"),
 					attribute.String("http.method", "GET"),
@@ -86,8 +68,8 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"set mCtxKey",
-			[]string{CndSetmCtxKey},
-			[]string{ActCheckExpected},
+			[]string{},
+			[]string{},
 			&condition{
 				mCtxKey: 1,
 			},
@@ -95,15 +77,15 @@ func TestMiddleware(t *testing.T) {
 				statusCode: http.StatusOK,
 				attributes: []attribute.KeyValue{
 					attribute.String("caller.file", "oteltracer/tracer_internal_test.go"),
-					attribute.String("caller.func", "net/http.HandlerFunc.ServeHTTP"),
+					attribute.String("caller.func", "github.com/aileron-gateway/aileron-gateway/app/oteltracer.(*otelTracer).Middleware"),
 				},
 				name: "2:middleware",
 			},
 		),
 		gen(
 			"start ChildSpan",
-			[]string{CndSetStartChildSpan},
-			[]string{ActCheckExpected},
+			[]string{},
+			[]string{},
 			&condition{
 				childSpan:  true,
 				parentSpan: false,
@@ -112,7 +94,7 @@ func TestMiddleware(t *testing.T) {
 				statusCode: http.StatusOK,
 				attributes: []attribute.KeyValue{
 					attribute.String("caller.file", "oteltracer/tracer_internal_test.go"),
-					attribute.String("caller.func", "net/http.HandlerFunc.ServeHTTP"),
+					attribute.String("caller.func", "github.com/aileron-gateway/aileron-gateway/app/oteltracer.(*otelTracer).Middleware"),
 					attribute.String("http.id", ""),
 					attribute.String("http.schema", "http"),
 					attribute.String("http.method", "GET"),
@@ -127,8 +109,8 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"start ParentSpan",
-			[]string{CndSetParentSpan},
-			[]string{ActCheckExpected},
+			[]string{},
+			[]string{},
 			&condition{
 				childSpan:  false,
 				parentSpan: true,
@@ -137,7 +119,7 @@ func TestMiddleware(t *testing.T) {
 				statusCode: http.StatusOK,
 				attributes: []attribute.KeyValue{
 					attribute.String("caller.file", "oteltracer/tracer_internal_test.go"),
-					attribute.String("caller.func", "net/http.HandlerFunc.ServeHTTP"),
+					attribute.String("caller.func", "github.com/aileron-gateway/aileron-gateway/app/oteltracer.(*otelTracer).Middleware"),
 					attribute.String("http.id", ""),
 					attribute.String("http.schema", "http"),
 					attribute.String("http.method", "GET"),
@@ -152,8 +134,8 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"start Headers",
-			[]string{CndSetHeaders},
-			[]string{ActCheckExpected},
+			[]string{},
+			[]string{},
 			&condition{
 				headers: []string{"testHeader"},
 			},
@@ -161,7 +143,7 @@ func TestMiddleware(t *testing.T) {
 				statusCode: http.StatusOK,
 				attributes: []attribute.KeyValue{
 					attribute.String("caller.file", "oteltracer/tracer_internal_test.go"),
-					attribute.String("caller.func", "net/http.HandlerFunc.ServeHTTP"),
+					attribute.String("caller.func", "github.com/aileron-gateway/aileron-gateway/app/oteltracer.(*otelTracer).Middleware"),
 					attribute.String("http.id", ""),
 					attribute.String("http.schema", "http"),
 					attribute.String("http.method", "GET"),
@@ -177,8 +159,8 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"set HTTPS schema",
-			[]string{CndSetHTTPSSchema},
-			[]string{ActCheckExpected},
+			[]string{},
+			[]string{},
 			&condition{
 				httpsFlag: true,
 			},
@@ -186,7 +168,7 @@ func TestMiddleware(t *testing.T) {
 				statusCode: http.StatusOK,
 				attributes: []attribute.KeyValue{
 					attribute.String("caller.file", "oteltracer/tracer_internal_test.go"),
-					attribute.String("caller.func", "net/http.HandlerFunc.ServeHTTP"),
+					attribute.String("caller.func", "github.com/aileron-gateway/aileron-gateway/app/oteltracer.(*otelTracer).Middleware"),
 					attribute.String("http.id", ""),
 					attribute.String("http.schema", "https"),
 					attribute.String("http.method", "GET"),
@@ -286,36 +268,22 @@ func TestTripperware(t *testing.T) {
 		name       string
 	}
 
-	CndSetNoOTelTracer := "set no OTelTracer"
-	CndSettCtxKey := "set tCtxKey"
-	CndSettNames := "set tNames"
-	CndSetHeaders := "set Headers"
-	CndSetRoundTripErr := "cause RoundTrip Err"
-
-	ActCheckExpected := "expected value returned"
-
 	tb := testutil.NewTableBuilder[*condition, *action]()
 	tb.Name(t.Name())
-	tb.Condition(CndSetNoOTelTracer, "set no OTelTracer")
-	tb.Condition(CndSettCtxKey, "set tCtxKey")
-	tb.Condition(CndSettNames, "set tNames")
-	tb.Condition(CndSetHeaders, "set Headers")
-	tb.Condition(CndSetRoundTripErr, "cause RoundTrip Err")
-	tb.Action(ActCheckExpected, "check that an expected value returned")
 	table := tb.Build()
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"nil tracer",
-			[]string{CndSetNoOTelTracer},
-			[]string{ActCheckExpected},
+			[]string{},
+			[]string{},
 			&condition{},
 			&action{
 				statusCode: http.StatusOK,
 				attributes: []attribute.KeyValue{
 					attribute.String("caller.file", "oteltracer/tracer_internal_test.go"),
-					attribute.String("caller.func", "github.com/aileron-gateway/aileron-gateway/core.RoundTripperFunc.RoundTrip"),
+					attribute.String("caller.func", "github.com/aileron-gateway/aileron-gateway/app/oteltracer.(*otelTracer).Tripperware"),
 					attribute.String("http.id", ""),
 					attribute.String("http.schema", "http"),
 					attribute.String("http.method", "GET"),
@@ -329,8 +297,8 @@ func TestTripperware(t *testing.T) {
 		),
 		gen(
 			"set tCtxKey",
-			[]string{CndSettCtxKey},
-			[]string{ActCheckExpected},
+			[]string{},
+			[]string{},
 			&condition{
 				tCtxKey: 1,
 			},
@@ -338,15 +306,15 @@ func TestTripperware(t *testing.T) {
 				statusCode: http.StatusOK,
 				attributes: []attribute.KeyValue{
 					attribute.String("caller.file", "oteltracer/tracer_internal_test.go"),
-					attribute.String("caller.func", "github.com/aileron-gateway/aileron-gateway/core.RoundTripperFunc.RoundTrip"),
+					attribute.String("caller.func", "github.com/aileron-gateway/aileron-gateway/app/oteltracer.(*otelTracer).Tripperware"),
 				},
 				name: "2:tripperware",
 			},
 		),
 		gen(
 			"set Headers",
-			[]string{CndSetNoOTelTracer},
-			[]string{ActCheckExpected},
+			[]string{},
+			[]string{},
 			&condition{
 				headers: []string{"testHeader"},
 			},
@@ -354,7 +322,7 @@ func TestTripperware(t *testing.T) {
 				statusCode: http.StatusOK,
 				attributes: []attribute.KeyValue{
 					attribute.String("caller.file", "oteltracer/tracer_internal_test.go"),
-					attribute.String("caller.func", "github.com/aileron-gateway/aileron-gateway/core.RoundTripperFunc.RoundTrip"),
+					attribute.String("caller.func", "github.com/aileron-gateway/aileron-gateway/app/oteltracer.(*otelTracer).Tripperware"),
 					attribute.String("http.id", ""),
 					attribute.String("http.schema", "http"),
 					attribute.String("http.method", "GET"),
@@ -369,8 +337,8 @@ func TestTripperware(t *testing.T) {
 		),
 		gen(
 			"cause RoundTripError",
-			[]string{CndSetRoundTripErr},
-			[]string{ActCheckExpected},
+			[]string{},
+			[]string{},
 			&condition{
 				roundTripErr: true,
 			},
@@ -378,7 +346,7 @@ func TestTripperware(t *testing.T) {
 				statusCode: http.StatusOK,
 				attributes: []attribute.KeyValue{
 					attribute.String("caller.file", "oteltracer/tracer_internal_test.go"),
-					attribute.String("caller.func", "github.com/aileron-gateway/aileron-gateway/core.RoundTripperFunc.RoundTrip"),
+					attribute.String("caller.func", "github.com/aileron-gateway/aileron-gateway/app/oteltracer.(*otelTracer).Tripperware"),
 					attribute.String("http.id", ""),
 					attribute.String("http.schema", "http"),
 					attribute.String("http.method", "GET"),
@@ -468,29 +436,16 @@ func TestTrace(t *testing.T) {
 		attributes []attribute.KeyValue
 	}
 
-	CndSetEmptyNameAndAttributes := "set empty name and attributes"
-	CndSetName := "set name"
-	CndSetSingleTag := "set single tag"
-	CndSetMultipleTags := "set multiple tags"
-	CndSetParentSpan := "set parent span"
-	ActCheckExpected := "expected _ returned"
-
 	tb := testutil.NewTableBuilder[*condition, *action]()
 	tb.Name(t.Name())
-	tb.Condition(CndSetEmptyNameAndAttributes, "set empty name and attributes")
-	tb.Condition(CndSetName, "set name")
-	tb.Condition(CndSetSingleTag, "set single tag")
-	tb.Condition(CndSetMultipleTags, "set multiple tags")
-	tb.Condition(CndSetParentSpan, "set parent span")
-	tb.Action(ActCheckExpected, "check that an expected _ returned")
 	table := tb.Build()
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"empty name and attributes",
-			[]string{CndSetEmptyNameAndAttributes},
-			[]string{ActCheckExpected},
+			[]string{},
+			[]string{},
 			&condition{},
 			&action{
 				name:       "",
@@ -499,8 +454,8 @@ func TestTrace(t *testing.T) {
 		),
 		gen(
 			"set name",
-			[]string{CndSetName},
-			[]string{ActCheckExpected},
+			[]string{},
+			[]string{},
 			&condition{
 				name: "testName",
 			},
@@ -511,8 +466,8 @@ func TestTrace(t *testing.T) {
 		),
 		gen(
 			"set single attribute",
-			[]string{CndSetSingleTag},
-			[]string{ActCheckExpected},
+			[]string{},
+			[]string{},
 			&condition{
 				name: "testName",
 				tags: map[string]string{
@@ -528,8 +483,8 @@ func TestTrace(t *testing.T) {
 		),
 		gen(
 			"set multiple attributes",
-			[]string{CndSetMultipleTags},
-			[]string{ActCheckExpected},
+			[]string{},
+			[]string{},
 			&condition{
 				name: "testName",
 				tags: map[string]string{
@@ -547,8 +502,8 @@ func TestTrace(t *testing.T) {
 		),
 		gen(
 			"set parent span",
-			[]string{CndSetParentSpan},
-			[]string{ActCheckExpected},
+			[]string{},
+			[]string{},
 			&condition{
 				parentSpan: true,
 			},
