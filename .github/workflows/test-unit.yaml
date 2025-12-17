@@ -5,63 +5,7 @@ on:
   workflow_call: {}
 
 jobs:
-  stable:
-    runs-on: ${{ matrix.os }}-latest
-    timeout-minutes: 10
-    strategy:
-      matrix:
-        os:
-          - ubuntu
-          # - windows
-          - macos
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: stable
-      - run: make test
-      - uses: codecov/codecov-action@v4
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-        with:
-          files: ./_output/coverage.out
-          fail_ci_if_error: true
-          verbose: true
-          env_vars: ${{ matrix.os }}
-          name: ${{ matrix.os }}
-          flags: unit
-      - uses: actions/upload-artifact@v4
-        with:
-          name: unit-test-${{ matrix.os }}-stable
-          path: |
-            _output/**
-            api.html
-          retention-days: 7
-
-  oldstable:
-    runs-on: ${{ matrix.os }}-latest
-    timeout-minutes: 10
-    strategy:
-      matrix:
-        os:
-          - ubuntu
-          # - windows
-          - macos
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: oldstable
-      - run: make test
-      - uses: actions/upload-artifact@v4
-        with:
-          name: unit-test-${{ matrix.os }}-oldstable
-          path: |
-            _output/**
-            api.html
-          retention-days: 7
-
-  minimum:
+  go:
     runs-on: ${{ matrix.os }}-latest
     timeout-minutes: 10
     strategy:
@@ -78,7 +22,7 @@ jobs:
       - run: make test
       - uses: actions/upload-artifact@v4
         with:
-          name: unit-test-${{ matrix.os }}-minimum
+          name: unit-test-${{ matrix.os }}
           path: |
             _output/**
             api.html

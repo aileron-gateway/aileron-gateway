@@ -197,7 +197,7 @@ func HTTP3Transport(spec *k.HTTP3TransportConfig) (*http3.Transport, error) {
 		QUICConfig:             quicConfig,
 		DisableCompression:     spec.DisableCompression,
 		EnableDatagrams:        spec.EnableDatagrams,
-		MaxResponseHeaderBytes: spec.MaxResponseHeaderBytes,
+		MaxResponseHeaderBytes: int(spec.MaxResponseHeaderBytes),
 	}, nil
 }
 

@@ -733,11 +733,10 @@ func TestHTTP3TLS(t *testing.T) {
 	testutil.Diff(t, 1, testTripperware.called)
 
 	// Requests with not allowed "[::1]".
-	extraHeader = "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+	extraHeader = strings.Repeat("1234567890", 100)
 	testTripperware.called = 0
 	r2, _ := http.NewRequest(http.MethodGet, "https://"+testAddr+"/test", nil)
 	w2, err := rt.RoundTrip(r2)
-	testutil.Diff(t, true, strings.Contains(err.Error(), "HEADERS frame too large"))
+	testutil.Diff(t, true, strings.Contains(err.Error(), "http3: headers too large"))
 	testutil.Diff(t, (*http.Response)(nil), w2)
-
 }

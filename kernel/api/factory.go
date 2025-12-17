@@ -10,9 +10,9 @@ import (
 	"regexp"
 	"strings"
 
+	"buf.build/go/protovalidate"
 	"github.com/aileron-gateway/aileron-gateway/kernel/encoder"
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
-	"github.com/bufbuild/protovalidate-go"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
