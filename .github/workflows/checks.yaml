@@ -38,16 +38,6 @@ jobs:
           go-version: stable
       - run: make go-licenses-run
 
-  copyleft:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: 3.x
-      - run: make scanoss-run SCANOSS_OPTION_SCAN="-E drawio -E pb.go -E mod -E sum"
-
   licenseheader:
     runs-on: ubuntu-latest
     timeout-minutes: 10

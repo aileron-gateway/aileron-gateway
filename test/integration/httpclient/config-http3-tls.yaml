@@ -6,7 +6,7 @@ spec:
       kind: TestTripperware
       name: test
   http3TransportConfig:
-    maxResponseHeaderBytes: 100
+    maxResponseHeaderBytes: 800
     tlsConfig:
       rootCAs:
         - ${TEST_DATA_DIR}cert.pem

@@ -365,9 +365,10 @@ func TestROPCHandler_ServeHTTP(t *testing.T) {
 							lg:   log.GlobalLogger(log.DefaultLoggerName),
 							name: "test-context",
 							client: &client{
-								id:     "testClientID",
-								secret: "testClientSecret",
-								scope:  "testClientScope",
+								id:       "testClientID",
+								secret:   "testClientSecret",
+								scope:    "testClientScope",
+								audience: "test",
 							},
 							provider: &provider{
 								issuer:  "https://test.com/",
@@ -405,7 +406,6 @@ func TestROPCHandler_ServeAuthn(t *testing.T) {
 		&atClaims{
 			RegisteredClaims: &jwt.RegisteredClaims{
 				Issuer:    "https://test.com/",
-				Audience:  jwt.ClaimStrings{"test"},
 				ExpiresAt: jwt.NewNumericDate(expire),
 			},
 		})
@@ -413,13 +413,13 @@ func TestROPCHandler_ServeAuthn(t *testing.T) {
 	validATMapClaims := jwt.MapClaims{}
 	jh.ParseWithClaims(validATString, &validATMapClaims, []jwt.ParserOption{}...)
 	// validATMap := map[string]any{"iss": "https://test.com/", "aud": []any{"test"}, "exp": float64(expire.Unix())}
-	validATMapWithTrue := map[string]any{"iss": "https://test.com/", "aud": []any{"test"}, "exp": float64(expire.Unix()), "active": true}
+	validATMapWithTrue := map[string]any{"iss": "https://test.com/", "exp": float64(expire.Unix()), "active": true}
 
 	invalidAT, _ := jh.TokenWithClaims(
 		&atClaims{
 			RegisteredClaims: &jwt.RegisteredClaims{
-				Issuer:    "https://invalid.com/",
-				Audience:  jwt.ClaimStrings{"test"},
+				Issuer: "https://invalid.com/",
+				// Audience:  jwt.ClaimStrings{"testAudience"},
 				ExpiresAt: jwt.NewNumericDate(expire),
 			},
 		})
@@ -730,9 +730,10 @@ func TestROPCHandler_ServeAuthn(t *testing.T) {
 							lg:   log.GlobalLogger(log.DefaultLoggerName),
 							name: "default",
 							client: &client{
-								id:     "defaultClientID",
-								secret: "defaultClientSecret",
-								scope:  "defaultClientScope",
+								id:       "defaultClientID",
+								secret:   "defaultClientSecret",
+								scope:    "defaultClientScope",
+								audience: "defaultAudience",
 							},
 							provider: &provider{
 								issuer:  "https://test.com/",
@@ -740,16 +741,17 @@ func TestROPCHandler_ServeAuthn(t *testing.T) {
 							},
 							tokenRedeemer: tt.C().redeemer,
 							jh:            jh,
-							atParseOpts:   []jwt.ParserOption{jwt.WithIssuer("https://test.com/"), jwt.WithAudience("")},
-							idtParseOpts:  []jwt.ParserOption{jwt.WithIssuer("https://test.com/"), jwt.WithAudience("")},
+							atParseOpts:   []jwt.ParserOption{jwt.WithIssuer("https://test.com/")},
+							idtParseOpts:  []jwt.ParserOption{jwt.WithIssuer("https://test.com/")},
 						},
 						"testContext": {
 							lg:   log.GlobalLogger(log.DefaultLoggerName),
 							name: "testContext",
 							client: &client{
-								id:     "testClientID",
-								secret: "testClientSecret",
-								scope:  "testClientScope",
+								id:       "testClientID",
+								secret:   "testClientSecret",
+								scope:    "testClientScope",
+								audience: "testAudience",
 							},
 							provider: &provider{
 								issuer:  "https://test.com/",
@@ -758,8 +760,8 @@ func TestROPCHandler_ServeAuthn(t *testing.T) {
 							tokenRedeemer: tt.C().redeemer,
 							jh:            jh,
 							claimsKey:     "testClaimsKey",
-							atParseOpts:   []jwt.ParserOption{jwt.WithIssuer("https://test.com/"), jwt.WithAudience("")},
-							idtParseOpts:  []jwt.ParserOption{jwt.WithIssuer("https://test.com/"), jwt.WithAudience("")},
+							atParseOpts:   []jwt.ParserOption{jwt.WithIssuer("https://test.com/")},
+							idtParseOpts:  []jwt.ParserOption{jwt.WithIssuer("https://test.com/")},
 						},
 					},
 				},
@@ -775,6 +777,7 @@ func TestROPCHandler_ServeAuthn(t *testing.T) {
 
 			w := httptest.NewRecorder()
 			nr, ia, sr, err := h.ServeAuthn(w, r)
+			t.Logf("%#v\n", err)
 			t.Logf("%#v, %#v\n", nr, tt.A().tokens)
 			if tt.A().tokens != nil && tt.A().tokens != (*OAuthTokens)(nil) {
 				newSess := session.SessionFromContext(nr.Context())
