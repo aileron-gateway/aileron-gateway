@@ -365,9 +365,10 @@ func TestROPCHandler_ServeHTTP(t *testing.T) {
 							lg:   log.GlobalLogger(log.DefaultLoggerName),
 							name: "test-context",
 							client: &client{
-								id:     "testClientID",
-								secret: "testClientSecret",
-								scope:  "testClientScope",
+								id:       "testClientID",
+								secret:   "testClientSecret",
+								scope:    "testClientScope",
+								audience: "test",
 							},
 							provider: &provider{
 								issuer:  "https://test.com/",
@@ -775,6 +776,7 @@ func TestROPCHandler_ServeAuthn(t *testing.T) {
 
 			w := httptest.NewRecorder()
 			nr, ia, sr, err := h.ServeAuthn(w, r)
+			t.Logf("%#v\n", err)
 			t.Logf("%#v, %#v\n", nr, tt.A().tokens)
 			if tt.A().tokens != nil && tt.A().tokens != (*OAuthTokens)(nil) {
 				newSess := session.SessionFromContext(nr.Context())
