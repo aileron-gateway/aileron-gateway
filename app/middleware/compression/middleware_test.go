@@ -14,7 +14,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/andybalholm/brotli"
 )
 

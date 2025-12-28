@@ -9,7 +9,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	httputil "github.com/aileron-gateway/aileron-gateway/util/http"
 	"github.com/aileron-projects/go/ztime/zrate"
 )

@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/aileron-gateway/aileron-gateway/cmd/aileron/app"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/spf13/pflag"
 )
 

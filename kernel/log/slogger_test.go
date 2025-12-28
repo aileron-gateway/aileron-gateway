@@ -7,8 +7,8 @@ import (
 	"log/slog"
 	"testing"
 
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 )
 
 func TestLvToSLogLevel(t *testing.T) {

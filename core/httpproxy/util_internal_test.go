@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 )
 
 func TestUpgradeType(t *testing.T) {
