@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"buf.build/go/protovalidate"
-	"github.com/aileron-gateway/aileron-gateway/kernel/encoder"
+	"github.com/aileron-gateway/aileron-gateway/internal/encoder"
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
