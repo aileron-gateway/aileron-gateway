@@ -11,7 +11,7 @@ import (
 
 	"io"
 
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 )
 
 // mockResettableWriter is a mock resettableWriter for testing.
@@ -57,16 +57,10 @@ func TestCompressionWriter(t *testing.T) {
 		encoding    string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"response body too small/skip compression",
-			[]string{},
-			[]string{},
 			&condition{
 				encoding:    "gzip",
 				minimumSize: 1024,
@@ -82,8 +76,6 @@ func TestCompressionWriter(t *testing.T) {
 		),
 		gen(
 			"response body large enough, apply gzip compression",
-			[]string{},
-			[]string{},
 			&condition{
 				encoding:    "gzip",
 				minimumSize: 1024,
@@ -99,8 +91,6 @@ func TestCompressionWriter(t *testing.T) {
 		),
 		gen(
 			"target MIME type/compress",
-			[]string{},
-			[]string{},
 			&condition{
 				encoding:    "gzip",
 				minimumSize: 1024,
@@ -116,8 +106,6 @@ func TestCompressionWriter(t *testing.T) {
 		),
 		gen(
 			"non target MIME type, skip compression",
-			[]string{},
-			[]string{},
 			&condition{
 				encoding:    "gzip",
 				minimumSize: 1024,
@@ -133,8 +121,6 @@ func TestCompressionWriter(t *testing.T) {
 		),
 		gen(
 			"already compressed with gzip",
-			[]string{},
-			[]string{},
 			&condition{
 				minimumSize: 1024,
 				mimes:       []string{"text/html", "application/json"},
@@ -153,8 +139,6 @@ func TestCompressionWriter(t *testing.T) {
 		),
 		gen(
 			"already compressed with brotli",
-			[]string{},
-			[]string{},
 			&condition{
 				minimumSize: 1024,
 				mimes:       []string{"text/html", "application/json"},
@@ -173,8 +157,6 @@ func TestCompressionWriter(t *testing.T) {
 		),
 		gen(
 			"already compressed with deflate",
-			[]string{},
-			[]string{},
 			&condition{
 				minimumSize: 1024,
 				mimes:       []string{"text/html", "application/json"},
@@ -193,8 +175,6 @@ func TestCompressionWriter(t *testing.T) {
 		),
 		gen(
 			"compress response body",
-			[]string{},
-			[]string{},
 			&condition{
 				minimumSize: 1024,
 				mimes:       []string{"text/html", "application/json"},
@@ -214,8 +194,6 @@ func TestCompressionWriter(t *testing.T) {
 		),
 		gen(
 			"write empty body",
-			[]string{},
-			[]string{},
 			&condition{
 				minimumSize: 1024,
 				mimes:       []string{"text/html", "application/json"},
@@ -231,33 +209,31 @@ func TestCompressionWriter(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			rec := httptest.NewRecorder()
-			maps.Copy(rec.Header(), tt.C().header)
+			maps.Copy(rec.Header(), tt.C.header)
 			cw := &compressionWriter{
 				ResponseWriter: rec,
 				writer:         &mockResettableWriter{},
-				encoding:       tt.C().encoding,
-				mimes:          tt.C().mimes,
-				minimumSize:    tt.C().minimumSize,
+				encoding:       tt.C.encoding,
+				mimes:          tt.C.mimes,
+				minimumSize:    tt.C.minimumSize,
 			}
 
-			if tt.C().status != 0 {
-				cw.WriteHeader(tt.C().status)
+			if tt.C.status != 0 {
+				cw.WriteHeader(tt.C.status)
 			}
-			n, err := cw.Write(tt.C().data)
+			n, err := cw.Write(tt.C.data)
 			testutil.DiffError(t, nil, nil, err)
-			testutil.Diff(t, len(tt.C().data), n)
+			testutil.Diff(t, len(tt.C.data), n)
 			b, _ := io.ReadAll(rec.Result().Body)
-			testutil.Diff(t, string(tt.C().data), string(b))
+			testutil.Diff(t, string(tt.C.data), string(b))
 
-			testutil.Diff(t, tt.A().initialized, cw.initialized)
-			testutil.Diff(t, tt.A().shouldSkip, cw.shouldSkip)
-			testutil.Diff(t, tt.A().encoding, rec.Header().Get("Content-Encoding"))
+			testutil.Diff(t, tt.A.initialized, cw.initialized)
+			testutil.Diff(t, tt.A.shouldSkip, cw.shouldSkip)
+			testutil.Diff(t, tt.A.encoding, rec.Header().Get("Content-Encoding"))
 		})
 	}
 }

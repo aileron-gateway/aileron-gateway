@@ -20,7 +20,7 @@ import (
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
 	"github.com/aileron-gateway/aileron-gateway/app"
 	"github.com/aileron-gateway/aileron-gateway/core"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -153,38 +153,10 @@ func TestSigningKeys(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	cndNone := "None algorithm"
-	cndRS := "RSxxx algorithm"
-	cndPS := "PSxxx algorithm"
-	cndES := "ESxxx algorithm"
-	cndEdDSA := "EdDSA algorithm"
-	cndHS := "HSxxx algorithm"
-	cndValidKey := "valid key"
-	cndEmptyKID := "empty KeyID"
-	actCheckNoError := "check that there is no error"
-	actCheckError := "check error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndNone, "specify none algorithm")
-	tb.Condition(cndRS, "specify one of RS253/RS384/RS512 algorithm")
-	tb.Condition(cndPS, "specify one of PS253/PS384/PS512 algorithm")
-	tb.Condition(cndES, "specify one of ES253/ES384/ES512 algorithm")
-	tb.Condition(cndEdDSA, "specify EdDSA algorithm")
-	tb.Condition(cndHS, "specify one of HS253/HS384/HS512 algorithm")
-	tb.Condition(cndValidKey, "valid key")
-	tb.Condition(cndEmptyKID, "specify no key id and hence generate it from signature")
-	tb.Action(actCheckNoError, "check that there is no error returned")
-	tb.Action(actCheckError, "check that an expected error was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"None of KeyString",
-			[]string{cndNone},
-			[]string{actCheckNoError},
-			&condition{
+			"None of KeyString", &condition{
 				specs: []*v1.SigningKeySpec{
 					{
 						KeyID:     "test",
@@ -207,10 +179,7 @@ func TestSigningKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"ES256 of KeyString",
-			[]string{cndES, cndValidKey},
-			[]string{actCheckNoError},
-			&condition{
+			"ES256 of KeyString", &condition{
 				specs: []*v1.SigningKeySpec{
 					{
 						KeyID:     "test1",
@@ -250,10 +219,7 @@ func TestSigningKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"ES256 of KeyFilePath",
-			[]string{cndES, cndValidKey},
-			[]string{actCheckNoError},
-			&condition{
+			"ES256 of KeyFilePath", &condition{
 				specs: []*v1.SigningKeySpec{
 					{
 						KeyID:       "test1",
@@ -293,10 +259,7 @@ func TestSigningKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"ES384 of KeyString",
-			[]string{cndES, cndValidKey},
-			[]string{actCheckNoError},
-			&condition{
+			"ES384 of KeyString", &condition{
 				specs: []*v1.SigningKeySpec{
 					{
 						KeyID:     "test1",
@@ -336,10 +299,7 @@ func TestSigningKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"ES384 of KeyFilePath",
-			[]string{cndES, cndValidKey},
-			[]string{actCheckNoError},
-			&condition{
+			"ES384 of KeyFilePath", &condition{
 				specs: []*v1.SigningKeySpec{
 					{
 						KeyID:       "test1",
@@ -379,10 +339,7 @@ func TestSigningKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"ES512 of KeyString",
-			[]string{cndES, cndValidKey},
-			[]string{actCheckNoError},
-			&condition{
+			"ES512 of KeyString", &condition{
 				specs: []*v1.SigningKeySpec{
 					{
 						KeyID:     "test1",
@@ -422,10 +379,7 @@ func TestSigningKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"ES512 of KeyFilePath",
-			[]string{cndES, cndValidKey},
-			[]string{actCheckNoError},
-			&condition{
+			"ES512 of KeyFilePath", &condition{
 				specs: []*v1.SigningKeySpec{
 					{
 						KeyID:       "test1",
@@ -465,10 +419,7 @@ func TestSigningKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"EdDSA of KeyString",
-			[]string{cndEdDSA, cndValidKey},
-			[]string{actCheckNoError},
-			&condition{
+			"EdDSA of KeyString", &condition{
 				specs: []*v1.SigningKeySpec{
 					{
 						KeyID:     "test1",
@@ -508,10 +459,7 @@ func TestSigningKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"EdDSA of KeyFilePath",
-			[]string{cndEdDSA, cndValidKey},
-			[]string{actCheckNoError},
-			&condition{
+			"EdDSA of KeyFilePath", &condition{
 				specs: []*v1.SigningKeySpec{
 					{
 						KeyID:       "test1",
@@ -551,10 +499,7 @@ func TestSigningKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"HS256 of KeyString",
-			[]string{cndHS, cndValidKey},
-			[]string{actCheckNoError},
-			&condition{
+			"HS256 of KeyString", &condition{
 				specs: []*v1.SigningKeySpec{
 					{
 						KeyID:     "test",
@@ -579,10 +524,7 @@ func TestSigningKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"HS256 of KeyFilePath",
-			[]string{cndHS, cndValidKey},
-			[]string{actCheckNoError},
-			&condition{
+			"HS256 of KeyFilePath", &condition{
 				specs: []*v1.SigningKeySpec{
 					{
 						KeyID:       "test",
@@ -607,10 +549,7 @@ func TestSigningKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"HS384 of KeyString",
-			[]string{cndHS, cndValidKey},
-			[]string{actCheckNoError},
-			&condition{
+			"HS384 of KeyString", &condition{
 				specs: []*v1.SigningKeySpec{
 					{
 						KeyID:     "test",
@@ -635,10 +574,7 @@ func TestSigningKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"HS384 of KeyFilePath",
-			[]string{cndHS, cndValidKey},
-			[]string{actCheckNoError},
-			&condition{
+			"HS384 of KeyFilePath", &condition{
 				specs: []*v1.SigningKeySpec{
 					{
 						KeyID:       "test",
@@ -663,10 +599,7 @@ func TestSigningKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"HS512 of KeyString",
-			[]string{cndHS, cndValidKey},
-			[]string{actCheckNoError},
-			&condition{
+			"HS512 of KeyString", &condition{
 				specs: []*v1.SigningKeySpec{
 					{
 						KeyID:     "test",
@@ -691,10 +624,7 @@ func TestSigningKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"HS512 of KeyFilePath",
-			[]string{cndHS, cndValidKey},
-			[]string{actCheckNoError},
-			&condition{
+			"HS512 of KeyFilePath", &condition{
 				specs: []*v1.SigningKeySpec{
 					{
 						KeyID:       "test",
@@ -719,10 +649,7 @@ func TestSigningKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"RS256 of KeyString",
-			[]string{cndRS, cndValidKey},
-			[]string{actCheckNoError},
-			&condition{
+			"RS256 of KeyString", &condition{
 				specs: []*v1.SigningKeySpec{
 					{
 						KeyID:     "test1",
@@ -762,10 +689,7 @@ func TestSigningKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"RS256 of KeyFilePath",
-			[]string{cndRS, cndValidKey},
-			[]string{actCheckNoError},
-			&condition{
+			"RS256 of KeyFilePath", &condition{
 				specs: []*v1.SigningKeySpec{
 					{
 						KeyID:       "test1",
@@ -805,10 +729,7 @@ func TestSigningKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"RS384 of KeyString",
-			[]string{cndRS, cndValidKey},
-			[]string{actCheckNoError},
-			&condition{
+			"RS384 of KeyString", &condition{
 				specs: []*v1.SigningKeySpec{
 					{
 						KeyID:     "test1",
@@ -848,10 +769,7 @@ func TestSigningKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"RS384 of KeyFilePath",
-			[]string{cndRS, cndValidKey},
-			[]string{actCheckNoError},
-			&condition{
+			"RS384 of KeyFilePath", &condition{
 				specs: []*v1.SigningKeySpec{
 					{
 						KeyID:       "test1",
@@ -891,10 +809,7 @@ func TestSigningKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"RS512 of KeyString",
-			[]string{cndRS, cndValidKey},
-			[]string{actCheckNoError},
-			&condition{
+			"RS512 of KeyString", &condition{
 				specs: []*v1.SigningKeySpec{
 					{
 						KeyID:     "test1",
@@ -934,10 +849,7 @@ func TestSigningKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"RS512 of KeyFilePath",
-			[]string{cndRS, cndValidKey},
-			[]string{actCheckNoError},
-			&condition{
+			"RS512 of KeyFilePath", &condition{
 				specs: []*v1.SigningKeySpec{
 					{
 						KeyID:       "test1",
@@ -977,10 +889,7 @@ func TestSigningKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"PS256 of KeyString",
-			[]string{cndPS, cndValidKey},
-			[]string{actCheckNoError},
-			&condition{
+			"PS256 of KeyString", &condition{
 				specs: []*v1.SigningKeySpec{
 					{
 						KeyID:     "test1",
@@ -1020,10 +929,7 @@ func TestSigningKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"PS256 of KeyFilePath",
-			[]string{cndPS, cndValidKey},
-			[]string{actCheckNoError},
-			&condition{
+			"PS256 of KeyFilePath", &condition{
 				specs: []*v1.SigningKeySpec{
 					{
 						KeyID:       "test1",
@@ -1063,10 +969,7 @@ func TestSigningKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"PS384 of KeyString",
-			[]string{cndPS, cndValidKey},
-			[]string{actCheckNoError},
-			&condition{
+			"PS384 of KeyString", &condition{
 				specs: []*v1.SigningKeySpec{
 					{
 						KeyID:     "test1",
@@ -1106,10 +1009,7 @@ func TestSigningKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"PS384 of KeyFilePath",
-			[]string{cndPS, cndValidKey},
-			[]string{actCheckNoError},
-			&condition{
+			"PS384 of KeyFilePath", &condition{
 				specs: []*v1.SigningKeySpec{
 					{
 						KeyID:       "test1",
@@ -1149,10 +1049,7 @@ func TestSigningKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"PS512 of KeyString",
-			[]string{cndPS, cndValidKey},
-			[]string{actCheckNoError},
-			&condition{
+			"PS512 of KeyString", &condition{
 				specs: []*v1.SigningKeySpec{
 					{
 						KeyID:     "test1",
@@ -1192,10 +1089,7 @@ func TestSigningKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"PS512 of KeyFilePath",
-			[]string{cndPS, cndValidKey},
-			[]string{actCheckNoError},
-			&condition{
+			"PS512 of KeyFilePath", &condition{
 				specs: []*v1.SigningKeySpec{
 					{
 						KeyID:       "test1",
@@ -1235,10 +1129,7 @@ func TestSigningKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"generate kid",
-			[]string{cndEmptyKID, cndHS, cndValidKey},
-			[]string{actCheckNoError},
-			&condition{
+			"generate kid", &condition{
 				specs: []*v1.SigningKeySpec{
 					{
 						KeyID:     "", // kid will be generated.
@@ -1263,10 +1154,7 @@ func TestSigningKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"with user defined header",
-			[]string{cndHS, cndValidKey},
-			[]string{actCheckNoError},
-			&condition{
+			"with user defined header", &condition{
 				specs: []*v1.SigningKeySpec{
 					{
 						KeyID:     "test",
@@ -1293,10 +1181,7 @@ func TestSigningKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"invalid algorithm",
-			[]string{},
-			[]string{actCheckError},
-			&condition{
+			"invalid algorithm", &condition{
 				specs: []*v1.SigningKeySpec{
 					{
 						KeyID:       "test",
@@ -1313,10 +1198,7 @@ func TestSigningKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"invalid key string",
-			[]string{},
-			[]string{actCheckError},
-			&condition{
+			"invalid key string", &condition{
 				specs: []*v1.SigningKeySpec{
 					{
 						KeyID:     "test",
@@ -1333,10 +1215,7 @@ func TestSigningKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"invalid key file path",
-			[]string{},
-			[]string{actCheckError},
-			&condition{
+			"invalid key file path", &condition{
 				specs: []*v1.SigningKeySpec{
 					{
 						KeyID:       "test",
@@ -1353,10 +1232,7 @@ func TestSigningKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"key parse error",
-			[]string{},
-			[]string{actCheckError},
-			&condition{
+			"key parse error", &condition{
 				specs: []*v1.SigningKeySpec{
 					{
 						KeyID:     "test",
@@ -1374,20 +1250,18 @@ func TestSigningKeys(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
 
-		t.Run(tt.Name(), func(t *testing.T) {
-			keys, err := SigningKeys(true, tt.C().specs...)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+		t.Run(tt.Name, func(t *testing.T) {
+			keys, err := SigningKeys(true, tt.C.specs...)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 
 			opts := []cmp.Option{
 				cmp.AllowUnexported(SigningKey{}),
 				cmpopts.IgnoreFields(SigningKey{}, "key"),
 			}
-			testutil.Diff(t, tt.A().keys, keys, opts...)
+			testutil.Diff(t, tt.A.keys, keys, opts...)
 		})
 	}
 }
@@ -1404,32 +1278,10 @@ func TestParseKey(t *testing.T) {
 		err any // error or errorutil.Kind
 	}
 
-	cndPrivate := "private key"
-	cndPublic := "public key"
-	cndCommon := "common key"
-	cndInvalidType := "invalid key type"
-	cndEmptyKey := "empty key"
-	actCheckNoError := "check that there is no error"
-	actCheckError := "check error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndPrivate, "specify private key type")
-	tb.Condition(cndPublic, "specify public key type")
-	tb.Condition(cndCommon, "specify common key type")
-	tb.Condition(cndInvalidType, "specify invalid key type")
-	tb.Condition(cndEmptyKey, "key required but empty")
-	tb.Action(actCheckNoError, "check that there is no error returned")
-	tb.Action(actCheckError, "check that an expected error was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"RS256 private key",
-			[]string{cndPrivate},
-			[]string{actCheckNoError},
-			&condition{
+			"RS256 private key", &condition{
 				typ: v1.SigningKeyType_PRIVATE,
 				alg: RS256,
 				b:   []byte(testRSAPrivateKeyPem),
@@ -1439,10 +1291,7 @@ func TestParseKey(t *testing.T) {
 			},
 		),
 		gen(
-			"RS256 public key",
-			[]string{cndPublic},
-			[]string{actCheckNoError},
-			&condition{
+			"RS256 public key", &condition{
 				typ: v1.SigningKeyType_PUBLIC,
 				alg: RS256,
 				b:   []byte(testRSAPublicKeyPem),
@@ -1452,10 +1301,7 @@ func TestParseKey(t *testing.T) {
 			},
 		),
 		gen(
-			"HS256 common key",
-			[]string{cndCommon},
-			[]string{actCheckNoError},
-			&condition{
+			"HS256 common key", &condition{
 				typ: v1.SigningKeyType_COMMON,
 				alg: HS256,
 				b:   []byte(testCommonKey),
@@ -1465,10 +1311,7 @@ func TestParseKey(t *testing.T) {
 			},
 		),
 		gen(
-			"HS384 common key",
-			[]string{cndCommon},
-			[]string{actCheckNoError},
-			&condition{
+			"HS384 common key", &condition{
 				typ: v1.SigningKeyType_COMMON,
 				alg: HS384,
 				b:   []byte(testCommonKey),
@@ -1478,10 +1321,7 @@ func TestParseKey(t *testing.T) {
 			},
 		),
 		gen(
-			"HS512 common key",
-			[]string{cndCommon},
-			[]string{actCheckNoError},
-			&condition{
+			"HS512 common key", &condition{
 				typ: v1.SigningKeyType_COMMON,
 				alg: HS512,
 				b:   []byte(testCommonKey),
@@ -1491,10 +1331,7 @@ func TestParseKey(t *testing.T) {
 			},
 		),
 		gen(
-			"NONE",
-			[]string{},
-			[]string{actCheckNoError},
-			&condition{
+			"NONE", &condition{
 				typ: v1.SigningKeyType_KEY_TYPE_UNKNOWN,
 				alg: NONE,
 				b:   []byte(""),
@@ -1504,10 +1341,7 @@ func TestParseKey(t *testing.T) {
 			},
 		),
 		gen(
-			"invalid type",
-			[]string{cndInvalidType},
-			[]string{actCheckError},
-			&condition{
+			"invalid type", &condition{
 				typ: v1.SigningKeyType_KEY_TYPE_UNKNOWN,
 				b:   []byte("test"),
 			},
@@ -1516,10 +1350,7 @@ func TestParseKey(t *testing.T) {
 			},
 		),
 		gen(
-			"key is empty",
-			[]string{cndEmptyKey, cndCommon},
-			[]string{actCheckError},
-			&condition{
+			"key is empty", &condition{
 				typ: v1.SigningKeyType_COMMON,
 				alg: HS256,
 				b:   []byte(""),
@@ -1530,20 +1361,18 @@ func TestParseKey(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
 
-		t.Run(tt.Name(), func(t *testing.T) {
-			key, err := parseKey(tt.C().typ, tt.C().alg, tt.C().b)
+		t.Run(tt.Name, func(t *testing.T) {
+			key, err := parseKey(tt.C.typ, tt.C.alg, tt.C.b)
 
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
 
 			if err == nil {
 				// Only check key type because it is difficult to compare the content of keys attributes.
 				// The validation of the key content should be done through other tests in other way.
-				testutil.Diff(t, reflect.TypeOf(tt.A().key).String(), reflect.TypeOf(key).String())
+				testutil.Diff(t, reflect.TypeOf(tt.A.key).String(), reflect.TypeOf(key).String())
 			} else {
 				testutil.Diff(t, nil, key)
 			}
@@ -1562,32 +1391,10 @@ func TestParsePrivateKey(t *testing.T) {
 		err any // error or errorutil.Kind
 	}
 
-	cndRS := "RSxxx algorithm"
-	cndPS := "PSxxx algorithm"
-	cndES := "ESxxx algorithm"
-	cndEdDSA := "EdDSA algorithm"
-	cndInvalid := "invalid algorithm"
-	actCheckNoError := "check that there is no error"
-	actCheckError := "check error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndRS, "specify one of RS253/RS384/RS512 algorithm")
-	tb.Condition(cndPS, "specify one of PS253/PS384/PS512 algorithm")
-	tb.Condition(cndES, "specify one of ES253/ES384/ES512 algorithm")
-	tb.Condition(cndEdDSA, "specify EdDSA algorithm")
-	tb.Condition(cndInvalid, "specify invalid algorithm")
-	tb.Action(actCheckNoError, "check that there is no error returned")
-	tb.Action(actCheckError, "check that an expected error was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"RS256",
-			[]string{cndRS},
-			[]string{actCheckNoError},
-			&condition{
+			"RS256", &condition{
 				alg: RS256,
 				b:   []byte(testRSAPrivateKeyPem),
 			},
@@ -1596,10 +1403,7 @@ func TestParsePrivateKey(t *testing.T) {
 			},
 		),
 		gen(
-			"RS384",
-			[]string{cndRS},
-			[]string{actCheckNoError},
-			&condition{
+			"RS384", &condition{
 				alg: RS384,
 				b:   []byte(testRSAPrivateKeyPem),
 			},
@@ -1608,10 +1412,7 @@ func TestParsePrivateKey(t *testing.T) {
 			},
 		),
 		gen(
-			"RS512",
-			[]string{cndRS},
-			[]string{actCheckNoError},
-			&condition{
+			"RS512", &condition{
 				alg: RS512,
 				b:   []byte(testRSAPrivateKeyPem),
 			},
@@ -1620,10 +1421,7 @@ func TestParsePrivateKey(t *testing.T) {
 			},
 		),
 		gen(
-			"PS256",
-			[]string{cndPS},
-			[]string{actCheckNoError},
-			&condition{
+			"PS256", &condition{
 				alg: PS256,
 				b:   []byte(testRSAPrivateKeyPem),
 			},
@@ -1632,10 +1430,7 @@ func TestParsePrivateKey(t *testing.T) {
 			},
 		),
 		gen(
-			"PS384",
-			[]string{cndPS},
-			[]string{actCheckNoError},
-			&condition{
+			"PS384", &condition{
 				alg: PS384,
 				b:   []byte(testRSAPrivateKeyPem),
 			},
@@ -1644,10 +1439,7 @@ func TestParsePrivateKey(t *testing.T) {
 			},
 		),
 		gen(
-			"PS512",
-			[]string{cndPS},
-			[]string{actCheckNoError},
-			&condition{
+			"PS512", &condition{
 				alg: PS512,
 				b:   []byte(testRSAPrivateKeyPem),
 			},
@@ -1656,10 +1448,7 @@ func TestParsePrivateKey(t *testing.T) {
 			},
 		),
 		gen(
-			"ES256",
-			[]string{cndES},
-			[]string{actCheckNoError},
-			&condition{
+			"ES256", &condition{
 				alg: ES256,
 				b:   []byte(testECPrivateKeyPem),
 			},
@@ -1668,10 +1457,7 @@ func TestParsePrivateKey(t *testing.T) {
 			},
 		),
 		gen(
-			"ES384",
-			[]string{cndES},
-			[]string{actCheckNoError},
-			&condition{
+			"ES384", &condition{
 				alg: ES384,
 				b:   []byte(testECPrivateKeyPem),
 			},
@@ -1680,10 +1466,7 @@ func TestParsePrivateKey(t *testing.T) {
 			},
 		),
 		gen(
-			"ES512",
-			[]string{cndES},
-			[]string{actCheckNoError},
-			&condition{
+			"ES512", &condition{
 				alg: ES512,
 				b:   []byte(testECPrivateKeyPem),
 			},
@@ -1692,10 +1475,7 @@ func TestParsePrivateKey(t *testing.T) {
 			},
 		),
 		gen(
-			"EdDSA",
-			[]string{cndEdDSA},
-			[]string{actCheckNoError},
-			&condition{
+			"EdDSA", &condition{
 				alg: EdDSA,
 				b:   []byte(testEDPrivateKeyPem),
 			},
@@ -1704,10 +1484,7 @@ func TestParsePrivateKey(t *testing.T) {
 			},
 		),
 		gen(
-			"invalid alg",
-			[]string{cndInvalid},
-			[]string{actCheckError},
-			&condition{
+			"invalid alg", &condition{
 				alg: Algorithm("INVALID"),
 				b:   []byte(""),
 			},
@@ -1717,20 +1494,18 @@ func TestParsePrivateKey(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
 
-		t.Run(tt.Name(), func(t *testing.T) {
-			key, err := parsePrivateKey(tt.C().alg, tt.C().b)
+		t.Run(tt.Name, func(t *testing.T) {
+			key, err := parsePrivateKey(tt.C.alg, tt.C.b)
 
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
 
 			if err == nil {
 				// Only check key type because it is difficult to compare the content of keys attributes.
 				// The validation of the key content should be done through other tests in other way.
-				testutil.Diff(t, reflect.TypeOf(tt.A().key).String(), reflect.TypeOf(key).String())
+				testutil.Diff(t, reflect.TypeOf(tt.A.key).String(), reflect.TypeOf(key).String())
 			} else {
 				testutil.Diff(t, nil, key)
 			}
@@ -1749,32 +1524,10 @@ func TestParsePublicKey(t *testing.T) {
 		err any // error or errorutil.Kind
 	}
 
-	cndRS := "RSxxx algorithm"
-	cndPS := "PSxxx algorithm"
-	cndES := "ESxxx algorithm"
-	cndEdDSA := "EdDSA algorithm"
-	cndInvalid := "invalid algorithm"
-	actCheckNoError := "check that there is no error"
-	actCheckError := "check error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndRS, "specify one of RS253/RS384/RS512 algorithm")
-	tb.Condition(cndPS, "specify one of PS253/PS384/PS512 algorithm")
-	tb.Condition(cndES, "specify one of ES253/ES384/ES512 algorithm")
-	tb.Condition(cndEdDSA, "specify EdDSA algorithm")
-	tb.Condition(cndInvalid, "specify invalid algorithm")
-	tb.Action(actCheckNoError, "check that there is no error returned")
-	tb.Action(actCheckError, "check that an expected error was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"RS256",
-			[]string{cndRS},
-			[]string{actCheckNoError},
-			&condition{
+			"RS256", &condition{
 				alg: RS256,
 				b:   []byte(testRSAPublicKeyPem),
 			},
@@ -1783,10 +1536,7 @@ func TestParsePublicKey(t *testing.T) {
 			},
 		),
 		gen(
-			"RS384",
-			[]string{cndRS},
-			[]string{actCheckNoError},
-			&condition{
+			"RS384", &condition{
 				alg: RS384,
 				b:   []byte(testRSAPublicKeyPem),
 			},
@@ -1795,10 +1545,7 @@ func TestParsePublicKey(t *testing.T) {
 			},
 		),
 		gen(
-			"RS512",
-			[]string{cndRS},
-			[]string{actCheckNoError},
-			&condition{
+			"RS512", &condition{
 				alg: RS512,
 				b:   []byte(testRSAPublicKeyPem),
 			},
@@ -1807,10 +1554,7 @@ func TestParsePublicKey(t *testing.T) {
 			},
 		),
 		gen(
-			"PS256",
-			[]string{cndPS},
-			[]string{actCheckNoError},
-			&condition{
+			"PS256", &condition{
 				alg: PS256,
 				b:   []byte(testRSAPublicKeyPem),
 			},
@@ -1819,10 +1563,7 @@ func TestParsePublicKey(t *testing.T) {
 			},
 		),
 		gen(
-			"PS384",
-			[]string{cndPS},
-			[]string{actCheckNoError},
-			&condition{
+			"PS384", &condition{
 				alg: PS384,
 				b:   []byte(testRSAPublicKeyPem),
 			},
@@ -1831,10 +1572,7 @@ func TestParsePublicKey(t *testing.T) {
 			},
 		),
 		gen(
-			"PS512",
-			[]string{cndPS},
-			[]string{actCheckNoError},
-			&condition{
+			"PS512", &condition{
 				alg: PS512,
 				b:   []byte(testRSAPublicKeyPem),
 			},
@@ -1843,10 +1581,7 @@ func TestParsePublicKey(t *testing.T) {
 			},
 		),
 		gen(
-			"ES256",
-			[]string{cndES},
-			[]string{actCheckNoError},
-			&condition{
+			"ES256", &condition{
 				alg: ES256,
 				b:   []byte(testECPublicKeyPem),
 			},
@@ -1855,10 +1590,7 @@ func TestParsePublicKey(t *testing.T) {
 			},
 		),
 		gen(
-			"ES384",
-			[]string{cndES},
-			[]string{actCheckNoError},
-			&condition{
+			"ES384", &condition{
 				alg: ES384,
 				b:   []byte(testECPublicKeyPem),
 			},
@@ -1867,10 +1599,7 @@ func TestParsePublicKey(t *testing.T) {
 			},
 		),
 		gen(
-			"ES512",
-			[]string{cndES},
-			[]string{actCheckNoError},
-			&condition{
+			"ES512", &condition{
 				alg: ES512,
 				b:   []byte(testECPublicKeyPem),
 			},
@@ -1879,10 +1608,7 @@ func TestParsePublicKey(t *testing.T) {
 			},
 		),
 		gen(
-			"EdDSA",
-			[]string{cndEdDSA},
-			[]string{actCheckNoError},
-			&condition{
+			"EdDSA", &condition{
 				alg: EdDSA,
 				b:   []byte(testEDPublicKeyPem),
 			},
@@ -1891,10 +1617,7 @@ func TestParsePublicKey(t *testing.T) {
 			},
 		),
 		gen(
-			"invalid alg",
-			[]string{cndInvalid},
-			[]string{actCheckError},
-			&condition{
+			"invalid alg", &condition{
 				alg: Algorithm("INVALID"),
 				b:   []byte(""),
 			},
@@ -1904,20 +1627,18 @@ func TestParsePublicKey(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
 
-		t.Run(tt.Name(), func(t *testing.T) {
-			key, err := parsePublicKey(tt.C().alg, tt.C().b)
+		t.Run(tt.Name, func(t *testing.T) {
+			key, err := parsePublicKey(tt.C.alg, tt.C.b)
 
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
 
 			if err == nil {
 				// Only check key type because it is difficult to compare the content of keys attributes.
 				// The validation of the key content should be done through other tests in other way.
-				testutil.Diff(t, reflect.TypeOf(tt.A().key).String(), reflect.TypeOf(key).String())
+				testutil.Diff(t, reflect.TypeOf(tt.A.key).String(), reflect.TypeOf(key).String())
 			} else {
 				testutil.Diff(t, nil, key)
 			}
@@ -1937,32 +1658,10 @@ func TestNewJWTHandler(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	cndNil := "nil spec"
-	cndPublicKey := "public key"
-	cndPrivateKey := "private key"
-	cndInvalidKey := "invalid key"
-	actCheckHandler := "check the returned error"
-	actCheckNoError := "check that there is no error"
-	actCheckError := "check error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndNil, "input nil for spec")
-	tb.Condition(cndPublicKey, "specify public key")
-	tb.Condition(cndPrivateKey, "specify private key")
-	tb.Condition(cndInvalidKey, "specify invalid key")
-	tb.Action(actCheckHandler, "check that the returned handler has expected values")
-	tb.Action(actCheckNoError, "check that there is no error returned")
-	tb.Action(actCheckError, "check that an expected error was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"nil",
-			[]string{cndNil},
-			[]string{actCheckError},
-			&condition{
+			"nil", &condition{
 				spec: nil,
 			},
 			&action{
@@ -1971,10 +1670,7 @@ func TestNewJWTHandler(t *testing.T) {
 			},
 		),
 		gen(
-			"no keys",
-			[]string{},
-			[]string{actCheckHandler, actCheckNoError},
-			&condition{
+			"no keys", &condition{
 				spec: &v1.JWTHandlerSpec{},
 			},
 			&action{
@@ -1990,10 +1686,7 @@ func TestNewJWTHandler(t *testing.T) {
 			},
 		),
 		gen(
-			"private key",
-			[]string{cndPrivateKey},
-			[]string{actCheckHandler, actCheckNoError},
-			&condition{
+			"private key", &condition{
 				spec: &v1.JWTHandlerSpec{
 					PrivateKeys: []*v1.SigningKeySpec{
 						{
@@ -2028,10 +1721,7 @@ func TestNewJWTHandler(t *testing.T) {
 			},
 		),
 		gen(
-			"public key",
-			[]string{cndPublicKey},
-			[]string{actCheckHandler, actCheckNoError},
-			&condition{
+			"public key", &condition{
 				spec: &v1.JWTHandlerSpec{
 					PublicKeys: []*v1.SigningKeySpec{
 						{
@@ -2066,10 +1756,7 @@ func TestNewJWTHandler(t *testing.T) {
 			},
 		),
 		gen(
-			"invalid private key",
-			[]string{cndPrivateKey, cndInvalidKey},
-			[]string{actCheckError},
-			&condition{
+			"invalid private key", &condition{
 				spec: &v1.JWTHandlerSpec{
 					PrivateKeys: []*v1.SigningKeySpec{
 						{
@@ -2087,10 +1774,7 @@ func TestNewJWTHandler(t *testing.T) {
 			},
 		),
 		gen(
-			"invalid public key",
-			[]string{cndPublicKey, cndInvalidKey},
-			[]string{actCheckError},
-			&condition{
+			"invalid public key", &condition{
 				spec: &v1.JWTHandlerSpec{
 					PublicKeys: []*v1.SigningKeySpec{
 						{
@@ -2109,13 +1793,11 @@ func TestNewJWTHandler(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			jh, err := NewJWTHandler(tt.C().spec, tt.C().rt)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+		t.Run(tt.Name, func(t *testing.T) {
+			jh, err := NewJWTHandler(tt.C.spec, tt.C.rt)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 
 			opts := []cmp.Option{
 				cmp.AllowUnexported(JWTHandler{}),
@@ -2125,7 +1807,7 @@ func TestNewJWTHandler(t *testing.T) {
 				cmpopts.IgnoreFields(SigningKey{}, "key"),
 				cmp.AllowUnexported(ValidatingKeyStore{}),
 			}
-			testutil.Diff(t, tt.A().jh, jh, opts...)
+			testutil.Diff(t, tt.A.jh, jh, opts...)
 		})
 	}
 }
@@ -2141,24 +1823,10 @@ func TestTokenWithClaims(t *testing.T) {
 		err   any // error or errorutil.Kind
 	}
 
-	cndWithKey := "with private keys"
-	actCheckNoError := "check that there is no error"
-	actCheckError := "check error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndWithKey, "specify private keys")
-	tb.Action(actCheckNoError, "check that there is no error returned")
-	tb.Action(actCheckError, "check that an expected error was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"with no keys",
-			[]string{},
-			[]string{actCheckError},
-			&condition{
+			"with no keys", &condition{
 				spec: &v1.JWTHandlerSpec{},
 			},
 			&action{
@@ -2166,10 +1834,7 @@ func TestTokenWithClaims(t *testing.T) {
 			},
 		),
 		gen(
-			"with private key",
-			[]string{cndWithKey},
-			[]string{actCheckNoError},
-			&condition{
+			"with private key", &condition{
 				spec: &v1.JWTHandlerSpec{
 					PrivateKeys: []*v1.SigningKeySpec{
 						{
@@ -2204,21 +1869,19 @@ func TestTokenWithClaims(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			jh, err := NewJWTHandler(tt.C().spec, nil)
+		t.Run(tt.Name, func(t *testing.T) {
+			jh, err := NewJWTHandler(tt.C.spec, nil)
 			testutil.Diff(t, nil, err)
 
-			token, err := jh.TokenWithClaims(tt.C().claims)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
+			token, err := jh.TokenWithClaims(tt.C.claims)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
 
 			opts := []cmp.Option{
 				cmp.AllowUnexported(jwt.Token{}),
 			}
-			testutil.Diff(t, tt.A().token, token, opts...)
+			testutil.Diff(t, tt.A.token, token, opts...)
 		})
 	}
 }
@@ -2234,28 +1897,10 @@ func TestSignedString(t *testing.T) {
 		err   any // error or errorutil.Kind
 	}
 
-	cndKeyExist := "key exist"
-	cndNilToken := "nil token/nil token header"
-	cndValidToken := "valid token"
-	actCheckNoError := "check that there is no error"
-	actCheckError := "check error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndKeyExist, "a singing key exists in the handler")
-	tb.Condition(cndNilToken, "token or token header is nil")
-	tb.Condition(cndValidToken, "input a valid token")
-	tb.Action(actCheckNoError, "check that there is no error returned")
-	tb.Action(actCheckError, "check that an expected error was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"token is nil",
-			[]string{cndNilToken},
-			[]string{actCheckError},
-			&condition{
+			"token is nil", &condition{
 				spec:  &v1.JWTHandlerSpec{},
 				token: nil,
 			},
@@ -2264,10 +1909,7 @@ func TestSignedString(t *testing.T) {
 			},
 		),
 		gen(
-			"token header is nil",
-			[]string{cndNilToken},
-			[]string{actCheckError},
-			&condition{
+			"token header is nil", &condition{
 				spec:  &v1.JWTHandlerSpec{},
 				token: &jwt.Token{},
 			},
@@ -2276,10 +1918,7 @@ func TestSignedString(t *testing.T) {
 			},
 		),
 		gen(
-			"no kid header",
-			[]string{},
-			[]string{actCheckError},
-			&condition{
+			"no kid header", &condition{
 				spec: &v1.JWTHandlerSpec{},
 				token: &jwt.Token{
 					Header: map[string]any{},
@@ -2290,10 +1929,7 @@ func TestSignedString(t *testing.T) {
 			},
 		),
 		gen(
-			"key not found",
-			[]string{},
-			[]string{actCheckError},
-			&condition{
+			"key not found", &condition{
 				spec: &v1.JWTHandlerSpec{},
 				token: &jwt.Token{
 					Header: map[string]any{
@@ -2306,10 +1942,7 @@ func TestSignedString(t *testing.T) {
 			},
 		),
 		gen(
-			"valid token string",
-			[]string{cndKeyExist, cndValidToken},
-			[]string{actCheckNoError},
-			&condition{
+			"valid token string", &condition{
 				spec: &v1.JWTHandlerSpec{
 					PrivateKeys: []*v1.SigningKeySpec{
 						{
@@ -2340,17 +1973,15 @@ func TestSignedString(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			jh, err := NewJWTHandler(tt.C().spec, nil)
+		t.Run(tt.Name, func(t *testing.T) {
+			jh, err := NewJWTHandler(tt.C.spec, nil)
 			testutil.Diff(t, nil, err)
 
-			token, err := jh.SignedString(tt.C().token)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
-			testutil.Diff(t, tt.A().token, token)
+			token, err := jh.SignedString(tt.C.token)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
+			testutil.Diff(t, tt.A.token, token)
 		})
 	}
 }
@@ -2366,26 +1997,10 @@ func TestParseWithClaims(t *testing.T) {
 		err   error
 	}
 
-	cndKeyExist := "key exist"
-	cndValidToken := "valid token"
-	actCheckNoError := "check that there is no error"
-	actCheckError := "check error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndKeyExist, "a singing key exists in the handler")
-	tb.Condition(cndValidToken, "input a valid token")
-	tb.Action(actCheckNoError, "check that there is no error returned")
-	tb.Action(actCheckError, "check that an expected error was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"valid token string",
-			[]string{cndKeyExist, cndValidToken},
-			[]string{actCheckNoError},
-			&condition{
+			"valid token string", &condition{
 				spec: &v1.JWTHandlerSpec{
 					PublicKeys: []*v1.SigningKeySpec{
 						{
@@ -2417,10 +2032,7 @@ func TestParseWithClaims(t *testing.T) {
 			},
 		),
 		gen(
-			"invalid token string",
-			[]string{cndKeyExist},
-			[]string{actCheckError},
-			&condition{
+			"invalid token string", &condition{
 				spec: &v1.JWTHandlerSpec{
 					PublicKeys: []*v1.SigningKeySpec{
 						{
@@ -2454,18 +2066,16 @@ func TestParseWithClaims(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			jh, err := NewJWTHandler(tt.C().spec, nil)
+		t.Run(tt.Name, func(t *testing.T) {
+			jh, err := NewJWTHandler(tt.C.spec, nil)
 			testutil.Diff(t, nil, err)
 
 			claims := jwt.MapClaims{}
-			token, err := jh.ParseWithClaims(tt.C().token, claims)
+			token, err := jh.ParseWithClaims(tt.C.token, claims)
 			if err != nil {
-				testutil.Diff(t, tt.A().err.Error(), err.Error())
+				testutil.Diff(t, tt.A.err.Error(), err.Error())
 			} else {
 				testutil.Diff(t, nil, err)
 			}
@@ -2473,7 +2083,7 @@ func TestParseWithClaims(t *testing.T) {
 			opts := []cmp.Option{
 				cmpopts.IgnoreFields(jwt.Token{}, "Signature"),
 			}
-			testutil.Diff(t, tt.A().token, token, opts...)
+			testutil.Diff(t, tt.A.token, token, opts...)
 		})
 	}
 }
@@ -2490,24 +2100,10 @@ func TestValidMapClaims(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	cndValidToken := "valid token"
-	actCheckNoError := "check that there is no error"
-	actCheckError := "check error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndValidToken, "input a valid token")
-	tb.Action(actCheckNoError, "check that there is no error returned")
-	tb.Action(actCheckError, "check that an expected error was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"valid token string",
-			[]string{cndValidToken},
-			[]string{actCheckNoError},
-			&condition{
+			"valid token string", &condition{
 				spec: &v1.JWTHandlerSpec{
 					PublicKeys: []*v1.SigningKeySpec{
 						{
@@ -2529,10 +2125,7 @@ func TestValidMapClaims(t *testing.T) {
 			},
 		),
 		gen(
-			"no keys",
-			[]string{cndValidToken},
-			[]string{actCheckError},
-			&condition{
+			"no keys", &condition{
 				spec:  &v1.JWTHandlerSpec{},
 				token: "eyJhbGciOiJIUzI1NiIsImtpZCI6InRlc3QiLCJ0eXAiOiJKV1QifQ.eyJ4eHgiOiJYWFgiLCJ5eXkiOiJZWVkiLCJ6enoiOiJaWloifQ.zkRZ85mgo3vWk9DLNGoV0cNOs052AaKdKdzIuksGQCw",
 			},
@@ -2543,10 +2136,7 @@ func TestValidMapClaims(t *testing.T) {
 			},
 		),
 		gen(
-			"invalid token string",
-			[]string{},
-			[]string{actCheckError},
-			&condition{
+			"invalid token string", &condition{
 				spec: &v1.JWTHandlerSpec{
 					PublicKeys: []*v1.SigningKeySpec{
 						{
@@ -2567,10 +2157,7 @@ func TestValidMapClaims(t *testing.T) {
 			},
 		),
 		gen(
-			"invalid signature",
-			[]string{},
-			[]string{actCheckError},
-			&condition{
+			"invalid signature", &condition{
 				spec: &v1.JWTHandlerSpec{
 					PublicKeys: []*v1.SigningKeySpec{
 						{
@@ -2592,17 +2179,15 @@ func TestValidMapClaims(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			jh, err := NewJWTHandler(tt.C().spec, nil)
+		t.Run(tt.Name, func(t *testing.T) {
+			jh, err := NewJWTHandler(tt.C.spec, nil)
 			testutil.Diff(t, nil, err)
 
-			claims, err := jh.ValidMapClaims(tt.C().token)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
-			testutil.Diff(t, tt.A().claims, claims)
+			claims, err := jh.ValidMapClaims(tt.C.token)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
+			testutil.Diff(t, tt.A.claims, claims)
 		})
 	}
 }
@@ -2618,26 +2203,10 @@ func TestKeyFunc(t *testing.T) {
 		err any // error or errorutil.Kind
 	}
 
-	cndKeyExist := "key exist"
-	cndValidToken := "valid token"
-	actCheckNoError := "check that there is no error"
-	actCheckError := "check error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndKeyExist, "a singing key exists in the handler")
-	tb.Condition(cndValidToken, "input a valid token")
-	tb.Action(actCheckNoError, "check that there is no error returned")
-	tb.Action(actCheckError, "check that an expected error was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"valid token string",
-			[]string{cndKeyExist, cndValidToken},
-			[]string{actCheckNoError},
-			&condition{
+			"valid token string", &condition{
 				spec: &v1.JWTHandlerSpec{
 					PublicKeys: []*v1.SigningKeySpec{
 						{
@@ -2662,10 +2231,7 @@ func TestKeyFunc(t *testing.T) {
 			},
 		),
 		gen(
-			"no kid header",
-			[]string{cndKeyExist},
-			[]string{actCheckError},
-			&condition{
+			"no kid header", &condition{
 				spec: &v1.JWTHandlerSpec{
 					PublicKeys: []*v1.SigningKeySpec{
 						{
@@ -2691,10 +2257,7 @@ func TestKeyFunc(t *testing.T) {
 			},
 		),
 		gen(
-			"no kid header and no kid key",
-			[]string{cndKeyExist},
-			[]string{actCheckError},
-			&condition{
+			"no kid header and no kid key", &condition{
 				spec: &v1.JWTHandlerSpec{
 					PublicKeys: []*v1.SigningKeySpec{
 						{
@@ -2719,10 +2282,7 @@ func TestKeyFunc(t *testing.T) {
 			},
 		),
 		gen(
-			"no key in the handler",
-			[]string{cndValidToken},
-			[]string{actCheckError},
-			&condition{
+			"no key in the handler", &condition{
 				spec: &v1.JWTHandlerSpec{
 					PublicKeys: []*v1.SigningKeySpec{},
 				},
@@ -2742,10 +2302,7 @@ func TestKeyFunc(t *testing.T) {
 			},
 		),
 		gen(
-			"no alg header",
-			[]string{cndKeyExist},
-			[]string{actCheckError},
-			&condition{
+			"no alg header", &condition{
 				spec: &v1.JWTHandlerSpec{
 					PublicKeys: []*v1.SigningKeySpec{
 						{
@@ -2770,10 +2327,7 @@ func TestKeyFunc(t *testing.T) {
 			},
 		),
 		gen(
-			"invalid algorithm",
-			[]string{cndKeyExist},
-			[]string{actCheckError},
-			&condition{
+			"invalid algorithm", &condition{
 				spec: &v1.JWTHandlerSpec{
 					PublicKeys: []*v1.SigningKeySpec{
 						{
@@ -2800,25 +2354,23 @@ func TestKeyFunc(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			jh, err := NewJWTHandler(tt.C().spec, nil)
+		t.Run(tt.Name, func(t *testing.T) {
+			jh, err := NewJWTHandler(tt.C.spec, nil)
 			testutil.Diff(t, nil, err)
 
-			key, err := jh.keyFunc(tt.C().token)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
+			key, err := jh.keyFunc(tt.C.token)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
 
 			if err == nil {
 				switch k := key.(type) {
 				case jwt.VerificationKeySet:
-					testutil.Diff(t, tt.A().key, k)
+					testutil.Diff(t, tt.A.key, k)
 				default:
 					// Only check key type because it is difficult to compare the content of keys attributes.
 					// The validation of the key content should be done through other tests in other way.
-					testutil.Diff(t, reflect.TypeOf(tt.A().key).String(), reflect.TypeOf(key).String())
+					testutil.Diff(t, reflect.TypeOf(tt.A.key).String(), reflect.TypeOf(key).String())
 				}
 			} else {
 				testutil.Diff(t, nil, key)
@@ -2853,30 +2405,14 @@ func TestRefreshValidatingKeys(t *testing.T) {
 	}
 
 	type action struct {
-		jku  string
-		err  error
+		jku string
+		err error
 	}
-
-	cndKeyExist := "key exist"
-	cndUseJWKs := "use JWKs"
-	cndUseJKU := "use JKU"
-	actCheckJKU := "check returned jku"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndKeyExist, "a singing key exists in the handler")
-	tb.Condition(cndUseJWKs, "fetch JWK set using preset JWKs endpoints")
-	tb.Condition(cndUseJKU, "fetch JWK set using jku header in a JWT")
-	tb.Action(actCheckJKU, "check the returned jku")
-	table := tb.Build()
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"use preset jku",
-			[]string{cndUseJWKs},
-			[]string{actCheckJKU},
-			&condition{
+			"use preset jku", &condition{
 				spec: &v1.JWTHandlerSpec{
 					JWKs: map[string]string{
 						"test-issuer": "http://test.com/jwks",
@@ -2902,15 +2438,12 @@ func TestRefreshValidatingKeys(t *testing.T) {
 				},
 			},
 			&action{
-				err:  nil,
-				jku:  "http://test.com/jwks",
+				err: nil,
+				jku: "http://test.com/jwks",
 			},
 		),
 		gen(
-			"use jku in header",
-			[]string{cndUseJKU},
-			[]string{actCheckJKU},
-			&condition{
+			"use jku in header", &condition{
 				spec: &v1.JWTHandlerSpec{
 					UseJKU: true,
 				},
@@ -2933,15 +2466,12 @@ func TestRefreshValidatingKeys(t *testing.T) {
 				},
 			},
 			&action{
-				err:  nil,
-				jku:  "http://test.com/jwks",
+				err: nil,
+				jku: "http://test.com/jwks",
 			},
 		),
 		gen(
-			"failed to fetch public keys",
-			[]string{cndUseJWKs},
-			[]string{},
-			&condition{
+			"failed to fetch public keys", &condition{
 				spec: &v1.JWTHandlerSpec{
 					JWKs: map[string]string{
 						"test-issuer": "http://test.com/jwks",
@@ -2964,15 +2494,12 @@ func TestRefreshValidatingKeys(t *testing.T) {
 				},
 			},
 			&action{
-				err:  ErrRefreshValidatingKeys,
-				jku:  "",
+				err: ErrRefreshValidatingKeys,
+				jku: "",
 			},
 		),
 		gen(
-			"key already exists",
-			[]string{cndUseJWKs, cndKeyExist},
-			[]string{actCheckJKU},
-			&condition{
+			"key already exists", &condition{
 				spec: &v1.JWTHandlerSpec{
 					PublicKeys: []*v1.SigningKeySpec{
 						{
@@ -3006,15 +2533,12 @@ func TestRefreshValidatingKeys(t *testing.T) {
 				},
 			},
 			&action{
-				err:  nil,
-				jku:  "http://test.com/jwks",
+				err: nil,
+				jku: "http://test.com/jwks",
 			},
 		),
 		gen(
-			"key not found in the JWKs",
-			[]string{cndUseJWKs},
-			[]string{actCheckJKU},
-			&condition{
+			"key not found in the JWKs", &condition{
 				spec: &v1.JWTHandlerSpec{
 					JWKs: map[string]string{
 						"test-issuer": "http://test.com/jwks",
@@ -3040,15 +2564,12 @@ func TestRefreshValidatingKeys(t *testing.T) {
 				},
 			},
 			&action{
-				err:  nil,
-				jku:  "http://test.com/jwks",
+				err: nil,
+				jku: "http://test.com/jwks",
 			},
 		),
 		gen(
-			"delete old keys",
-			[]string{cndUseJWKs},
-			[]string{actCheckJKU},
-			&condition{
+			"delete old keys", &condition{
 				spec: &v1.JWTHandlerSpec{
 					JWKs: map[string]string{
 						"test-issuer": "http://test.com/jwks",
@@ -3074,29 +2595,27 @@ func TestRefreshValidatingKeys(t *testing.T) {
 				},
 			},
 			&action{
-				err:  nil,
-				jku:  "http://test.com/jwks",
+				err: nil,
+				jku: "http://test.com/jwks",
 			},
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			// Create a new JWT handler from test spec.
-			jh, err := NewJWTHandler(tt.C().spec, tt.C().rt)
+			jh, err := NewJWTHandler(tt.C.spec, tt.C.rt)
 			testutil.Diff(t, nil, err)
 
-			jku, err := jh.refreshValidatingKeys(tt.C().token)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
+			jku, err := jh.refreshValidatingKeys(tt.C.token)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
 
-			if tt.A().err != nil {
+			if tt.A.err != nil {
 				// Only check key type because it is difficult to compare the content of keys attributes.
 				// The validation of the key content should be done through other tests in other way.
-				testutil.Diff(t, tt.A().jku, jku)
-				// testutil.Diff(t, reflect.TypeOf(tt.A().key).String(), reflect.TypeOf(jh.validatingKeys.keys).String())
+				testutil.Diff(t, tt.A.jku, jku)
+				// testutil.Diff(t, reflect.TypeOf(tt.A.key).String(), reflect.TypeOf(jh.validatingKeys.keys).String())
 			}
 		})
 	}
@@ -3114,30 +2633,10 @@ func TestFetchPublicKeys(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	cndValidJku := "valid JWK set URL"
-	cndValidJWKSet := "valid JWK set"
-	cndRoundTripFail := "round trip failed"
-	actCheckJKU := "check returned keys"
-	actCheckNoError := "check that there is no error"
-	actCheckError := "check error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndValidJku, "specify a valid JWK set endpoint URL")
-	tb.Condition(cndValidJWKSet, "valid JWK set json was returned")
-	tb.Condition(cndRoundTripFail, "failed to round trip")
-	tb.Action(actCheckJKU, "check the returned signing keys")
-	tb.Action(actCheckNoError, "check that there is no error returned")
-	tb.Action(actCheckError, "check that an expected error was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"valid jku and JWKs",
-			[]string{cndValidJku, cndValidJWKSet},
-			[]string{actCheckJKU, actCheckNoError},
-			&condition{
+			"valid jku and JWKs", &condition{
 				jku: "http://test.com/jwks",
 				rt: &testJWKRoundTripper{
 					status: http.StatusOK,
@@ -3162,10 +2661,7 @@ func TestFetchPublicKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"invalid jku URL",
-			[]string{cndValidJWKSet},
-			[]string{actCheckJKU, actCheckError},
-			&condition{
+			"invalid jku URL", &condition{
 				jku: "http://test.com\n",
 				rt: &testJWKRoundTripper{
 					status: http.StatusOK,
@@ -3182,10 +2678,7 @@ func TestFetchPublicKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"error on roundTrip",
-			[]string{cndValidJku, cndRoundTripFail},
-			[]string{actCheckJKU, actCheckError},
-			&condition{
+			"error on roundTrip", &condition{
 				jku: "http://test.com/jwks",
 				rt: &testJWKRoundTripper{
 					err: http.ErrHandlerTimeout,
@@ -3198,10 +2691,7 @@ func TestFetchPublicKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"invalid JWKs body",
-			[]string{cndValidJku},
-			[]string{actCheckJKU, actCheckError},
-			&condition{
+			"invalid JWKs body", &condition{
 				jku: "http://test.com/jwks",
 				rt: &testJWKRoundTripper{
 					status: http.StatusOK,
@@ -3218,10 +2708,7 @@ func TestFetchPublicKeys(t *testing.T) {
 			},
 		),
 		gen(
-			"invalid JWKs content",
-			[]string{cndValidJku},
-			[]string{actCheckJKU, actCheckError},
-			&condition{
+			"invalid JWKs content", &condition{
 				jku: "http://test.com/jwks",
 				rt: &testJWKRoundTripper{
 					status: http.StatusOK,
@@ -3258,20 +2745,18 @@ func TestFetchPublicKeys(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			keys, err := fetchPublicKeys(tt.C().rt, tt.C().jku)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+		t.Run(tt.Name, func(t *testing.T) {
+			keys, err := fetchPublicKeys(tt.C.rt, tt.C.jku)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 
 			opts := []cmp.Option{
 				cmp.AllowUnexported(SigningKey{}),
 				cmpopts.IgnoreFields(SigningKey{}, "key"),
 				cmpopts.SortSlices(func(x, y *SigningKey) bool { return x.kid > y.kid }),
 			}
-			testutil.Diff(t, tt.A().keys, keys, opts...)
+			testutil.Diff(t, tt.A.keys, keys, opts...)
 		})
 	}
 }

@@ -13,8 +13,8 @@ import (
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/core"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -28,13 +28,6 @@ func TestNotFoundHandler(t *testing.T) {
 	type action struct {
 		body string
 	}
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndHandlerExist := tb.Condition("handler exist", "handler exist for the path")
-	actCheckBody := tb.Action("check body", "check the response body string")
-	table := tb.Build()
-
 	// Create API for test.
 	testAPI := api.NewContainerAPI()
 	postTestResource(testAPI, "handler", &testHandler{
@@ -49,8 +42,6 @@ func TestNotFoundHandler(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"not found",
-			[]string{},
-			[]string{actCheckBody},
 			&condition{
 				url: "http://test.com/test",
 			},
@@ -60,8 +51,6 @@ func TestNotFoundHandler(t *testing.T) {
 		),
 		gen(
 			"found",
-			[]string{cndHandlerExist},
-			[]string{actCheckBody},
 			&condition{
 				url: "http://test.com/foo",
 			},
@@ -71,11 +60,9 @@ func TestNotFoundHandler(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			handler := &http.ServeMux{}
 			handler.Handle("/foo", http.DefaultServeMux) // Register dummy handler.
 			handler.Handle("/bar", http.DefaultServeMux) // Register dummy handler.
@@ -84,13 +71,13 @@ func TestNotFoundHandler(t *testing.T) {
 			handler.Handle("/", notFoundHandler(eh)) // Register NotFound handler.
 
 			w := httptest.NewRecorder()
-			r, _ := http.NewRequest(http.MethodGet, tt.C().url, nil)
+			r, _ := http.NewRequest(http.MethodGet, tt.C.url, nil)
 
 			handler.ServeHTTP(w, r)
 			resp := w.Result()
 			defer resp.Body.Close()
 
-			testutil.Diff(t, tt.A().body, w.Body.String())
+			testutil.Diff(t, tt.A.body, w.Body.String())
 		})
 	}
 }
@@ -105,14 +92,6 @@ func TestRegisterHandlers(t *testing.T) {
 		err        any // error or errorutil.Kind
 		errPattern *regexp.Regexp
 	}
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndWithMiddle := tb.Condition("with middleware", "specify reference to a middleware to use it")
-	cndWithHandler := tb.Condition("with handler", "specify reference to a handler to use it")
-	actCheckNoError := tb.Action("check no error", "check that there is no error")
-	actCheckError := tb.Action("check error", "check that the returned error was the one as expected")
-	table := tb.Build()
 
 	// Create API for test.
 	testAPI := api.NewContainerAPI()
@@ -151,8 +130,6 @@ func TestRegisterHandlers(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"no handler",
-			[]string{},
-			[]string{actCheckNoError},
 			&condition{
 				specs: []*v1.VirtualHostSpec{
 					{
@@ -167,8 +144,6 @@ func TestRegisterHandlers(t *testing.T) {
 		),
 		gen(
 			"wo/path wo/methods",
-			[]string{cndWithHandler},
-			[]string{actCheckNoError},
 			&condition{
 				specs: []*v1.VirtualHostSpec{
 					{
@@ -187,8 +162,6 @@ func TestRegisterHandlers(t *testing.T) {
 		),
 		gen(
 			"w/path wo/methods",
-			[]string{cndWithHandler},
-			[]string{actCheckNoError},
 			&condition{
 				specs: []*v1.VirtualHostSpec{
 					{
@@ -208,8 +181,6 @@ func TestRegisterHandlers(t *testing.T) {
 		),
 		gen(
 			"wo/path w/methods",
-			[]string{cndWithHandler},
-			[]string{actCheckNoError},
 			&condition{
 				specs: []*v1.VirtualHostSpec{
 					{
@@ -226,8 +197,6 @@ func TestRegisterHandlers(t *testing.T) {
 		),
 		gen(
 			"w/path w/methods",
-			[]string{cndWithHandler},
-			[]string{actCheckNoError},
 			&condition{
 				specs: []*v1.VirtualHostSpec{
 					{
@@ -247,8 +216,6 @@ func TestRegisterHandlers(t *testing.T) {
 		),
 		gen(
 			"wo/path wo/methods and host path",
-			[]string{cndWithHandler},
-			[]string{actCheckNoError},
 			&condition{
 				specs: []*v1.VirtualHostSpec{
 					{
@@ -269,8 +236,6 @@ func TestRegisterHandlers(t *testing.T) {
 		),
 		gen(
 			"w/path wo/methods and host path",
-			[]string{cndWithHandler},
-			[]string{actCheckNoError},
 			&condition{
 				specs: []*v1.VirtualHostSpec{
 					{
@@ -292,8 +257,6 @@ func TestRegisterHandlers(t *testing.T) {
 		),
 		gen(
 			"wo/path w/methods and host path",
-			[]string{cndWithHandler},
-			[]string{actCheckNoError},
 			&condition{
 				specs: []*v1.VirtualHostSpec{
 					{
@@ -314,8 +277,6 @@ func TestRegisterHandlers(t *testing.T) {
 		),
 		gen(
 			"w/path w/methods and host path",
-			[]string{cndWithHandler},
-			[]string{actCheckNoError},
 			&condition{
 				specs: []*v1.VirtualHostSpec{
 					{
@@ -337,8 +298,6 @@ func TestRegisterHandlers(t *testing.T) {
 		),
 		gen(
 			"wo/path wo/methods and host methods",
-			[]string{cndWithHandler},
-			[]string{actCheckNoError},
 			&condition{
 				specs: []*v1.VirtualHostSpec{
 					{
@@ -358,8 +317,6 @@ func TestRegisterHandlers(t *testing.T) {
 		),
 		gen(
 			"w/path wo/methods and host methods",
-			[]string{cndWithHandler},
-			[]string{actCheckNoError},
 			&condition{
 				specs: []*v1.VirtualHostSpec{
 					{
@@ -380,8 +337,6 @@ func TestRegisterHandlers(t *testing.T) {
 		),
 		gen(
 			"wo/path w/methods and host methods",
-			[]string{cndWithHandler},
-			[]string{actCheckNoError},
 			&condition{
 				specs: []*v1.VirtualHostSpec{
 					{
@@ -402,8 +357,6 @@ func TestRegisterHandlers(t *testing.T) {
 		),
 		gen(
 			"w/path w/methods and host methods",
-			[]string{cndWithHandler},
-			[]string{actCheckNoError},
 			&condition{
 				specs: []*v1.VirtualHostSpec{
 					{
@@ -424,8 +377,6 @@ func TestRegisterHandlers(t *testing.T) {
 		),
 		gen(
 			"wo/path wo/methods and host path and host methods",
-			[]string{cndWithHandler},
-			[]string{actCheckNoError},
 			&condition{
 				specs: []*v1.VirtualHostSpec{
 					{
@@ -448,8 +399,6 @@ func TestRegisterHandlers(t *testing.T) {
 		),
 		gen(
 			"w/path wo/methods and host path and host methods",
-			[]string{cndWithHandler},
-			[]string{actCheckNoError},
 			&condition{
 				specs: []*v1.VirtualHostSpec{
 					{
@@ -472,8 +421,6 @@ func TestRegisterHandlers(t *testing.T) {
 		),
 		gen(
 			"wo/path w/methods and host path and host methods",
-			[]string{cndWithHandler},
-			[]string{actCheckNoError},
 			&condition{
 				specs: []*v1.VirtualHostSpec{
 					{
@@ -495,8 +442,6 @@ func TestRegisterHandlers(t *testing.T) {
 		),
 		gen(
 			"w/path w/methods and host path and host methods",
-			[]string{cndWithHandler},
-			[]string{actCheckNoError},
 			&condition{
 				specs: []*v1.VirtualHostSpec{
 					{
@@ -519,8 +464,6 @@ func TestRegisterHandlers(t *testing.T) {
 		),
 		gen(
 			"use middleware",
-			[]string{cndWithHandler, cndWithMiddle},
-			[]string{actCheckNoError},
 			&condition{
 				specs: []*v1.VirtualHostSpec{
 					{
@@ -546,8 +489,6 @@ func TestRegisterHandlers(t *testing.T) {
 		),
 		gen(
 			"invalid path pattern",
-			[]string{},
-			[]string{actCheckError},
 			&condition{
 				specs: []*v1.VirtualHostSpec{
 					{
@@ -566,8 +507,6 @@ func TestRegisterHandlers(t *testing.T) {
 		),
 		gen(
 			"reference to a invalid middleware",
-			[]string{},
-			[]string{actCheckError},
 			&condition{
 				specs: []*v1.VirtualHostSpec{
 					{
@@ -584,8 +523,6 @@ func TestRegisterHandlers(t *testing.T) {
 		),
 		gen(
 			"reference to a invalid handler",
-			[]string{},
-			[]string{actCheckError},
 			&condition{
 				specs: []*v1.VirtualHostSpec{
 					{
@@ -604,17 +541,15 @@ func TestRegisterHandlers(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			mux := &testMux{
 				Mux: &http.ServeMux{},
 				hs:  make(map[string]http.Handler),
 			}
-			handlers, err := registerHandlers(testAPI, mux, tt.C().specs, notFound)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+			handlers, err := registerHandlers(testAPI, mux, tt.C.specs, notFound)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 
 			opts := []cmp.Option{
 				cmp.AllowUnexported(testHandler{}, testMiddleware{}),
@@ -631,8 +566,8 @@ func TestRegisterHandlers(t *testing.T) {
 					return slices.Equal(xh["Handler"], yh["Handler"]) && slices.Equal(xh["Middleware"], yh["Middleware"])
 				}),
 			}
-			testutil.Diff(t, tt.A().handlers, handlers, opts...)
-			testutil.Diff(t, len(tt.A().handlers), len(handlers))
+			testutil.Diff(t, tt.A.handlers, handlers, opts...)
+			testutil.Diff(t, len(tt.A.handlers), len(handlers))
 		})
 	}
 }
@@ -647,23 +582,10 @@ func TestIntersectionString(t *testing.T) {
 		set []string
 	}
 
-	cndNilSet := "nil set"
-	cndExclusive := "exclusive"
-	actCheckResultSet := "check result"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndNilSet, "input an nil set")
-	tb.Condition(cndExclusive, "input sets of strings are mutually exclusive")
-	tb.Action(actCheckResultSet, "check that the returned set has expected values")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"mutually exclusive",
-			[]string{cndExclusive},
-			[]string{actCheckResultSet},
 			&condition{
 				set1: []string{"test1", "test2"},
 				set2: []string{"test3", "test4"},
@@ -674,8 +596,6 @@ func TestIntersectionString(t *testing.T) {
 		),
 		gen(
 			"extract duplicates",
-			[]string{},
-			[]string{actCheckResultSet},
 			&condition{
 				set1: []string{"test1", "test2"},
 				set2: []string{"test2", "test3"},
@@ -686,8 +606,6 @@ func TestIntersectionString(t *testing.T) {
 		),
 		gen(
 			"set1 nil",
-			[]string{cndNilSet},
-			[]string{actCheckResultSet},
 			&condition{
 				set1: nil,
 				set2: []string{"test1", "test2"},
@@ -698,8 +616,6 @@ func TestIntersectionString(t *testing.T) {
 		),
 		gen(
 			"set2 nil",
-			[]string{cndNilSet},
-			[]string{actCheckResultSet},
 			&condition{
 				set1: []string{"test1", "test2"},
 				set2: nil,
@@ -710,13 +626,11 @@ func TestIntersectionString(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			set := intersectionString(tt.C().set1, tt.C().set2)
-			testutil.Diff(t, tt.A().set, set)
+		t.Run(tt.Name, func(t *testing.T) {
+			set := intersectionString(tt.C.set1, tt.C.set2)
+			testutil.Diff(t, tt.A.set, set)
 		})
 	}
 }
@@ -732,27 +646,10 @@ func TestGeneratePatterns(t *testing.T) {
 		patterns []string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndNoPaths := tb.Condition("no path", "")
-	cndOnePaths := tb.Condition("one path", "")
-	cndMultiPaths := tb.Condition("multi paths", "")
-	cndNoHosts := tb.Condition("no hosts", "")
-	cndOneHosts := tb.Condition("one hosts", "")
-	cndMultiHosts := tb.Condition("multi hosts", "")
-	cndNoMethods := tb.Condition("no methods", "")
-	cndOneMethods := tb.Condition("one methods", "")
-	cndMultiMethods := tb.Condition("multi methods", "")
-	actCheckPatterns := tb.Action("check patterns", "")
-	actCheckInvalid := tb.Action("check invalid", "check that the invalid pattern was generated")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"0 method, 0 hosts, 0 paths",
-			[]string{cndNoMethods, cndNoHosts, cndNoPaths},
-			[]string{actCheckPatterns},
 			&condition{
 				methods: []string{},
 				hosts:   []string{},
@@ -764,8 +661,6 @@ func TestGeneratePatterns(t *testing.T) {
 		),
 		gen(
 			"0 method, 0 hosts, 1 paths",
-			[]string{cndNoMethods, cndNoHosts, cndOnePaths},
-			[]string{actCheckPatterns},
 			&condition{
 				methods: []string{},
 				hosts:   []string{},
@@ -777,8 +672,6 @@ func TestGeneratePatterns(t *testing.T) {
 		),
 		gen(
 			"0 method, 0 hosts, 2 paths",
-			[]string{cndNoMethods, cndNoHosts, cndMultiPaths},
-			[]string{actCheckPatterns},
 			&condition{
 				methods: []string{},
 				hosts:   []string{},
@@ -790,8 +683,6 @@ func TestGeneratePatterns(t *testing.T) {
 		),
 		gen(
 			"0 method, 1 hosts, 0 paths",
-			[]string{cndNoMethods, cndOneHosts, cndNoPaths},
-			[]string{actCheckPatterns},
 			&condition{
 				methods: []string{},
 				hosts:   []string{"foo.com"},
@@ -803,8 +694,6 @@ func TestGeneratePatterns(t *testing.T) {
 		),
 		gen(
 			"0 method, 1 hosts, 1 paths",
-			[]string{cndNoMethods, cndOneHosts, cndOnePaths},
-			[]string{actCheckPatterns},
 			&condition{
 				methods: []string{},
 				hosts:   []string{"foo.com"},
@@ -816,8 +705,6 @@ func TestGeneratePatterns(t *testing.T) {
 		),
 		gen(
 			"0 method, 1 hosts, 2 paths",
-			[]string{cndNoMethods, cndOneHosts, cndMultiPaths},
-			[]string{actCheckPatterns},
 			&condition{
 				methods: []string{},
 				hosts:   []string{"foo.com"},
@@ -829,8 +716,6 @@ func TestGeneratePatterns(t *testing.T) {
 		),
 		gen(
 			"0 method, 2 hosts, 0 paths",
-			[]string{cndNoMethods, cndMultiHosts, cndNoPaths},
-			[]string{actCheckPatterns},
 			&condition{
 				methods: []string{},
 				hosts:   []string{"foo.com", "bar.com"},
@@ -842,8 +727,6 @@ func TestGeneratePatterns(t *testing.T) {
 		),
 		gen(
 			"0 method, 2 hosts, 1 paths",
-			[]string{cndNoMethods, cndMultiHosts, cndOnePaths},
-			[]string{actCheckPatterns},
 			&condition{
 				methods: []string{},
 				hosts:   []string{"foo.com", "bar.com"},
@@ -855,8 +738,6 @@ func TestGeneratePatterns(t *testing.T) {
 		),
 		gen(
 			"0 method, 2 hosts, 2 paths",
-			[]string{cndNoMethods, cndMultiHosts, cndMultiPaths},
-			[]string{actCheckPatterns},
 			&condition{
 				methods: []string{},
 				hosts:   []string{"foo.com", "bar.com"},
@@ -868,8 +749,6 @@ func TestGeneratePatterns(t *testing.T) {
 		),
 		gen(
 			"1 method, 0 hosts, 0 paths",
-			[]string{cndOneMethods, cndNoHosts, cndNoPaths},
-			[]string{actCheckPatterns},
 			&condition{
 				methods: []string{http.MethodGet},
 				hosts:   []string{},
@@ -881,8 +760,6 @@ func TestGeneratePatterns(t *testing.T) {
 		),
 		gen(
 			"1 method, 0 hosts, 1 paths",
-			[]string{cndOneMethods, cndNoHosts, cndOnePaths},
-			[]string{actCheckPatterns},
 			&condition{
 				methods: []string{http.MethodGet},
 				hosts:   []string{},
@@ -894,8 +771,6 @@ func TestGeneratePatterns(t *testing.T) {
 		),
 		gen(
 			"1 method, 0 hosts, 2 paths",
-			[]string{cndOneMethods, cndNoHosts, cndMultiPaths},
-			[]string{actCheckPatterns},
 			&condition{
 				methods: []string{http.MethodGet},
 				hosts:   []string{},
@@ -907,8 +782,6 @@ func TestGeneratePatterns(t *testing.T) {
 		),
 		gen(
 			"1 method, 1 hosts, 0 paths",
-			[]string{cndOneMethods, cndOneHosts, cndNoPaths},
-			[]string{actCheckPatterns},
 			&condition{
 				methods: []string{http.MethodGet},
 				hosts:   []string{"foo.com"},
@@ -920,8 +793,6 @@ func TestGeneratePatterns(t *testing.T) {
 		),
 		gen(
 			"1 method, 1 hosts, 1 paths",
-			[]string{cndOneMethods, cndOneHosts, cndOnePaths},
-			[]string{actCheckPatterns},
 			&condition{
 				methods: []string{http.MethodGet},
 				hosts:   []string{"foo.com"},
@@ -933,8 +804,6 @@ func TestGeneratePatterns(t *testing.T) {
 		),
 		gen(
 			"1 method, 1 hosts, 2 paths",
-			[]string{cndOneMethods, cndOneHosts, cndMultiPaths},
-			[]string{actCheckPatterns},
 			&condition{
 				methods: []string{http.MethodGet},
 				hosts:   []string{"foo.com"},
@@ -946,8 +815,6 @@ func TestGeneratePatterns(t *testing.T) {
 		),
 		gen(
 			"1 method, 2 hosts, 0 paths",
-			[]string{cndOneMethods, cndMultiHosts, cndNoPaths},
-			[]string{actCheckPatterns},
 			&condition{
 				methods: []string{http.MethodGet},
 				hosts:   []string{"foo.com", "bar.com"},
@@ -959,8 +826,6 @@ func TestGeneratePatterns(t *testing.T) {
 		),
 		gen(
 			"1 method, 2 hosts, 1 paths",
-			[]string{cndOneMethods, cndMultiHosts, cndOnePaths},
-			[]string{actCheckPatterns},
 			&condition{
 				methods: []string{http.MethodGet},
 				hosts:   []string{"foo.com", "bar.com"},
@@ -972,8 +837,6 @@ func TestGeneratePatterns(t *testing.T) {
 		),
 		gen(
 			"1 method, 2 hosts, 2 paths",
-			[]string{cndOneMethods, cndMultiHosts, cndMultiPaths},
-			[]string{actCheckPatterns},
 			&condition{
 				methods: []string{http.MethodGet},
 				hosts:   []string{"foo.com", "bar.com"},
@@ -985,8 +848,6 @@ func TestGeneratePatterns(t *testing.T) {
 		),
 		gen(
 			"2 method, 0 hosts, 0 paths",
-			[]string{cndMultiMethods, cndNoHosts, cndNoPaths},
-			[]string{actCheckPatterns},
 			&condition{
 				methods: []string{http.MethodGet, http.MethodPost},
 				hosts:   []string{},
@@ -998,8 +859,6 @@ func TestGeneratePatterns(t *testing.T) {
 		),
 		gen(
 			"2 method, 0 hosts, 1 paths",
-			[]string{cndMultiMethods, cndNoHosts, cndOnePaths},
-			[]string{actCheckPatterns},
 			&condition{
 				methods: []string{http.MethodGet, http.MethodPost},
 				hosts:   []string{},
@@ -1011,8 +870,6 @@ func TestGeneratePatterns(t *testing.T) {
 		),
 		gen(
 			"2 method, 0 hosts, 2 paths",
-			[]string{cndMultiMethods, cndNoHosts, cndMultiPaths},
-			[]string{actCheckPatterns},
 			&condition{
 				methods: []string{http.MethodGet, http.MethodPost},
 				hosts:   []string{},
@@ -1024,8 +881,6 @@ func TestGeneratePatterns(t *testing.T) {
 		),
 		gen(
 			"2 method, 1 hosts, 0 paths",
-			[]string{cndMultiMethods, cndOneHosts, cndNoPaths},
-			[]string{actCheckPatterns},
 			&condition{
 				methods: []string{http.MethodGet, http.MethodPost},
 				hosts:   []string{"foo.com"},
@@ -1037,8 +892,6 @@ func TestGeneratePatterns(t *testing.T) {
 		),
 		gen(
 			"2 method, 1 hosts, 1 paths",
-			[]string{cndMultiMethods, cndOneHosts, cndOnePaths},
-			[]string{actCheckPatterns},
 			&condition{
 				methods: []string{http.MethodGet, http.MethodPost},
 				hosts:   []string{"foo.com"},
@@ -1050,8 +903,6 @@ func TestGeneratePatterns(t *testing.T) {
 		),
 		gen(
 			"2 method, 1 hosts, 2 paths",
-			[]string{cndMultiMethods, cndOneHosts, cndMultiPaths},
-			[]string{actCheckPatterns},
 			&condition{
 				methods: []string{http.MethodGet, http.MethodPost},
 				hosts:   []string{"foo.com"},
@@ -1063,8 +914,6 @@ func TestGeneratePatterns(t *testing.T) {
 		),
 		gen(
 			"2 method, 2 hosts, 0 paths",
-			[]string{cndMultiMethods, cndMultiHosts, cndNoPaths},
-			[]string{actCheckPatterns},
 			&condition{
 				methods: []string{http.MethodGet, http.MethodPost},
 				hosts:   []string{"foo.com", "bar.com"},
@@ -1076,8 +925,6 @@ func TestGeneratePatterns(t *testing.T) {
 		),
 		gen(
 			"2 method, 2 hosts, 1 paths",
-			[]string{cndMultiMethods, cndMultiHosts, cndOnePaths},
-			[]string{actCheckPatterns},
 			&condition{
 				methods: []string{http.MethodGet, http.MethodPost},
 				hosts:   []string{"foo.com", "bar.com"},
@@ -1089,8 +936,6 @@ func TestGeneratePatterns(t *testing.T) {
 		),
 		gen(
 			"2 method, 2 hosts, 2 paths",
-			[]string{cndMultiMethods, cndMultiHosts, cndMultiPaths},
-			[]string{actCheckPatterns},
 			&condition{
 				methods: []string{http.MethodGet, http.MethodPost},
 				hosts:   []string{"foo.com", "bar.com"},
@@ -1105,8 +950,6 @@ func TestGeneratePatterns(t *testing.T) {
 		),
 		gen(
 			"invalid pattern path",
-			[]string{cndNoMethods, cndNoHosts, cndOnePaths},
-			[]string{actCheckPatterns, actCheckInvalid},
 			&condition{
 				methods: []string{},
 				hosts:   []string{},
@@ -1118,8 +961,6 @@ func TestGeneratePatterns(t *testing.T) {
 		),
 		gen(
 			"invalid pattern method+path",
-			[]string{cndOneMethods, cndNoHosts, cndOnePaths},
-			[]string{actCheckPatterns, actCheckInvalid},
 			&condition{
 				methods: []string{http.MethodGet},
 				hosts:   []string{},
@@ -1131,8 +972,6 @@ func TestGeneratePatterns(t *testing.T) {
 		),
 		gen(
 			"valid pattern host",
-			[]string{cndNoMethods, cndOneHosts, cndNoPaths},
-			[]string{actCheckPatterns},
 			&condition{
 				methods: []string{},
 				hosts:   []string{"foo.com/foo"},
@@ -1144,8 +983,6 @@ func TestGeneratePatterns(t *testing.T) {
 		),
 		gen(
 			"valid pattern method+host",
-			[]string{cndOneMethods, cndOneHosts, cndNoPaths},
-			[]string{actCheckPatterns},
 			&condition{
 				methods: []string{http.MethodGet},
 				hosts:   []string{"foo.com/foo"},
@@ -1157,8 +994,6 @@ func TestGeneratePatterns(t *testing.T) {
 		),
 		gen(
 			"valid pattern method+host+path",
-			[]string{cndOneMethods, cndOneHosts, cndNoPaths},
-			[]string{actCheckPatterns},
 			&condition{
 				methods: []string{http.MethodGet},
 				hosts:   []string{"foo.com/foo"},
@@ -1170,17 +1005,15 @@ func TestGeneratePatterns(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			patterns := generatePatterns(tt.C().methods, tt.C().hosts, tt.C().paths)
+		t.Run(tt.Name, func(t *testing.T) {
+			patterns := generatePatterns(tt.C.methods, tt.C.hosts, tt.C.paths)
 
 			opts := []cmp.Option{
 				cmpopts.SortSlices(func(x, y string) bool { return x > y }),
 			}
-			testutil.Diff(t, tt.A().patterns, patterns, opts...)
+			testutil.Diff(t, tt.A.patterns, patterns, opts...)
 		})
 	}
 }

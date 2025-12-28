@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 	"github.com/aileron-projects/go/zx/zuid"
 )
@@ -24,16 +24,10 @@ func TestMiddleware(t *testing.T) {
 		statusCode int
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"successful request with no errors",
-			[]string{},
-			[]string{},
 			&condition{
 				requestID: "mock-request-id",
 				traceID:   "mock-trace-id",
@@ -44,8 +38,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"trace header provided in request",
-			[]string{},
-			[]string{},
 			&condition{
 				requestID:        "mock-request-id",
 				traceID:          "existing-trace-id",
@@ -57,35 +49,33 @@ func TestMiddleware(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			tr := tracker{
 				eh:               utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
 				reqProxyHeader:   "X-Request-ID",
 				trcProxyHeader:   "X-Trace-ID",
-				trcExtractHeader: tt.C().trcExtractHeader,
+				trcExtractHeader: tt.C.trcExtractHeader,
 			}
 
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
-			if tt.C().trcExtractHeader != "" && tt.C().traceID != "" {
-				req.Header.Set(tt.C().trcExtractHeader, tt.C().traceID)
+			if tt.C.trcExtractHeader != "" && tt.C.traceID != "" {
+				req.Header.Set(tt.C.trcExtractHeader, tt.C.traceID)
 			}
 
 			resp := httptest.NewRecorder()
 
 			h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				testutil.Diff(t, true, zuid.FromContext(r.Context(), "context") != "")
-				if tt.C().trcExtractHeader != "" {
+				if tt.C.trcExtractHeader != "" {
 					h := utilhttp.ProxyHeaderFromContext(r.Context())
-					testutil.Diff(t, tt.C().traceID, h.Get("X-Trace-ID"))
+					testutil.Diff(t, tt.C.traceID, h.Get("X-Trace-ID"))
 				}
 				w.WriteHeader(http.StatusOK)
 			})
 			tr.Middleware(h).ServeHTTP(resp, req)
-			testutil.Diff(t, tt.A().statusCode, resp.Code)
+			testutil.Diff(t, tt.A.statusCode, resp.Code)
 		})
 	}
 }

@@ -14,7 +14,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/andybalholm/brotli"
 )
 
@@ -31,10 +31,6 @@ func TestCompressionMiddleware(t *testing.T) {
 		body     string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	var gzipBody, brBody bytes.Buffer
 	gw := gzip.NewWriter(&gzipBody)
 	gw.Write([]byte("test response body"))
@@ -47,8 +43,6 @@ func TestCompressionMiddleware(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"accept header not exist",
-			[]string{},
-			[]string{},
 			&condition{
 				acceptEncoding: "",
 				encoding:       "",
@@ -62,8 +56,6 @@ func TestCompressionMiddleware(t *testing.T) {
 		),
 		gen(
 			"accept gzip",
-			[]string{},
-			[]string{},
 			&condition{
 				acceptEncoding: "gzip",
 				encoding:       "",
@@ -77,8 +69,6 @@ func TestCompressionMiddleware(t *testing.T) {
 		),
 		gen(
 			"accept brotli",
-			[]string{},
-			[]string{},
 			&condition{
 				acceptEncoding: "br",
 				encoding:       "",
@@ -92,8 +82,6 @@ func TestCompressionMiddleware(t *testing.T) {
 		),
 		gen(
 			"accept deflate",
-			[]string{},
-			[]string{},
 			&condition{
 				acceptEncoding: "deflate",
 				encoding:       "",
@@ -107,8 +95,6 @@ func TestCompressionMiddleware(t *testing.T) {
 		),
 		gen(
 			"accept gzip and brotli",
-			[]string{},
-			[]string{},
 			&condition{
 				acceptEncoding: "deflate, gzip, br",
 				encoding:       "",
@@ -122,8 +108,6 @@ func TestCompressionMiddleware(t *testing.T) {
 		),
 		gen(
 			"short body",
-			[]string{},
-			[]string{},
 			&condition{
 				acceptEncoding: "gzip, br",
 				encoding:       "",
@@ -137,8 +121,6 @@ func TestCompressionMiddleware(t *testing.T) {
 		),
 		gen(
 			"already compressed with gzip",
-			[]string{},
-			[]string{},
 			&condition{
 				acceptEncoding: "gzip, br",
 				encoding:       "gzip",
@@ -152,8 +134,6 @@ func TestCompressionMiddleware(t *testing.T) {
 		),
 		gen(
 			"already compressed with brotli",
-			[]string{},
-			[]string{},
 			&condition{
 				acceptEncoding: "gzip, br",
 				encoding:       "br",
@@ -167,8 +147,6 @@ func TestCompressionMiddleware(t *testing.T) {
 		),
 		gen(
 			"no content-length gzip",
-			[]string{},
-			[]string{},
 			&condition{
 				acceptEncoding: "gzip, br",
 				encoding:       "",
@@ -182,11 +160,9 @@ func TestCompressionMiddleware(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			comp := &compression{
 				mimes:       []string{"text/plain", "application/json"},
 				minimumSize: 12,
@@ -199,37 +175,37 @@ func TestCompressionMiddleware(t *testing.T) {
 			}
 
 			h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				w.Header().Set("Content-Type", tt.C().contentType)
-				if len(tt.C().body) > 0 {
-					w.Header().Set("Content-Length", strconv.Itoa(len(tt.C().body)))
+				w.Header().Set("Content-Type", tt.C.contentType)
+				if len(tt.C.body) > 0 {
+					w.Header().Set("Content-Length", strconv.Itoa(len(tt.C.body)))
 				}
-				if tt.C().encoding != "" {
-					w.Header().Set("Content-Encoding", tt.C().encoding)
+				if tt.C.encoding != "" {
+					w.Header().Set("Content-Encoding", tt.C.encoding)
 				}
 				w.WriteHeader(http.StatusOK)
-				w.Write(tt.C().body)
+				w.Write(tt.C.body)
 			})
 
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
-			if tt.C().acceptEncoding != "" {
-				req.Header.Set("Accept-Encoding", tt.C().acceptEncoding)
+			if tt.C.acceptEncoding != "" {
+				req.Header.Set("Accept-Encoding", tt.C.acceptEncoding)
 			}
 			resp := httptest.NewRecorder()
 			comp.Middleware(h).ServeHTTP(resp, req)
 
 			testutil.Diff(t, http.StatusOK, resp.Code)
-			testutil.Diff(t, tt.A().encoding, resp.Result().Header.Get("Content-Encoding"))
+			testutil.Diff(t, tt.A.encoding, resp.Result().Header.Get("Content-Encoding"))
 
 			b, _ := io.ReadAll(resp.Body)
-			if strings.Contains(tt.A().encoding, "gzip") {
+			if strings.Contains(tt.A.encoding, "gzip") {
 				r, _ := gzip.NewReader(bytes.NewReader(b))
 				b, _ = io.ReadAll(r)
 			}
-			if strings.Contains(tt.A().encoding, "br") {
+			if strings.Contains(tt.A.encoding, "br") {
 				r := brotli.NewReader(bytes.NewReader(b))
 				b, _ = io.ReadAll(r)
 			}
-			testutil.Diff(t, tt.A().body, string(b))
+			testutil.Diff(t, tt.A.body, string(b))
 		})
 	}
 }

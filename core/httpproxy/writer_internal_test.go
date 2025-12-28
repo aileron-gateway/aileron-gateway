@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -76,16 +76,10 @@ func TestWithImmediateFlush(t *testing.T) {
 		w io.Writer
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"no flush",
-			[]string{},
-			[]string{},
 			&condition{
 				w: &testResponse{
 					id: "test",
@@ -100,8 +94,6 @@ func TestWithImmediateFlush(t *testing.T) {
 		),
 		gen(
 			"flush with no-flusher",
-			[]string{},
-			[]string{},
 			&condition{
 				w: &testResponse{
 					id: "test",
@@ -116,8 +108,6 @@ func TestWithImmediateFlush(t *testing.T) {
 		),
 		gen(
 			"flush with flusher",
-			[]string{},
-			[]string{},
 			&condition{
 				w: &testFlushResponse{
 					testResponse: &testResponse{
@@ -143,8 +133,6 @@ func TestWithImmediateFlush(t *testing.T) {
 		),
 		gen(
 			"flush with wrapped flusher",
-			[]string{},
-			[]string{},
 			&condition{
 				w: utilhttp.WrapWriter(
 					&testFlushResponse{
@@ -176,12 +164,10 @@ func TestWithImmediateFlush(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			w := withImmediateFlush(tt.C().w, tt.C().flush)
+		t.Run(tt.Name, func(t *testing.T) {
+			w := withImmediateFlush(tt.C.w, tt.C.flush)
 
 			opts := []cmp.Option{
 				cmp.AllowUnexported(immediateFlushWriter{}),
@@ -189,7 +175,7 @@ func TestWithImmediateFlush(t *testing.T) {
 				cmp.AllowUnexported(testResponse{}, testFlushResponse{}),
 				cmpopts.IgnoreUnexported(utilhttp.WrappedWriter{}),
 			}
-			testutil.Diff(t, tt.A().w, w, opts...)
+			testutil.Diff(t, tt.A.w, w, opts...)
 		})
 	}
 }
@@ -203,16 +189,10 @@ func TestShouldFlushImmediately(t *testing.T) {
 		flush bool
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"no immediate flush",
-			[]string{},
-			[]string{},
 			&condition{
 				res: &http.Response{},
 			},
@@ -222,8 +202,6 @@ func TestShouldFlushImmediately(t *testing.T) {
 		),
 		gen(
 			"no flush content-type",
-			[]string{},
-			[]string{},
 			&condition{
 				res: &http.Response{
 					Header: http.Header{
@@ -237,8 +215,6 @@ func TestShouldFlushImmediately(t *testing.T) {
 		),
 		gen(
 			"flush event-stream",
-			[]string{},
-			[]string{},
 			&condition{
 				res: &http.Response{
 					Header: http.Header{
@@ -252,8 +228,6 @@ func TestShouldFlushImmediately(t *testing.T) {
 		),
 		gen(
 			"positive content length",
-			[]string{},
-			[]string{},
 			&condition{
 				res: &http.Response{
 					ContentLength: 100,
@@ -265,8 +239,6 @@ func TestShouldFlushImmediately(t *testing.T) {
 		),
 		gen(
 			"flush event-stream",
-			[]string{},
-			[]string{},
 			&condition{
 				res: &http.Response{
 					ContentLength: -1,
@@ -278,8 +250,6 @@ func TestShouldFlushImmediately(t *testing.T) {
 		),
 		gen(
 			"chunked",
-			[]string{},
-			[]string{},
 			&condition{
 				res: &http.Response{
 					ContentLength: 0,
@@ -295,13 +265,11 @@ func TestShouldFlushImmediately(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			shouldFlush := shouldFlushImmediately(tt.C().res)
-			testutil.Diff(t, tt.A().flush, shouldFlush)
+		t.Run(tt.Name, func(t *testing.T) {
+			shouldFlush := shouldFlushImmediately(tt.C.res)
+			testutil.Diff(t, tt.A.flush, shouldFlush)
 		})
 	}
 }
@@ -316,16 +284,10 @@ func TestImmediateFlushWriter(t *testing.T) {
 		written []byte
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"immediate flush for nil",
-			[]string{},
-			[]string{},
 			&condition{
 				wf: &testWriteFlusher{
 					testWriter: &testWriter{},
@@ -338,8 +300,6 @@ func TestImmediateFlushWriter(t *testing.T) {
 		),
 		gen(
 			"immediate flush",
-			[]string{},
-			[]string{},
 			&condition{
 				wf: &testWriteFlusher{
 					testWriter: &testWriter{},
@@ -355,22 +315,20 @@ func TestImmediateFlushWriter(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			wf := &immediateFlushWriter{
-				inner:   tt.C().wf,
-				flusher: tt.C().wf,
+				inner:   tt.C.wf,
+				flusher: tt.C.wf,
 			}
 
-			for _, b := range tt.C().write {
-				tt.C().wf.flushed = false
+			for _, b := range tt.C.write {
+				tt.C.wf.flushed = false
 				wf.Write(b)
-				testutil.Diff(t, true, tt.C().wf.flushed)
+				testutil.Diff(t, true, tt.C.wf.flushed)
 			}
-			testutil.Diff(t, tt.A().written, tt.C().wf.written)
+			testutil.Diff(t, tt.A.written, tt.C.wf.written)
 		})
 	}
 }

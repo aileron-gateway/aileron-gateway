@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/aileron-gateway/aileron-gateway/app"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	httputil "github.com/aileron-gateway/aileron-gateway/util/http"
 )
 
@@ -41,17 +41,10 @@ func TestServeHTTP(t *testing.T) {
 		body       string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"nil checker",
-			[]string{},
-			[]string{},
 			&condition{
 				timeout:  time.Second,
 				checkers: nil,
@@ -63,8 +56,6 @@ func TestServeHTTP(t *testing.T) {
 		),
 		gen(
 			"single checker succeeded",
-			[]string{},
-			[]string{},
 			&condition{
 				timeout: time.Second,
 				checkers: []app.HealthChecker{
@@ -80,8 +71,6 @@ func TestServeHTTP(t *testing.T) {
 		),
 		gen(
 			"single checker failed",
-			[]string{},
-			[]string{},
 			&condition{
 				timeout: time.Second,
 				checkers: []app.HealthChecker{
@@ -97,8 +86,6 @@ func TestServeHTTP(t *testing.T) {
 		),
 		gen(
 			"single checker timeout",
-			[]string{},
-			[]string{},
 			&condition{
 				timeout: 1 * time.Millisecond,
 				checkers: []app.HealthChecker{
@@ -115,8 +102,6 @@ func TestServeHTTP(t *testing.T) {
 		),
 		gen(
 			"multiple checkers succeeded",
-			[]string{},
-			[]string{},
 			&condition{
 				timeout: time.Second,
 				checkers: []app.HealthChecker{
@@ -135,8 +120,6 @@ func TestServeHTTP(t *testing.T) {
 		),
 		gen(
 			"multiple checkers failed",
-			[]string{},
-			[]string{},
 			&condition{
 				timeout: time.Second,
 				checkers: []app.HealthChecker{
@@ -155,15 +138,13 @@ func TestServeHTTP(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			hc := healthCheck{
 				eh:       httputil.GlobalErrorHandler(httputil.DefaultErrorHandlerName),
-				timeout:  tt.C().timeout,
-				checkers: tt.C().checkers,
+				timeout:  tt.C.timeout,
+				checkers: tt.C.checkers,
 			}
 
 			req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
@@ -171,10 +152,10 @@ func TestServeHTTP(t *testing.T) {
 
 			hc.ServeHTTP(resp, req)
 
-			testutil.Diff(t, tt.A().statusCode, resp.Code)
+			testutil.Diff(t, tt.A.statusCode, resp.Code)
 			testutil.Diff(t, "application/json; charset=utf-8", resp.Header().Get("Content-Type"))
 			testutil.Diff(t, "nosniff", resp.Header().Get("X-Content-Type-Options"))
-			testutil.Diff(t, tt.A().body, resp.Body.String())
+			testutil.Diff(t, tt.A.body, resp.Body.String())
 		})
 	}
 }

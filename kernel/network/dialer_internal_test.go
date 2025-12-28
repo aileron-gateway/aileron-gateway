@@ -15,8 +15,8 @@ import (
 	"time"
 
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/aileron-projects/go/zsyscall"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -163,15 +163,10 @@ func TestReplaceTargetDialer_Dial(t *testing.T) {
 		address string // Out
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"empty replaces",
-			[]string{},
-			[]string{},
 			&condition{
 				dialer: &replaceTargetDialer{
 					fromNet:  []string{},
@@ -189,8 +184,6 @@ func TestReplaceTargetDialer_Dial(t *testing.T) {
 		),
 		gen(
 			"match replace",
-			[]string{},
-			[]string{},
 			&condition{
 				dialer: &replaceTargetDialer{
 					fromNet:  []string{"dummy", "tcp"},
@@ -208,8 +201,6 @@ func TestReplaceTargetDialer_Dial(t *testing.T) {
 		),
 		gen(
 			"network not match",
-			[]string{},
-			[]string{},
 			&condition{
 				dialer: &replaceTargetDialer{
 					fromNet:  []string{"dummy", "tcp"},
@@ -227,8 +218,6 @@ func TestReplaceTargetDialer_Dial(t *testing.T) {
 		),
 		gen(
 			"address not match",
-			[]string{},
-			[]string{},
 			&condition{
 				dialer: &replaceTargetDialer{
 					fromNet:  []string{"dummy", "tcp"},
@@ -246,17 +235,15 @@ func TestReplaceTargetDialer_Dial(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			record := &recordTargetDialer{}
-			tt.C().dialer.Dialer = record
+			tt.C.dialer.Dialer = record
 
-			tt.C().dialer.Dial(tt.C().network, tt.C().address)
-			testutil.Diff(t, tt.A().network, record.network)
-			testutil.Diff(t, tt.A().address, record.address)
+			tt.C.dialer.Dial(tt.C.network, tt.C.address)
+			testutil.Diff(t, tt.A.network, record.network)
+			testutil.Diff(t, tt.A.address, record.address)
 		})
 	}
 }
@@ -271,15 +258,10 @@ func TestReplaceTargetDialer(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"empty replaces",
-			[]string{},
-			[]string{},
 			&condition{
 				replaces: []string{},
 			},
@@ -289,8 +271,6 @@ func TestReplaceTargetDialer(t *testing.T) {
 		),
 		gen(
 			"single valid replaces",
-			[]string{},
-			[]string{},
 			&condition{
 				replaces: []string{
 					"(tcp|localhost:80) (unix|/var/run/example.sock)",
@@ -308,8 +288,6 @@ func TestReplaceTargetDialer(t *testing.T) {
 		),
 		gen(
 			"multiple valid replaces",
-			[]string{},
-			[]string{},
 			&condition{
 				replaces: []string{
 					"(tcp|localhost:80) (unix|/var/run/example.sock)",
@@ -328,8 +306,6 @@ func TestReplaceTargetDialer(t *testing.T) {
 		),
 		gen(
 			"invalid format",
-			[]string{},
-			[]string{},
 			&condition{
 				replaces: []string{
 					"(tcp#example.com:80) (unix|/var/run/example.sock)",
@@ -342,8 +318,6 @@ func TestReplaceTargetDialer(t *testing.T) {
 		),
 		gen(
 			"duplicate replaces",
-			[]string{},
-			[]string{},
 			&condition{
 				replaces: []string{
 					"(tcp|localhost:80) (unix|/var/run/example.sock)",
@@ -357,8 +331,6 @@ func TestReplaceTargetDialer(t *testing.T) {
 		),
 		gen(
 			"invalid address",
-			[]string{},
-			[]string{},
 			&condition{
 				replaces: []string{
 					"(tcp|example.com) (unix|/var/run/example.sock)",
@@ -371,25 +343,23 @@ func TestReplaceTargetDialer(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			record := &recordTargetDialer{}
-			d, err := newReplaceTargetDialer(tt.C().replaces, record)
-			if tt.A().errPattern == nil {
+			d, err := newReplaceTargetDialer(tt.C.replaces, record)
+			if tt.A.errPattern == nil {
 				testutil.Diff(t, nil, err)
 			} else {
 				t.Log(err.Error())
-				testutil.Diff(t, true, tt.A().errPattern.MatchString(err.Error()))
+				testutil.Diff(t, true, tt.A.errPattern.MatchString(err.Error()))
 			}
 
 			opts := []cmp.Option{
 				cmp.AllowUnexported(replaceTargetDialer{}),
 				cmp.AllowUnexported(recordTargetDialer{}),
 			}
-			testutil.Diff(t, tt.A().dialer, d, opts...)
+			testutil.Diff(t, tt.A.dialer, d, opts...)
 		})
 	}
 }
@@ -403,15 +373,10 @@ func TestNetworkType(t *testing.T) {
 		t []string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"http",
-			[]string{},
-			[]string{},
 			&condition{
 				t: []k.NetworkType{k.NetworkType_HTTP},
 			},
@@ -421,8 +386,6 @@ func TestNetworkType(t *testing.T) {
 		),
 		gen(
 			"tcp",
-			[]string{},
-			[]string{},
 			&condition{
 				t: []k.NetworkType{
 					k.NetworkType_TCP,
@@ -436,8 +399,6 @@ func TestNetworkType(t *testing.T) {
 		),
 		gen(
 			"udp",
-			[]string{},
-			[]string{},
 			&condition{
 				t: []k.NetworkType{
 					k.NetworkType_UDP,
@@ -451,8 +412,6 @@ func TestNetworkType(t *testing.T) {
 		),
 		gen(
 			"unix",
-			[]string{},
-			[]string{},
 			&condition{
 				t: []k.NetworkType{
 					k.NetworkType_Unix,
@@ -466,8 +425,6 @@ func TestNetworkType(t *testing.T) {
 		),
 		gen(
 			"unknown",
-			[]string{},
-			[]string{},
 			&condition{
 				t: []k.NetworkType{
 					k.NetworkType(999),
@@ -479,14 +436,12 @@ func TestNetworkType(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			for i := range tt.C().t {
-				result := NetworkType(tt.C().t[i])
-				testutil.Diff(t, tt.A().t[i], result)
+		t.Run(tt.Name, func(t *testing.T) {
+			for i := range tt.C.t {
+				result := NetworkType(tt.C.t[i])
+				testutil.Diff(t, tt.A.t[i], result)
 			}
 		})
 	}
@@ -503,15 +458,10 @@ func TestResolveAddr(t *testing.T) {
 		err  error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"ip",
-			[]string{},
-			[]string{},
 			&condition{
 				network: "ip:0",
 				address: "127.0.0.1",
@@ -522,8 +472,6 @@ func TestResolveAddr(t *testing.T) {
 		),
 		gen(
 			"ip wo addr",
-			[]string{},
-			[]string{},
 			&condition{
 				network: "ip:0",
 				address: "",
@@ -534,8 +482,6 @@ func TestResolveAddr(t *testing.T) {
 		),
 		gen(
 			"tcp",
-			[]string{},
-			[]string{},
 			&condition{
 				network: "tcp",
 				address: "127.0.0.1:8080",
@@ -546,8 +492,6 @@ func TestResolveAddr(t *testing.T) {
 		),
 		gen(
 			"tcp wo addr",
-			[]string{},
-			[]string{},
 			&condition{
 				network: "tcp",
 				address: "",
@@ -558,8 +502,6 @@ func TestResolveAddr(t *testing.T) {
 		),
 		gen(
 			"udp",
-			[]string{},
-			[]string{},
 			&condition{
 				network: "udp",
 				address: "127.0.0.1:8080",
@@ -570,8 +512,6 @@ func TestResolveAddr(t *testing.T) {
 		),
 		gen(
 			"udp wo addr",
-			[]string{},
-			[]string{},
 			&condition{
 				network: "udp",
 				address: "",
@@ -582,8 +522,6 @@ func TestResolveAddr(t *testing.T) {
 		),
 		gen(
 			"unix",
-			[]string{},
-			[]string{},
 			&condition{
 				network: "unix",
 				address: "@test",
@@ -594,8 +532,6 @@ func TestResolveAddr(t *testing.T) {
 		),
 		gen(
 			"unix wo addr",
-			[]string{},
-			[]string{},
 			&condition{
 				network: "unix",
 				address: "",
@@ -606,8 +542,6 @@ func TestResolveAddr(t *testing.T) {
 		),
 		gen(
 			"empty",
-			[]string{},
-			[]string{},
 			&condition{
 				network: "",
 				address: "",
@@ -618,8 +552,6 @@ func TestResolveAddr(t *testing.T) {
 		),
 		gen(
 			"unknown",
-			[]string{},
-			[]string{},
 			&condition{
 				network: "unknown",
 				address: "",
@@ -631,17 +563,15 @@ func TestResolveAddr(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			addr, err := resolveAddr(tt.C().network, tt.C().address)
-			testutil.Diff(t, tt.A().addr, addr)
-			if tt.A().err == nil {
+		t.Run(tt.Name, func(t *testing.T) {
+			addr, err := resolveAddr(tt.C.network, tt.C.address)
+			testutil.Diff(t, tt.A.addr, addr)
+			if tt.A.err == nil {
 				testutil.Diff(t, nil, err)
 			} else {
-				testutil.Diff(t, tt.A().err.Error(), err.Error())
+				testutil.Diff(t, tt.A.err.Error(), err.Error())
 			}
 		})
 	}
@@ -657,15 +587,10 @@ func TestNewDialerFromSpec(t *testing.T) {
 		err    error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"nil spec",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: nil,
 			},
@@ -676,8 +601,6 @@ func TestNewDialerFromSpec(t *testing.T) {
 		),
 		gen(
 			"zero spec",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.DialConfig{},
 			},
@@ -687,8 +610,6 @@ func TestNewDialerFromSpec(t *testing.T) {
 		),
 		gen(
 			"with tls configs",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.DialConfig{
 					TLSConfig: &k.TLSConfig{},
@@ -707,8 +628,6 @@ func TestNewDialerFromSpec(t *testing.T) {
 		),
 		gen(
 			"with local networks",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.DialConfig{
 					LocalAddress: "tcp://127.0.0.1:8080",
@@ -722,8 +641,6 @@ func TestNewDialerFromSpec(t *testing.T) {
 		),
 		gen(
 			"with replaces",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.DialConfig{
 					ReplaceTargets: []string{
@@ -744,8 +661,6 @@ func TestNewDialerFromSpec(t *testing.T) {
 		),
 		gen(
 			"invalid replaces",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.DialConfig{
 					ReplaceTargets: []string{
@@ -764,8 +679,6 @@ func TestNewDialerFromSpec(t *testing.T) {
 		),
 		gen(
 			"with all dialer configs",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.DialConfig{
 					LocalAddress:   "tcp://127.0.0.1:8080",
@@ -799,8 +712,6 @@ func TestNewDialerFromSpec(t *testing.T) {
 		),
 		gen(
 			"invalid tls spec",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.DialConfig{
 					TLSConfig: &k.TLSConfig{
@@ -819,13 +730,11 @@ func TestNewDialerFromSpec(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			d, err := NewDialerFromSpec(tt.C().spec)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
+		t.Run(tt.Name, func(t *testing.T) {
+			d, err := NewDialerFromSpec(tt.C.spec)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
 
 			opts := []cmp.Option{
 				cmp.AllowUnexported(replaceTargetDialer{}),
@@ -833,7 +742,7 @@ func TestNewDialerFromSpec(t *testing.T) {
 				cmpopts.IgnoreFields(tls.Config{}, "RootCAs", "ClientCAs"),
 				cmp.Comparer(testutil.ComparePointer[func(string, string, syscall.RawConn) error]),
 			}
-			testutil.Diff(t, tt.A().dialer, d, opts...)
+			testutil.Diff(t, tt.A.dialer, d, opts...)
 		})
 	}
 }
@@ -848,16 +757,10 @@ func TestNewDialer(t *testing.T) {
 		err    error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"nil config",
-			[]string{},
-			[]string{},
 			&condition{
 				c: nil,
 			},
@@ -872,8 +775,6 @@ func TestNewDialer(t *testing.T) {
 		),
 		gen(
 			"zero config",
-			[]string{},
-			[]string{},
 			&condition{
 				c: &DialConfig{},
 			},
@@ -883,8 +784,6 @@ func TestNewDialer(t *testing.T) {
 		),
 		gen(
 			"zero tls config",
-			[]string{},
-			[]string{},
 			&condition{
 				c: &DialConfig{
 					TLSConfig: &tls.Config{},
@@ -899,8 +798,6 @@ func TestNewDialer(t *testing.T) {
 		),
 		gen(
 			"with local addr",
-			[]string{},
-			[]string{},
 			&condition{
 				c: &DialConfig{
 					LocalAddress: "tcp://127.0.0.2:8080",
@@ -914,8 +811,6 @@ func TestNewDialer(t *testing.T) {
 		),
 		gen(
 			"tls with local addr",
-			[]string{},
-			[]string{},
 			&condition{
 				c: &DialConfig{
 					TLSConfig:    &tls.Config{},
@@ -933,8 +828,6 @@ func TestNewDialer(t *testing.T) {
 		),
 		gen(
 			"invalid network",
-			[]string{},
-			[]string{},
 			&condition{
 				c: &DialConfig{
 					LocalAddress: "tcp://127.0.0.2", // Port missing.
@@ -951,8 +844,6 @@ func TestNewDialer(t *testing.T) {
 		),
 		gen(
 			"with side opts",
-			[]string{},
-			[]string{},
 			&condition{
 				c: &DialConfig{
 					Timeout:       2 * time.Second,
@@ -968,8 +859,6 @@ func TestNewDialer(t *testing.T) {
 		),
 		gen(
 			"tls with side opts",
-			[]string{},
-			[]string{},
 			&condition{
 				c: &DialConfig{
 					TLSConfig:     &tls.Config{},
@@ -989,8 +878,6 @@ func TestNewDialer(t *testing.T) {
 		),
 		gen(
 			"with socket opts",
-			[]string{},
-			[]string{},
 			&condition{
 				c: &DialConfig{
 					SockOption: &zsyscall.SockOption{
@@ -1009,8 +896,6 @@ func TestNewDialer(t *testing.T) {
 		),
 		gen(
 			"tls with socket opts",
-			[]string{},
-			[]string{},
 			&condition{
 				c: &DialConfig{
 					TLSConfig: &tls.Config{},
@@ -1033,8 +918,6 @@ func TestNewDialer(t *testing.T) {
 		),
 		gen(
 			"with all dialer configs",
-			[]string{},
-			[]string{},
 			&condition{
 				c: &DialConfig{
 					TLSConfig:     &tls.Config{},
@@ -1063,19 +946,17 @@ func TestNewDialer(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			d, err := NewDialer(tt.C().c)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
+		t.Run(tt.Name, func(t *testing.T) {
+			d, err := NewDialer(tt.C.c)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
 
 			opts := []cmp.Option{
 				cmpopts.IgnoreUnexported(net.Dialer{}, tls.Dialer{}, tls.Config{}),
 				cmp.Comparer(testutil.ComparePointer[func(string, string, syscall.RawConn) error]),
 			}
-			testutil.Diff(t, tt.A().dialer, d, opts...)
+			testutil.Diff(t, tt.A.dialer, d, opts...)
 		})
 	}
 }

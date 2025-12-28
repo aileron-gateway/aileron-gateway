@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 )
 
 func TestRequestAttrs_accessKeyValues(t *testing.T) {
@@ -21,16 +21,10 @@ func TestRequestAttrs_accessKeyValues(t *testing.T) {
 		val []any
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"full value",
-			[]string{},
-			[]string{},
 			&condition{
 				attr: &requestAttrs{
 					typ:    "test-type",
@@ -67,13 +61,11 @@ func TestRequestAttrs_accessKeyValues(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			val := tt.C().attr.accessKeyValues()
-			testutil.Diff(t, tt.A().val, val)
+		t.Run(tt.Name, func(t *testing.T) {
+			val := tt.C.attr.accessKeyValues()
+			testutil.Diff(t, tt.A.val, val)
 		})
 	}
 }
@@ -87,16 +79,10 @@ func TestRequestAttrs_journalKeyValues(t *testing.T) {
 		val []any
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"full value",
-			[]string{},
-			[]string{},
 			&condition{
 				attr: &requestAttrs{
 					typ:    "test-type",
@@ -134,13 +120,11 @@ func TestRequestAttrs_journalKeyValues(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			val := tt.C().attr.journalKeyValues()
-			testutil.Diff(t, tt.A().val, val)
+		t.Run(tt.Name, func(t *testing.T) {
+			val := tt.C.attr.journalKeyValues()
+			testutil.Diff(t, tt.A.val, val)
 		})
 	}
 }
@@ -154,10 +138,6 @@ func TestRequestAttrs_TagFunc(t *testing.T) {
 	type action struct {
 		val string
 	}
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
 
 	testAttr := &requestAttrs{
 		typ:    "test-type",
@@ -178,8 +158,6 @@ func TestRequestAttrs_TagFunc(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"id",
-			[]string{},
-			[]string{},
 			&condition{
 				attr: testAttr,
 				tag:  "id",
@@ -190,8 +168,6 @@ func TestRequestAttrs_TagFunc(t *testing.T) {
 		),
 		gen(
 			"time",
-			[]string{},
-			[]string{},
 			&condition{
 				attr: testAttr,
 				tag:  "time",
@@ -202,8 +178,6 @@ func TestRequestAttrs_TagFunc(t *testing.T) {
 		),
 		gen(
 			"host",
-			[]string{},
-			[]string{},
 			&condition{
 				attr: testAttr,
 				tag:  "host",
@@ -214,8 +188,6 @@ func TestRequestAttrs_TagFunc(t *testing.T) {
 		),
 		gen(
 			"method",
-			[]string{},
-			[]string{},
 			&condition{
 				attr: testAttr,
 				tag:  "method",
@@ -226,8 +198,6 @@ func TestRequestAttrs_TagFunc(t *testing.T) {
 		),
 		gen(
 			"path",
-			[]string{},
-			[]string{},
 			&condition{
 				attr: testAttr,
 				tag:  "path",
@@ -238,8 +208,6 @@ func TestRequestAttrs_TagFunc(t *testing.T) {
 		),
 		gen(
 			"query",
-			[]string{},
-			[]string{},
 			&condition{
 				attr: testAttr,
 				tag:  "query",
@@ -250,8 +218,6 @@ func TestRequestAttrs_TagFunc(t *testing.T) {
 		),
 		gen(
 			"remote",
-			[]string{},
-			[]string{},
 			&condition{
 				attr: testAttr,
 				tag:  "remote",
@@ -262,8 +228,6 @@ func TestRequestAttrs_TagFunc(t *testing.T) {
 		),
 		gen(
 			"proto",
-			[]string{},
-			[]string{},
 			&condition{
 				attr: testAttr,
 				tag:  "proto",
@@ -274,8 +238,6 @@ func TestRequestAttrs_TagFunc(t *testing.T) {
 		),
 		gen(
 			"size",
-			[]string{},
-			[]string{},
 			&condition{
 				attr: testAttr,
 				tag:  "size",
@@ -286,8 +248,6 @@ func TestRequestAttrs_TagFunc(t *testing.T) {
 		),
 		gen(
 			"header",
-			[]string{},
-			[]string{},
 			&condition{
 				attr: testAttr,
 				tag:  "header",
@@ -298,8 +258,6 @@ func TestRequestAttrs_TagFunc(t *testing.T) {
 		),
 		gen(
 			"r.body",
-			[]string{},
-			[]string{},
 			&condition{
 				attr: testAttr,
 				tag:  "body",
@@ -310,8 +268,6 @@ func TestRequestAttrs_TagFunc(t *testing.T) {
 		),
 		gen(
 			"header.key",
-			[]string{},
-			[]string{},
 			&condition{
 				attr: testAttr,
 				tag:  "header.key",
@@ -322,8 +278,6 @@ func TestRequestAttrs_TagFunc(t *testing.T) {
 		),
 		gen(
 			"type",
-			[]string{},
-			[]string{},
 			&condition{
 				attr: testAttr,
 				tag:  "type",
@@ -334,8 +288,6 @@ func TestRequestAttrs_TagFunc(t *testing.T) {
 		),
 		gen(
 			"not.exist",
-			[]string{},
-			[]string{},
 			&condition{
 				attr: testAttr,
 				tag:  "not.exist",
@@ -346,13 +298,11 @@ func TestRequestAttrs_TagFunc(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			val := tt.C().attr.TagFunc(tt.C().tag)
-			testutil.Diff(t, tt.A().val, string(val))
+		t.Run(tt.Name, func(t *testing.T) {
+			val := tt.C.attr.TagFunc(tt.C.tag)
+			testutil.Diff(t, tt.A.val, string(val))
 		})
 	}
 }
@@ -366,16 +316,10 @@ func TestResponseAttrs_accessKeyValues(t *testing.T) {
 		val []any
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"full value",
-			[]string{},
-			[]string{},
 			&condition{
 				attr: &responseAttrs{
 					typ:      "test-type",
@@ -404,13 +348,11 @@ func TestResponseAttrs_accessKeyValues(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			val := tt.C().attr.accessKeyValues()
-			testutil.Diff(t, tt.A().val, val)
+		t.Run(tt.Name, func(t *testing.T) {
+			val := tt.C.attr.accessKeyValues()
+			testutil.Diff(t, tt.A.val, val)
 		})
 	}
 }
@@ -424,16 +366,10 @@ func TestResponseAttrs_journalKeyValues(t *testing.T) {
 		val []any
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"full value",
-			[]string{},
-			[]string{},
 			&condition{
 				attr: &responseAttrs{
 					typ:      "test-type",
@@ -463,13 +399,11 @@ func TestResponseAttrs_journalKeyValues(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			val := tt.C().attr.journalKeyValues()
-			testutil.Diff(t, tt.A().val, val)
+		t.Run(tt.Name, func(t *testing.T) {
+			val := tt.C.attr.journalKeyValues()
+			testutil.Diff(t, tt.A.val, val)
 		})
 	}
 }
@@ -483,10 +417,6 @@ func TestResponseAttrs_TagFunc(t *testing.T) {
 	type action struct {
 		val string
 	}
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
 
 	testAttr := &responseAttrs{
 		typ:      "test-type",
@@ -503,8 +433,6 @@ func TestResponseAttrs_TagFunc(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"id",
-			[]string{},
-			[]string{},
 			&condition{
 				attr: testAttr,
 				tag:  "id",
@@ -515,8 +443,6 @@ func TestResponseAttrs_TagFunc(t *testing.T) {
 		),
 		gen(
 			"time",
-			[]string{},
-			[]string{},
 			&condition{
 				attr: testAttr,
 				tag:  "time",
@@ -527,8 +453,6 @@ func TestResponseAttrs_TagFunc(t *testing.T) {
 		),
 		gen(
 			"duration",
-			[]string{},
-			[]string{},
 			&condition{
 				attr: testAttr,
 				tag:  "duration",
@@ -539,8 +463,6 @@ func TestResponseAttrs_TagFunc(t *testing.T) {
 		),
 		gen(
 			"status",
-			[]string{},
-			[]string{},
 			&condition{
 				attr: testAttr,
 				tag:  "status",
@@ -551,8 +473,6 @@ func TestResponseAttrs_TagFunc(t *testing.T) {
 		),
 		gen(
 			"size",
-			[]string{},
-			[]string{},
 			&condition{
 				attr: testAttr,
 				tag:  "size",
@@ -563,8 +483,6 @@ func TestResponseAttrs_TagFunc(t *testing.T) {
 		),
 		gen(
 			"header",
-			[]string{},
-			[]string{},
 			&condition{
 				attr: testAttr,
 				tag:  "header",
@@ -575,8 +493,6 @@ func TestResponseAttrs_TagFunc(t *testing.T) {
 		),
 		gen(
 			"r.body",
-			[]string{},
-			[]string{},
 			&condition{
 				attr: testAttr,
 				tag:  "body",
@@ -587,8 +503,6 @@ func TestResponseAttrs_TagFunc(t *testing.T) {
 		),
 		gen(
 			"header.key",
-			[]string{},
-			[]string{},
 			&condition{
 				attr: testAttr,
 				tag:  "header.key",
@@ -599,8 +513,6 @@ func TestResponseAttrs_TagFunc(t *testing.T) {
 		),
 		gen(
 			"type",
-			[]string{},
-			[]string{},
 			&condition{
 				attr: testAttr,
 				tag:  "type",
@@ -611,8 +523,6 @@ func TestResponseAttrs_TagFunc(t *testing.T) {
 		),
 		gen(
 			"not.exist",
-			[]string{},
-			[]string{},
 			&condition{
 				attr: testAttr,
 				tag:  "not.exist",
@@ -623,13 +533,11 @@ func TestResponseAttrs_TagFunc(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			val := tt.C().attr.TagFunc(tt.C().tag)
-			testutil.Diff(t, tt.A().val, string(val))
+		t.Run(tt.Name, func(t *testing.T) {
+			val := tt.C.attr.TagFunc(tt.C.tag)
+			testutil.Diff(t, tt.A.val, string(val))
 		})
 	}
 }
@@ -642,16 +550,10 @@ func TestNewLogID(t *testing.T) {
 	type action struct {
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"counter 1",
-			[]string{},
-			[]string{},
 			&condition{
 				count: 1,
 			},
@@ -659,8 +561,6 @@ func TestNewLogID(t *testing.T) {
 		),
 		gen(
 			"counter 99999",
-			[]string{},
-			[]string{},
 			&condition{
 				count: 99999,
 			},
@@ -668,12 +568,10 @@ func TestNewLogID(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			counter.Store(tt.C().count)
+		t.Run(tt.Name, func(t *testing.T) {
+			counter.Store(tt.C.count)
 			now := time.Now().Unix()
 
 			id := newLogID()

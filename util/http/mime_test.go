@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -32,24 +32,10 @@ func TestNewTemplate(t *testing.T) {
 		err    error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndText := tb.Condition("text", "use normal text template")
-	cndGoText := tb.Condition("go text", "go text template")
-	cndGoHTML := tb.Condition("go html", "go html template")
-	cndValid := tb.Condition("valid template", "input valid template string")
-	actCheckResult := tb.Action("check result", "check that the returned result is the expected one")
-	actCheckNoError := tb.Action("no error", "check that there is no error")
-	actCheckError := tb.Action("error", "check that an error was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"text",
-			[]string{cndText, cndValid},
-			[]string{actCheckResult, actCheckNoError},
-			&condition{
+			"text", &condition{
 				spec: &v1.MIMEContentSpec{
 					MIMEType:     "text/plain",
 					StatusCode:   http.StatusOK,
@@ -66,10 +52,7 @@ func TestNewTemplate(t *testing.T) {
 			},
 		),
 		gen(
-			"text with status 0",
-			[]string{cndText, cndValid},
-			[]string{actCheckResult, actCheckNoError},
-			&condition{
+			"text with status 0", &condition{
 				spec: &v1.MIMEContentSpec{
 					MIMEType:     "text/plain",
 					StatusCode:   0,
@@ -86,10 +69,7 @@ func TestNewTemplate(t *testing.T) {
 			},
 		),
 		gen(
-			"text with header",
-			[]string{cndText, cndValid},
-			[]string{actCheckResult, actCheckNoError},
-			&condition{
+			"text with header", &condition{
 				spec: &v1.MIMEContentSpec{
 					MIMEType:     "text/plain",
 					StatusCode:   http.StatusOK,
@@ -107,10 +87,7 @@ func TestNewTemplate(t *testing.T) {
 			},
 		),
 		gen(
-			"text template",
-			[]string{cndGoText, cndValid},
-			[]string{actCheckResult, actCheckNoError},
-			&condition{
+			"text template", &condition{
 				spec: &v1.MIMEContentSpec{
 					MIMEType:     "text/plain",
 					StatusCode:   http.StatusOK,
@@ -127,10 +104,7 @@ func TestNewTemplate(t *testing.T) {
 			},
 		),
 		gen(
-			"html template",
-			[]string{cndGoHTML, cndValid},
-			[]string{actCheckResult, actCheckNoError},
-			&condition{
+			"html template", &condition{
 				spec: &v1.MIMEContentSpec{
 					MIMEType:     "text/plain",
 					StatusCode:   http.StatusOK,
@@ -147,10 +121,7 @@ func TestNewTemplate(t *testing.T) {
 			},
 		),
 		gen(
-			"invalid text template",
-			[]string{cndGoText},
-			[]string{actCheckError},
-			&condition{
+			"invalid text template", &condition{
 				spec: &v1.MIMEContentSpec{
 					MIMEType:     "text/plain",
 					StatusCode:   http.StatusOK,
@@ -168,10 +139,7 @@ func TestNewTemplate(t *testing.T) {
 			},
 		),
 		gen(
-			"invalid html template",
-			[]string{cndGoHTML},
-			[]string{actCheckError},
-			&condition{
+			"invalid html template", &condition{
 				spec: &v1.MIMEContentSpec{
 					MIMEType:     "text/plain",
 					StatusCode:   http.StatusOK,
@@ -189,10 +157,7 @@ func TestNewTemplate(t *testing.T) {
 			},
 		),
 		gen(
-			"empty mime type",
-			[]string{cndGoText},
-			[]string{actCheckError},
-			&condition{
+			"empty mime type", &condition{
 				spec: &v1.MIMEContentSpec{
 					MIMEType:     "",
 					StatusCode:   http.StatusOK,
@@ -210,10 +175,7 @@ func TestNewTemplate(t *testing.T) {
 			},
 		),
 		gen(
-			"invalid mime type",
-			[]string{cndGoText},
-			[]string{actCheckError},
-			&condition{
+			"invalid mime type", &condition{
 				spec: &v1.MIMEContentSpec{
 					MIMEType:     "invalid/text/plain",
 					StatusCode:   http.StatusOK,
@@ -231,10 +193,7 @@ func TestNewTemplate(t *testing.T) {
 			},
 		),
 		gen(
-			"text from file",
-			[]string{cndText, cndValid},
-			[]string{actCheckResult, actCheckNoError},
-			&condition{
+			"text from file", &condition{
 				spec: &v1.MIMEContentSpec{
 					MIMEType:     "text/plain",
 					StatusCode:   http.StatusOK,
@@ -251,10 +210,7 @@ func TestNewTemplate(t *testing.T) {
 			},
 		),
 		gen(
-			"file read error",
-			[]string{cndText, cndValid},
-			[]string{actCheckResult, actCheckError},
-			&condition{
+			"file read error", &condition{
 				spec: &v1.MIMEContentSpec{
 					MIMEType:     "text/plain",
 					StatusCode:   http.StatusOK,
@@ -273,24 +229,22 @@ func TestNewTemplate(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			c, err := utilhttp.NewMIMEContent(tt.C().spec)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
+		t.Run(tt.Name, func(t *testing.T) {
+			c, err := utilhttp.NewMIMEContent(tt.C.spec)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
 			if err != nil {
 				testutil.Diff(t, (*utilhttp.MIMEContent)(nil), c)
 				return
 			}
 
-			b := c.Content(tt.C().info)
-			testutil.Diff(t, tt.A().mime, c.MIMEType)
-			testutil.Diff(t, tt.A().status, c.StatusCode)
-			testutil.Diff(t, tt.A().result, string(b))
-			testutil.Diff(t, int(tt.C().spec.StatusCode), c.StatusCode)
-			testutil.Diff(t, tt.A().header, c.Header, cmpopts.SortMaps(func(x, y string) bool { return x > y }))
+			b := c.Content(tt.C.info)
+			testutil.Diff(t, tt.A.mime, c.MIMEType)
+			testutil.Diff(t, tt.A.status, c.StatusCode)
+			testutil.Diff(t, tt.A.result, string(b))
+			testutil.Diff(t, int(tt.C.spec.StatusCode), c.StatusCode)
+			testutil.Diff(t, tt.A.header, c.Header, cmpopts.SortMaps(func(x, y string) bool { return x > y }))
 		})
 	}
 }

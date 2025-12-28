@@ -6,8 +6,8 @@ package encoder
 import (
 	"testing"
 
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
@@ -20,21 +20,6 @@ func TestMarshalYaml(t *testing.T) {
 		out string
 		err error
 	}
-
-	cndNil := "input nil"
-	cndInvalidVal := "input invalid value"
-	actCheckExpected := "expected value returned"
-	actCheckNoError := "no error"
-	actCheckError := "expected error returned"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndNil, "give a valid encoded string")
-	tb.Condition(cndInvalidVal, "give an invalid value which will result in an error")
-	tb.Action(actCheckExpected, "Check that an expected value returned")
-	tb.Action(actCheckNoError, "Check that returned error is nil")
-	tb.Action(actCheckError, "Check that an expected error was returned")
-	table := tb.Build()
 
 	type testStruct struct {
 		Name string `yaml:"name"`
@@ -50,8 +35,6 @@ func TestMarshalYaml(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"encode struct",
-			[]string{},
-			[]string{actCheckExpected, actCheckNoError},
 			&condition{
 				in: &testStruct{Name: "John Doe", Age: 20},
 			},
@@ -62,8 +45,6 @@ func TestMarshalYaml(t *testing.T) {
 		),
 		gen(
 			"nil",
-			[]string{cndNil},
-			[]string{actCheckExpected, actCheckNoError},
 			&condition{
 				in: nil,
 			},
@@ -74,8 +55,6 @@ func TestMarshalYaml(t *testing.T) {
 		),
 		gen(
 			"panic on marshal",
-			[]string{cndInvalidVal},
-			[]string{actCheckError},
 			&condition{
 				in: func() {},
 			},
@@ -90,8 +69,6 @@ func TestMarshalYaml(t *testing.T) {
 		),
 		gen(
 			"failed to marshal",
-			[]string{cndInvalidVal},
-			[]string{actCheckError},
 			&condition{
 				in: testStructInvalidTag{
 					Name: "foo",
@@ -109,14 +86,12 @@ func TestMarshalYaml(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			out, err := MarshalYAML(tt.C().in)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
-			testutil.Diff(t, tt.A().out, string(out))
+		t.Run(tt.Name, func(t *testing.T) {
+			out, err := MarshalYAML(tt.C.in)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
+			testutil.Diff(t, tt.A.out, string(out))
 		})
 	}
 }
@@ -132,21 +107,6 @@ func TestUnmarshalYaml(t *testing.T) {
 		err    error
 	}
 
-	cndNil := "input nil"
-	cndInvalidVal := "input invalid value"
-	actCheckExpected := "expected value returned"
-	actCheckNoError := "no error"
-	actCheckError := "expected error returned"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndNil, "give a nil value as an input")
-	tb.Condition(cndInvalidVal, "give an invalid value which will result in an error")
-	tb.Action(actCheckExpected, "Check that an expected value returned")
-	tb.Action(actCheckNoError, "Check that returned error is nil")
-	tb.Action(actCheckError, "Check that an expected error was returned")
-	table := tb.Build()
-
 	type testStruct struct {
 		Name string `yaml:"name"`
 		Age  int    `yaml:"age"`
@@ -156,8 +116,6 @@ func TestUnmarshalYaml(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"decode yaml string",
-			[]string{},
-			[]string{actCheckExpected, actCheckNoError},
 			&condition{
 				in:   "name: John Doe\nage: 20\n",
 				into: &testStruct{},
@@ -169,8 +127,6 @@ func TestUnmarshalYaml(t *testing.T) {
 		),
 		gen(
 			"decode yaml string into valued struct",
-			[]string{},
-			[]string{actCheckExpected, actCheckNoError},
 			&condition{
 				in:   "name: John Doe\nage: 20\n",
 				into: &testStruct{Age: 20},
@@ -182,8 +138,6 @@ func TestUnmarshalYaml(t *testing.T) {
 		),
 		gen(
 			"nil",
-			[]string{cndNil},
-			[]string{actCheckExpected, actCheckNoError},
 			&condition{
 				in:   "",
 				into: nil,
@@ -195,8 +149,6 @@ func TestUnmarshalYaml(t *testing.T) {
 		),
 		gen(
 			"failed to marshal",
-			[]string{cndInvalidVal},
-			[]string{actCheckError},
 			&condition{
 				in:   "Invalid:Yaml",
 				into: &testStruct{},
@@ -212,14 +164,12 @@ func TestUnmarshalYaml(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			err := UnmarshalYAML([]byte(tt.C().in), tt.C().into)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
-			testutil.Diff(t, tt.A().result, tt.C().into)
+		t.Run(tt.Name, func(t *testing.T) {
+			err := UnmarshalYAML([]byte(tt.C.in), tt.C.into)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
+			testutil.Diff(t, tt.A.result, tt.C.into)
 		})
 	}
 }

@@ -9,7 +9,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	httputil "github.com/aileron-gateway/aileron-gateway/util/http"
 	"github.com/aileron-projects/go/ztime/zrate"
 )
@@ -79,16 +79,10 @@ func TestMiddleware(t *testing.T) {
 		resp2Status int
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"throttler accepts requests",
-			[]string{},
-			[]string{},
 			&condition{
 				throttle: throttle{
 					eh: nil,
@@ -106,8 +100,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"methods match",
-			[]string{},
-			[]string{},
 			&condition{
 				throttle: throttle{
 					eh: nil,
@@ -126,8 +118,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"methods not match",
-			[]string{},
-			[]string{},
 			&condition{
 				throttle: throttle{
 					eh: nil,
@@ -146,8 +136,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"paths not match",
-			[]string{},
-			[]string{},
 			&condition{
 				throttle: throttle{
 					eh: nil,
@@ -166,8 +154,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"no throttler",
-			[]string{},
-			[]string{},
 			&condition{},
 			&action{
 				resp1Status: http.StatusOK,
@@ -175,14 +161,12 @@ func TestMiddleware(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			th := throttle{
 				eh:         httputil.GlobalErrorHandler(httputil.DefaultErrorHandlerName),
-				throttlers: tt.C().throttle.throttlers,
+				throttlers: tt.C.throttle.throttlers,
 			}
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
 			resp := httptest.NewRecorder()
@@ -191,12 +175,12 @@ func TestMiddleware(t *testing.T) {
 			})
 			th.Middleware(h).ServeHTTP(resp, req)
 
-			testutil.Diff(t, tt.A().resp1Status, resp.Code)
+			testutil.Diff(t, tt.A.resp1Status, resp.Code)
 
-			if tt.C().sendSecondRequest {
+			if tt.C.sendSecondRequest {
 				resp = httptest.NewRecorder()
 				th.Middleware(h).ServeHTTP(resp, req)
-				testutil.Diff(t, tt.A().resp2Status, resp.Code)
+				testutil.Diff(t, tt.A.resp2Status, resp.Code)
 			}
 		})
 	}

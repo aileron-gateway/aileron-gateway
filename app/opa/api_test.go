@@ -10,8 +10,8 @@ import (
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/core"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
@@ -25,23 +25,10 @@ func TestCreate(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	CndDefaultManifest := tb.Condition("input default manifest", "input default manifest")
-	CndErrorReferenceLogSet := tb.Condition("input error reference to logger or log creator", "input error reference to logger or log creator")
-	CndErrorErrorHandlerSet := tb.Condition("input error reference to errorhandler", "input error reference to errorhandler")
-	CndSetRegoConfig := tb.Condition("input rego config", "input rego config")
-	CndInputInvalid := tb.Condition("input manifest with invalid value", "input wrong type of manifest as an argument")
-	CndInvalidRegoPolicyContent := tb.Condition("create with invalid rego policy content", "create with invalid rego policy content")
-	ActCheckNoError := tb.Action("check no error was returned", "check no error was returned")
-	ActCheckErrorMsg := tb.Action("check error message", "check the error messages that was returned")
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"create with default manifest",
-			[]string{CndDefaultManifest},
-			[]string{ActCheckNoError},
 			&condition{
 				manifest: &v1.OPAAuthzMiddleware{
 					Metadata: &k.Metadata{},
@@ -56,8 +43,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"fail to get logger",
-			[]string{CndErrorReferenceLogSet},
-			[]string{ActCheckErrorMsg},
 			&condition{
 				manifest: &v1.OPAAuthzMiddleware{
 					Metadata: &k.Metadata{},
@@ -76,8 +61,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"fail to get errorhandler",
-			[]string{CndErrorErrorHandlerSet},
-			[]string{ActCheckErrorMsg},
 			&condition{
 				manifest: &v1.OPAAuthzMiddleware{
 					Metadata: &k.Metadata{},
@@ -96,8 +79,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create with rego config",
-			[]string{CndSetRegoConfig},
-			[]string{ActCheckNoError},
 			&condition{
 				manifest: &v1.OPAAuthzMiddleware{
 					Metadata: &k.Metadata{},
@@ -120,8 +101,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create with invalid rego config",
-			[]string{CndInputInvalid},
-			[]string{ActCheckErrorMsg},
 			&condition{
 				manifest: &v1.OPAAuthzMiddleware{
 					Metadata: &k.Metadata{},
@@ -145,8 +124,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create with invalid rego policy content",
-			[]string{CndInvalidRegoPolicyContent},
-			[]string{ActCheckErrorMsg},
 			&condition{
 				manifest: &v1.OPAAuthzMiddleware{
 					Metadata: &k.Metadata{},
@@ -169,17 +146,14 @@ func TestCreate(t *testing.T) {
 			},
 		),
 	}
-	table := tb.Build()
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			server := api.NewContainerAPI()
 			a := &API{BaseResource: &api.BaseResource{}}
-			_, err := a.Create(server, tt.C().manifest)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+			_, err := a.Create(server, tt.C.manifest)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 		})
 	}
 }
@@ -196,8 +170,8 @@ func TestCreate(t *testing.T) {
 // 		errPattern *regexp.Regexp
 // 	}
 
-// 	tb := testutil.NewTableBuilder[*condition, *action]()
-// 	tb.Name(t.Name())
+//
+//
 
 // 	gen := testutil.NewCase[*condition, *action]
 // 	testCases := []*testutil.Case[*condition, *action]{
@@ -215,16 +189,16 @@ func TestCreate(t *testing.T) {
 // 			},
 // 		),
 // 	}
-// 	table := tb.Build()
-
-// 	testutil.Register(table, testCases...)
 //
-// 	for _, tt := range table.Entries() {
-// 		tt := tt
-// 		t.Run(tt.Name(), func(t *testing.T) {
 
-// 			_, err := regoQueries(tt.C().spec)
-// 			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+//
+//
+// 	for _, tt := range testCases  {
+// 		tt := tt
+// 		t.Run(tt.Name, func(t *testing.T) {
+
+// 			_, err := regoQueries(tt.C.spec)
+// 			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 
 // 		})
 // 	}
@@ -240,15 +214,10 @@ func TestEnvData(t *testing.T) {
 		expect map[string]any
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &v1.EnvDataSpec{
 					// PolicyFiles: "",
@@ -259,15 +228,12 @@ func TestEnvData(t *testing.T) {
 			},
 		),
 	}
-	table := tb.Build()
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			m := envData(tt.C().spec)
-			testutil.Diff(t, tt.A().expect, m)
+		t.Run(tt.Name, func(t *testing.T) {
+			m := envData(tt.C.spec)
+			testutil.Diff(t, tt.A.expect, m)
 		})
 	}
 }

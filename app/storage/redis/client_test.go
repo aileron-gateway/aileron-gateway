@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/aileron-gateway/aileron-gateway/app"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/kvs"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/redis/go-redis/v9"
 )
@@ -97,21 +97,10 @@ func TestOpen(t *testing.T) {
 		err any // error or errorutil.Kind
 	}
 
-	CndClient := "set client"
-	ActCheckNil := "expected nil returned"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(CndClient, "set client")
-	tb.Action(ActCheckNil, "check that expected nil returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"set client",
-			[]string{CndClient},
-			[]string{ActCheckNil},
 			&condition{
 				client: client{
 					timeout:    5 * time.Second,
@@ -124,13 +113,11 @@ func TestOpen(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			err := tt.C().client.Open(context.Background())
-			testutil.Diff(t, tt.A().err, err)
+		t.Run(tt.Name, func(t *testing.T) {
+			err := tt.C.client.Open(context.Background())
+			testutil.Diff(t, tt.A.err, err)
 		})
 	}
 }
@@ -145,25 +132,10 @@ func TestClose(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	CndCloseReturnsNil := "set Close method returns nil"
-	CndCloseReturnsNonNil := "set Close method returns non nil"
-	ActCheckNil := "expected nil returned"
-	ActCheckError := "expected error returned"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(CndCloseReturnsNil, "set Close method returns nil")
-	tb.Condition(CndCloseReturnsNonNil, "set Close method returns non nil")
-	tb.Action(ActCheckNil, "check that expected nil returned")
-	tb.Action(ActCheckError, "check that expected error returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"Close func returns nil",
-			[]string{CndCloseReturnsNil},
-			[]string{ActCheckNil},
 			&condition{
 				mock: &mocUniversalClient{
 					closeError: false,
@@ -176,8 +148,6 @@ func TestClose(t *testing.T) {
 		),
 		gen(
 			"Close func returns non nil",
-			[]string{CndCloseReturnsNonNil},
-			[]string{ActCheckError},
 			&condition{
 				mock: &mocUniversalClient{
 					closeError: true,
@@ -190,18 +160,16 @@ func TestClose(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			client := client{
-				UniversalClient: tt.C().mock,
+				UniversalClient: tt.C.mock,
 				timeout:         5 * time.Second,
 				expiration:      10 * time.Second,
 			}
 			err := client.Close(context.Background())
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 		})
 	}
 }
@@ -218,25 +186,10 @@ func TestGet(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	CndRedisNil := "set cmd.Err() returns redis.nil"
-	CndNonNilNonRedisNilError := "set cmd.Err() returns non nil and non redis.nil"
-	ActCheckNil := "expected nil returned"
-	ActCheckError := "expected error returned"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(CndRedisNil, "set cmd.Err() returns redis.nil")
-	tb.Condition(CndNonNilNonRedisNilError, "set cmd.Err() returns non nil and non redis.nil")
-	tb.Action(ActCheckNil, "check that expected nil returned")
-	tb.Action(ActCheckError, "check that expected error returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"cmd.Err() returns redis.nil",
-			[]string{CndRedisNil},
-			[]string{ActCheckError},
 			&condition{
 				mock: &mocUniversalClient{
 					getError: redisNil,
@@ -251,8 +204,6 @@ func TestGet(t *testing.T) {
 		),
 		gen(
 			"cmd.Err() returns non nil and non redis.nil",
-			[]string{CndNonNilNonRedisNilError},
-			[]string{ActCheckError},
 			&condition{
 				mock: &mocUniversalClient{
 					getError: someError,
@@ -267,20 +218,18 @@ func TestGet(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			client := client{
-				UniversalClient: tt.C().mock,
+				UniversalClient: tt.C.mock,
 				timeout:         5 * time.Second,
 				expiration:      10 * time.Second,
 			}
 
-			value, err := client.Get(tt.C().context, "")
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err, cmpopts.EquateErrors())
-			testutil.Diff(t, tt.A().value, value)
+			value, err := client.Get(tt.C.context, "")
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err, cmpopts.EquateErrors())
+			testutil.Diff(t, tt.A.value, value)
 		})
 	}
 }
@@ -296,23 +245,10 @@ func TestSet(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	CndNonNilError := "set cmd.Err() returns non nil"
-	ActCheckNil := "expected nil returned"
-	ActCheckError := "expected error returned"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(CndNonNilError, "set cmd.Err() returns non nil")
-	tb.Action(ActCheckNil, "check that expected nil returned")
-	tb.Action(ActCheckError, "check that expected error returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"cmd.Err() returns some error",
-			[]string{CndNonNilError},
-			[]string{ActCheckError},
 			&condition{
 				mock: &mocUniversalClient{
 					redisError: true,
@@ -326,18 +262,16 @@ func TestSet(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			client := client{
-				UniversalClient: tt.C().mock,
+				UniversalClient: tt.C.mock,
 				timeout:         5 * time.Second,
 				expiration:      10 * time.Second,
 			}
-			err := client.Set(tt.C().context, "", []byte{})
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+			err := client.Set(tt.C.context, "", []byte{})
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 		})
 	}
 }
@@ -353,23 +287,10 @@ func TestDelete(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	CndNonNilError := "set cmd.Err() returns non nil"
-	ActCheckNil := "expected nil returned"
-	ActCheckError := "expected error returned"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(CndNonNilError, "set cmd.Err() returns non nil")
-	tb.Action(ActCheckNil, "check that expected nil returned")
-	tb.Action(ActCheckError, "check that expected error returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"cmd.Err() returns some error",
-			[]string{CndNonNilError},
-			[]string{ActCheckError},
 			&condition{
 				mock: &mocUniversalClient{
 					redisError: true,
@@ -383,18 +304,16 @@ func TestDelete(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			client := client{
-				UniversalClient: tt.C().mock,
+				UniversalClient: tt.C.mock,
 				timeout:         5 * time.Second,
 				expiration:      10 * time.Second,
 			}
-			err := client.Delete(tt.C().context, "")
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+			err := client.Delete(tt.C.context, "")
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 		})
 	}
 }
@@ -409,23 +328,10 @@ func TestExists(t *testing.T) {
 		exists bool
 	}
 
-	CndRedisNil := "set cmd.Err() returns redis.Nil"
-	ActCheckNil := "expected nil returned"
-	ActCheckError := "expected error returned"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(CndRedisNil, "set cmd.Err() returns redis.Nil")
-	tb.Action(ActCheckNil, "check that expected nil returned")
-	tb.Action(ActCheckError, "check that expected error returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"cmd.Err() returns redis.Nil",
-			[]string{CndRedisNil},
-			[]string{ActCheckError},
 			&condition{
 				mock: &mocUniversalClient{
 					redisError: true,
@@ -438,18 +344,16 @@ func TestExists(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			client := client{
-				UniversalClient: tt.C().mock,
+				UniversalClient: tt.C.mock,
 				timeout:         5 * time.Second,
 				expiration:      10 * time.Second,
 			}
-			exists := client.Exists(tt.C().context, "")
-			testutil.Diff(t, tt.A().exists, exists)
+			exists := client.Exists(tt.C.context, "")
+			testutil.Diff(t, tt.A.exists, exists)
 		})
 	}
 }

@@ -7,7 +7,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-projects/go/ztime/zrate"
 )
 
@@ -19,15 +19,10 @@ func TestRetryThrottler(t *testing.T) {
 		accepted []bool
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"not exceeded/no retry",
-			[]string{}, []string{},
 			&condition{
 				throttler: &apiThrottler{
 					limiter:  zrate.NewFixedWindowLimiter(1),
@@ -40,7 +35,6 @@ func TestRetryThrottler(t *testing.T) {
 		),
 		gen(
 			"exceeded/no retry",
-			[]string{}, []string{},
 			&condition{
 				throttler: &apiThrottler{
 					limiter:  zrate.NewFixedWindowLimiter(2),
@@ -53,7 +47,6 @@ func TestRetryThrottler(t *testing.T) {
 		),
 		gen(
 			"exceeded/fail for retry",
-			[]string{}, []string{},
 			&condition{
 				throttler: &apiThrottler{
 					limiter:  zrate.NewFixedWindowLimiter(2),
@@ -66,7 +59,6 @@ func TestRetryThrottler(t *testing.T) {
 		),
 		gen(
 			"exceeded/with retry",
-			[]string{}, []string{},
 			&condition{
 				throttler: &apiThrottler{
 					limiter:  zrate.NewFixedWindowLimiter(2),
@@ -79,15 +71,13 @@ func TestRetryThrottler(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			rt := tt.C().throttler
+		t.Run(tt.Name, func(t *testing.T) {
+			rt := tt.C.throttler
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
-			for _, a := range tt.A().accepted {
+			for _, a := range tt.A.accepted {
 				ok, release := rt.accept(ctx)
 				if release != nil {
 					defer release()

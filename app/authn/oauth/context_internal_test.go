@@ -12,8 +12,8 @@ import (
 
 	"github.com/aileron-gateway/aileron-gateway/app"
 	"github.com/aileron-gateway/aileron-gateway/core"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -90,23 +90,10 @@ func TestValidOauthClaims(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndIDT := tb.Condition("IDT", "input non empty ID token")
-	cndAT := tb.Condition("AT signature", "input non empty access token")
-	cndTokenInvalid := tb.Condition("validate iss", "input token is invalid")
-	actCheckReAuth := tb.Action("re-auth", "check that re-authentication required")
-	actCheckToken := tb.Action("error", "check that a non-nil token is returned")
-	actCheckError := tb.Action("error", "check that an error was returned")
-	actCheckNoError := tb.Action("no error", "check that no error was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"nil token",
-			[]string{},
-			[]string{actCheckError, actCheckReAuth},
 			&condition{
 				oc: &oauthContext{
 					atParseOpts:  []jwt.ParserOption{jwt.WithIssuer("test-iss"), jwt.WithAudience("test-aud")},
@@ -122,8 +109,6 @@ func TestValidOauthClaims(t *testing.T) {
 		),
 		gen(
 			"ID and Access token empty",
-			[]string{},
-			[]string{actCheckError, actCheckReAuth},
 			&condition{
 				oc: &oauthContext{
 					atParseOpts:  []jwt.ParserOption{jwt.WithIssuer("test-iss"), jwt.WithAudience("test-aud")},
@@ -142,8 +127,6 @@ func TestValidOauthClaims(t *testing.T) {
 		),
 		gen(
 			"valid AT",
-			[]string{cndAT},
-			[]string{actCheckNoError, actCheckToken},
 			&condition{
 				oc: &oauthContext{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -172,8 +155,6 @@ func TestValidOauthClaims(t *testing.T) {
 		),
 		gen(
 			"validate AT failed with introspection",
-			[]string{cndAT, cndTokenInvalid},
-			[]string{actCheckError},
 			&condition{
 				oc: &oauthContext{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -207,8 +188,6 @@ func TestValidOauthClaims(t *testing.T) {
 		),
 		gen(
 			"validate AT failed with local validation",
-			[]string{cndAT, cndTokenInvalid},
-			[]string{actCheckError, actCheckReAuth},
 			&condition{
 				oc: &oauthContext{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -237,8 +216,6 @@ func TestValidOauthClaims(t *testing.T) {
 		),
 		gen(
 			"validate AT failed and Refresh failed with 400",
-			[]string{cndAT, cndTokenInvalid},
-			[]string{actCheckError, actCheckReAuth},
 			&condition{
 				oc: &oauthContext{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -273,8 +250,6 @@ func TestValidOauthClaims(t *testing.T) {
 		),
 		gen(
 			"validate AT failed and Refresh failed with 500",
-			[]string{cndAT},
-			[]string{actCheckError},
 			&condition{
 				oc: &oauthContext{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -310,8 +285,6 @@ func TestValidOauthClaims(t *testing.T) {
 		),
 		gen(
 			"validate AT failed and Refreshed AT invalid",
-			[]string{cndAT, cndTokenInvalid},
-			[]string{actCheckError, actCheckReAuth},
 			&condition{
 				oc: &oauthContext{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -348,8 +321,6 @@ func TestValidOauthClaims(t *testing.T) {
 		),
 		gen(
 			"valid IDT",
-			[]string{cndIDT},
-			[]string{actCheckNoError, actCheckToken},
 			&condition{
 				oc: &oauthContext{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -378,8 +349,6 @@ func TestValidOauthClaims(t *testing.T) {
 		),
 		gen(
 			"validate IDT failed",
-			[]string{cndIDT},
-			[]string{actCheckError},
 			&condition{
 				oc: &oauthContext{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -409,28 +378,26 @@ func TestValidOauthClaims(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			err := tt.C().oc.validOauthClaims(context.Background(), tt.C().tokens)
+		t.Run(tt.Name, func(t *testing.T) {
+			err := tt.C.oc.validOauthClaims(context.Background(), tt.C.tokens)
 
-			if tt.C().tokens != nil {
-				testutil.Diff(t, tt.A().tokens, tt.C().tokens, cmpopts.IgnoreUnexported(OAuthTokens{}))
+			if tt.C.tokens != nil {
+				testutil.Diff(t, tt.A.tokens, tt.C.tokens, cmpopts.IgnoreUnexported(OAuthTokens{}))
 			}
 
-			if tt.A().err == nil {
+			if tt.A.err == nil {
 				testutil.Diff(t, nil, err)
 				return
 			}
 
-			testutil.Diff(t, tt.A().errStatus, err.StatusCode())
-			if tt.A().err == reAuthenticationRequired {
+			testutil.Diff(t, tt.A.errStatus, err.StatusCode())
+			if tt.A.err == reAuthenticationRequired {
 				testutil.Diff(t, reAuthenticationRequired.Error(), err.Error())
 			} else {
 				e := err.(*utilhttp.HTTPError)
-				testutil.DiffError(t, tt.A().err, tt.A().errPattern, e.Unwrap())
+				testutil.DiffError(t, tt.A.err, tt.A.errPattern, e.Unwrap())
 			}
 		})
 	}
@@ -450,22 +417,10 @@ func TestOauthContext_validateAT(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndIntrospection := tb.Condition("introspection", "validate access token with introspection")
-	cndValidateSign := tb.Condition("validate signature", "validate jwt signature")
-	cndValidateIss := tb.Condition("validate iss", "validate iss claim in the JWT")
-	cndValidateAud := tb.Condition("validate aud", "validate aud claim in the JWT")
-	actCheckError := tb.Action("error", "check that an error was returned")
-	actCheckNoError := tb.Action("no error", "check that no error was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"introspect validation / valid minimal",
-			[]string{cndIntrospection},
-			[]string{actCheckNoError},
 			&condition{
 				oc: &oauthContext{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -503,8 +458,6 @@ func TestOauthContext_validateAT(t *testing.T) {
 		),
 		gen(
 			"introspect validation / failed",
-			[]string{cndIntrospection},
-			[]string{actCheckError},
 			&condition{
 				oc: &oauthContext{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -534,8 +487,6 @@ func TestOauthContext_validateAT(t *testing.T) {
 		),
 		gen(
 			"local validation / valid minimal",
-			[]string{cndValidateSign, cndValidateIss, cndValidateAud},
-			[]string{actCheckNoError},
 			&condition{
 				oc: &oauthContext{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -563,8 +514,6 @@ func TestOauthContext_validateAT(t *testing.T) {
 		),
 		gen(
 			"local validation / invalid JWT signature",
-			[]string{cndValidateSign, cndValidateIss, cndValidateAud},
-			[]string{actCheckError},
 			&condition{
 				oc: &oauthContext{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -589,8 +538,6 @@ func TestOauthContext_validateAT(t *testing.T) {
 		),
 		gen(
 			"local validation / invalid iss claim",
-			[]string{cndValidateSign, cndValidateIss, cndValidateAud},
-			[]string{actCheckError},
 			&condition{
 				oc: &oauthContext{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -616,8 +563,6 @@ func TestOauthContext_validateAT(t *testing.T) {
 		),
 		gen(
 			"local validation / invalid aud claim",
-			[]string{cndValidateSign, cndValidateIss, cndValidateAud},
-			[]string{actCheckError},
 			&condition{
 				oc: &oauthContext{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -643,26 +588,24 @@ func TestOauthContext_validateAT(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			claims, err := tt.C().oc.validateAT(tt.C().ctx, tt.C().at)
+		t.Run(tt.Name, func(t *testing.T) {
+			claims, err := tt.C.oc.validateAT(tt.C.ctx, tt.C.at)
 
-			testutil.Diff(t, tt.A().claims, claims)
+			testutil.Diff(t, tt.A.claims, claims)
 
-			if tt.A().err == nil {
+			if tt.A.err == nil {
 				testutil.Diff(t, nil, err)
 				return
 			}
 
-			testutil.Diff(t, tt.A().errStatus, err.StatusCode())
-			if tt.A().err == reAuthenticationRequired {
-				testutil.Diff(t, tt.A().err.Error(), err.Error())
+			testutil.Diff(t, tt.A.errStatus, err.StatusCode())
+			if tt.A.err == reAuthenticationRequired {
+				testutil.Diff(t, tt.A.err.Error(), err.Error())
 			} else {
 				e := err.(*utilhttp.HTTPError)
-				testutil.DiffError(t, tt.A().err, tt.A().errPattern, e.Unwrap())
+				testutil.DiffError(t, tt.A.err, tt.A.errPattern, e.Unwrap())
 			}
 		})
 	}
@@ -682,23 +625,10 @@ func TestOauthContext_validateIDT(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndValidateSign := tb.Condition("validate signature", "validate jwt signature")
-	cndValidateIss := tb.Condition("validate iss", "validate iss claim in the JWT")
-	cndValidateAud := tb.Condition("validate aud", "validate aud claim in the JWT")
-	cndValidateAzp := tb.Condition("validate azp", "validate azp claim in the JWT")
-	cndValidateOption := tb.Condition("validate options", "do optional validation")
-	actCheckError := tb.Action("error", "check that an error was returned")
-	actCheckNoError := tb.Action("no error", "check that no error was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"valid minimal",
-			[]string{cndValidateSign, cndValidateIss, cndValidateAud, cndValidateAzp},
-			[]string{actCheckNoError},
 			&condition{
 				oc: &oauthContext{
 					provider: &provider{
@@ -723,8 +653,6 @@ func TestOauthContext_validateIDT(t *testing.T) {
 		),
 		gen(
 			"valid with option",
-			[]string{cndValidateSign, cndValidateIss, cndValidateAud, cndValidateAzp, cndValidateOption},
-			[]string{actCheckNoError},
 			&condition{
 				oc: &oauthContext{
 					provider: &provider{
@@ -749,8 +677,6 @@ func TestOauthContext_validateIDT(t *testing.T) {
 		),
 		gen(
 			"invalid JWT signature",
-			[]string{cndValidateSign, cndValidateIss, cndValidateAud},
-			[]string{actCheckError},
 			&condition{
 				oc: &oauthContext{
 					provider: &provider{
@@ -774,8 +700,6 @@ func TestOauthContext_validateIDT(t *testing.T) {
 		),
 		gen(
 			"invalid iss claim",
-			[]string{cndValidateSign, cndValidateIss, cndValidateAud},
-			[]string{actCheckError},
 			&condition{
 				oc: &oauthContext{
 					provider: &provider{
@@ -800,8 +724,6 @@ func TestOauthContext_validateIDT(t *testing.T) {
 		),
 		gen(
 			"invalid aud claim",
-			[]string{cndValidateSign, cndValidateIss, cndValidateAud},
-			[]string{actCheckError},
 			&condition{
 				oc: &oauthContext{
 					provider: &provider{
@@ -826,8 +748,6 @@ func TestOauthContext_validateIDT(t *testing.T) {
 		),
 		gen(
 			"invalid azp claim",
-			[]string{cndValidateSign, cndValidateIss, cndValidateAud, cndValidateAzp},
-			[]string{actCheckError},
 			&condition{
 				oc: &oauthContext{
 					provider: &provider{
@@ -850,8 +770,6 @@ func TestOauthContext_validateIDT(t *testing.T) {
 		),
 		gen(
 			"option validation failed",
-			[]string{cndValidateSign, cndValidateIss, cndValidateAud, cndValidateAzp, cndValidateOption},
-			[]string{actCheckError},
 			&condition{
 				oc: &oauthContext{
 					provider: &provider{
@@ -877,26 +795,24 @@ func TestOauthContext_validateIDT(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			claims, err := tt.C().oc.validateIDT(tt.C().idt, tt.C().opts)
+		t.Run(tt.Name, func(t *testing.T) {
+			claims, err := tt.C.oc.validateIDT(tt.C.idt, tt.C.opts)
 
-			testutil.Diff(t, tt.A().claims, claims)
+			testutil.Diff(t, tt.A.claims, claims)
 
-			if tt.A().err == nil {
+			if tt.A.err == nil {
 				testutil.Diff(t, nil, err)
 				return
 			}
 
-			testutil.Diff(t, tt.A().errStatus, err.StatusCode())
-			if tt.A().err == reAuthenticationRequired {
+			testutil.Diff(t, tt.A.errStatus, err.StatusCode())
+			if tt.A.err == reAuthenticationRequired {
 				testutil.Diff(t, reAuthenticationRequired.Error(), err.Error())
 			} else {
 				e := err.(*utilhttp.HTTPError)
-				testutil.DiffError(t, tt.A().err, tt.A().errPattern, e.Unwrap())
+				testutil.DiffError(t, tt.A.err, tt.A.errPattern, e.Unwrap())
 			}
 		})
 	}
@@ -914,23 +830,10 @@ func TestMaxAgeValidation(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndSkip := tb.Condition("skip", "set max age 0 to skip validation")
-	cndMaxAge := tb.Condition("auth_time exists", "set positive maxAge to verify auth_time")
-	cndAuthTime := tb.Condition("auth_time exists", "auth_time claim is exist in the claims")
-	cndAuthTimeInvalid := tb.Condition("auth_time invalid", "invalid data type of auth_time claim")
-	actCheckError := tb.Action("error", "check that an error was returned")
-	actCheckNoError := tb.Action("no error", "check that no error was returned")
-	actCheckReAuth := tb.Action("re-auth", "check that re-authentication was required")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"no max age",
-			[]string{cndSkip, cndAuthTime},
-			[]string{actCheckNoError},
 			&condition{
 				opt: maxAgeValidation(0),
 				claims: jwt.MapClaims{
@@ -944,8 +847,6 @@ func TestMaxAgeValidation(t *testing.T) {
 		),
 		gen(
 			"fresh auth time",
-			[]string{cndMaxAge, cndAuthTime},
-			[]string{actCheckNoError},
 			&condition{
 				opt: maxAgeValidation(300),
 				claims: jwt.MapClaims{
@@ -959,8 +860,6 @@ func TestMaxAgeValidation(t *testing.T) {
 		),
 		gen(
 			"no auth time claim",
-			[]string{cndMaxAge},
-			[]string{actCheckError},
 			&condition{
 				opt:    maxAgeValidation(300),
 				claims: jwt.MapClaims{},
@@ -973,8 +872,6 @@ func TestMaxAgeValidation(t *testing.T) {
 		),
 		gen(
 			"invalid auth time claim",
-			[]string{cndMaxAge, cndAuthTime, cndAuthTimeInvalid},
-			[]string{actCheckError},
 			&condition{
 				opt: maxAgeValidation(300),
 				claims: jwt.MapClaims{
@@ -989,8 +886,6 @@ func TestMaxAgeValidation(t *testing.T) {
 		),
 		gen(
 			"old auth time",
-			[]string{cndMaxAge, cndAuthTime},
-			[]string{actCheckError, actCheckReAuth},
 			&condition{
 				opt: maxAgeValidation(300),
 				claims: jwt.MapClaims{
@@ -1004,23 +899,21 @@ func TestMaxAgeValidation(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			err := tt.C().opt.validate(tt.C().claims)
-			if tt.A().err == nil {
+		t.Run(tt.Name, func(t *testing.T) {
+			err := tt.C.opt.validate(tt.C.claims)
+			if tt.A.err == nil {
 				testutil.Diff(t, nil, err)
 				return
 			}
 
-			testutil.Diff(t, tt.A().errStatus, err.StatusCode())
-			if tt.A().err == reAuthenticationRequired {
+			testutil.Diff(t, tt.A.errStatus, err.StatusCode())
+			if tt.A.err == reAuthenticationRequired {
 				testutil.Diff(t, reAuthenticationRequired.Error(), err.Error())
 			} else {
 				e := err.(*utilhttp.HTTPError)
-				testutil.DiffError(t, tt.A().err, tt.A().errPattern, e.Unwrap())
+				testutil.DiffError(t, tt.A.err, tt.A.errPattern, e.Unwrap())
 			}
 		})
 	}
@@ -1038,22 +931,10 @@ func TestNonceValidation(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndSkip := tb.Condition("skip", "set empty string for nonce to skip verification")
-	cndValidateNonce := tb.Condition("validate nonce", "set non empty nonce to validate nonce claim")
-	cndNonceClaims := tb.Condition("nonce claim", "set non empty nonce claim in the claims")
-	cndNonceInvalid := tb.Condition("invalid nonce", "set invalid nonce claim in the claims")
-	actCheckError := tb.Action("error", "check that an error was returned")
-	actCheckNoError := tb.Action("no error", "check that no error was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"no nonce",
-			[]string{cndSkip, cndNonceClaims},
-			[]string{actCheckNoError},
 			&condition{
 				opt: nonceValidation(""),
 				claims: jwt.MapClaims{
@@ -1067,8 +948,6 @@ func TestNonceValidation(t *testing.T) {
 		),
 		gen(
 			"valid nonce",
-			[]string{cndValidateNonce, cndNonceClaims},
-			[]string{actCheckNoError},
 			&condition{
 				opt: nonceValidation("test_nonce_value"),
 				claims: jwt.MapClaims{
@@ -1082,8 +961,6 @@ func TestNonceValidation(t *testing.T) {
 		),
 		gen(
 			"no nonce claim",
-			[]string{cndValidateNonce},
-			[]string{actCheckError},
 			&condition{
 				opt:    nonceValidation("test_nonce_value"),
 				claims: jwt.MapClaims{},
@@ -1096,8 +973,6 @@ func TestNonceValidation(t *testing.T) {
 		),
 		gen(
 			"invalid nonce claim",
-			[]string{cndValidateNonce, cndNonceClaims, cndNonceInvalid},
-			[]string{actCheckError},
 			&condition{
 				opt: nonceValidation("test_nonce_value"),
 				claims: jwt.MapClaims{
@@ -1112,23 +987,21 @@ func TestNonceValidation(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			err := tt.C().opt.validate(tt.C().claims)
-			if tt.A().err == nil {
+		t.Run(tt.Name, func(t *testing.T) {
+			err := tt.C.opt.validate(tt.C.claims)
+			if tt.A.err == nil {
 				testutil.Diff(t, nil, err)
 				return
 			}
 
-			testutil.Diff(t, tt.A().errStatus, err.StatusCode())
-			if tt.A().err == reAuthenticationRequired {
+			testutil.Diff(t, tt.A.errStatus, err.StatusCode())
+			if tt.A.err == reAuthenticationRequired {
 				testutil.Diff(t, reAuthenticationRequired.Error(), err.Error())
 			} else {
 				e := err.(*utilhttp.HTTPError)
-				testutil.DiffError(t, tt.A().err, tt.A().errPattern, e.Unwrap())
+				testutil.DiffError(t, tt.A.err, tt.A.errPattern, e.Unwrap())
 			}
 		})
 	}
@@ -1143,21 +1016,10 @@ func TestNewMapWithKeys(t *testing.T) {
 		result map[string]any
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndKeyExists := tb.Condition("key exists", "key exists in the given source map")
-	cndKeyProvided := tb.Condition("key provided", "non empty key list is provided")
-	cndMapProvided := tb.Condition("map provided", "non-nil source map is provided")
-	actCheckValue := tb.Action("check value", "check that the matched values are returned by the map")
-	actCheckEmpty := tb.Action("check empty", "check that empty map was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"all keys found",
-			[]string{cndKeyProvided, cndMapProvided, cndKeyExists},
-			[]string{actCheckValue},
 			&condition{
 				src: map[string]any{
 					"key1": "string",
@@ -1180,8 +1042,6 @@ func TestNewMapWithKeys(t *testing.T) {
 		),
 		gen(
 			"keys found",
-			[]string{cndKeyProvided, cndMapProvided, cndKeyExists},
-			[]string{actCheckValue},
 			&condition{
 				src: map[string]any{
 					"key1": "string",
@@ -1200,8 +1060,6 @@ func TestNewMapWithKeys(t *testing.T) {
 		),
 		gen(
 			"keys not found",
-			[]string{cndKeyProvided, cndMapProvided, cndKeyExists},
-			[]string{actCheckEmpty},
 			&condition{
 				src: map[string]any{
 					"key1": "string",
@@ -1218,8 +1076,6 @@ func TestNewMapWithKeys(t *testing.T) {
 		),
 		gen(
 			"keys not provided",
-			[]string{cndMapProvided},
-			[]string{actCheckEmpty},
 			&condition{
 				src: map[string]any{
 					"key1": "string",
@@ -1236,8 +1092,6 @@ func TestNewMapWithKeys(t *testing.T) {
 		),
 		gen(
 			"source map not provided",
-			[]string{cndKeyProvided, cndKeyExists},
-			[]string{actCheckEmpty},
 			&condition{
 				src:  nil,
 				keys: []string{"key1", "key2", "key3", "key4", "key5"},
@@ -1248,13 +1102,11 @@ func TestNewMapWithKeys(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			result := newMapWithKeys(tt.C().keys, tt.C().src)
-			testutil.Diff(t, tt.A().result, result)
+		t.Run(tt.Name, func(t *testing.T) {
+			result := newMapWithKeys(tt.C.keys, tt.C.src)
+			testutil.Diff(t, tt.A.result, result)
 		})
 	}
 }

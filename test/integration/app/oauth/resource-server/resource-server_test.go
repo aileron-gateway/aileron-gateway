@@ -19,8 +19,8 @@ import (
 	apps "github.com/aileron-gateway/aileron-gateway/app"
 	"github.com/aileron-gateway/aileron-gateway/cmd/aileron/app"
 	"github.com/aileron-gateway/aileron-gateway/core"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/aileron-gateway/aileron-gateway/test/integration/common"
 )
 

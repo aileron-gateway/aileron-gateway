@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/encrypt"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 )
 
 func TestNewPasswordCrypt(t *testing.T) {

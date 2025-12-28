@@ -14,9 +14,9 @@ package opa
 // 		err error
 // 	}
 
-// 	tb := testutil.NewTableBuilder[*condition, *action]()
-// 	tb.Name(t.Name())
-// 	table := tb.Build()
+//
+//
+//
 
 // 	testData := "../../../test/ut/app/opa/"
 
@@ -67,14 +67,14 @@ package opa
 // 		),
 // 	}
 
-// 	testutil.Register(table, testCases...)
+//
 
-// 	for _, tt := range table.Entries() {
+// 	for _, tt := range testCases  {
 // 		tt := tt
-// 		t.Run(tt.Name(), func(t *testing.T) {
+// 		t.Run(tt.Name, func(t *testing.T) {
 
-// 			b, err := loadBundle(tt.C().path, tt.C().rt, tt.C().loader)
-// 			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
+// 			b, err := loadBundle(tt.C.path, tt.C.rt, tt.C.loader)
+// 			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
 // 			if err != nil {
 // 				testutil.Diff(t, (*bundle.Bundle)(nil), b)
 // 				return

@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	httputil "github.com/aileron-gateway/aileron-gateway/util/http"
 )
 
@@ -32,16 +32,10 @@ func TestAPITimeout(t *testing.T) {
 		match   bool
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"no methods",
-			[]string{},
-			[]string{},
 			&condition{
 				method: http.MethodGet,
 				timeouts: &apiTimeout{
@@ -57,8 +51,6 @@ func TestAPITimeout(t *testing.T) {
 		),
 		gen(
 			"match method",
-			[]string{},
-			[]string{},
 			&condition{
 				method: http.MethodGet,
 				timeouts: &apiTimeout{
@@ -74,8 +66,6 @@ func TestAPITimeout(t *testing.T) {
 		),
 		gen(
 			"not match method",
-			[]string{},
-			[]string{},
 			&condition{
 				method: http.MethodGet,
 				timeouts: &apiTimeout{
@@ -91,8 +81,6 @@ func TestAPITimeout(t *testing.T) {
 		),
 		gen(
 			"not match path",
-			[]string{},
-			[]string{},
 			&condition{
 				method: http.MethodGet,
 				timeouts: &apiTimeout{
@@ -108,16 +96,14 @@ func TestAPITimeout(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			r := httptest.NewRequest(tt.C().method, "http://test.com", nil)
-			to, match := tt.C().timeouts.duration(r)
+		t.Run(tt.Name, func(t *testing.T) {
+			r := httptest.NewRequest(tt.C.method, "http://test.com", nil)
+			to, match := tt.C.timeouts.duration(r)
 
-			testutil.Diff(t, tt.A().timeout, to)
-			testutil.Diff(t, tt.A().match, match)
+			testutil.Diff(t, tt.A.timeout, to)
+			testutil.Diff(t, tt.A.match, match)
 		})
 	}
 }
@@ -134,16 +120,10 @@ func TestMiddleware(t *testing.T) {
 		timeout int64
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"default timeout",
-			[]string{},
-			[]string{},
 			&condition{
 				defaultTimeout: 10 * time.Second,
 				makeTimeout:    false,
@@ -155,8 +135,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"single apiTimeout/match",
-			[]string{},
-			[]string{},
 			&condition{
 				defaultTimeout: 10 * time.Second,
 				apiTimeouts: []*apiTimeout{
@@ -175,8 +153,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"single apiTimeout/not match",
-			[]string{},
-			[]string{},
 			&condition{
 				defaultTimeout: 10 * time.Second,
 				apiTimeouts: []*apiTimeout{
@@ -195,8 +171,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"multiple *apiTimeout/match none",
-			[]string{},
-			[]string{},
 			&condition{
 				defaultTimeout: 10 * time.Second,
 				apiTimeouts: []*apiTimeout{
@@ -220,8 +194,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"multiple *apiTimeout/match first",
-			[]string{},
-			[]string{},
 			&condition{
 				defaultTimeout: 10 * time.Second,
 				apiTimeouts: []*apiTimeout{
@@ -245,8 +217,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"multiple *apiTimeout/match second",
-			[]string{},
-			[]string{},
 			&condition{
 				defaultTimeout: 10 * time.Second,
 				apiTimeouts: []*apiTimeout{
@@ -270,8 +240,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"timeout occur",
-			[]string{},
-			[]string{},
 			&condition{
 				defaultTimeout: 10 * time.Second,
 				apiTimeouts: []*apiTimeout{
@@ -289,14 +257,12 @@ func TestMiddleware(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			to := timeout{
-				defaultTimeout: tt.C().defaultTimeout,
-				apiTimeouts:    tt.C().apiTimeouts,
+				defaultTimeout: tt.C.defaultTimeout,
+				apiTimeouts:    tt.C.apiTimeouts,
 				eh:             httputil.GlobalErrorHandler(httputil.DefaultErrorHandlerName),
 			}
 
@@ -305,14 +271,14 @@ func TestMiddleware(t *testing.T) {
 
 			h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				deadline, _ := r.Context().Deadline()
-				testutil.Diff(t, tt.A().timeout, deadline.Unix()-time.Now().Unix())
-				if tt.C().makeTimeout {
+				testutil.Diff(t, tt.A.timeout, deadline.Unix()-time.Now().Unix())
+				if tt.C.makeTimeout {
 					<-r.Context().Done()
 				}
 			})
 			to.Middleware(h).ServeHTTP(resp, req)
 
-			testutil.Diff(t, tt.A().status, resp.Code)
+			testutil.Diff(t, tt.A.status, resp.Code)
 		})
 	}
 }

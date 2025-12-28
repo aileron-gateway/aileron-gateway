@@ -6,8 +6,8 @@ package encoder
 import (
 	"testing"
 
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
@@ -23,22 +23,6 @@ func TestMarshalJSON(t *testing.T) {
 		out string
 		err error
 	}
-
-	cndNil := "input nil"
-	cndInvalidVal := "input invalid value"
-	actCheckExpected := "expected value returned"
-	actCheckNoError := "no error"
-	actCheckError := "expected error returned"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndNil, "give a valid encoded string")
-	tb.Condition(cndInvalidVal, "give an invalid value which will result in an error")
-	tb.Action(actCheckExpected, "Check that an expected value returned")
-	tb.Action(actCheckNoError, "Check that returned error is nil")
-	tb.Action(actCheckError, "Check that an expected error was returned")
-	table := tb.Build()
-
 	type testStruct struct {
 		Name string `json:"name"`
 		Age  int    `json:"age"`
@@ -48,8 +32,6 @@ func TestMarshalJSON(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"encode struct",
-			[]string{},
-			[]string{actCheckExpected, actCheckNoError},
 			&condition{
 				in: &testStruct{Name: "John Doe", Age: 20},
 			},
@@ -60,8 +42,6 @@ func TestMarshalJSON(t *testing.T) {
 		),
 		gen(
 			"nil",
-			[]string{cndNil},
-			[]string{actCheckExpected, actCheckNoError},
 			&condition{
 				in: nil,
 			},
@@ -72,8 +52,6 @@ func TestMarshalJSON(t *testing.T) {
 		),
 		gen(
 			"failed to marshal",
-			[]string{cndInvalidVal},
-			[]string{actCheckError},
 			&condition{
 				in: func() {},
 			},
@@ -88,14 +66,12 @@ func TestMarshalJSON(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			out, err := MarshalJSON(tt.C().in)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
-			testutil.Diff(t, tt.A().out, string(out))
+		t.Run(tt.Name, func(t *testing.T) {
+			out, err := MarshalJSON(tt.C.in)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
+			testutil.Diff(t, tt.A.out, string(out))
 		})
 	}
 }
@@ -111,21 +87,6 @@ func TestUnmarshalJSON(t *testing.T) {
 		err    error
 	}
 
-	cndNil := "input nil"
-	cndInvalidVal := "input invalid value"
-	actCheckExpected := "expected value returned"
-	actCheckNoError := "no error"
-	actCheckError := "expected error returned"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndNil, "give a nil value as an input")
-	tb.Condition(cndInvalidVal, "give an invalid value which will result in an error")
-	tb.Action(actCheckExpected, "Check that an expected value returned")
-	tb.Action(actCheckNoError, "Check that returned error is nil")
-	tb.Action(actCheckError, "Check that an expected error was returned")
-	table := tb.Build()
-
 	type testStruct struct {
 		Name string `json:"name"`
 		Age  int    `json:"age"`
@@ -135,8 +96,6 @@ func TestUnmarshalJSON(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"decode json string",
-			[]string{},
-			[]string{actCheckExpected, actCheckNoError},
 			&condition{
 				in:   `{"name":"John Doe", "age":20}`,
 				into: &testStruct{},
@@ -148,8 +107,6 @@ func TestUnmarshalJSON(t *testing.T) {
 		),
 		gen(
 			"decode json string into valued struct",
-			[]string{},
-			[]string{actCheckExpected, actCheckNoError},
 			&condition{
 				in:   `{"name":"John Doe"}`,
 				into: &testStruct{Age: 20},
@@ -161,8 +118,6 @@ func TestUnmarshalJSON(t *testing.T) {
 		),
 		gen(
 			"nil",
-			[]string{cndNil},
-			[]string{actCheckExpected, actCheckNoError},
 			&condition{
 				in:   "",
 				into: nil,
@@ -174,8 +129,6 @@ func TestUnmarshalJSON(t *testing.T) {
 		),
 		gen(
 			"failed to marshal",
-			[]string{cndInvalidVal},
-			[]string{actCheckError},
 			&condition{
 				in:   `{Invalid JSON}`,
 				into: &testStruct{},
@@ -191,14 +144,12 @@ func TestUnmarshalJSON(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			err := UnmarshalJSON([]byte(tt.C().in), tt.C().into)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
-			testutil.Diff(t, tt.A().result, tt.C().into)
+		t.Run(tt.Name, func(t *testing.T) {
+			err := UnmarshalJSON([]byte(tt.C.in), tt.C.into)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
+			testutil.Diff(t, tt.A.result, tt.C.into)
 		})
 	}
 }

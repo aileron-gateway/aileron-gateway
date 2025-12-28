@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
@@ -24,17 +24,10 @@ func TestNewHTTPError(t *testing.T) {
 		err *HTTPError
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"with non-nil error",
-			[]string{},
-			[]string{},
-			&condition{
+			"with non-nil error", &condition{
 				err:    io.EOF,
 				status: http.StatusOK,
 			},
@@ -47,10 +40,7 @@ func TestNewHTTPError(t *testing.T) {
 			},
 		),
 		gen(
-			"with nil error",
-			[]string{},
-			[]string{},
-			&condition{
+			"with nil error", &condition{
 				err:    nil,
 				status: http.StatusOK,
 			},
@@ -63,10 +53,7 @@ func TestNewHTTPError(t *testing.T) {
 			},
 		),
 		gen(
-			"status 0",
-			[]string{},
-			[]string{},
-			&condition{
+			"status 0", &condition{
 				err:    io.EOF,
 				status: 0,
 			},
@@ -80,19 +67,17 @@ func TestNewHTTPError(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			e := NewHTTPError(tt.C().err, tt.C().status)
+		t.Run(tt.Name, func(t *testing.T) {
+			e := NewHTTPError(tt.C.err, tt.C.status)
 
 			opts := []cmp.Option{
 				cmp.AllowUnexported(HTTPError{}),
 				cmpopts.IgnoreFields(HTTPError{}, "inner"),
 			}
-			testutil.Diff(t, tt.A().err, e, opts...)
-			testutil.Diff(t, tt.A().err.inner, tt.C().err, cmpopts.EquateErrors())
+			testutil.Diff(t, tt.A.err, e, opts...)
+			testutil.Diff(t, tt.A.err.inner, tt.C.err, cmpopts.EquateErrors())
 		})
 	}
 }
@@ -113,19 +98,12 @@ func TestHTTPError(t *testing.T) {
 		body        string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	testErr := errors.New("test error")
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"status 0",
-			[]string{},
-			[]string{},
-			&condition{
+			"status 0", &condition{
 				err: &HTTPError{
 					status: 0,
 				},
@@ -138,10 +116,7 @@ func TestHTTPError(t *testing.T) {
 			},
 		),
 		gen(
-			"no internal error",
-			[]string{},
-			[]string{},
-			&condition{
+			"no internal error", &condition{
 				err: &HTTPError{
 					status: http.StatusOK,
 				},
@@ -154,10 +129,7 @@ func TestHTTPError(t *testing.T) {
 			},
 		),
 		gen(
-			"internal error",
-			[]string{},
-			[]string{},
-			&condition{
+			"internal error", &condition{
 				err: &HTTPError{
 					inner:  testErr,
 					status: http.StatusOK,
@@ -172,10 +144,7 @@ func TestHTTPError(t *testing.T) {
 			},
 		),
 		gen(
-			"unsupported mime",
-			[]string{},
-			[]string{},
-			&condition{
+			"unsupported mime", &condition{
 				err: &HTTPError{
 					status: http.StatusOK,
 				},
@@ -189,10 +158,7 @@ func TestHTTPError(t *testing.T) {
 			},
 		),
 		gen(
-			"non empty header mime",
-			[]string{},
-			[]string{},
-			&condition{
+			"non empty header mime", &condition{
 				err: &HTTPError{
 					status: http.StatusOK,
 					header: http.Header{"Foo": []string{"bar"}},
@@ -207,10 +173,7 @@ func TestHTTPError(t *testing.T) {
 			},
 		),
 		gen(
-			"application/json",
-			[]string{},
-			[]string{},
-			&condition{
+			"application/json", &condition{
 				err: &HTTPError{
 					status: http.StatusOK,
 				},
@@ -224,10 +187,7 @@ func TestHTTPError(t *testing.T) {
 			},
 		),
 		gen(
-			"application/json with elem",
-			[]string{},
-			[]string{},
-			&condition{
+			"application/json with elem", &condition{
 				err: &HTTPError{
 					status: http.StatusOK,
 				},
@@ -242,10 +202,7 @@ func TestHTTPError(t *testing.T) {
 			},
 		),
 		gen(
-			"application/xml",
-			[]string{},
-			[]string{},
-			&condition{
+			"application/xml", &condition{
 				err: &HTTPError{
 					status: http.StatusOK,
 				},
@@ -259,10 +216,7 @@ func TestHTTPError(t *testing.T) {
 			},
 		),
 		gen(
-			"application/xml with elem",
-			[]string{},
-			[]string{},
-			&condition{
+			"application/xml with elem", &condition{
 				err: &HTTPError{
 					status: http.StatusOK,
 				},
@@ -277,10 +231,7 @@ func TestHTTPError(t *testing.T) {
 			},
 		),
 		gen(
-			"text/plain",
-			[]string{},
-			[]string{},
-			&condition{
+			"text/plain", &condition{
 				err: &HTTPError{
 					status: http.StatusOK,
 				},
@@ -294,10 +245,7 @@ func TestHTTPError(t *testing.T) {
 			},
 		),
 		gen(
-			"text/plain with elem",
-			[]string{},
-			[]string{},
-			&condition{
+			"text/plain with elem", &condition{
 				err: &HTTPError{
 					status: http.StatusOK,
 				},
@@ -313,22 +261,20 @@ func TestHTTPError(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			e := tt.C().err
-			for _, elem := range tt.C().errs {
+		t.Run(tt.Name, func(t *testing.T) {
+			e := tt.C.err
+			for _, elem := range tt.C.errs {
 				e.AddError(elem)
 			}
-			contentType, body := e.Content(tt.C().accept)
-			testutil.Diff(t, tt.A().err, e.Unwrap(), cmpopts.EquateErrors())
-			testutil.Diff(t, tt.A().errStr, e.Error())
-			testutil.Diff(t, tt.A().status, e.StatusCode())
-			testutil.Diff(t, tt.A().contentType, contentType)
-			testutil.Diff(t, tt.A().header, e.Header())
-			testutil.Diff(t, tt.A().body, string(body))
+			contentType, body := e.Content(tt.C.accept)
+			testutil.Diff(t, tt.A.err, e.Unwrap(), cmpopts.EquateErrors())
+			testutil.Diff(t, tt.A.errStr, e.Error())
+			testutil.Diff(t, tt.A.status, e.StatusCode())
+			testutil.Diff(t, tt.A.contentType, contentType)
+			testutil.Diff(t, tt.A.header, e.Header())
+			testutil.Diff(t, tt.A.body, string(body))
 		})
 	}
 }

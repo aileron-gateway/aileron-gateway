@@ -9,8 +9,8 @@ import (
 	"testing"
 	ttpl "text/template"
 
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
@@ -26,24 +26,10 @@ func TestNewTemplate(t *testing.T) {
 		err    error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndText := tb.Condition("text", "use normal text template")
-	cndGoText := tb.Condition("go text", "go text template")
-	cndGoHTML := tb.Condition("go html", "go html template")
-	cndValid := tb.Condition("valid template", "input valid template string")
-	actCheckResult := tb.Action("check result", "check that the returned result is the expected one")
-	actCheckNoError := tb.Action("no error", "check that there is no error")
-	actCheckError := tb.Action("error", "check that an error was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"text",
-			[]string{cndText, cndValid},
-			[]string{actCheckResult, actCheckNoError},
-			&condition{
+			"text", &condition{
 				typ:  TplText,
 				tpl:  "test {{.tag}}",
 				info: map[string]any{"tag": "template"},
@@ -53,10 +39,7 @@ func TestNewTemplate(t *testing.T) {
 			},
 		),
 		gen(
-			"text template",
-			[]string{cndGoText, cndValid},
-			[]string{actCheckResult, actCheckNoError},
-			&condition{
+			"text template", &condition{
 				typ:  TplGoText,
 				tpl:  "test {{.tag}}",
 				info: map[string]any{"tag": "template"},
@@ -66,10 +49,7 @@ func TestNewTemplate(t *testing.T) {
 			},
 		),
 		gen(
-			"html template",
-			[]string{cndGoHTML, cndValid},
-			[]string{actCheckResult, actCheckNoError},
-			&condition{
+			"html template", &condition{
 				typ:  TplGoHTML,
 				tpl:  "test {{.tag}}",
 				info: map[string]any{"tag": "template"},
@@ -79,10 +59,7 @@ func TestNewTemplate(t *testing.T) {
 			},
 		),
 		gen(
-			"invalid text template",
-			[]string{},
-			[]string{actCheckError},
-			&condition{
+			"invalid text template", &condition{
 				typ:  TplGoText,
 				tpl:  "test {{.tag}",
 				info: map[string]any{"tag": "template"},
@@ -96,10 +73,7 @@ func TestNewTemplate(t *testing.T) {
 			},
 		),
 		gen(
-			"invalid html template",
-			[]string{},
-			[]string{actCheckError},
-			&condition{
+			"invalid html template", &condition{
 				typ:  TplGoHTML,
 				tpl:  "test {{.tag}",
 				info: map[string]any{"tag": "template"},
@@ -113,10 +87,7 @@ func TestNewTemplate(t *testing.T) {
 			},
 		),
 		gen(
-			"unsupported type",
-			[]string{},
-			[]string{actCheckError},
-			&condition{
+			"unsupported type", &condition{
 				typ:  TemplateType(999),
 				tpl:  "test {{.tag}}",
 				info: map[string]any{"tag": "template"},
@@ -131,20 +102,18 @@ func TestNewTemplate(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			tpl, err := NewTemplate(tt.C().typ, tt.C().tpl)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
+		t.Run(tt.Name, func(t *testing.T) {
+			tpl, err := NewTemplate(tt.C.typ, tt.C.tpl)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
 			if err != nil {
 				testutil.Diff(t, nil, tpl)
 				return
 			}
 
-			b := tpl.Content(tt.C().info)
-			testutil.Diff(t, tt.A().result, string(b))
+			b := tpl.Content(tt.C.info)
+			testutil.Diff(t, tt.A.result, string(b))
 		})
 	}
 }
@@ -158,17 +127,6 @@ func TestTemplate_Content(t *testing.T) {
 	type action struct {
 		result string
 	}
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndText := tb.Condition("text", "use normal text template")
-	cndGoText := tb.Condition("go text", "go text template")
-	cndGoHTML := tb.Condition("go html", "go html template")
-	cndFallback := tb.Condition("fallback", "make error for fallback")
-	cndNilMap := tb.Condition("nil map", "input nil as map")
-	actCheckResult := tb.Action("check result", "check that the returned result is the expected one")
-	actCheckFallback := tb.Action("fallback", "check that fallback occurred by an error")
-	table := tb.Build()
 
 	mustTextTpl := func(tpl string) *ttpl.Template {
 		name := md5.Sum([]byte(tpl))
@@ -190,10 +148,7 @@ func TestTemplate_Content(t *testing.T) {
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"text",
-			[]string{cndText},
-			[]string{actCheckResult},
-			&condition{
+			"text", &condition{
 				tpl: &textTemplate{
 					tpl: []byte("test {{.tag}}"),
 				},
@@ -203,10 +158,7 @@ func TestTemplate_Content(t *testing.T) {
 			},
 		),
 		gen(
-			"text template",
-			[]string{cndGoText},
-			[]string{actCheckResult},
-			&condition{
+			"text template", &condition{
 				tpl: &goTextTemplate{
 					tpl: mustTextTpl("test {{.tag}}"),
 				},
@@ -217,10 +169,7 @@ func TestTemplate_Content(t *testing.T) {
 			},
 		),
 		gen(
-			"text template with nil map",
-			[]string{cndGoText, cndNilMap},
-			[]string{actCheckResult},
-			&condition{
+			"text template with nil map", &condition{
 				tpl: &goTextTemplate{
 					tpl: mustTextTpl("test {{.tag}}"),
 				},
@@ -231,10 +180,7 @@ func TestTemplate_Content(t *testing.T) {
 			},
 		),
 		gen(
-			"html template",
-			[]string{cndGoHTML},
-			[]string{actCheckResult},
-			&condition{
+			"html template", &condition{
 				tpl: &goHTMLTemplate{
 					tpl: mustHTMLTpl("test {{.tag}}"),
 				},
@@ -245,10 +191,7 @@ func TestTemplate_Content(t *testing.T) {
 			},
 		),
 		gen(
-			"html template with nil map",
-			[]string{cndGoHTML, cndNilMap},
-			[]string{actCheckResult},
-			&condition{
+			"html template with nil map", &condition{
 				tpl: &goHTMLTemplate{
 					tpl: mustHTMLTpl("test {{.tag}}"),
 				},
@@ -259,10 +202,7 @@ func TestTemplate_Content(t *testing.T) {
 			},
 		),
 		gen(
-			"go text template error",
-			[]string{cndGoText, cndFallback},
-			[]string{actCheckResult, actCheckFallback},
-			&condition{
+			"go text template error", &condition{
 				tpl: &goTextTemplate{
 					tpl:      ttpl.New(""),
 					fallback: []byte("fallback"),
@@ -273,10 +213,7 @@ func TestTemplate_Content(t *testing.T) {
 			},
 		),
 		gen(
-			"go html template error",
-			[]string{cndGoHTML, cndFallback},
-			[]string{actCheckResult, actCheckFallback},
-			&condition{
+			"go html template error", &condition{
 				tpl: &goHTMLTemplate{
 					tpl:      htpl.New(""),
 					fallback: []byte("fallback"),
@@ -288,13 +225,11 @@ func TestTemplate_Content(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			b := tt.C().tpl.Content(tt.C().info)
-			testutil.Diff(t, tt.A().result, string(b))
+		t.Run(tt.Name, func(t *testing.T) {
+			b := tt.C.tpl.Content(tt.C.info)
+			testutil.Diff(t, tt.A.result, string(b))
 		})
 	}
 }

@@ -12,7 +12,7 @@ import (
 	"testing"
 
 	"github.com/aileron-gateway/aileron-gateway/core"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -37,24 +37,10 @@ func TestCSRFStateGenerator_new(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndGenState := tb.Condition("state", "generate state value")
-	cndGenNonce := tb.Condition("nonce", "generate nonce value")
-	cndGenPKCE := tb.Condition("pkce", "generate pkce values")
-	cndPKCEPlain := tb.Condition("pkce plain", "use plain method for pkce")
-	cndPKCES256 := tb.Condition("pkce S256", "use S256 method for pkce")
-	actCheckError := tb.Action("error", "check that an error was returned")
-	actCheckNoError := tb.Action("no error", "check that there is no error")
-
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"success",
-			[]string{cndGenState, cndGenNonce, cndGenPKCE, cndPKCES256},
-			[]string{actCheckNoError},
 			&condition{
 				reader: &testReader{
 					b: []byte(
@@ -77,8 +63,6 @@ func TestCSRFStateGenerator_new(t *testing.T) {
 		),
 		gen(
 			"S256",
-			[]string{cndGenState, cndGenNonce, cndGenPKCE, cndPKCES256},
-			[]string{actCheckNoError},
 			&condition{
 				reader: &testReader{
 					b: []byte(
@@ -103,8 +87,6 @@ func TestCSRFStateGenerator_new(t *testing.T) {
 		),
 		gen(
 			"plain",
-			[]string{cndGenState, cndGenNonce, cndGenPKCE, cndPKCEPlain},
-			[]string{actCheckNoError},
 			&condition{
 				reader: &testReader{
 					b: []byte(
@@ -129,8 +111,6 @@ func TestCSRFStateGenerator_new(t *testing.T) {
 		),
 		gen(
 			"disable state",
-			[]string{cndGenNonce, cndGenPKCE, cndPKCES256},
-			[]string{actCheckNoError},
 			&condition{
 				reader: &testReader{
 					b: []byte(
@@ -155,8 +135,6 @@ func TestCSRFStateGenerator_new(t *testing.T) {
 		),
 		gen(
 			"disable nonce",
-			[]string{cndGenState, cndGenPKCE, cndPKCES256},
-			[]string{actCheckNoError},
 			&condition{
 				reader: &testReader{
 					b: []byte(
@@ -181,8 +159,6 @@ func TestCSRFStateGenerator_new(t *testing.T) {
 		),
 		gen(
 			"disable pkce",
-			[]string{cndGenState, cndGenNonce, cndPKCES256},
-			[]string{actCheckNoError},
 			&condition{
 				reader: &testReader{
 					b: []byte(
@@ -207,8 +183,6 @@ func TestCSRFStateGenerator_new(t *testing.T) {
 		),
 		gen(
 			"state generate error",
-			[]string{cndGenState},
-			[]string{actCheckError},
 			&condition{
 				reader: &testReader{
 					err: errors.New("test error"),
@@ -227,8 +201,6 @@ func TestCSRFStateGenerator_new(t *testing.T) {
 		),
 		gen(
 			"nonce generate error",
-			[]string{cndGenNonce},
-			[]string{actCheckError},
 			&condition{
 				reader: &testReader{
 					err: errors.New("test error"),
@@ -247,8 +219,6 @@ func TestCSRFStateGenerator_new(t *testing.T) {
 		),
 		gen(
 			"pkce generate error",
-			[]string{cndGenPKCE, cndPKCES256},
-			[]string{actCheckError},
 			&condition{
 				reader: &testReader{
 					err: errors.New("test error"),
@@ -267,20 +237,18 @@ func TestCSRFStateGenerator_new(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			tmp := rand.Reader
-			rand.Reader = tt.C().reader
+			rand.Reader = tt.C.reader
 			defer func() {
 				rand.Reader = tmp
 			}()
 
-			state, err := tt.C().gen.new()
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
-			testutil.Diff(t, tt.A().state, state, cmp.AllowUnexported(csrfStates{}))
+			state, err := tt.C.gen.new()
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
+			testutil.Diff(t, tt.A.state, state, cmp.AllowUnexported(csrfStates{}))
 		})
 	}
 }
@@ -295,23 +263,10 @@ func TestCSRFStates_set(t *testing.T) {
 		v url.Values
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndInputNil := tb.Condition("input nil", "input nil as the argument")
-	cndSetState := tb.Condition("set nonce", "set non empty state value")
-	cndSetNonce := tb.Condition("set challenge", "set non empty nonce value")
-	cndSetChallenge := tb.Condition("set state", "set non empty challenge values")
-	actCheckState := tb.Action("check state", "check the state value is set")
-	actCheckNonce := tb.Action("check nonce", "check the nonce value is set")
-	actCheckChallenge := tb.Action("check challenge", "check the challenge values")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"set state",
-			[]string{cndSetState},
-			[]string{actCheckState},
 			&condition{
 				states: &csrfStates{
 					State: "test-state",
@@ -326,8 +281,6 @@ func TestCSRFStates_set(t *testing.T) {
 		),
 		gen(
 			"set nonce",
-			[]string{cndSetNonce},
-			[]string{actCheckNonce},
 			&condition{
 				states: &csrfStates{
 					Nonce: "test-nonce",
@@ -342,8 +295,6 @@ func TestCSRFStates_set(t *testing.T) {
 		),
 		gen(
 			"set challenge",
-			[]string{cndSetChallenge},
-			[]string{actCheckChallenge},
 			&condition{
 				states: &csrfStates{
 					method:    "test-method",
@@ -360,8 +311,6 @@ func TestCSRFStates_set(t *testing.T) {
 		),
 		gen(
 			"set all",
-			[]string{cndSetState, cndSetNonce, cndSetChallenge},
-			[]string{actCheckState, actCheckNonce, actCheckChallenge},
 			&condition{
 				states: &csrfStates{
 					State:     "test-state",
@@ -383,8 +332,6 @@ func TestCSRFStates_set(t *testing.T) {
 		),
 		gen(
 			"nil",
-			[]string{cndSetState, cndSetNonce, cndSetChallenge, cndInputNil},
-			[]string{},
 			&condition{
 				states: &csrfStates{
 					State:     "test-state",
@@ -401,13 +348,11 @@ func TestCSRFStates_set(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			tt.C().states.set(tt.C().v)
-			testutil.Diff(t, tt.A().v, tt.C().v)
+		t.Run(tt.Name, func(t *testing.T) {
+			tt.C.states.set(tt.C.v)
+			testutil.Diff(t, tt.A.v, tt.C.v)
 		})
 	}
 }

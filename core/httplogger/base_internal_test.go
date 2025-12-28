@@ -17,9 +17,9 @@ import (
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
 	"github.com/aileron-projects/go/ztext"
 	"github.com/google/go-cmp/cmp"
@@ -36,10 +36,6 @@ func TestNewBaseLogger(t *testing.T) {
 		bl  *baseLogger
 		err error
 	}
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
 
 	testStrRepl, _ := txtutil.NewStringReplacer(&k.ReplacerSpec{
 		Replacers: &k.ReplacerSpec_Regexp{
@@ -63,8 +59,6 @@ func TestNewBaseLogger(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"zero spec",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &v1.LoggingSpec{},
 				lg:   log.GlobalLogger(log.DefaultLoggerName),
@@ -82,8 +76,6 @@ func TestNewBaseLogger(t *testing.T) {
 		),
 		gen(
 			"valid header spec",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &v1.LoggingSpec{
 					Headers: []*v1.LogHeaderSpec{
@@ -116,8 +108,6 @@ func TestNewBaseLogger(t *testing.T) {
 		),
 		gen(
 			"invalid header spec",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &v1.LoggingSpec{
 					Headers: []*v1.LogHeaderSpec{
@@ -146,8 +136,6 @@ func TestNewBaseLogger(t *testing.T) {
 		),
 		gen(
 			"valid body spec",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &v1.LoggingSpec{
 					Bodies: []*v1.LogBodySpec{
@@ -180,8 +168,6 @@ func TestNewBaseLogger(t *testing.T) {
 		),
 		gen(
 			"invalid body spec",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &v1.LoggingSpec{
 					Bodies: []*v1.LogBodySpec{
@@ -210,8 +196,6 @@ func TestNewBaseLogger(t *testing.T) {
 		),
 		gen(
 			"template with writer logger",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &v1.LoggingSpec{
 					LogFormat: "%foo%",
@@ -232,8 +216,6 @@ func TestNewBaseLogger(t *testing.T) {
 		),
 		gen(
 			"template with non writer logger",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &v1.LoggingSpec{
 					LogFormat: "%foo%",
@@ -251,8 +233,6 @@ func TestNewBaseLogger(t *testing.T) {
 		),
 		gen(
 			"valid body output path",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &v1.LoggingSpec{
 					BodyOutputPath: "./tmp/",
@@ -273,17 +253,15 @@ func TestNewBaseLogger(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			if tt.C().spec.BodyOutputPath != "" {
-				defer os.Remove(tt.C().spec.BodyOutputPath)
+		t.Run(tt.Name, func(t *testing.T) {
+			if tt.C.spec.BodyOutputPath != "" {
+				defer os.Remove(tt.C.spec.BodyOutputPath)
 			}
 
-			bl, err := newBaseLogger(tt.C().spec, tt.C().lg)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
+			bl, err := newBaseLogger(tt.C.spec, tt.C.lg)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
 
 			opts := []cmp.Option{
 				cmp.AllowUnexported(baseLogger{}),
@@ -292,7 +270,7 @@ func TestNewBaseLogger(t *testing.T) {
 				cmp.Comparer(testutil.ComparePointer[stringReplFunc]),
 				cmp.Comparer(testutil.ComparePointer[bytesReplFunc]),
 			}
-			testutil.Diff(t, tt.A().bl, bl, opts...)
+			testutil.Diff(t, tt.A.bl, bl, opts...)
 		})
 	}
 }
@@ -315,10 +293,6 @@ func TestBaseLogger_logOutput(t *testing.T) {
 		check []string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	testAttrs := &requestAttrs{
 		typ:    "test-type",
 		id:     "test-id",
@@ -333,8 +307,6 @@ func TestBaseLogger_logOutput(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"output by logger",
-			[]string{},
-			[]string{},
 			&condition{
 				bl:      &baseLogger{},
 				level:   slog.LevelInfo,
@@ -350,8 +322,6 @@ func TestBaseLogger_logOutput(t *testing.T) {
 		),
 		gen(
 			"output by writer",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &baseLogger{
 					tpl: ztext.NewTemplate("id=%id% time=%time%", "%", "%"),
@@ -369,8 +339,6 @@ func TestBaseLogger_logOutput(t *testing.T) {
 		),
 		gen(
 			"not output",
-			[]string{},
-			[]string{},
 			&condition{
 				bl:      &baseLogger{},
 				level:   slog.LevelWarn,
@@ -383,20 +351,18 @@ func TestBaseLogger_logOutput(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			var buf bytes.Buffer
-			tt.C().bl.lg = log.NewJSONSLogger(&buf, &slog.HandlerOptions{
-				Level: tt.C().level,
+			tt.C.bl.lg = log.NewJSONSLogger(&buf, &slog.HandlerOptions{
+				Level: tt.C.level,
 			})
-			tt.C().bl.w = &buf
+			tt.C.bl.w = &buf
 
 			ctx := context.Background()
-			tt.C().bl.logOutput(ctx, "test-msg", tt.C().attrs, tt.C().tagFunc)
-			for _, s := range tt.A().check {
+			tt.C.bl.logOutput(ctx, "test-msg", tt.C.attrs, tt.C.tagFunc)
+			for _, s := range tt.A.check {
 				testutil.Diff(t, true, strings.Contains(buf.String(), s))
 			}
 		})
@@ -413,10 +379,6 @@ func TestBaseLogger_logQuery(t *testing.T) {
 		q string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	// testReplacer is the replacer for testing.
 	// "test-foobar" will be "***"
 	s := &k.ReplacerSpec{Replacers: &k.ReplacerSpec_Regexp{
@@ -428,8 +390,6 @@ func TestBaseLogger_logQuery(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"zero logger",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &baseLogger{},
 				q:  "foo=test-foo&bar=test-bar",
@@ -440,8 +400,6 @@ func TestBaseLogger_logQuery(t *testing.T) {
 		),
 		gen(
 			"specify one query",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &baseLogger{
 					queries: []stringReplFunc{
@@ -456,8 +414,6 @@ func TestBaseLogger_logQuery(t *testing.T) {
 		),
 		gen(
 			"replace",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &baseLogger{
 					queries: []stringReplFunc{
@@ -472,13 +428,11 @@ func TestBaseLogger_logQuery(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			q := tt.C().bl.logQuery(tt.C().q)
-			testutil.Diff(t, tt.A().q, q)
+		t.Run(tt.Name, func(t *testing.T) {
+			q := tt.C.bl.logQuery(tt.C.q)
+			testutil.Diff(t, tt.A.q, q)
 		})
 	}
 }
@@ -494,10 +448,6 @@ func TestBaseLogger_logHeaders(t *testing.T) {
 		h map[string]string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	s := &k.ReplacerSpec{Replacers: &k.ReplacerSpec_Regexp{
 		Regexp: &k.RegexpReplacer{Pattern: `test-.*`, Replace: `***`},
 	}}
@@ -507,8 +457,6 @@ func TestBaseLogger_logHeaders(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"no replacer",
-			[]string{},
-			[]string{},
 			&condition{
 				h: http.Header{
 					"Foo": []string{"test-foo"},
@@ -523,8 +471,6 @@ func TestBaseLogger_logHeaders(t *testing.T) {
 		),
 		gen(
 			"noop replace for single value",
-			[]string{},
-			[]string{},
 			&condition{
 				h: http.Header{
 					"Foo": []string{"test-foo"},
@@ -543,8 +489,6 @@ func TestBaseLogger_logHeaders(t *testing.T) {
 		),
 		gen(
 			"noop replace for multiple values",
-			[]string{},
-			[]string{},
 			&condition{
 				h: http.Header{
 					"Foo": []string{"test-foo"},
@@ -563,8 +507,6 @@ func TestBaseLogger_logHeaders(t *testing.T) {
 		),
 		gen(
 			"noop replace for non-exist value",
-			[]string{},
-			[]string{},
 			&condition{
 				h: http.Header{
 					"Foo": []string{"test-foo"},
@@ -581,8 +523,6 @@ func TestBaseLogger_logHeaders(t *testing.T) {
 		),
 		gen(
 			"replace for single value",
-			[]string{},
-			[]string{},
 			&condition{
 				h: http.Header{
 					"Foo": []string{"test-foo"},
@@ -601,8 +541,6 @@ func TestBaseLogger_logHeaders(t *testing.T) {
 		),
 		gen(
 			"replace for multiple values",
-			[]string{},
-			[]string{},
 			&condition{
 				h: http.Header{
 					"Foo": []string{"test-foo"},
@@ -621,8 +559,6 @@ func TestBaseLogger_logHeaders(t *testing.T) {
 		),
 		gen(
 			"replace for non-exist value",
-			[]string{},
-			[]string{},
 			&condition{
 				h: http.Header{
 					"Foo": []string{"test-foo"},
@@ -639,22 +575,20 @@ func TestBaseLogger_logHeaders(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			keys := []string{}
-			for k := range tt.C().replacers {
+			for k := range tt.C.replacers {
 				keys = append(keys, k)
 			}
 			bl := &baseLogger{
-				allHeaders: tt.C().all,
-				headers:    tt.C().replacers,
+				allHeaders: tt.C.all,
+				headers:    tt.C.replacers,
 				headerKeys: keys,
 			}
-			h := bl.logHeaders(tt.C().h)
-			testutil.Diff(t, tt.A().h, h)
+			h := bl.logHeaders(tt.C.h)
+			testutil.Diff(t, tt.A.h, h)
 		})
 	}
 }
@@ -670,10 +604,6 @@ func TestBaseLogger_logBody(t *testing.T) {
 		body string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	s := &k.ReplacerSpec{Replacers: &k.ReplacerSpec_Regexp{
 		Regexp: &k.RegexpReplacer{Pattern: `test-[^"]*`, Replace: `***`},
 	}}
@@ -683,8 +613,6 @@ func TestBaseLogger_logBody(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"zero logger",
-			[]string{},
-			[]string{},
 			&condition{
 				bl:       &baseLogger{},
 				mimeType: "",
@@ -696,8 +624,6 @@ func TestBaseLogger_logBody(t *testing.T) {
 		),
 		gen(
 			"body without mask",
-			[]string{},
-			[]string{},
 			&condition{
 				bl:       &baseLogger{},
 				mimeType: "application/json",
@@ -709,8 +635,6 @@ func TestBaseLogger_logBody(t *testing.T) {
 		),
 		gen(
 			"body with mask",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &baseLogger{
 					bodies: map[string][]bytesReplFunc{
@@ -731,13 +655,11 @@ func TestBaseLogger_logBody(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			body := tt.C().bl.logBody(tt.C().mimeType, []byte(tt.C().body))
-			testutil.Diff(t, tt.A().body, string(body))
+		t.Run(tt.Name, func(t *testing.T) {
+			body := tt.C.bl.logBody(tt.C.mimeType, []byte(tt.C.body))
+			testutil.Diff(t, tt.A.body, string(body))
 		})
 	}
 }
@@ -768,16 +690,10 @@ func TestBaseLogger_bodyReadCloser(t *testing.T) {
 		nonNilErr bool
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"non target mime",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &baseLogger{
 					mimes: []string{"application/json"},
@@ -788,8 +704,6 @@ func TestBaseLogger_bodyReadCloser(t *testing.T) {
 		),
 		gen(
 			"zero length body",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &baseLogger{
 					mimes: []string{"application/json"},
@@ -801,8 +715,6 @@ func TestBaseLogger_bodyReadCloser(t *testing.T) {
 		),
 		gen(
 			"buffer reader wo b64",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &baseLogger{
 					mimes:   []string{"application/json"},
@@ -819,8 +731,6 @@ func TestBaseLogger_bodyReadCloser(t *testing.T) {
 		),
 		gen(
 			"buffer reader w b64",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &baseLogger{
 					mimes:   []string{"application/json"},
@@ -838,8 +748,6 @@ func TestBaseLogger_bodyReadCloser(t *testing.T) {
 		),
 		gen(
 			"file reader",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &baseLogger{
 					mimes:    []string{"application/json"},
@@ -857,8 +765,6 @@ func TestBaseLogger_bodyReadCloser(t *testing.T) {
 		),
 		gen(
 			"file create error",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &baseLogger{
 					mimes:    []string{"application/json"},
@@ -877,8 +783,6 @@ func TestBaseLogger_bodyReadCloser(t *testing.T) {
 		),
 		gen(
 			"no logging",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &baseLogger{
 					mimes:   []string{"application/json"},
@@ -895,8 +799,6 @@ func TestBaseLogger_bodyReadCloser(t *testing.T) {
 		),
 		gen(
 			"streaming body(length = -1) without base64",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &baseLogger{
 					mimes:   []string{"application/json"},
@@ -913,8 +815,6 @@ func TestBaseLogger_bodyReadCloser(t *testing.T) {
 		),
 		gen(
 			"streaming body(length = -1) with base64",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &baseLogger{
 					mimes:   []string{"application/json"},
@@ -932,8 +832,6 @@ func TestBaseLogger_bodyReadCloser(t *testing.T) {
 		),
 		gen(
 			"Compressed request with streaming body(length = -1)",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &baseLogger{
 					mimes:   []string{"application/json"},
@@ -952,8 +850,6 @@ func TestBaseLogger_bodyReadCloser(t *testing.T) {
 		),
 		gen(
 			"streaming body(length = -1) with read error",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &baseLogger{
 					mimes:   []string{"application/json"},
@@ -971,25 +867,23 @@ func TestBaseLogger_bodyReadCloser(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			if tt.C().fileName != "" {
-				defer os.Remove("./body-" + tt.C().fileName)
+		t.Run(tt.Name, func(t *testing.T) {
+			if tt.C.fileName != "" {
+				defer os.Remove("./body-" + tt.C.fileName)
 			}
 
-			fn := tt.C().fileName
-			mt := tt.C().mimeType
-			size := tt.C().length
-			b, rc, err := tt.C().bl.bodyReadCloser(fn, mt, size, tt.C().body, tt.C().isCompressed)
-			testutil.Diff(t, tt.A().b, string(b))
-			testutil.Diff(t, tt.A().nonNilErr, err != nil)
-			if tt.A().read != "" {
+			fn := tt.C.fileName
+			mt := tt.C.mimeType
+			size := tt.C.length
+			b, rc, err := tt.C.bl.bodyReadCloser(fn, mt, size, tt.C.body, tt.C.isCompressed)
+			testutil.Diff(t, tt.A.b, string(b))
+			testutil.Diff(t, tt.A.nonNilErr, err != nil)
+			if tt.A.read != "" {
 				read, err := io.ReadAll(rc)
 				testutil.Diff(t, nil, err)
-				testutil.Diff(t, tt.A().read, string(read))
+				testutil.Diff(t, tt.A.read, string(read))
 				rc.Close()
 			}
 		})
@@ -1011,16 +905,10 @@ func TestBaseLogger_bodyWriter(t *testing.T) {
 		nonNilErr bool
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"non target mime",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &baseLogger{
 					mimes: []string{"application/json"},
@@ -1031,8 +919,6 @@ func TestBaseLogger_bodyWriter(t *testing.T) {
 		),
 		gen(
 			"zero length body",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &baseLogger{
 					mimes: []string{"application/json"},
@@ -1044,8 +930,6 @@ func TestBaseLogger_bodyWriter(t *testing.T) {
 		),
 		gen(
 			"buffer reader wo b64",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &baseLogger{
 					mimes:   []string{"application/json"},
@@ -1061,8 +945,6 @@ func TestBaseLogger_bodyWriter(t *testing.T) {
 		),
 		gen(
 			"buffer reader w b64",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &baseLogger{
 					mimes:   []string{"application/json"},
@@ -1079,8 +961,6 @@ func TestBaseLogger_bodyWriter(t *testing.T) {
 		),
 		gen(
 			"file reader",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &baseLogger{
 					mimes:    []string{"application/json"},
@@ -1097,8 +977,6 @@ func TestBaseLogger_bodyWriter(t *testing.T) {
 		),
 		gen(
 			"file create error",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &baseLogger{
 					mimes:    []string{"application/json"},
@@ -1115,8 +993,6 @@ func TestBaseLogger_bodyWriter(t *testing.T) {
 		),
 		gen(
 			"no logging",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &baseLogger{
 					mimes:   []string{"application/json"},
@@ -1131,8 +1007,6 @@ func TestBaseLogger_bodyWriter(t *testing.T) {
 		),
 		gen(
 			"unknown length body(length = -1)",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &baseLogger{
 					mimes:   []string{"application/json"},
@@ -1148,8 +1022,6 @@ func TestBaseLogger_bodyWriter(t *testing.T) {
 		),
 		gen(
 			"unknown length body(length = -1) with base64",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &baseLogger{
 					mimes:   []string{"application/json"},
@@ -1166,8 +1038,6 @@ func TestBaseLogger_bodyWriter(t *testing.T) {
 		),
 		gen(
 			"Compressed request with unknown body length (-1)",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &baseLogger{
 					mimes:   []string{"application/json"},
@@ -1184,29 +1054,27 @@ func TestBaseLogger_bodyWriter(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			if tt.C().fileName != "" {
-				defer os.Remove("./body-" + tt.C().fileName)
+		t.Run(tt.Name, func(t *testing.T) {
+			if tt.C.fileName != "" {
+				defer os.Remove("./body-" + tt.C.fileName)
 			}
 
-			fn := tt.C().fileName
-			mt := tt.C().mimeType
-			size := tt.C().length
-			bf, w, err := tt.C().bl.bodyWriter(fn, mt, size, tt.C().isCompressed)
-			if tt.A().nonNilErr {
+			fn := tt.C.fileName
+			mt := tt.C.mimeType
+			size := tt.C.length
+			bf, w, err := tt.C.bl.bodyWriter(fn, mt, size, tt.C.isCompressed)
+			if tt.A.nonNilErr {
 				testutil.Diff(t, true, err != nil)
 				testutil.Diff(t, (func() []byte)(nil), bf)
 				testutil.Diff(t, nil, w)
 				return
 			}
-			if tt.A().read != "" {
-				w.Write([]byte(tt.A().write))
+			if tt.A.read != "" {
+				w.Write([]byte(tt.A.write))
 				read := bf()
-				testutil.Diff(t, tt.A().read, string(read))
+				testutil.Diff(t, tt.A.read, string(read))
 			} else {
 				testutil.Diff(t, (func() []byte)(nil), bf)
 				testutil.Diff(t, nil, w)

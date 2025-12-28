@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"golang.org/x/net/http2"
@@ -32,16 +32,10 @@ func TestDnsResolver_resolve(t *testing.T) {
 		err    error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"127.0.0.1",
-			[]string{},
-			[]string{},
 			&condition{
 				r: &dnsResolver{
 					host: "127.0.0.1",
@@ -55,8 +49,6 @@ func TestDnsResolver_resolve(t *testing.T) {
 		),
 		gen(
 			"invalid host",
-			[]string{},
-			[]string{},
 			&condition{
 				r: &dnsResolver{
 					host: "host.not.exist",
@@ -75,8 +67,6 @@ func TestDnsResolver_resolve(t *testing.T) {
 		),
 		gen(
 			"invalid host/ips no overwrite",
-			[]string{},
-			[]string{},
 			&condition{
 				r: &dnsResolver{
 					host: "host.not.exist",
@@ -96,19 +86,17 @@ func TestDnsResolver_resolve(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			VerboseLogs = true
 
-			resolver := tt.C().r
+			resolver := tt.C.r
 			err := resolver.resolve(context.Background())
-			testutil.Diff(t, tt.A().err, err, cmpopts.IgnoreFields(net.DNSError{}, "Server"))
-			testutil.Diff(t, tt.A().length, resolver.length())
-			testutil.Diff(t, tt.A().ips, resolver.ips)
-			for _, ip := range tt.A().next {
+			testutil.Diff(t, tt.A.err, err, cmpopts.IgnoreFields(net.DNSError{}, "Server"))
+			testutil.Diff(t, tt.A.length, resolver.length())
+			testutil.Diff(t, tt.A.ips, resolver.ips)
+			for _, ip := range tt.A.next {
 				testutil.Diff(t, resolver.next(), ip)
 			}
 		})
@@ -126,16 +114,10 @@ func TestDnsResolver_resolveEveryInterval(t *testing.T) {
 		ips []string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"resolved",
-			[]string{},
-			[]string{},
 			&condition{
 				r: &dnsResolver{
 					host: "127.0.0.1",
@@ -149,8 +131,6 @@ func TestDnsResolver_resolveEveryInterval(t *testing.T) {
 		),
 		gen(
 			"not yet resolved",
-			[]string{},
-			[]string{},
 			&condition{
 				r: &dnsResolver{
 					host: "127.0.0.1",
@@ -164,8 +144,6 @@ func TestDnsResolver_resolveEveryInterval(t *testing.T) {
 		),
 		gen(
 			"invalid host",
-			[]string{},
-			[]string{},
 			&condition{
 				r: &dnsResolver{
 					host: "host.not.exist",
@@ -179,8 +157,6 @@ func TestDnsResolver_resolveEveryInterval(t *testing.T) {
 		),
 		gen(
 			"invalid host / ips no overwrite",
-			[]string{},
-			[]string{},
 			&condition{
 				r: &dnsResolver{
 					host: "host.not.exist",
@@ -195,8 +171,6 @@ func TestDnsResolver_resolveEveryInterval(t *testing.T) {
 		),
 		gen(
 			"0 interval",
-			[]string{},
-			[]string{},
 			&condition{
 				r: &dnsResolver{
 					host: "127.0.0.1",
@@ -210,25 +184,23 @@ func TestDnsResolver_resolveEveryInterval(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			VerboseLogs = true
 
-			resolver := tt.C().r
+			resolver := tt.C.r
 
 			wait := make(chan struct{})
 			go func() {
 				close(wait)
-				resolver.resolveEveryInterval(context.Background(), tt.C().interval)
+				resolver.resolveEveryInterval(context.Background(), tt.C.interval)
 			}()
 			<-wait
-			time.Sleep(tt.C().checkAfter)
+			time.Sleep(tt.C.checkAfter)
 			resolver.stopResolveLoop()
 
-			testutil.Diff(t, tt.A().ips, resolver.ips)
+			testutil.Diff(t, tt.A.ips, resolver.ips)
 		})
 	}
 }
@@ -245,10 +217,6 @@ func TestHostConns_markDead(t *testing.T) {
 		connToIP map[*http2.ClientConn]string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	conn1 := &http2.ClientConn{}
 	conn2 := &http2.ClientConn{}
 
@@ -256,8 +224,6 @@ func TestHostConns_markDead(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"dead 2 of 1",
-			[]string{},
-			[]string{},
 			&condition{
 				hc: &hostConns{
 					conns: map[string][]*http2.ClientConn{
@@ -282,8 +248,6 @@ func TestHostConns_markDead(t *testing.T) {
 		),
 		gen(
 			"dead 1 of 1",
-			[]string{},
-			[]string{},
 			&condition{
 				hc: &hostConns{
 					conns:    map[string][]*http2.ClientConn{"127.0.0.1": {conn1}},
@@ -299,8 +263,6 @@ func TestHostConns_markDead(t *testing.T) {
 		),
 		gen(
 			"unknown connection",
-			[]string{},
-			[]string{},
 			&condition{
 				hc: &hostConns{
 					conns:    map[string][]*http2.ClientConn{"127.0.0.1": {conn1}},
@@ -316,8 +278,6 @@ func TestHostConns_markDead(t *testing.T) {
 		),
 		gen(
 			"conns not found", // This case won't happen.
-			[]string{},
-			[]string{},
 			&condition{
 				hc: &hostConns{
 					conns:    map[string][]*http2.ClientConn{"127.0.0.2": {conn1}},
@@ -333,19 +293,17 @@ func TestHostConns_markDead(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			opts := []cmp.Option{
 				cmp.Comparer(testutil.ComparePointer[*http2.ClientConn]),
 			}
 
-			active := tt.C().hc.markDead(tt.C().conn)
-			testutil.Diff(t, tt.A().active, active)
-			testutil.Diff(t, tt.A().conns, tt.A().conns, opts...)
-			testutil.Diff(t, tt.A().connToIP, tt.A().connToIP, opts...)
+			active := tt.C.hc.markDead(tt.C.conn)
+			testutil.Diff(t, tt.A.active, active)
+			testutil.Diff(t, tt.A.conns, tt.A.conns, opts...)
+			testutil.Diff(t, tt.A.connToIP, tt.A.connToIP, opts...)
 		})
 	}
 }
@@ -362,10 +320,6 @@ func TestHostConns_getClientConn(t *testing.T) {
 		newConnection bool
 		errPattern    *regexp.Regexp
 	}
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
 
 	testSvr := &http.Server{
 		Addr:    ":12321",
@@ -389,8 +343,6 @@ func TestHostConns_getClientConn(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"Create new connection",
-			[]string{},
-			[]string{},
 			&condition{
 				hc: &hostConns{
 					port:        "12321",
@@ -412,8 +364,6 @@ func TestHostConns_getClientConn(t *testing.T) {
 		),
 		gen(
 			"Connection available",
-			[]string{},
-			[]string{},
 			&condition{
 				hc: &hostConns{
 					dnsResolver: &dnsResolver{ips: []string{"127.0.0.1"}},
@@ -434,8 +384,6 @@ func TestHostConns_getClientConn(t *testing.T) {
 		),
 		gen(
 			"Connection available/skip unavailable",
-			[]string{},
-			[]string{},
 			&condition{
 				hc: &hostConns{
 					dnsResolver: &dnsResolver{ips: []string{"127.0.0.1"}},
@@ -456,8 +404,6 @@ func TestHostConns_getClientConn(t *testing.T) {
 		),
 		gen(
 			"no ips",
-			[]string{},
-			[]string{},
 			&condition{
 				hc: &hostConns{
 					dnsResolver: &dnsResolver{},
@@ -473,8 +419,6 @@ func TestHostConns_getClientConn(t *testing.T) {
 		),
 		gen(
 			"unreachable IP",
-			[]string{},
-			[]string{},
 			&condition{
 				hc: &hostConns{
 					dnsResolver: &dnsResolver{
@@ -497,8 +441,6 @@ func TestHostConns_getClientConn(t *testing.T) {
 		),
 		gen(
 			"unreachable IPs",
-			[]string{},
-			[]string{},
 			&condition{
 				hc: &hostConns{
 					dnsResolver: &dnsResolver{
@@ -521,32 +463,30 @@ func TestHostConns_getClientConn(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			opts := []cmp.Option{
 				cmp.Comparer(testutil.ComparePointer[*http2.ClientConn]),
 			}
 
-			hc := tt.C().hc
+			hc := tt.C.hc
 			conn, err := hc.getClientConn(context.Background())
-			if tt.A().errPattern != nil {
+			if tt.A.errPattern != nil {
 				t.Log(err.Error())
-				testutil.Diff(t, true, tt.A().errPattern.MatchString(err.Error()))
+				testutil.Diff(t, true, tt.A.errPattern.MatchString(err.Error()))
 			} else {
 				testutil.Diff(t, nil, err)
 			}
 
-			if tt.A().newConnection {
-				tt.A().conns["127.0.0.1"] = []*http2.ClientConn{conn}
-				tt.A().connToIP[conn] = "127.0.0.1"
+			if tt.A.newConnection {
+				tt.A.conns["127.0.0.1"] = []*http2.ClientConn{conn}
+				tt.A.connToIP[conn] = "127.0.0.1"
 			} else {
-				testutil.Diff(t, conn, tt.A().conn, opts...)
+				testutil.Diff(t, conn, tt.A.conn, opts...)
 			}
-			testutil.Diff(t, tt.A().conns, hc.conns, opts...)
-			testutil.Diff(t, tt.A().connToIP, hc.connToIP, opts...)
+			testutil.Diff(t, tt.A.conns, hc.conns, opts...)
+			testutil.Diff(t, tt.A.connToIP, hc.connToIP, opts...)
 		})
 	}
 }
@@ -566,10 +506,6 @@ func TestHTTP2ConnPool_GetClientConn(t *testing.T) {
 		connMap       map[*http2.ClientConn]*hostConns
 		errPattern    *regexp.Regexp
 	}
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
 
 	testSvr := &http.Server{
 		Addr:    ":12321",
@@ -604,8 +540,6 @@ func TestHTTP2ConnPool_GetClientConn(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"connection available",
-			[]string{},
-			[]string{},
 			&condition{
 				cp: &http2ConnPool{
 					conns:   map[string]*hostConns{"localhost:12321": hc1},
@@ -622,8 +556,6 @@ func TestHTTP2ConnPool_GetClientConn(t *testing.T) {
 		),
 		gen(
 			"do not reuse",
-			[]string{},
-			[]string{},
 			&condition{
 				cp: &http2ConnPool{
 					conns:   map[string]*hostConns{"localhost:12321": hc2},
@@ -641,8 +573,6 @@ func TestHTTP2ConnPool_GetClientConn(t *testing.T) {
 		),
 		gen(
 			"connection not available",
-			[]string{},
-			[]string{},
 			&condition{
 				cp: &http2ConnPool{
 					conns:   map[string]*hostConns{"localhost:12321": emptyHc},
@@ -659,8 +589,6 @@ func TestHTTP2ConnPool_GetClientConn(t *testing.T) {
 		),
 		gen(
 			"new connection failed / resolve error",
-			[]string{},
-			[]string{},
 			&condition{
 				cp: &http2ConnPool{
 					conns:   map[string]*hostConns{},
@@ -683,8 +611,6 @@ func TestHTTP2ConnPool_GetClientConn(t *testing.T) {
 		),
 		gen(
 			"new connection failed / conn create error",
-			[]string{},
-			[]string{},
 			&condition{
 				cp: &http2ConnPool{
 					conns:   map[string]*hostConns{},
@@ -707,8 +633,6 @@ func TestHTTP2ConnPool_GetClientConn(t *testing.T) {
 		),
 		gen(
 			"new connection created",
-			[]string{},
-			[]string{},
 			&condition{
 				cp: &http2ConnPool{
 					conns:   map[string]*hostConns{},
@@ -731,33 +655,31 @@ func TestHTTP2ConnPool_GetClientConn(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			opts := []cmp.Option{
 				cmp.Comparer(testutil.ComparePointer[*http2.ClientConn]),
 				cmp.Comparer(testutil.ComparePointer[*hostConns]),
 			}
 
-			cp := tt.C().cp
-			conn, err := cp.GetClientConn(tt.C().req, tt.C().addr)
-			if tt.A().errPattern != nil {
+			cp := tt.C.cp
+			conn, err := cp.GetClientConn(tt.C.req, tt.C.addr)
+			if tt.A.errPattern != nil {
 				t.Log(err.Error())
-				testutil.Diff(t, true, tt.A().errPattern.MatchString(err.Error()))
+				testutil.Diff(t, true, tt.A.errPattern.MatchString(err.Error()))
 			} else {
 				testutil.Diff(t, nil, err)
 			}
-			if tt.A().newConnection {
-				tt.A().conns[tt.C().addr] = cp.conns[tt.C().addr]
-				tt.A().connMap[conn] = cp.conns[tt.C().addr]
+			if tt.A.newConnection {
+				tt.A.conns[tt.C.addr] = cp.conns[tt.C.addr]
+				tt.A.connMap[conn] = cp.conns[tt.C.addr]
 			} else {
-				testutil.Diff(t, conn, tt.A().conn, opts...)
+				testutil.Diff(t, conn, tt.A.conn, opts...)
 			}
-			testutil.Diff(t, tt.A().conns, cp.conns, opts...)
-			testutil.Diff(t, tt.A().connMap, cp.connMap, opts...)
-			if tt.A().doNotReuse {
+			testutil.Diff(t, tt.A.conns, cp.conns, opts...)
+			testutil.Diff(t, tt.A.connMap, cp.connMap, opts...)
+			if tt.A.doNotReuse {
 				testutil.Diff(t, false, conn.CanTakeNewRequest())
 			}
 		})
@@ -775,10 +697,6 @@ func TestHTTP2ConnPool_MarkDead(t *testing.T) {
 		connMap    map[*http2.ClientConn]*hostConns
 		errPattern *regexp.Regexp
 	}
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
 
 	conn1 := &http2.ClientConn{}
 	conn2 := &http2.ClientConn{}
@@ -803,8 +721,6 @@ func TestHTTP2ConnPool_MarkDead(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"connection not found",
-			[]string{},
-			[]string{},
 			&condition{
 				cp: &http2ConnPool{
 					conns:   map[string]*hostConns{},
@@ -819,8 +735,6 @@ func TestHTTP2ConnPool_MarkDead(t *testing.T) {
 		),
 		gen(
 			"connection removed/active conn remains",
-			[]string{},
-			[]string{},
 			&condition{
 				cp: &http2ConnPool{
 					conns:   map[string]*hostConns{"localhost:12321": hc1},
@@ -835,8 +749,6 @@ func TestHTTP2ConnPool_MarkDead(t *testing.T) {
 		),
 		gen(
 			"connection removed/no active conns",
-			[]string{},
-			[]string{},
 			&condition{
 				cp: &http2ConnPool{
 					conns:   map[string]*hostConns{"localhost:12321": hc2},
@@ -851,11 +763,9 @@ func TestHTTP2ConnPool_MarkDead(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			VerboseLogs = true
 
 			opts := []cmp.Option{
@@ -863,10 +773,10 @@ func TestHTTP2ConnPool_MarkDead(t *testing.T) {
 				cmp.Comparer(testutil.ComparePointer[*hostConns]),
 			}
 
-			cp := tt.C().cp
-			cp.MarkDead(tt.C().conn)
-			testutil.Diff(t, tt.A().conns, cp.conns, opts...)
-			testutil.Diff(t, tt.A().connMap, cp.connMap, opts...)
+			cp := tt.C.cp
+			cp.MarkDead(tt.C.conn)
+			testutil.Diff(t, tt.A.conns, cp.conns, opts...)
+			testutil.Diff(t, tt.A.connMap, cp.connMap, opts...)
 		})
 	}
 }

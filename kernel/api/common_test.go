@@ -9,10 +9,10 @@ import (
 	"testing"
 
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/encoder"
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -30,23 +30,6 @@ func TestFormat_Unmarshal(t *testing.T) {
 		err    error
 	}
 
-	cndFormatJSON := "json"
-	cndFormatYAML := "yaml"
-	cndFormatUnsupported := "unsupported"
-	actCheckResult := "check result"
-	actCheckNoError := "no error"
-	actCheckError := "non-nil error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndFormatJSON, "unmarshal json")
-	tb.Condition(cndFormatYAML, "unmarshal yaml")
-	tb.Condition(cndFormatUnsupported, "input unsupported format")
-	tb.Action(actCheckResult, "check the un-marshalled values")
-	tb.Action(actCheckNoError, "check that there is no error")
-	tb.Action(actCheckError, "check that a non-nil error was returned")
-	table := tb.Build()
-
 	type testStruct struct {
 		Foo string `json:"foo" yaml:"foo"`
 		Bar int    `json:"bar" yaml:"bar"`
@@ -55,10 +38,7 @@ func TestFormat_Unmarshal(t *testing.T) {
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"json",
-			[]string{cndFormatJSON},
-			[]string{actCheckResult, actCheckNoError},
-			&condition{
+			"json", &condition{
 				format: api.FormatJSON,
 				in:     []byte(`{"foo":"test", "bar":999}`),
 				into:   &testStruct{},
@@ -71,10 +51,7 @@ func TestFormat_Unmarshal(t *testing.T) {
 			},
 		),
 		gen(
-			"yaml",
-			[]string{cndFormatYAML},
-			[]string{actCheckResult, actCheckNoError},
-			&condition{
+			"yaml", &condition{
 				format: api.FormatYAML,
 				in:     []byte("foo: test \nbar: 999"),
 				into:   &testStruct{},
@@ -87,10 +64,7 @@ func TestFormat_Unmarshal(t *testing.T) {
 			},
 		),
 		gen(
-			"unsupported",
-			[]string{},
-			[]string{actCheckError},
-			&condition{
+			"unsupported", &condition{
 				format: api.Format("UNSUPPORTED"),
 				in:     []byte(`{"foo":"test", "bar":999}`),
 				into:   &testStruct{},
@@ -106,14 +80,12 @@ func TestFormat_Unmarshal(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			err := tt.C().format.Unmarshal(tt.C().in, tt.C().into)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
-			testutil.Diff(t, tt.A().result, tt.C().into)
+		t.Run(tt.Name, func(t *testing.T) {
+			err := tt.C.format.Unmarshal(tt.C.in, tt.C.into)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
+			testutil.Diff(t, tt.A.result, tt.C.into)
 		})
 	}
 }
@@ -134,26 +106,10 @@ func TestContextWithRoute(t *testing.T) {
 		apis []api.API[*api.Request, *api.Response]
 	}
 
-	cndValueExists := "value exists"
-	cndNilContext := "nil api"
-	cndNilAPI := "nil api"
-	actCheckAPIs := "check apis"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndValueExists, "at least 1 API was already exist")
-	tb.Condition(cndNilContext, "register multiple APIs")
-	tb.Condition(cndNilAPI, "input nil API")
-	tb.Action(actCheckAPIs, "check the APIs saved in the context")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"new",
-			[]string{},
-			[]string{actCheckAPIs},
-			&condition{
+			"new", &condition{
 				ctx: context.Background(),
 				a:   stringAPI("test"),
 			},
@@ -164,10 +120,7 @@ func TestContextWithRoute(t *testing.T) {
 			},
 		),
 		gen(
-			"append",
-			[]string{cndValueExists},
-			[]string{actCheckAPIs},
-			&condition{
+			"append", &condition{
 				ctx: context.WithValue(context.Background(), api.APIRouteContextKey, []api.API[*api.Request, *api.Response]{stringAPI("test1")}),
 				a:   stringAPI("test2"),
 			},
@@ -179,10 +132,7 @@ func TestContextWithRoute(t *testing.T) {
 			},
 		),
 		gen(
-			"append nil",
-			[]string{cndValueExists},
-			[]string{actCheckAPIs},
-			&condition{
+			"append nil", &condition{
 				ctx: context.WithValue(context.Background(), api.APIRouteContextKey, []api.API[*api.Request, *api.Response]{stringAPI("test")}),
 				a:   nil,
 			},
@@ -193,10 +143,7 @@ func TestContextWithRoute(t *testing.T) {
 			},
 		),
 		gen(
-			"nil context",
-			[]string{cndNilContext},
-			[]string{actCheckAPIs},
-			&condition{
+			"nil context", &condition{
 				ctx: nil,
 				a:   stringAPI("test"),
 			},
@@ -208,13 +155,11 @@ func TestContextWithRoute(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			ctx := api.ContextWithRoute(tt.C().ctx, tt.C().a)
-			testutil.Diff(t, tt.A().apis, ctx.Value(api.APIRouteContextKey))
+		t.Run(tt.Name, func(t *testing.T) {
+			ctx := api.ContextWithRoute(tt.C.ctx, tt.C.a)
+			testutil.Diff(t, tt.A.apis, ctx.Value(api.APIRouteContextKey))
 		})
 	}
 }
@@ -228,30 +173,10 @@ func TestRootAPIFromContext(t *testing.T) {
 		a api.API[*api.Request, *api.Response]
 	}
 
-	cndNoAPI := "no API in the context"
-	cndSingleAPI := "only 1 API in the context"
-	cndMultipleAPIs := "multiple APIs in the context"
-	cndNilContext := "input nil context"
-	actCheckAPI := "check returned API"
-	actCheckNil := "check nil was returned"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndNoAPI, "no APIs were registered")
-	tb.Condition(cndSingleAPI, "1 API was registered")
-	tb.Condition(cndMultipleAPIs, "multiple APIs were registered")
-	tb.Condition(cndNilContext, "input nil as context")
-	tb.Action(actCheckAPI, "check the non-nil returned API was the one expected")
-	tb.Action(actCheckNil, "check that nil was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"api not registered",
-			[]string{cndNoAPI},
-			[]string{actCheckNil},
-			&condition{
+			"api not registered", &condition{
 				ctx: context.WithValue(context.Background(), api.APIRouteContextKey,
 					[]api.API[*api.Request, *api.Response]{}),
 			},
@@ -260,10 +185,7 @@ func TestRootAPIFromContext(t *testing.T) {
 			},
 		),
 		gen(
-			"1 api registered",
-			[]string{cndSingleAPI},
-			[]string{actCheckAPI},
-			&condition{
+			"1 api registered", &condition{
 				ctx: context.WithValue(context.Background(), api.APIRouteContextKey,
 					[]api.API[*api.Request, *api.Response]{stringAPI("test")}),
 			},
@@ -272,10 +194,7 @@ func TestRootAPIFromContext(t *testing.T) {
 			},
 		),
 		gen(
-			"multiple apis registered",
-			[]string{cndMultipleAPIs},
-			[]string{actCheckAPI},
-			&condition{
+			"multiple apis registered", &condition{
 				ctx: context.WithValue(context.Background(), api.APIRouteContextKey,
 					[]api.API[*api.Request, *api.Response]{stringAPI("test1"), stringAPI("test2")}),
 			},
@@ -284,10 +203,7 @@ func TestRootAPIFromContext(t *testing.T) {
 			},
 		),
 		gen(
-			"nil context",
-			[]string{cndNilContext},
-			[]string{actCheckNil},
-			&condition{
+			"nil context", &condition{
 				ctx: nil,
 			},
 			&action{
@@ -296,13 +212,11 @@ func TestRootAPIFromContext(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			a := api.RootAPIFromContext(tt.C().ctx)
-			testutil.Diff(t, tt.A().a, a)
+		t.Run(tt.Name, func(t *testing.T) {
+			a := api.RootAPIFromContext(tt.C.ctx)
+			testutil.Diff(t, tt.A.a, a)
 		})
 	}
 }
@@ -320,38 +234,10 @@ func TestProtoMessage(t *testing.T) {
 		err error
 	}
 
-	cndFormatJSON := "json"
-	cndFormatYAML := "yaml"
-	cndFormatProtoMessage := "protoMessage"
-	cndFormatProtoReference := "protoReference"
-	cndFormatUnsupported := "unsupported format"
-	cndMerge := "merge with default values"
-	cndInvalidContentType := "invalid content type"
-	actCheckReturnedValues := "check the returned values"
-	actCheckNoError := "no error"
-	actCheckError := "non-nil error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndFormatJSON, "JSON format")
-	tb.Condition(cndFormatYAML, "YAML format")
-	tb.Condition(cndFormatProtoMessage, "ProtoMessage format")
-	tb.Condition(cndFormatProtoReference, "ProtoReference format")
-	tb.Condition(cndFormatUnsupported, "Unsupported format")
-	tb.Condition(cndMerge, "merge with default values")
-	tb.Condition(cndInvalidContentType, "the type of the content is invalid")
-	tb.Action(actCheckReturnedValues, "check values of the returned proto message")
-	tb.Action(actCheckNoError, "check that there is no error")
-	tb.Action(actCheckError, "check that a non-nil error was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"json/success",
-			[]string{cndFormatJSON},
-			[]string{actCheckReturnedValues, actCheckNoError},
-			&condition{
+			"json/success", &condition{
 				format:  api.FormatJSON,
 				content: []byte(`{"apiVersion":"test1", "kind":"test2", "namespace":"test3", "name":"test4"}`),
 				msg:     &k.Reference{},
@@ -367,10 +253,7 @@ func TestProtoMessage(t *testing.T) {
 			},
 		),
 		gen(
-			"json/merge",
-			[]string{cndFormatJSON, cndMerge},
-			[]string{actCheckReturnedValues, actCheckNoError},
-			&condition{
+			"json/merge", &condition{
 				format:  api.FormatJSON,
 				content: []byte(`{"apiVersion":"test1", "kind":"test2", "namespace":"test3"}`),
 				msg: &k.Reference{
@@ -389,10 +272,7 @@ func TestProtoMessage(t *testing.T) {
 			},
 		),
 		gen(
-			"json/error",
-			[]string{cndFormatJSON, cndInvalidContentType},
-			[]string{actCheckReturnedValues, actCheckError},
-			&condition{
+			"json/error", &condition{
 				format:  api.FormatJSON,
 				content: nil,
 				msg:     nil,
@@ -408,10 +288,7 @@ func TestProtoMessage(t *testing.T) {
 			},
 		),
 		gen(
-			"yaml/success",
-			[]string{cndFormatYAML},
-			[]string{actCheckReturnedValues, actCheckNoError},
-			&condition{
+			"yaml/success", &condition{
 				format:  api.FormatYAML,
 				content: []byte("apiVersion: test1 \nkind: test2 \nnamespace: test3 \nname: test4"),
 				msg:     &k.Reference{},
@@ -427,10 +304,7 @@ func TestProtoMessage(t *testing.T) {
 			},
 		),
 		gen(
-			"yaml/merge",
-			[]string{cndFormatYAML, cndMerge},
-			[]string{actCheckReturnedValues, actCheckNoError},
-			&condition{
+			"yaml/merge", &condition{
 				format:  api.FormatYAML,
 				content: []byte("apiVersion: test1 \nkind: test2 \nnamespace: test3"),
 				msg: &k.Reference{
@@ -449,10 +323,7 @@ func TestProtoMessage(t *testing.T) {
 			},
 		),
 		gen(
-			"yaml/error",
-			[]string{cndFormatYAML, cndInvalidContentType},
-			[]string{actCheckReturnedValues, actCheckError},
-			&condition{
+			"yaml/error", &condition{
 				format:  api.FormatYAML,
 				content: nil,
 				msg:     nil,
@@ -468,10 +339,7 @@ func TestProtoMessage(t *testing.T) {
 			},
 		),
 		gen(
-			"protoMessage/success",
-			[]string{cndFormatProtoMessage},
-			[]string{actCheckReturnedValues, actCheckNoError},
-			&condition{
+			"protoMessage/success", &condition{
 				format: api.FormatProtoMessage,
 				content: &k.Reference{
 					APIVersion: "test1",
@@ -492,10 +360,7 @@ func TestProtoMessage(t *testing.T) {
 			},
 		),
 		gen(
-			"protoMessage/merge",
-			[]string{cndFormatProtoMessage, cndMerge},
-			[]string{actCheckReturnedValues, actCheckNoError},
-			&condition{
+			"protoMessage/merge", &condition{
 				format: api.FormatProtoMessage,
 				content: &k.Reference{
 					APIVersion: "test1",
@@ -518,10 +383,7 @@ func TestProtoMessage(t *testing.T) {
 			},
 		),
 		gen(
-			"protoMessage/error",
-			[]string{cndFormatProtoMessage, cndInvalidContentType},
-			[]string{actCheckReturnedValues, actCheckError},
-			&condition{
+			"protoMessage/error", &condition{
 				format:  api.FormatProtoMessage,
 				content: nil,
 				msg:     nil,
@@ -537,10 +399,7 @@ func TestProtoMessage(t *testing.T) {
 			},
 		),
 		gen(
-			"protoReference/success",
-			[]string{cndFormatProtoReference},
-			[]string{actCheckReturnedValues, actCheckNoError},
-			&condition{
+			"protoReference/success", &condition{
 				format: api.FormatProtoReference,
 				content: &k.Reference{
 					APIVersion: "test1",
@@ -561,10 +420,7 @@ func TestProtoMessage(t *testing.T) {
 			},
 		),
 		gen(
-			"protoReference/merge",
-			[]string{cndFormatProtoReference, cndMerge},
-			[]string{actCheckReturnedValues, actCheckNoError},
-			&condition{
+			"protoReference/merge", &condition{
 				format: api.FormatProtoReference,
 				content: &k.Reference{
 					APIVersion: "test1",
@@ -587,10 +443,7 @@ func TestProtoMessage(t *testing.T) {
 			},
 		),
 		gen(
-			"protoReference/error",
-			[]string{cndFormatProtoReference, cndInvalidContentType},
-			[]string{actCheckReturnedValues, actCheckError},
-			&condition{
+			"protoReference/error", &condition{
 				format:  api.FormatProtoReference,
 				content: nil,
 				msg:     nil,
@@ -606,10 +459,7 @@ func TestProtoMessage(t *testing.T) {
 			},
 		),
 		gen(
-			"unsupported format",
-			[]string{cndFormatUnsupported},
-			[]string{actCheckReturnedValues, actCheckNoError},
-			&condition{
+			"unsupported format", &condition{
 				format:  api.Format("unsupported"),
 				content: nil,
 				msg:     nil,
@@ -622,15 +472,13 @@ func TestProtoMessage(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			msg, err := api.ProtoMessage(tt.C().format, tt.C().content, tt.C().msg, tt.C().opt)
+		t.Run(tt.Name, func(t *testing.T) {
+			msg, err := api.ProtoMessage(tt.C.format, tt.C.content, tt.C.msg, tt.C.opt)
 
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
-			testutil.Diff(t, tt.A().msg, msg, cmpopts.IgnoreUnexported(k.Reference{}))
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
+			testutil.Diff(t, tt.A.msg, msg, cmpopts.IgnoreUnexported(k.Reference{}))
 		})
 	}
 }
@@ -645,30 +493,10 @@ func TestParseID(t *testing.T) {
 		err error
 	}
 
-	cndTemplate := "from kernel.template"
-	cndReference := "from kernel.Reference"
-	cndInvalidMessage := "invalid message"
-	actCheckID := "returned ID"
-	actCheckNoError := "no error"
-	actCheckError := "non-nil error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndTemplate, "merge with default values")
-	tb.Condition(cndReference, "merge with default values")
-	tb.Condition(cndInvalidMessage, "the type of the content is invalid")
-	tb.Action(actCheckID, "check values of the returned proto message")
-	tb.Action(actCheckNoError, "check that there is no error")
-	tb.Action(actCheckError, "check that a non-nil error was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"parse from kernel.Template",
-			[]string{cndTemplate},
-			[]string{actCheckID, actCheckNoError},
-			&condition{
+			"parse from kernel.Template", &condition{
 				msg: &k.Resource{
 					APIVersion: "test1",
 					Kind:       "test2",
@@ -683,10 +511,7 @@ func TestParseID(t *testing.T) {
 			},
 		),
 		gen(
-			"parse from kernel.Reference",
-			[]string{cndReference},
-			[]string{actCheckID, actCheckNoError},
-			&condition{
+			"parse from kernel.Reference", &condition{
 				msg: &k.Reference{
 					APIVersion: "test1",
 					Kind:       "test2",
@@ -699,10 +524,7 @@ func TestParseID(t *testing.T) {
 			},
 		),
 		gen(
-			"nil message",
-			[]string{cndInvalidMessage},
-			[]string{actCheckID, actCheckError},
-			&condition{
+			"nil message", &condition{
 				msg: nil,
 			},
 			&action{
@@ -715,10 +537,7 @@ func TestParseID(t *testing.T) {
 			},
 		),
 		gen(
-			"nil pointer message",
-			[]string{cndInvalidMessage},
-			[]string{actCheckID, actCheckError},
-			&condition{
+			"nil pointer message", &condition{
 				msg: *new(protoreflect.ProtoMessage),
 			},
 			&action{
@@ -732,14 +551,12 @@ func TestParseID(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			id, err := api.ParseID(tt.C().msg)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
-			testutil.Diff(t, tt.A().id, id)
+		t.Run(tt.Name, func(t *testing.T) {
+			id, err := api.ParseID(tt.C.msg)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
+			testutil.Diff(t, tt.A.id, id)
 		})
 	}
 }
@@ -764,30 +581,10 @@ func TestReferObject(t *testing.T) {
 		err error
 	}
 
-	cndObjectExists := "object exists"
-	cndErrorAPI := "API error"
-	cndNilReference := "input nil reference"
-	actCheckObject := "returned object"
-	actCheckNoError := "no error"
-	actCheckError := "non-nil error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndObjectExists, "referred object exists in the API")
-	tb.Condition(cndErrorAPI, "API returns an error")
-	tb.Condition(cndNilReference, "input nil reference")
-	tb.Action(actCheckObject, "check the returned object")
-	tb.Action(actCheckNoError, "check that there is no error")
-	tb.Action(actCheckError, "check that a non-nil error was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"object found",
-			[]string{cndObjectExists},
-			[]string{actCheckObject, actCheckNoError},
-			&condition{
+			"object found", &condition{
 				a: &testContainer{
 					objStore: map[string]any{"foo/bar": "test object"},
 				},
@@ -801,10 +598,7 @@ func TestReferObject(t *testing.T) {
 			},
 		),
 		gen(
-			"error API",
-			[]string{cndErrorAPI},
-			[]string{actCheckObject, actCheckError},
-			&condition{
+			"error API", &condition{
 				a: &testContainer{
 					objStore: map[string]any{},
 					err:      io.ErrUnexpectedEOF, // Dummy error
@@ -819,10 +613,7 @@ func TestReferObject(t *testing.T) {
 			},
 		),
 		gen(
-			"nil reference",
-			[]string{cndNilReference},
-			[]string{actCheckObject, actCheckError},
-			&condition{
+			"nil reference", &condition{
 				ref: nil,
 			},
 			&action{
@@ -835,14 +626,12 @@ func TestReferObject(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			obj, err := api.ReferObject(tt.C().a, tt.C().ref)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
-			testutil.Diff(t, tt.A().obj, obj)
+		t.Run(tt.Name, func(t *testing.T) {
+			obj, err := api.ReferObject(tt.C.a, tt.C.ref)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
+			testutil.Diff(t, tt.A.obj, obj)
 		})
 	}
 }
@@ -858,32 +647,10 @@ func TestReferTypedObject(t *testing.T) {
 		err error
 	}
 
-	cndObjectExists := "object exists"
-	cndErrorAPI := "API error"
-	cndNilReference := "input nil reference"
-	cndWrongType := "wrong type"
-	actCheckObject := "returned object"
-	actCheckNoError := "no error"
-	actCheckError := "non-nil error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndObjectExists, "referred object exists in the API")
-	tb.Condition(cndErrorAPI, "API returns an error")
-	tb.Condition(cndNilReference, "input nil reference")
-	tb.Condition(cndWrongType, "expected wrong type")
-	tb.Action(actCheckObject, "check the returned object")
-	tb.Action(actCheckNoError, "check that there is no error")
-	tb.Action(actCheckError, "check that a non-nil error was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"object found",
-			[]string{cndObjectExists},
-			[]string{actCheckObject, actCheckNoError},
-			&condition{
+			"object found", &condition{
 				a: &testContainer{
 					objStore: map[string]any{"foo/bar": "test object"},
 				},
@@ -897,10 +664,7 @@ func TestReferTypedObject(t *testing.T) {
 			},
 		),
 		gen(
-			"wrong value type",
-			[]string{cndObjectExists, cndWrongType},
-			[]string{actCheckObject, actCheckError},
-			&condition{
+			"wrong value type", &condition{
 				a: &testContainer{
 					objStore: map[string]any{"foo/bar": 999}, // Expect string but the actual value is int.
 				},
@@ -919,10 +683,7 @@ func TestReferTypedObject(t *testing.T) {
 			},
 		),
 		gen(
-			"error API",
-			[]string{cndErrorAPI},
-			[]string{actCheckObject, actCheckError},
-			&condition{
+			"error API", &condition{
 				a: &testContainer{
 					objStore: map[string]any{},
 					err:      io.ErrUnexpectedEOF, // Dummy error
@@ -938,10 +699,7 @@ func TestReferTypedObject(t *testing.T) {
 			},
 		),
 		gen(
-			"nil reference",
-			[]string{cndNilReference},
-			[]string{actCheckObject, actCheckError},
-			&condition{
+			"nil reference", &condition{
 				ref: nil,
 			},
 			&action{
@@ -955,14 +713,12 @@ func TestReferTypedObject(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			obj, err := api.ReferTypedObject[string](tt.C().a, tt.C().ref)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
-			testutil.Diff(t, tt.A().obj, obj)
+		t.Run(tt.Name, func(t *testing.T) {
+			obj, err := api.ReferTypedObject[string](tt.C.a, tt.C.ref)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
+			testutil.Diff(t, tt.A.obj, obj)
 		})
 	}
 }
@@ -978,30 +734,10 @@ func TestReferTypedObjects(t *testing.T) {
 		err error
 	}
 
-	cndObjectExists := "object exists"
-	cndErrorAPI := "API error"
-	cndWrongType := "wrong type"
-	actCheckObject := "returned object"
-	actCheckNoError := "no error"
-	actCheckError := "non-nil error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndObjectExists, "referred object exists in the API")
-	tb.Condition(cndErrorAPI, "API returns an error")
-	tb.Condition(cndWrongType, "expected wrong type")
-	tb.Action(actCheckObject, "check the returned object")
-	tb.Action(actCheckNoError, "check that there is no error")
-	tb.Action(actCheckError, "check that a non-nil error was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"object found",
-			[]string{cndObjectExists},
-			[]string{actCheckObject, actCheckNoError},
-			&condition{
+			"object found", &condition{
 				a: &testContainer{
 					objStore: map[string]any{"foo/bar": "test object"},
 				},
@@ -1017,10 +753,7 @@ func TestReferTypedObjects(t *testing.T) {
 			},
 		),
 		gen(
-			"object found",
-			[]string{cndObjectExists},
-			[]string{actCheckObject, actCheckNoError},
-			&condition{
+			"object found", &condition{
 				a: &testContainer{
 					objStore: map[string]any{"foo/bar": "test1 object", "alice/bob": "test2 object"},
 				},
@@ -1040,10 +773,7 @@ func TestReferTypedObjects(t *testing.T) {
 			},
 		),
 		gen(
-			"wrong value type",
-			[]string{cndObjectExists, cndWrongType},
-			[]string{actCheckObject, actCheckError},
-			&condition{
+			"wrong value type", &condition{
 				a: &testContainer{
 					objStore: map[string]any{"foo/bar": 999}, // Expect string but the actual value is int.
 				},
@@ -1064,10 +794,7 @@ func TestReferTypedObjects(t *testing.T) {
 			},
 		),
 		gen(
-			"error API",
-			[]string{cndErrorAPI},
-			[]string{actCheckObject, actCheckError},
-			&condition{
+			"error API", &condition{
 				a: &testContainer{
 					objStore: map[string]any{},
 					err:      io.ErrUnexpectedEOF, // Dummy error
@@ -1086,14 +813,12 @@ func TestReferTypedObjects(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			obj, err := api.ReferTypedObjects[string](tt.C().a, tt.C().refs...)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
-			testutil.Diff(t, tt.A().obj, obj)
+		t.Run(tt.Name, func(t *testing.T) {
+			obj, err := api.ReferTypedObjects[string](tt.C.a, tt.C.refs...)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
+			testutil.Diff(t, tt.A.obj, obj)
 		})
 	}
 }

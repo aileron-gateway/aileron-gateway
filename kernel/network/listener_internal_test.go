@@ -11,8 +11,8 @@ import (
 	"testing"
 
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/aileron-projects/go/zsyscall"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -55,16 +55,10 @@ func TestRemoveSocketListener(t *testing.T) {
 		closeErr error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"nil listener",
-			[]string{},
-			[]string{},
 			&condition{
 				ln:        nil,
 				testClose: false,
@@ -76,8 +70,6 @@ func TestRemoveSocketListener(t *testing.T) {
 		),
 		gen(
 			"nil addr",
-			[]string{},
-			[]string{},
 			&condition{
 				ln: &removeSocketTest{
 					addr:     nil,
@@ -94,8 +86,6 @@ func TestRemoveSocketListener(t *testing.T) {
 		),
 		gen(
 			"non unix",
-			[]string{},
-			[]string{},
 			&condition{
 				ln:        (*net.TCPListener)(nil),
 				testClose: false,
@@ -107,8 +97,6 @@ func TestRemoveSocketListener(t *testing.T) {
 		),
 		gen(
 			"abstract socket",
-			[]string{},
-			[]string{},
 			&condition{
 				ln: &removeSocketTest{
 					addr:     &net.UnixAddr{Name: "@test", Net: "unix"},
@@ -126,8 +114,6 @@ func TestRemoveSocketListener(t *testing.T) {
 		),
 		gen(
 			"path name socket",
-			[]string{},
-			[]string{},
 			&condition{
 				ln: &removeSocketTest{
 					addr:     &net.UnixAddr{Name: testDir + "ut/kernel/network/remove-socket-test.sock", Net: "unix"},
@@ -149,11 +135,9 @@ func TestRemoveSocketListener(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			opts := []cmp.Option{
 				cmp.AllowUnexported(removeSocketListener{}),
 				cmp.AllowUnexported(removeSocketTest{}),
@@ -161,24 +145,24 @@ func TestRemoveSocketListener(t *testing.T) {
 				cmpopts.EquateErrors(),
 			}
 
-			ln := RemoveSocketListener(tt.C().ln)
-			testutil.Diff(t, tt.A().expect, ln, opts...)
-			if !tt.C().testClose {
+			ln := RemoveSocketListener(tt.C.ln)
+			testutil.Diff(t, tt.A.expect, ln, opts...)
+			if !tt.C.testClose {
 				return
 			}
 
-			if tt.C().socket != "" {
-				f, err := os.Create(tt.C().socket)
+			if tt.C.socket != "" {
+				f, err := os.Create(tt.C.socket)
 				f.Close()
 				testutil.Diff(t, nil, err)
 			}
 
 			err := ln.Close()
-			testutil.Diff(t, tt.A().closeErr, err, cmpopts.EquateErrors())
-			testutil.Diff(t, true, tt.C().ln.(*removeSocketTest).closed)
+			testutil.Diff(t, tt.A.closeErr, err, cmpopts.EquateErrors())
+			testutil.Diff(t, true, tt.C.ln.(*removeSocketTest).closed)
 
-			if tt.C().socket != "" {
-				info, err := os.Stat(tt.C().socket)
+			if tt.C.socket != "" {
+				info, err := os.Stat(tt.C.socket)
 				testutil.Diff(t, true, os.IsNotExist(err))
 				testutil.Diff(t, nil, info)
 			}
@@ -197,10 +181,6 @@ func TestNewListenerFromSpec(t *testing.T) {
 		err      error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	checker, _ := net.Listen("tcp", "127.0.0.1:0")
 	checker.Close()
 	testAddr := checker.Addr().String()
@@ -209,8 +189,6 @@ func TestNewListenerFromSpec(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"nil spec",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: nil,
 			},
@@ -221,8 +199,6 @@ func TestNewListenerFromSpec(t *testing.T) {
 		),
 		gen(
 			"valid tls config",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ListenConfig{
 					Addr:            "tcp://" + testAddr,
@@ -239,8 +215,6 @@ func TestNewListenerFromSpec(t *testing.T) {
 		),
 		gen(
 			"invalid tls config",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ListenConfig{
 					TLSConfig: &k.TLSConfig{
@@ -258,8 +232,6 @@ func TestNewListenerFromSpec(t *testing.T) {
 		),
 		gen(
 			"with keep-alive disabled",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ListenConfig{
 					Addr: "tcp://" + testAddr,
@@ -275,8 +247,6 @@ func TestNewListenerFromSpec(t *testing.T) {
 		),
 		gen(
 			"with keep-alive enabled",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ListenConfig{
 					Addr: "tcp://" + testAddr,
@@ -295,23 +265,21 @@ func TestNewListenerFromSpec(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			ln, err := NewListenerFromSpec(tt.C().spec)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
+		t.Run(tt.Name, func(t *testing.T) {
+			ln, err := NewListenerFromSpec(tt.C.spec)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
 
 			// TODO: better way to check the result.
 			// opts := []cmp.Option{
 			// 	cmp.AllowUnexported(testListener{}),
 			// 	cmp.AllowUnexported(secureListener{}, deadlineListener{}, keepAliveListener{}, limitListener{}),
 			// }
-			// testutil.Diff(t, tt.A().listener, ln, opts...)
+			// testutil.Diff(t, tt.A.listener, ln, opts...)
 
-			if tt.A().address != "" {
-				testutil.Diff(t, tt.A().address, ln.Addr().String())
+			if tt.A.address != "" {
+				testutil.Diff(t, tt.A.address, ln.Addr().String())
 				ln.Close()
 			} else {
 				testutil.Diff(t, nil, ln)
@@ -330,10 +298,6 @@ func TestNewListener(t *testing.T) {
 		err     error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	checker, _ := net.Listen("tcp", "127.0.0.1:0")
 	checker.Close()
 	testAddr := checker.Addr().String()
@@ -342,8 +306,6 @@ func TestNewListener(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"nil config",
-			[]string{},
-			[]string{},
 			&condition{
 				c: nil,
 			},
@@ -357,8 +319,6 @@ func TestNewListener(t *testing.T) {
 		),
 		gen(
 			"valid tcp",
-			[]string{},
-			[]string{},
 			&condition{
 				c: &ListenConfig{
 					Address: "tcp://" + testAddr,
@@ -377,8 +337,6 @@ func TestNewListener(t *testing.T) {
 		),
 		gen(
 			"valid tcp with TLS",
-			[]string{},
-			[]string{},
 			&condition{
 				c: &ListenConfig{
 					Address: "tcp://" + testAddr,
@@ -400,8 +358,6 @@ func TestNewListener(t *testing.T) {
 		),
 		gen(
 			"invalid tcp",
-			[]string{},
-			[]string{},
 			&condition{
 				c: &ListenConfig{
 					Address:    "tcp://" + "127.0.0.0.0.1",
@@ -419,8 +375,6 @@ func TestNewListener(t *testing.T) {
 		),
 		gen(
 			"invalid tcp with TLS",
-			[]string{},
-			[]string{},
 			&condition{
 				c: &ListenConfig{
 					Address:    "tcp://" + "127.0.0.0.0.1",
@@ -441,8 +395,6 @@ func TestNewListener(t *testing.T) {
 		),
 		gen(
 			"valid unix",
-			[]string{},
-			[]string{},
 			&condition{
 				c: &ListenConfig{
 					Address:    "unix://" + "@test",
@@ -476,8 +428,6 @@ func TestNewListener(t *testing.T) {
 		// ),
 		gen(
 			"invalid container",
-			[]string{},
-			[]string{},
 			&condition{
 				c: &ListenConfig{
 					Address:  "tcp://" + testAddr,
@@ -495,8 +445,6 @@ func TestNewListener(t *testing.T) {
 		),
 		gen(
 			"invalid network",
-			[]string{},
-			[]string{},
 			&condition{
 				c: &ListenConfig{
 					Address: "invalid://" + "127.0.0.1:12358",
@@ -513,8 +461,6 @@ func TestNewListener(t *testing.T) {
 		),
 		gen(
 			"invalid network with TLS",
-			[]string{},
-			[]string{},
 			&condition{
 				c: &ListenConfig{
 					Address:   "invalid://" + "127.0.0.1:12358",
@@ -532,8 +478,6 @@ func TestNewListener(t *testing.T) {
 		),
 		gen(
 			"control error",
-			[]string{},
-			[]string{},
 			&condition{
 				c: &ListenConfig{
 					Address: "unix://" + "@test",
@@ -554,22 +498,20 @@ func TestNewListener(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			ln, err := NewListener(tt.C().c)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
+		t.Run(tt.Name, func(t *testing.T) {
+			ln, err := NewListener(tt.C.c)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
 			// TODO: better way to check the result.
 			// opts := []cmp.Option{
 			// 	cmp.AllowUnexported(testListener{}),
 			// 	cmp.AllowUnexported(secureListener{}, readDeadlineListener{}, writeDeadlineListener{}, limitListener{}),
 			// 	cmpopts.IgnoreUnexported(net.TCPListener{}),
 			// }
-			// testutil.Diff(t, tt.A().listener, ln, opts...)
-			if tt.A().address != "" {
-				testutil.Diff(t, tt.A().address, ln.Addr().String())
+			// testutil.Diff(t, tt.A.listener, ln, opts...)
+			if tt.A.address != "" {
+				testutil.Diff(t, tt.A.address, ln.Addr().String())
 				ln.Close()
 			} else {
 				testutil.Diff(t, nil, ln)

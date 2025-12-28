@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/aileron-gateway/aileron-gateway/core"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"go.opentelemetry.io/otel/attribute"
@@ -30,16 +30,10 @@ func TestRegistry(t *testing.T) {
 	type action struct {
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"nil registry",
-			[]string{},
-			[]string{},
 			&condition{
 				mp: nil,
 			},
@@ -47,8 +41,6 @@ func TestRegistry(t *testing.T) {
 		),
 		gen(
 			"non nil registry",
-			[]string{},
-			[]string{},
 			&condition{
 				mp: sdkmetric.NewMeterProvider(),
 			},
@@ -56,13 +48,11 @@ func TestRegistry(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			metrics := &otelMeter{
-				mp: tt.C().mp,
+				mp: tt.C.mp,
 			}
 
 			mp := metrics.MeterProvider()
@@ -70,7 +60,7 @@ func TestRegistry(t *testing.T) {
 			opts := []cmp.Option{
 				cmp.Comparer(testutil.ComparePointer[*sdkmetric.MeterProvider]),
 			}
-			testutil.Diff(t, tt.C().mp, mp, opts...)
+			testutil.Diff(t, tt.C.mp, mp, opts...)
 		})
 	}
 }
@@ -84,19 +74,10 @@ func TestMiddleware(t *testing.T) {
 		value int64
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	CndSingleRequest := tb.Condition("send single request", "send single request")
-	CndMultipleRequests := tb.Condition("send multiple requests", "send multiple requests")
-	ActCheckCount := tb.Action("check count", "check that an expected value returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"single request",
-			[]string{CndSingleRequest},
-			[]string{ActCheckCount},
 			&condition{
 				numReq: 1,
 			},
@@ -106,8 +87,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"multiple requests",
-			[]string{CndMultipleRequests},
-			[]string{ActCheckCount},
 			&condition{
 				numReq: 5,
 			},
@@ -117,11 +96,9 @@ func TestMiddleware(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			reader := sdkmetric.NewManualReader()
 			mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
 			meter := mp.Meter("test-meter")
@@ -139,7 +116,7 @@ func TestMiddleware(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodGet, "http://test.com/test", nil)
 			resp := httptest.NewRecorder()
-			for i := 0; i < tt.C().numReq; i++ {
+			for i := 0; i < tt.C.numReq; i++ {
 				h.ServeHTTP(resp, req)
 			}
 
@@ -173,7 +150,7 @@ func TestMiddleware(t *testing.T) {
 				switch a := m.Data.(type) {
 				case metricdata.Sum[int64]:
 					for _, dp := range a.DataPoints {
-						testutil.Diff(t, dp.Value, tt.A().value)
+						testutil.Diff(t, dp.Value, tt.A.value)
 					}
 				default:
 					t.Fatalf("unexpected data type %v", a)
@@ -192,16 +169,10 @@ func TestTripperware(t *testing.T) {
 		value int64
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"single request",
-			[]string{},
-			[]string{},
 			&condition{
 				numReq: 1,
 			},
@@ -211,8 +182,6 @@ func TestTripperware(t *testing.T) {
 		),
 		gen(
 			"multiple requests",
-			[]string{},
-			[]string{},
 			&condition{
 				numReq: 5,
 			},
@@ -222,11 +191,9 @@ func TestTripperware(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			reader := sdkmetric.NewManualReader()
 			mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
 			meter := mp.Meter("test-meter")
@@ -243,7 +210,7 @@ func TestTripperware(t *testing.T) {
 			}))
 
 			req := httptest.NewRequest(http.MethodGet, "http://test.com/test", nil)
-			for i := 0; i < tt.C().numReq; i++ {
+			for i := 0; i < tt.C.numReq; i++ {
 				h.RoundTrip(req)
 			}
 
@@ -277,7 +244,7 @@ func TestTripperware(t *testing.T) {
 				switch a := m.Data.(type) {
 				case metricdata.Sum[int64]:
 					for _, dp := range a.DataPoints {
-						testutil.Diff(t, dp.Value, tt.A().value)
+						testutil.Diff(t, dp.Value, tt.A.value)
 					}
 				default:
 					t.Fatalf("unexpected data type %v", a)
@@ -297,16 +264,10 @@ func TestFinalize(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"call Finalize once",
-			[]string{},
-			[]string{},
 			&condition{
 				times: 1,
 			},
@@ -316,8 +277,6 @@ func TestFinalize(t *testing.T) {
 		),
 		gen(
 			"call Finalize more than once",
-			[]string{},
-			[]string{},
 			&condition{
 				times: 5,
 			},
@@ -328,11 +287,9 @@ func TestFinalize(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 
 			mp := sdkmetric.NewMeterProvider(
 				sdkmetric.WithReader(sdkmetric.NewManualReader()),
@@ -344,11 +301,11 @@ func TestFinalize(t *testing.T) {
 
 			var err error
 
-			for i := 0; i < tt.C().times; i++ {
+			for i := 0; i < tt.C.times; i++ {
 				err = om.Finalize()
 			}
 
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err, cmpopts.EquateErrors())
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err, cmpopts.EquateErrors())
 		})
 	}
 }

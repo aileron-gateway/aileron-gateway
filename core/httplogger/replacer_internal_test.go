@@ -9,8 +9,8 @@ import (
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
@@ -27,16 +27,10 @@ func TestHeaderReplacers(t *testing.T) {
 		err        error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"nil spec",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: nil,
 				data:  http.Header{"Alice": {"bob"}, "Foo": {"bar"}},
@@ -48,8 +42,6 @@ func TestHeaderReplacers(t *testing.T) {
 		),
 		gen(
 			"empty spec",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.LogHeaderSpec{},
 				data:  http.Header{"Alice": {"bob"}, "Foo": {"bar"}},
@@ -61,8 +53,6 @@ func TestHeaderReplacers(t *testing.T) {
 		),
 		gen(
 			"all headers",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.LogHeaderSpec{
 					{Name: "*"},
@@ -77,8 +67,6 @@ func TestHeaderReplacers(t *testing.T) {
 		),
 		gen(
 			"one replacer",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.LogHeaderSpec{
 					{
@@ -100,8 +88,6 @@ func TestHeaderReplacers(t *testing.T) {
 		),
 		gen(
 			"one replacer multi value",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.LogHeaderSpec{
 					{
@@ -123,8 +109,6 @@ func TestHeaderReplacers(t *testing.T) {
 		),
 		gen(
 			"two replacer",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.LogHeaderSpec{
 					{
@@ -152,8 +136,6 @@ func TestHeaderReplacers(t *testing.T) {
 		),
 		gen(
 			"duplicate names",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.LogHeaderSpec{
 					{
@@ -181,8 +163,6 @@ func TestHeaderReplacers(t *testing.T) {
 		),
 		gen(
 			"nil spec",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.LogHeaderSpec{
 					nil, nil, nil, // nil spec
@@ -205,8 +185,6 @@ func TestHeaderReplacers(t *testing.T) {
 		),
 		gen(
 			"invalid spec",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.LogHeaderSpec{
 					{
@@ -229,22 +207,20 @@ func TestHeaderReplacers(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			replacers, all, err := headerReplacers(tt.C().specs)
+		t.Run(tt.Name, func(t *testing.T) {
+			replacers, all, err := headerReplacers(tt.C.specs)
 
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
-			testutil.Diff(t, tt.A().allHeaders, all)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
+			testutil.Diff(t, tt.A.allHeaders, all)
 
 			bl := &baseLogger{
 				allHeaders: true,
 				headers:    replacers,
 			}
-			result := bl.logHeaders(tt.C().data)
-			testutil.Diff(t, tt.A().data, result)
+			result := bl.logHeaders(tt.C.data)
+			testutil.Diff(t, tt.A.data, result)
 		})
 	}
 }
@@ -261,16 +237,10 @@ func TestBodyReplacers(t *testing.T) {
 		err  error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"nil spec",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: nil,
 				data:  `{"foo":"bar"}`,
@@ -282,8 +252,6 @@ func TestBodyReplacers(t *testing.T) {
 		),
 		gen(
 			"empty spec",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.LogBodySpec{},
 				data:  `{"foo":"bar"}`,
@@ -295,8 +263,6 @@ func TestBodyReplacers(t *testing.T) {
 		),
 		gen(
 			"one replacer",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.LogBodySpec{
 					{
@@ -318,8 +284,6 @@ func TestBodyReplacers(t *testing.T) {
 		),
 		gen(
 			"one replacer/wrong mime",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.LogBodySpec{
 					{
@@ -341,8 +305,6 @@ func TestBodyReplacers(t *testing.T) {
 		),
 		gen(
 			"two replacers",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.LogBodySpec{
 					{
@@ -371,8 +333,6 @@ func TestBodyReplacers(t *testing.T) {
 		),
 		gen(
 			"two replacers different mime",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.LogBodySpec{
 					{
@@ -406,8 +366,6 @@ func TestBodyReplacers(t *testing.T) {
 		),
 		gen(
 			"json field replace string",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.LogBodySpec{
 					{
@@ -432,8 +390,6 @@ func TestBodyReplacers(t *testing.T) {
 		),
 		gen(
 			"json field replace object",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.LogBodySpec{
 					{
@@ -458,8 +414,6 @@ func TestBodyReplacers(t *testing.T) {
 		),
 		gen(
 			"json field not found",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.LogBodySpec{
 					{
@@ -484,8 +438,6 @@ func TestBodyReplacers(t *testing.T) {
 		),
 		gen(
 			"replacer contains nil",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.LogBodySpec{
 					nil, nil, nil, // nil spec.
@@ -510,8 +462,6 @@ func TestBodyReplacers(t *testing.T) {
 		),
 		gen(
 			"empty mime",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.LogBodySpec{
 					{
@@ -535,8 +485,6 @@ func TestBodyReplacers(t *testing.T) {
 		),
 		gen(
 			"invalid replacer",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.LogBodySpec{
 					{
@@ -561,19 +509,17 @@ func TestBodyReplacers(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			replacers, err := bodyReplacers(tt.C().specs)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
+		t.Run(tt.Name, func(t *testing.T) {
+			replacers, err := bodyReplacers(tt.C.specs)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
 
 			bl := &baseLogger{
 				bodies: replacers,
 			}
-			result := bl.logBody(tt.C().mime, []byte(tt.C().data))
-			testutil.Diff(t, tt.A().data, string(result))
+			result := bl.logBody(tt.C.mime, []byte(tt.C.data))
+			testutil.Diff(t, tt.A.data, string(result))
 		})
 	}
 }

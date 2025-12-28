@@ -11,8 +11,8 @@ import (
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/core"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
@@ -26,16 +26,10 @@ func TestCreate(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"create with default manifest",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: Resource.Default(),
 			},
@@ -45,8 +39,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"HTTPExporter",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.OpenTelemetryMeter{
 					APIVersion: apiVersion,
@@ -69,8 +61,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"StdoutExporter",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.OpenTelemetryMeter{
 					APIVersion: apiVersion,
@@ -93,8 +83,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"fail to create http exporter",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.OpenTelemetryMeter{
 					APIVersion: apiVersion,
@@ -123,8 +111,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"fail to create grpc exporter",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.OpenTelemetryMeter{
 					APIVersion: apiVersion,
@@ -153,8 +139,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create grpc exporter with insecure",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.OpenTelemetryMeter{
 					APIVersion: apiVersion,
@@ -179,8 +163,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create grpc exporter with appendOption",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.OpenTelemetryMeter{
 					APIVersion: apiVersion,
@@ -205,16 +187,14 @@ func TestCreate(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			server := api.NewContainerAPI()
 			postTestResource(server, nil)
 
-			_, err := Resource.Create(server, tt.C().manifest)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+			_, err := Resource.Create(server, tt.C.manifest)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 		})
 	}
 }

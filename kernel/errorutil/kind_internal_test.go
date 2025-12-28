@@ -9,7 +9,7 @@ import (
 	"io"
 	"testing"
 
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-projects/go/ztext"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -33,23 +33,10 @@ func TestNewKind(t *testing.T) {
 		kind   *Kind
 	}
 
-	CndValidTemplate := "input valid template"
-	actCheckNil := "check that the returned kind is nil"
-	actCheckPanic := "check that an panic happen"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(CndValidTemplate, "input valid fasttemplate as an argument")
-	tb.Action(actCheckNil, "check that the returned kind is nil")
-	tb.Action(actCheckPanic, "check that a panic will happen")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"valid template",
-			[]string{CndValidTemplate},
-			[]string{},
 			&condition{
 				code: "test-code",
 				kind: "test-kind",
@@ -65,8 +52,6 @@ func TestNewKind(t *testing.T) {
 		),
 		gen(
 			"template is empty",
-			[]string{CndValidTemplate},
-			[]string{},
 			&condition{
 				code: "test-code",
 				kind: "test-kind",
@@ -82,20 +67,18 @@ func TestNewKind(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			if tt.C().panics {
+		t.Run(tt.Name, func(t *testing.T) {
+			if tt.C.panics {
 				defer func() {
 					e := recover().(error)
-					testutil.Diff(t, tt.A().errMsg, e.Error())
+					testutil.Diff(t, tt.A.errMsg, e.Error())
 				}()
 			}
 
-			k := NewKind(tt.C().code, tt.C().kind, tt.C().tpl)
-			testutil.Diff(t, tt.A().kind, k, cmp.AllowUnexported(Kind{}, ztext.Template{}))
+			k := NewKind(tt.C.code, tt.C.kind, tt.C.tpl)
+			testutil.Diff(t, tt.A.kind, k, cmp.AllowUnexported(Kind{}, ztext.Template{}))
 		})
 	}
 }
@@ -109,21 +92,10 @@ func TestKind_Code(t *testing.T) {
 		code string
 	}
 
-	cndNonEmptyCode := "non-empty code"
-	actCheckReturned := "check returned code"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndNonEmptyCode, "input non-empty string as code")
-	tb.Action(actCheckReturned, "check that the returned code is the one expected")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"non-empty code",
-			[]string{cndNonEmptyCode},
-			[]string{actCheckReturned},
 			&condition{
 				kind: &Kind{
 					code: "test-code",
@@ -135,8 +107,6 @@ func TestKind_Code(t *testing.T) {
 		),
 		gen(
 			"empty string as code",
-			[]string{},
-			[]string{actCheckReturned},
 			&condition{
 				kind: &Kind{
 					code: "",
@@ -148,13 +118,11 @@ func TestKind_Code(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			code := tt.C().kind.Code()
-			testutil.Diff(t, tt.A().code, code)
+		t.Run(tt.Name, func(t *testing.T) {
+			code := tt.C.kind.Code()
+			testutil.Diff(t, tt.A.code, code)
 		})
 	}
 }
@@ -168,21 +136,10 @@ func TestKind_Kind(t *testing.T) {
 		kind string
 	}
 
-	cndNonEmptyKind := "non-empty kind"
-	actCheckReturned := "check returned kind"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndNonEmptyKind, "input non-empty string as kind")
-	tb.Action(actCheckReturned, "check that the returned kind is the one expected")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"non-empty kind",
-			[]string{cndNonEmptyKind},
-			[]string{actCheckReturned},
 			&condition{
 				kind: &Kind{
 					kind: "test-kind",
@@ -194,8 +151,6 @@ func TestKind_Kind(t *testing.T) {
 		),
 		gen(
 			"empty string as kind",
-			[]string{},
-			[]string{actCheckReturned},
 			&condition{
 				kind: &Kind{
 					kind: "",
@@ -207,13 +162,11 @@ func TestKind_Kind(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			kind := tt.C().kind.Kind()
-			testutil.Diff(t, tt.A().kind, kind)
+		t.Run(tt.Name, func(t *testing.T) {
+			kind := tt.C.kind.Kind()
+			testutil.Diff(t, tt.A.kind, kind)
 		})
 	}
 }
@@ -228,23 +181,10 @@ func TestKind_WithoutStack(t *testing.T) {
 		attrs *ErrorAttrs
 	}
 
-	cndInputError := "pass an error"
-	cndInputErrorAttrs := "pass an ErrorAttrs"
-	actCheckReturned := "check returned ErrorAttrs"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndInputError, "pass an error which is not instance or ErrorAttrs as argument")
-	tb.Condition(cndInputErrorAttrs, "pass an error of ErrorAttrs as argument")
-	tb.Action(actCheckReturned, "check that the returned ErrorAttrs is the one with expected values")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"with no error",
-			[]string{},
-			[]string{actCheckReturned},
 			&condition{
 				kind: &Kind{
 					kind: "test-kind",
@@ -263,8 +203,6 @@ func TestKind_WithoutStack(t *testing.T) {
 		),
 		gen(
 			"with an error",
-			[]string{cndInputError},
-			[]string{actCheckReturned},
 			&condition{
 				kind: &Kind{
 					kind: "test-kind",
@@ -285,8 +223,6 @@ func TestKind_WithoutStack(t *testing.T) {
 		),
 		gen(
 			"with an error of ErrorAttrs",
-			[]string{cndInputErrorAttrs},
-			[]string{actCheckReturned},
 			&condition{
 				kind: &Kind{
 					kind: "test-kind",
@@ -311,13 +247,11 @@ func TestKind_WithoutStack(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			attrs := tt.C().kind.WithoutStack(tt.C().err, nil)
-			testutil.Diff(t, tt.A().attrs, attrs, cmp.AllowUnexported(ErrorAttrs{}), cmpopts.EquateErrors())
+		t.Run(tt.Name, func(t *testing.T) {
+			attrs := tt.C.kind.WithoutStack(tt.C.err, nil)
+			testutil.Diff(t, tt.A.attrs, attrs, cmp.AllowUnexported(ErrorAttrs{}), cmpopts.EquateErrors())
 		})
 	}
 }
@@ -332,23 +266,10 @@ func TestKind_WithStack(t *testing.T) {
 		attrs *ErrorAttrs
 	}
 
-	cndInputError := "pass an error"
-	cndInputErrorAttrs := "pass an ErrorAttrs"
-	actCheckReturned := "check returned ErrorAttrs"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndInputError, "pass an error which is not instance or ErrorAttrs as argument")
-	tb.Condition(cndInputErrorAttrs, "pass an error of ErrorAttrs as argument")
-	tb.Action(actCheckReturned, "check that the returned ErrorAttrs is the one with expected values")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"with no error",
-			[]string{},
-			[]string{actCheckReturned},
 			&condition{
 				kind: &Kind{
 					kind: "test-kind",
@@ -367,8 +288,6 @@ func TestKind_WithStack(t *testing.T) {
 		),
 		gen(
 			"with an error",
-			[]string{cndInputError},
-			[]string{actCheckReturned},
 			&condition{
 				kind: &Kind{
 					kind: "test-kind",
@@ -389,8 +308,6 @@ func TestKind_WithStack(t *testing.T) {
 		),
 		gen(
 			"with an error of ErrorAttrs",
-			[]string{cndInputErrorAttrs},
-			[]string{actCheckReturned},
 			&condition{
 				kind: &Kind{
 					kind: "test-kind",
@@ -415,14 +332,12 @@ func TestKind_WithStack(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			errAttrs := tt.C().kind.WithStack(tt.C().err, nil)
+		t.Run(tt.Name, func(t *testing.T) {
+			errAttrs := tt.C.kind.WithStack(tt.C.err, nil)
 			attrs := errAttrs.(*ErrorAttrs)
-			testutil.Diff(t, tt.A().attrs, attrs, cmp.AllowUnexported(ErrorAttrs{}), cmpopts.IgnoreFields(ErrorAttrs{}, "stack"), cmpopts.EquateErrors())
+			testutil.Diff(t, tt.A.attrs, attrs, cmp.AllowUnexported(ErrorAttrs{}), cmpopts.IgnoreFields(ErrorAttrs{}, "stack"), cmpopts.EquateErrors())
 			testutil.Diff(t, true, bytes.Contains(attrs.stack, []byte("goroutine")))
 		})
 	}
@@ -438,25 +353,10 @@ func TestKind_Is(t *testing.T) {
 		ok bool
 	}
 
-	cndNil := "nil"
-	cndMatchCode := "match code"
-	actCheckMatch := "check match"
-	actCheckUnMatched := "check unmatched"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndNil, "input nil as the target")
-	tb.Condition(cndMatchCode, "input error which matches as the target")
-	tb.Action(actCheckMatch, "check that the errors matches")
-	tb.Action(actCheckUnMatched, "check that the errors does not match")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"nil",
-			[]string{cndNil},
-			[]string{actCheckUnMatched},
 			&condition{
 				kind: &Kind{
 					code: "test-code",
@@ -469,8 +369,6 @@ func TestKind_Is(t *testing.T) {
 		),
 		gen(
 			"an error of errors.New",
-			[]string{},
-			[]string{actCheckUnMatched},
 			&condition{
 				kind: &Kind{
 					code: "test-code",
@@ -483,8 +381,6 @@ func TestKind_Is(t *testing.T) {
 		),
 		gen(
 			"an ErrorAttrs which matches",
-			[]string{cndMatchCode},
-			[]string{actCheckMatch},
 			&condition{
 				kind: &Kind{
 					code: "test-code",
@@ -499,8 +395,6 @@ func TestKind_Is(t *testing.T) {
 		),
 		gen(
 			"an ErrorAttrs which does not match",
-			[]string{},
-			[]string{actCheckUnMatched},
 			&condition{
 				kind: &Kind{
 					code: "test-code",
@@ -515,8 +409,6 @@ func TestKind_Is(t *testing.T) {
 		),
 		gen(
 			"an ErrorAttrs containing another ErrorAttrs which matches",
-			[]string{cndMatchCode},
-			[]string{actCheckMatch},
 			&condition{
 				kind: &Kind{
 					code: "test-code",
@@ -534,8 +426,6 @@ func TestKind_Is(t *testing.T) {
 		),
 		gen(
 			"an ErrorAttrs which mates containing another ErrorAttrs",
-			[]string{cndMatchCode},
-			[]string{actCheckMatch},
 			&condition{
 				kind: &Kind{
 					code: "test-code",
@@ -553,8 +443,6 @@ func TestKind_Is(t *testing.T) {
 		),
 		gen(
 			"an ErrorAttrs containing another ErrorAttrs which does not match",
-			[]string{},
-			[]string{actCheckUnMatched},
 			&condition{
 				kind: &Kind{
 					code: "test-code",
@@ -572,8 +460,6 @@ func TestKind_Is(t *testing.T) {
 		),
 		gen(
 			"an ErrorAttrs containing io.EOF which does not match",
-			[]string{},
-			[]string{actCheckUnMatched},
 			&condition{
 				kind: &Kind{
 					code: "test-code",
@@ -589,8 +475,6 @@ func TestKind_Is(t *testing.T) {
 		),
 		gen(
 			"an ErrorAttrs containing errors.New error which does not match",
-			[]string{},
-			[]string{actCheckUnMatched},
 			&condition{
 				kind: &Kind{
 					kind: "test-kind",
@@ -608,13 +492,11 @@ func TestKind_Is(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			ok := tt.C().kind.Is(tt.C().err)
-			testutil.Diff(t, tt.A().ok, ok)
+		t.Run(tt.Name, func(t *testing.T) {
+			ok := tt.C.kind.Is(tt.C.err)
+			testutil.Diff(t, tt.A.ok, ok)
 		})
 	}
 }

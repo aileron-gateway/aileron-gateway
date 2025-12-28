@@ -16,8 +16,8 @@ import (
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
 	"github.com/aileron-gateway/aileron-gateway/app"
 	"github.com/aileron-gateway/aileron-gateway/core"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 	"github.com/google/go-cmp/cmp"
 )
@@ -62,20 +62,10 @@ func TestNewResourceServerHandler(t *testing.T) {
 		h *resourceServerHandler
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	condRedeemPath := tb.Condition("authentication via redeem token endpoint", "authentication via redeem token endpoint")
-	condHeaderKeyIsEmpty := tb.Condition("input data HeaderKey is Empty", "input data HeaderKey is Empty")
-	actNoError := tb.Action("no error", "check that the there is no error")
-
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"no error",
-			[]string{condRedeemPath},
-			[]string{actNoError},
 			&condition{
 				spec: &v1.ResourceServerHandler{
 					HeaderKey:   "test-key",
@@ -91,8 +81,6 @@ func TestNewResourceServerHandler(t *testing.T) {
 		),
 		gen(
 			"empty header key",
-			[]string{condHeaderKeyIsEmpty},
-			[]string{actNoError},
 			&condition{
 				spec: &v1.ResourceServerHandler{
 					HeaderKey:   "",
@@ -108,17 +96,15 @@ func TestNewResourceServerHandler(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			handler := newResourceServerHandler(tt.C().bh, tt.C().spec)
+		t.Run(tt.Name, func(t *testing.T) {
+			handler := newResourceServerHandler(tt.C.bh, tt.C.spec)
 			opts := []cmp.Option{
 				cmp.AllowUnexported(resourceServerHandler{}, baseHandler{}),
 				// cmpopts.IgnoreInterfaces(struct{ http.RoundTripper }{}),
 			}
-			testutil.Diff(t, tt.A().h, handler, opts...)
+			testutil.Diff(t, tt.A.h, handler, opts...)
 		})
 	}
 }
@@ -141,28 +127,10 @@ func TestResourceServer_ServeAuthn(t *testing.T) {
 		errStatus  int
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	condEmptyAT := tb.Condition("access token has empty string", "access token has empty string")
-	condTokenIntrospection := tb.Condition("token introspection enabled", "token introspection enabled")
-	condValidateTokenFailed := tb.Condition("failed to validate token", "failed to validate token")
-	condFAPIEnabled := tb.Condition("fapi enabled", "fapi enabled")
-	condValidateCertFailed := tb.Condition("failed to validate client certificate", "failed to validate client certificate")
-	condGenerateUUIDFailed := tb.Condition("fapi-interaction-id header doesn't exist in the request and failed to generate uuid", "fapi-interaction-id header doesn't exist in the request and failed to generate uuid")
-	condOauthContextNotFound := tb.Condition("failed to validate OAuthContext", "failed to validate OAuthContext")
-	condAuthenticationSucceeded := tb.Condition("Authentication Succeeded", "Authentication Succeeded")
-	condOauthContextFromHeader := tb.Condition("OAuthContext validation succeeds from header", "OAuthContext validation succeeds from header")
-	condOauthContextFromQuery := tb.Condition("OAuthContext validation succeeds from query", "OAuthContext validation succeeds from query")
-	actError := tb.Action("error", "check that the expected error is returned")
-	actNoError := tb.Action("no error", "check that the there is no error")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"context not found",
-			[]string{condOauthContextNotFound},
-			[]string{actError},
 			&condition{
 				h: &resourceServerHandler{
 					baseHandler: &baseHandler{
@@ -181,8 +149,6 @@ func TestResourceServer_ServeAuthn(t *testing.T) {
 		),
 		gen(
 			"access token not found",
-			[]string{condEmptyAT},
-			[]string{actError},
 			&condition{
 				h: &resourceServerHandler{
 					baseHandler: &baseHandler{
@@ -204,8 +170,6 @@ func TestResourceServer_ServeAuthn(t *testing.T) {
 		),
 		gen(
 			"AT validation error",
-			[]string{condTokenIntrospection, condValidateTokenFailed},
-			[]string{actError},
 			&condition{
 				h: &resourceServerHandler{
 					baseHandler: &baseHandler{
@@ -228,8 +192,6 @@ func TestResourceServer_ServeAuthn(t *testing.T) {
 		),
 		gen(
 			"authentication succeeded",
-			[]string{condAuthenticationSucceeded},
-			[]string{actNoError},
 			&condition{
 				h: &resourceServerHandler{
 					baseHandler: &baseHandler{
@@ -251,8 +213,6 @@ func TestResourceServer_ServeAuthn(t *testing.T) {
 		),
 		gen(
 			"OAuthContext validation succeeds from query",
-			[]string{condOauthContextFromQuery},
-			[]string{actNoError},
 			&condition{
 				h: &resourceServerHandler{
 					baseHandler: &baseHandler{
@@ -275,8 +235,6 @@ func TestResourceServer_ServeAuthn(t *testing.T) {
 		),
 		gen(
 			"OAuthContext validation succeeds from header",
-			[]string{condOauthContextFromHeader},
-			[]string{actNoError},
 			&condition{
 				h: &resourceServerHandler{
 					baseHandler: &baseHandler{
@@ -300,8 +258,6 @@ func TestResourceServer_ServeAuthn(t *testing.T) {
 		),
 		gen(
 			"mtls success",
-			[]string{condFAPIEnabled},
-			[]string{actNoError},
 			&condition{
 				h: &resourceServerHandler{
 					baseHandler: &baseHandler{
@@ -325,8 +281,6 @@ func TestResourceServer_ServeAuthn(t *testing.T) {
 		),
 		gen(
 			"client cert validation error",
-			[]string{condFAPIEnabled, condValidateCertFailed},
-			[]string{actError},
 			&condition{
 				h: &resourceServerHandler{
 					baseHandler: &baseHandler{
@@ -352,8 +306,6 @@ func TestResourceServer_ServeAuthn(t *testing.T) {
 		),
 		gen(
 			"uid generate error",
-			[]string{condFAPIEnabled, condValidateCertFailed, condGenerateUUIDFailed},
-			[]string{actError},
 			&condition{
 				h: &resourceServerHandler{
 					baseHandler: &baseHandler{
@@ -380,12 +332,10 @@ func TestResourceServer_ServeAuthn(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			if tt.C().uidError {
+		t.Run(tt.Name, func(t *testing.T) {
+			if tt.C.uidError {
 				tmp := rand.Reader
 				rand.Reader = &testutil.ErrorReader{}
 				defer func() {
@@ -394,20 +344,20 @@ func TestResourceServer_ServeAuthn(t *testing.T) {
 			}
 
 			w := httptest.NewRecorder()
-			r := tt.C().r
-			maps.Copy(r.Header, tt.C().header)
+			r := tt.C.r
+			maps.Copy(r.Header, tt.C.header)
 			r.TLS.PeerCertificates = []*x509.Certificate{
 				{
 					Raw: []byte("client certificate"),
 				},
 			}
 
-			r, authenticated, shouldReturn, err := tt.C().h.ServeAuthn(w, r)
+			r, authenticated, shouldReturn, err := tt.C.h.ServeAuthn(w, r)
 
-			testutil.Diff(t, tt.A().authenticated, authenticated)
-			testutil.Diff(t, tt.A().shouldReturn, shouldReturn)
+			testutil.Diff(t, tt.A.authenticated, authenticated)
+			testutil.Diff(t, tt.A.shouldReturn, shouldReturn)
 
-			if tt.A().fapiHeaderExists {
+			if tt.A.fapiHeaderExists {
 				// Only check the value exists.
 				testutil.Diff(t, true, w.Header().Get("Date") != "")
 				testutil.Diff(t, true, w.Header().Get("x-fapi-interaction-id") != "")
@@ -416,18 +366,18 @@ func TestResourceServer_ServeAuthn(t *testing.T) {
 				testutil.Diff(t, "", w.Header().Get("x-fapi-interaction-id"))
 			}
 
-			if tt.A().err == nil {
+			if tt.A.err == nil {
 				testutil.Diff(t, nil, err)
 				return
 			}
 
 			e := err.(core.HTTPError)
-			testutil.Diff(t, tt.A().errStatus, e.StatusCode())
-			if tt.A().err == reAuthenticationRequired {
+			testutil.Diff(t, tt.A.errStatus, e.StatusCode())
+			if tt.A.err == reAuthenticationRequired {
 				testutil.Diff(t, reAuthenticationRequired.Error(), err.Error())
 			} else {
 				e := err.(*utilhttp.HTTPError)
-				testutil.DiffError(t, tt.A().err, tt.A().errPattern, e.Unwrap())
+				testutil.DiffError(t, tt.A.err, tt.A.errPattern, e.Unwrap())
 			}
 		})
 	}

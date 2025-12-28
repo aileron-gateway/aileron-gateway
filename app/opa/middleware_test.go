@@ -12,8 +12,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 	"github.com/open-policy-agent/opa/rego"
 )
@@ -160,24 +160,10 @@ func TestServeAuthz(t *testing.T) {
 		body       any
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	condZeroQueries := tb.Condition("zero queries", "zero queries")
-	condOneQuery := tb.Condition("one query", "one query")
-	condTwoQueries := tb.Condition("two queries", "two queries")
-	condSuccessFirstQuery := tb.Condition("success of the first query", "success of the first query")
-	condSuccessSecondQuery := tb.Condition("success of the second query", "success of the second query")
-	condEvalFailed := tb.Condition("failed to evaluation", "failed to evaluation")
-	actOk := tb.Action("authorization success", "authorization success")
-	actNg := tb.Action("authorization failure", "authorization failure")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"authorization failure with zero queries",
-			[]string{condZeroQueries},
-			[]string{actNg},
 			&condition{
 				r:       httptest.NewRequest(http.MethodGet, "https://test.com/", nil),
 				queries: []*rego.PreparedEvalQuery{},
@@ -194,8 +180,6 @@ func TestServeAuthz(t *testing.T) {
 		),
 		gen(
 			"authorization success with one query",
-			[]string{condOneQuery, condSuccessFirstQuery},
-			[]string{actOk},
 			&condition{
 				r:       httptest.NewRequest(http.MethodGet, "https://test.com/", nil),
 				queries: []*rego.PreparedEvalQuery{&q1},
@@ -212,8 +196,6 @@ func TestServeAuthz(t *testing.T) {
 		),
 		gen(
 			"authorization failure with one query",
-			[]string{condOneQuery},
-			[]string{actNg},
 			&condition{
 				r:       httptest.NewRequest(http.MethodGet, "https://test.com/", nil),
 				queries: []*rego.PreparedEvalQuery{&q1},
@@ -230,8 +212,6 @@ func TestServeAuthz(t *testing.T) {
 		),
 		gen(
 			"the first query authorization success with two queries",
-			[]string{condTwoQueries, condSuccessFirstQuery},
-			[]string{actOk},
 			&condition{
 				r:       httptest.NewRequest(http.MethodGet, "https://test.com/", nil),
 				queries: []*rego.PreparedEvalQuery{&q1, &q2},
@@ -248,8 +228,6 @@ func TestServeAuthz(t *testing.T) {
 		),
 		gen(
 			"the second query authorization success with two queries",
-			[]string{condTwoQueries, condSuccessSecondQuery},
-			[]string{actOk},
 			&condition{
 				r:       httptest.NewRequest(http.MethodGet, "https://test.com/", nil),
 				queries: []*rego.PreparedEvalQuery{&q1, &q2},
@@ -266,8 +244,6 @@ func TestServeAuthz(t *testing.T) {
 		),
 		gen(
 			"authorization failure with two queries",
-			[]string{condTwoQueries},
-			[]string{actNg},
 			&condition{
 				r:       httptest.NewRequest(http.MethodGet, "https://test.com/", nil),
 				queries: []*rego.PreparedEvalQuery{&q1, &q2},
@@ -284,8 +260,6 @@ func TestServeAuthz(t *testing.T) {
 		),
 		gen(
 			"failed to evaluation",
-			[]string{condEvalFailed},
-			[]string{actNg},
 			&condition{
 				r:        httptest.NewRequest(http.MethodGet, "https://test.com/", nil),
 				queries:  []*rego.PreparedEvalQuery{&eq},
@@ -299,23 +273,21 @@ func TestServeAuthz(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			m := &authz{
 				lg:      log.GlobalLogger(log.DefaultLoggerName),
 				eh:      utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
 				key:     "AuthnClaims",
-				queries: tt.C().queries,
+				queries: tt.C.queries,
 			}
 
 			w := httptest.NewRecorder()
 
-			r := tt.C().r
-			if tt.C().ctxValue != nil {
-				ctx := context.WithValue(r.Context(), m.key, tt.C().ctxValue)
+			r := tt.C.r
+			if tt.C.ctxValue != nil {
+				ctx := context.WithValue(r.Context(), m.key, tt.C.ctxValue)
 				r = r.WithContext(ctx)
 			}
 
@@ -328,9 +300,9 @@ func TestServeAuthz(t *testing.T) {
 			m.Middleware(h).ServeHTTP(w, r)
 
 			body, _ := io.ReadAll(w.Result().Body)
-			testutil.Diff(t, tt.A().authorized, authorized)
-			testutil.Diff(t, tt.A().status, w.Result().StatusCode)
-			testutil.Diff(t, tt.A().body, string(body))
+			testutil.Diff(t, tt.A.authorized, authorized)
+			testutil.Diff(t, tt.A.status, w.Result().StatusCode)
+			testutil.Diff(t, tt.A.body, string(body))
 		})
 	}
 }

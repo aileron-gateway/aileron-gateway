@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/aileron-gateway/aileron-gateway/app"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 )
 
@@ -37,16 +37,10 @@ func TestMiddleware(t *testing.T) {
 		handlers      []string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"0 handler",
-			[]string{},
-			[]string{},
 			&condition{
 				handlers: []app.AuthenticationHandler{},
 			},
@@ -57,8 +51,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"1 handler/unauthorized",
-			[]string{},
-			[]string{},
 			&condition{
 				handlers: []app.AuthenticationHandler{
 					&testHandler{
@@ -75,8 +67,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"1 handler/authorized",
-			[]string{},
-			[]string{},
 			&condition{
 				handlers: []app.AuthenticationHandler{
 					&testHandler{
@@ -93,8 +83,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"2 handler/unauthorized",
-			[]string{},
-			[]string{},
 			&condition{
 				handlers: []app.AuthenticationHandler{
 					&testHandler{
@@ -115,8 +103,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"2 handler/authorized 1st",
-			[]string{},
-			[]string{},
 			&condition{
 				handlers: []app.AuthenticationHandler{
 					&testHandler{
@@ -137,8 +123,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"2 handler/authorized 2nd",
-			[]string{},
-			[]string{},
 			&condition{
 				handlers: []app.AuthenticationHandler{
 					&testHandler{
@@ -159,8 +143,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"should return",
-			[]string{},
-			[]string{},
 			&condition{
 				handlers: []app.AuthenticationHandler{
 					&testHandler{
@@ -182,8 +164,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"error",
-			[]string{},
-			[]string{},
 			&condition{
 				handlers: []app.AuthenticationHandler{
 					&testHandler{
@@ -205,11 +185,9 @@ func TestMiddleware(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "/test", nil)
 			resp := httptest.NewRecorder()
 			authenticated := false
@@ -219,13 +197,13 @@ func TestMiddleware(t *testing.T) {
 			})
 			m := &authn{
 				eh:       utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
-				handlers: tt.C().handlers,
+				handlers: tt.C.handlers,
 			}
 			m.Middleware(h).ServeHTTP(resp, req)
 
-			testutil.Diff(t, tt.A().authenticated, authenticated)
-			testutil.Diff(t, tt.A().statusCode, resp.Result().StatusCode)
-			testutil.Diff(t, tt.A().handlers, req.Header["Handlers"])
+			testutil.Diff(t, tt.A.authenticated, authenticated)
+			testutil.Diff(t, tt.A.statusCode, resp.Result().StatusCode)
+			testutil.Diff(t, tt.A.handlers, req.Header["Handlers"])
 		})
 	}
 }

@@ -15,9 +15,9 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/core"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 	"github.com/aileron-projects/go/ztext"
 	"github.com/google/go-cmp/cmp"
@@ -34,16 +34,10 @@ func TestMutate(t *testing.T) {
 		manifest protoreflect.ProtoMessage
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"apply default values",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: Resource.Default(),
 			},
@@ -90,19 +84,17 @@ func TestMutate(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			msg := Resource.Mutate(tt.C().manifest)
+		t.Run(tt.Name, func(t *testing.T) {
+			msg := Resource.Mutate(tt.C.manifest)
 
 			opts := []cmp.Option{
 				cmpopts.IgnoreUnexported(v1.HTTPLogger{}, v1.HTTPLoggerSpec{}, v1.LoggingSpec{}),
 				cmpopts.IgnoreUnexported(k.Metadata{}, k.Status{}),
 				cmpopts.IgnoreUnexported(v1.LogHeaderSpec{}, v1.LogBodySpec{}),
 			}
-			testutil.Diff(t, tt.A().manifest, msg, opts...)
+			testutil.Diff(t, tt.A.manifest, msg, opts...)
 		})
 	}
 }
@@ -119,10 +111,6 @@ func TestCreate(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	testServer := api.NewContainerAPI()
 	postTestResource(testServer, "logger", log.GlobalLogger(log.DefaultLoggerName))
 
@@ -130,8 +118,6 @@ func TestCreate(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"default manifest",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: Resource.Default(),
 				server:   testServer,
@@ -164,8 +150,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create journal",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.HTTPLogger{
 					Metadata: &kernel.Metadata{},
@@ -204,8 +188,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"use logger",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.HTTPLogger{
 					Metadata: &kernel.Metadata{},
@@ -242,8 +224,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"fail to get logger",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.HTTPLogger{
 					Metadata: &kernel.Metadata{},
@@ -263,8 +243,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"fail to parse timezone",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.HTTPLogger{
 					Metadata: &kernel.Metadata{},
@@ -284,8 +262,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"fail to get error handler",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.HTTPLogger{
 					Metadata: &kernel.Metadata{},
@@ -305,8 +281,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"fail to create req",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.HTTPLogger{
 					Metadata: &kernel.Metadata{},
@@ -333,8 +307,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"fail to create req",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.HTTPLogger{
 					Metadata: &kernel.Metadata{},
@@ -361,13 +333,11 @@ func TestCreate(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			got, err := Resource.Create(tt.C().server, tt.C().manifest)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+		t.Run(tt.Name, func(t *testing.T) {
+			got, err := Resource.Create(tt.C.server, tt.C.manifest)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 
 			opts := []cmp.Option{
 				cmp.Comparer(testutil.ComparePointer[log.Logger]),
@@ -379,7 +349,7 @@ func TestCreate(t *testing.T) {
 				cmpopts.SortSlices(func(a, b string) bool { return a < b }),
 			}
 
-			testutil.Diff(t, tt.A().expect, got, opts...)
+			testutil.Diff(t, tt.A.expect, got, opts...)
 		})
 	}
 }

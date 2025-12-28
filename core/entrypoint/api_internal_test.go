@@ -14,9 +14,9 @@ import (
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/core"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -32,19 +32,10 @@ func TestMutate(t *testing.T) {
 		manifest protoreflect.ProtoMessage
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndDefault := tb.Condition("default", "input default config")
-	cndWrongMetadata := tb.Condition("wrong metadata", "name and name space is wrong")
-	actCheckMutated := tb.Action("check mutated", "check that the intended fields are mutated")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"mutate default",
-			[]string{cndDefault},
-			[]string{},
 			&condition{
 				manifest: Resource.Default(),
 			},
@@ -62,8 +53,6 @@ func TestMutate(t *testing.T) {
 		),
 		gen(
 			"mutate metadata",
-			[]string{cndWrongMetadata},
-			[]string{actCheckMutated},
 			&condition{
 				manifest: &v1.Entrypoint{
 					APIVersion: apiVersion,
@@ -89,18 +78,16 @@ func TestMutate(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			manifest := Resource.Mutate(tt.C().manifest)
+		t.Run(tt.Name, func(t *testing.T) {
+			manifest := Resource.Mutate(tt.C.manifest)
 
 			opts := []cmp.Option{
 				cmpopts.IgnoreUnexported(v1.Entrypoint{}, v1.EntrypointSpec{}),
 				cmpopts.IgnoreUnexported(k.Metadata{}, k.Status{}, k.Reference{}),
 			}
-			testutil.Diff(t, tt.A().manifest, manifest, opts...)
+			testutil.Diff(t, tt.A.manifest, manifest, opts...)
 		})
 	}
 }
@@ -139,14 +126,6 @@ func TestCreate(t *testing.T) {
 	}
 
 	noopLogger := &struct{ log.Logger }{}
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndDefaultManifest := tb.Condition("default manifest", "input default manifest")
-	cndErrorReference := tb.Condition("error reference", "input an error reference to an object")
-	actCheckExpected := tb.Action("check returned wait group", "check that an expected object was returned")
-	actCheckError := tb.Action("check the returned error", "check that the returned error is the one expected")
-	actCheckNoError := tb.Action("check no error", "check that there is no error returned")
-	table := tb.Build()
 
 	testServer := api.NewContainerAPI()
 	postTestResource(testServer, "nilRunner", &testRunner{})
@@ -161,8 +140,6 @@ func TestCreate(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"create with default manifest",
-			[]string{cndDefaultManifest},
-			[]string{actCheckExpected, actCheckNoError},
 			&condition{
 				manifest: Resource.Default(),
 			},
@@ -178,8 +155,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create with logger",
-			[]string{cndDefaultManifest},
-			[]string{actCheckExpected, actCheckNoError},
 			&condition{
 				manifest: &v1.Entrypoint{
 					Metadata: &k.Metadata{},
@@ -200,8 +175,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create with default logger",
-			[]string{cndDefaultManifest},
-			[]string{actCheckExpected, actCheckNoError},
 			&condition{
 				manifest: &v1.Entrypoint{
 					Metadata: &k.Metadata{},
@@ -222,8 +195,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create with default error handler",
-			[]string{cndDefaultManifest},
-			[]string{actCheckExpected, actCheckNoError},
 			&condition{
 				manifest: &v1.Entrypoint{
 					Metadata: &k.Metadata{},
@@ -244,8 +215,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"use metadata logger",
-			[]string{cndDefaultManifest},
-			[]string{actCheckExpected, actCheckNoError},
 			&condition{
 				manifest: &v1.Entrypoint{
 					Metadata: &k.Metadata{
@@ -268,8 +237,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create with normal runner/channelgroup",
-			[]string{},
-			[]string{actCheckExpected, actCheckNoError},
 			&condition{
 				manifest: &v1.Entrypoint{
 					Metadata: &k.Metadata{},
@@ -294,8 +261,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create with finalizers",
-			[]string{},
-			[]string{actCheckExpected, actCheckNoError},
 			&condition{
 				manifest: &v1.Entrypoint{
 					Metadata: &k.Metadata{},
@@ -317,8 +282,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"fail to get logger",
-			[]string{cndErrorReference},
-			[]string{actCheckError},
 			&condition{
 				manifest: &v1.Entrypoint{
 					Metadata: &k.Metadata{},
@@ -337,8 +300,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"fail to get default logger",
-			[]string{cndErrorReference},
-			[]string{actCheckError},
 			&condition{
 				manifest: &v1.Entrypoint{
 					Metadata: &k.Metadata{},
@@ -355,8 +316,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"fail to get error handler",
-			[]string{cndErrorReference},
-			[]string{actCheckError},
 			&condition{
 				manifest: &v1.Entrypoint{
 					Metadata: &k.Metadata{},
@@ -373,8 +332,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"fail to get runner",
-			[]string{cndErrorReference},
-			[]string{actCheckError},
 			&condition{
 				manifest: &v1.Entrypoint{
 					Metadata: &k.Metadata{},
@@ -393,8 +350,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"fail to get finalizer",
-			[]string{cndErrorReference},
-			[]string{actCheckError},
 			&condition{
 				manifest: &v1.Entrypoint{
 					Metadata: &k.Metadata{},
@@ -411,14 +366,12 @@ func TestCreate(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
 	lgTmp := log.GlobalLogger(log.DefaultLoggerName)
 	ehTmp := utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName)
 
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			defer func() {
 				log.SetGlobalLogger("core/v1/Container/test/noopLogger", nil) // Remove
 				log.SetGlobalLogger(log.DefaultLoggerName, lgTmp)
@@ -426,8 +379,8 @@ func TestCreate(t *testing.T) {
 				utilhttp.SetGlobalErrorHandler(utilhttp.DefaultErrorHandlerName, ehTmp)
 			}()
 
-			got, err := Resource.Create(testServer, tt.C().manifest)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+			got, err := Resource.Create(testServer, tt.C.manifest)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 
 			opts := []cmp.Option{
 				cmp.Comparer(testutil.ComparePointer[log.Logger]),
@@ -438,7 +391,7 @@ func TestCreate(t *testing.T) {
 				cmpopts.EquateErrors(),
 			}
 
-			testutil.Diff(t, tt.A().expect, got, opts...)
+			testutil.Diff(t, tt.A.expect, got, opts...)
 		})
 	}
 }
@@ -474,20 +427,10 @@ func TestAppendInitializer(t *testing.T) {
 		initializers []core.Initializer
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndAppendNil := tb.Condition("append nil", "append nil")
-	cndAppendInitializer := tb.Condition("append initializer", "append initializer")
-	actCheckSkipped := tb.Action("skipped", "check that initializer was not appended")
-	actCheckAppended := tb.Action("appended", "check that initializer was appended")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"append nil",
-			[]string{cndAppendNil},
-			[]string{actCheckSkipped},
 			&condition{
 				initializers: []core.Initializer{},
 				append:       nil,
@@ -498,8 +441,6 @@ func TestAppendInitializer(t *testing.T) {
 		),
 		gen(
 			"append initializers",
-			[]string{cndAppendInitializer},
-			[]string{actCheckAppended},
 			&condition{
 				initializers: []core.Initializer{},
 				append:       &testInitializer{name: "test"},
@@ -512,8 +453,6 @@ func TestAppendInitializer(t *testing.T) {
 		),
 		gen(
 			"append initializer",
-			[]string{cndAppendInitializer},
-			[]string{actCheckAppended},
 			&condition{
 				initializers: []core.Initializer{
 					&testInitializer{name: "test1"},
@@ -529,14 +468,12 @@ func TestAppendInitializer(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
 
-		t.Run(tt.Name(), func(t *testing.T) {
-			result := appendInitializer(tt.C().initializers, tt.C().append)
-			testutil.Diff(t, tt.A().initializers, result, cmp.AllowUnexported(testInitializer{}))
+		t.Run(tt.Name, func(t *testing.T) {
+			result := appendInitializer(tt.C.initializers, tt.C.append)
+			testutil.Diff(t, tt.A.initializers, result, cmp.AllowUnexported(testInitializer{}))
 		})
 	}
 }
@@ -551,20 +488,10 @@ func TestAppendFinalizer(t *testing.T) {
 		finalizers []core.Finalizer
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndAppendNil := tb.Condition("append nil", "append nil")
-	cndAppendFinalizer := tb.Condition("append finalizer", "append finalizer")
-	actCheckSkipped := tb.Action("skipped", "check that finalizer was not appended")
-	actCheckAppended := tb.Action("appended", "check that finalizer was appended")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"append nil",
-			[]string{cndAppendNil},
-			[]string{actCheckSkipped},
 			&condition{
 				finalizers: []core.Finalizer{},
 				append:     nil,
@@ -575,8 +502,6 @@ func TestAppendFinalizer(t *testing.T) {
 		),
 		gen(
 			"append finalizer",
-			[]string{cndAppendFinalizer},
-			[]string{actCheckAppended},
 			&condition{
 				finalizers: []core.Finalizer{},
 				append:     &testFinalizer{name: "test"},
@@ -589,8 +514,6 @@ func TestAppendFinalizer(t *testing.T) {
 		),
 		gen(
 			"append finalizer",
-			[]string{cndAppendFinalizer},
-			[]string{actCheckAppended},
 			&condition{
 				finalizers: []core.Finalizer{
 					&testFinalizer{name: "test1"},
@@ -606,14 +529,12 @@ func TestAppendFinalizer(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
 
-		t.Run(tt.Name(), func(t *testing.T) {
-			result := appendFinalizer(tt.C().finalizers, tt.C().append)
-			testutil.Diff(t, tt.A().finalizers, result, cmp.AllowUnexported(testFinalizer{}))
+		t.Run(tt.Name, func(t *testing.T) {
+			result := appendFinalizer(tt.C.finalizers, tt.C.append)
+			testutil.Diff(t, tt.A.finalizers, result, cmp.AllowUnexported(testFinalizer{}))
 		})
 	}
 }

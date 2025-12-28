@@ -15,9 +15,9 @@ import (
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/core"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/network"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/quic-go/quic-go/http3"
@@ -39,15 +39,10 @@ func TestCreate(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"create with default manifest",
-			[]string{}, []string{},
 			&condition{
 				manifest: Resource.Default(),
 			},
@@ -58,7 +53,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create http",
-			[]string{}, []string{},
 			&condition{
 				manifest: &v1.HTTPClient{
 					Metadata: &k.Metadata{},
@@ -80,7 +74,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create http2",
-			[]string{}, []string{},
 			&condition{
 				manifest: &v1.HTTPClient{
 					Metadata: &k.Metadata{},
@@ -98,7 +91,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create http3",
-			[]string{}, []string{},
 			&condition{
 				manifest: &v1.HTTPClient{
 					Metadata: &k.Metadata{},
@@ -116,7 +108,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create with retry",
-			[]string{}, []string{},
 			&condition{
 				manifest: &v1.HTTPClient{
 					Metadata: &k.Metadata{},
@@ -135,7 +126,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"fail to get http transport config",
-			[]string{}, []string{},
 			&condition{
 				manifest: &v1.HTTPClient{
 					Metadata: &k.Metadata{},
@@ -156,7 +146,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"fail to get http2 transport config",
-			[]string{}, []string{},
 			&condition{
 				manifest: &v1.HTTPClient{
 					Metadata: &k.Metadata{},
@@ -177,7 +166,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"fail to get http3 transport config",
-			[]string{}, []string{},
 			&condition{
 				manifest: &v1.HTTPClient{
 					Metadata: &k.Metadata{},
@@ -198,7 +186,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"fail to get tripperware",
-			[]string{}, []string{},
 			&condition{
 				manifest: &v1.HTTPClient{
 					Metadata: &k.Metadata{},
@@ -215,13 +202,11 @@ func TestCreate(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			got, err := Resource.Create(api.NewContainerAPI(), tt.C().manifest)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+		t.Run(tt.Name, func(t *testing.T) {
+			got, err := Resource.Create(api.NewContainerAPI(), tt.C.manifest)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 
 			opts := []cmp.Option{
 				cmpopts.IgnoreUnexported(http.Transport{}, http2.Transport{}, http3.Transport{}),
@@ -231,7 +216,7 @@ func TestCreate(t *testing.T) {
 				cmpopts.IgnoreFields(http2.Transport{}, "DialTLSContext"),
 				cmp.Comparer(func(x, y core.RoundTripperFunc) bool { return true }), // Retry tripperware.
 			}
-			testutil.Diff(t, tt.A().expect, got, opts...)
+			testutil.Diff(t, tt.A.expect, got, opts...)
 		})
 	}
 }

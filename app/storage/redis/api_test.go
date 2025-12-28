@@ -8,7 +8,7 @@ import (
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -23,16 +23,10 @@ func TestMutate(t *testing.T) {
 		manifest protoreflect.ProtoMessage
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"apply default values",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: Resource.Default(),
 			},
@@ -63,18 +57,16 @@ func TestMutate(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			msg := Resource.Mutate(tt.C().manifest)
+		t.Run(tt.Name, func(t *testing.T) {
+			msg := Resource.Mutate(tt.C.manifest)
 
 			opts := []cmp.Option{
 				cmpopts.IgnoreUnexported(v1.RedisClient{}, v1.RedisClientSpec{}),
 				cmpopts.IgnoreUnexported(k.Metadata{}, k.Status{}),
 			}
-			testutil.Diff(t, tt.A().manifest, msg, opts...)
+			testutil.Diff(t, tt.A.manifest, msg, opts...)
 		})
 	}
 }

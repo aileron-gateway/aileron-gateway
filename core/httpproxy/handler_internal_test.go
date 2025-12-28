@@ -18,8 +18,8 @@ import (
 	"testing"
 
 	"github.com/aileron-gateway/aileron-gateway/core"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 	"github.com/aileron-projects/go/zx/zlb"
 	"github.com/google/go-cmp/cmp"
@@ -116,10 +116,6 @@ func TestReverseProxy_ServeHTTP(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	testErr := errors.New("test error")
 	testOpErr := &net.OpError{Op: "write", Err: testErr}
 
@@ -134,8 +130,6 @@ func TestReverseProxy_ServeHTTP(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"proxy success",
-			[]string{},
-			[]string{},
 			&condition{
 				proxy: &reverseProxy{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -162,8 +156,6 @@ func TestReverseProxy_ServeHTTP(t *testing.T) {
 		),
 		gen(
 			"proxy success with request body",
-			[]string{},
-			[]string{},
 			&condition{
 				proxy: &reverseProxy{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -194,8 +186,6 @@ func TestReverseProxy_ServeHTTP(t *testing.T) {
 		),
 		gen(
 			"proxy success with response header",
-			[]string{},
-			[]string{},
 			&condition{
 				proxy: &reverseProxy{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -230,8 +220,6 @@ func TestReverseProxy_ServeHTTP(t *testing.T) {
 		),
 		gen(
 			"proxy success with announced trailer",
-			[]string{},
-			[]string{},
 			&condition{
 				proxy: &reverseProxy{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -268,8 +256,6 @@ func TestReverseProxy_ServeHTTP(t *testing.T) {
 		),
 		gen(
 			"proxy success with not announced trailers",
-			[]string{},
-			[]string{},
 			&condition{
 				proxy: &reverseProxy{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -307,8 +293,6 @@ func TestReverseProxy_ServeHTTP(t *testing.T) {
 		),
 		gen(
 			"upstream not found",
-			[]string{},
-			[]string{},
 			&condition{
 				proxy: &reverseProxy{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -333,8 +317,6 @@ func TestReverseProxy_ServeHTTP(t *testing.T) {
 		),
 		gen(
 			"round trip error",
-			[]string{},
-			[]string{},
 			&condition{
 				proxy: &reverseProxy{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -362,8 +344,6 @@ func TestReverseProxy_ServeHTTP(t *testing.T) {
 		),
 		gen(
 			"protocol upgrade error",
-			[]string{},
-			[]string{},
 			&condition{
 				proxy: &reverseProxy{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -391,8 +371,6 @@ func TestReverseProxy_ServeHTTP(t *testing.T) {
 		),
 		gen(
 			"copy response body/context canceled",
-			[]string{},
-			[]string{},
 			&condition{
 				proxy: &reverseProxy{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -423,8 +401,6 @@ func TestReverseProxy_ServeHTTP(t *testing.T) {
 		),
 		gen(
 			"copy response body/write error",
-			[]string{},
-			[]string{},
 			&condition{
 				proxy: &reverseProxy{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -455,48 +431,46 @@ func TestReverseProxy_ServeHTTP(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			r, _ := http.NewRequest(http.MethodPost, "http://test.com/foo", nil)
-			r.Header = tt.C().reqHeader
-			if tt.C().reqBody != nil {
-				r.Body = tt.C().reqBody
+			r.Header = tt.C.reqHeader
+			if tt.C.reqBody != nil {
+				r.Body = tt.C.reqBody
 			}
 
 			w := httptest.NewRecorder()
-			tt.C().proxy.ServeHTTP(w, r)
+			tt.C.proxy.ServeHTTP(w, r)
 
-			if tt.C().reqBody != nil {
+			if tt.C.reqBody != nil {
 				// Requests body should always be closed if not nil.
-				testutil.Diff(t, true, tt.C().reqBody.closed)
+				testutil.Diff(t, true, tt.C.reqBody.closed)
 			}
 
 			// Check written body.
 			resp := w.Result().Body
 			b, _ := io.ReadAll(resp)
-			testutil.Diff(t, tt.A().written, string(b))
+			testutil.Diff(t, tt.A.written, string(b))
 
 			// Check response status code.
-			testutil.Diff(t, tt.A().status, w.Result().StatusCode)
+			testutil.Diff(t, tt.A.status, w.Result().StatusCode)
 
 			// Check headers and trailers.
 			wh := w.Result().Header
 			wt := w.Result().Trailer
-			for k, v := range tt.A().header {
+			for k, v := range tt.A.header {
 				testutil.Diff(t, v, wh[k], cmpopts.SortSlices(func(x, y string) bool { return x > y }))
 			}
-			for k, v := range tt.A().trailer {
+			for k, v := range tt.A.trailer {
 				testutil.Diff(t, v, wt[k], cmpopts.SortSlices(func(x, y string) bool { return x > y }))
 			}
 
-			eh := tt.C().proxy.eh.(*testErrorHandler)
+			eh := tt.C.proxy.eh.(*testErrorHandler)
 			if e, ok := eh.err.(*utilhttp.HTTPError); ok {
-				testutil.DiffError(t, tt.A().err, tt.A().errPattern, e.Unwrap(), cmpopts.EquateErrors())
+				testutil.DiffError(t, tt.A.err, tt.A.errPattern, e.Unwrap(), cmpopts.EquateErrors())
 			} else {
-				testutil.DiffError(t, tt.A().err, tt.A().errPattern, eh.err)
+				testutil.DiffError(t, tt.A.err, tt.A.errPattern, eh.err)
 			}
 		})
 	}
@@ -511,21 +485,10 @@ func TestProxyErrorResponse(t *testing.T) {
 		er core.HTTPError
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndContextCanceled := tb.Condition("context canceled", "input context.Canceled error")
-	cndRequestCanceled := tb.Condition("request canceled", "input http3 error of request canceled")
-	cndDeadlineExceeded := tb.Condition("deadline exceeded", "input context.DeadlineExceeded error")
-	actCheckLogOnly := tb.Action("log only", "check the value written to a writer")
-	actCheckServerError := tb.Action("server error", "check that the expected non-nil error returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"context.Canceled",
-			[]string{cndContextCanceled},
-			[]string{actCheckLogOnly},
 			&condition{
 				err: context.Canceled,
 			},
@@ -535,8 +498,6 @@ func TestProxyErrorResponse(t *testing.T) {
 		),
 		gen(
 			"H3_REQUEST_CANCELLED",
-			[]string{cndRequestCanceled},
-			[]string{actCheckLogOnly},
 			&condition{
 				err: &http3.Error{
 					ErrorCode: http3.ErrCodeRequestCanceled,
@@ -548,8 +509,6 @@ func TestProxyErrorResponse(t *testing.T) {
 		),
 		gen(
 			"context.DeadlineExceeded",
-			[]string{cndDeadlineExceeded},
-			[]string{actCheckLogOnly},
 			&condition{
 				err: context.DeadlineExceeded,
 			},
@@ -559,8 +518,6 @@ func TestProxyErrorResponse(t *testing.T) {
 		),
 		gen(
 			"other errors",
-			[]string{},
-			[]string{actCheckServerError},
 			&condition{
 				err: io.ErrClosedPipe,
 			},
@@ -570,22 +527,20 @@ func TestProxyErrorResponse(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			er := proxyErrorResponse(tt.C().err)
+		t.Run(tt.Name, func(t *testing.T) {
+			er := proxyErrorResponse(tt.C.err)
 
 			opts := []cmp.Option{
 				cmp.AllowUnexported(utilhttp.HTTPError{}),
 				cmpopts.IgnoreFields(utilhttp.HTTPError{}, "inner"),
 			}
-			testutil.Diff(t, tt.A().er, er, opts...)
+			testutil.Diff(t, tt.A.er, er, opts...)
 
 			err, ok := er.(*utilhttp.HTTPError)
 			testutil.Diff(t, true, ok)
-			testutil.Diff(t, tt.C().err, err.Unwrap(), cmpopts.EquateErrors())
+			testutil.Diff(t, tt.C.err, err.Unwrap(), cmpopts.EquateErrors())
 		})
 	}
 }
@@ -633,16 +588,10 @@ func TestHandleUpgradeResponse(t *testing.T) {
 		httpErr    core.HTTPError
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"upgrade type mismatch",
-			[]string{},
-			[]string{},
 			&condition{
 				rw: &testResponse{},
 				req: &http.Request{
@@ -666,8 +615,6 @@ func TestHandleUpgradeResponse(t *testing.T) {
 		),
 		gen(
 			"response body not ReadWriteCloser",
-			[]string{},
-			[]string{},
 			&condition{
 				rw:  &testResponse{},
 				req: &http.Request{},
@@ -683,8 +630,6 @@ func TestHandleUpgradeResponse(t *testing.T) {
 		),
 		gen(
 			"non-Hijacker",
-			[]string{},
-			[]string{},
 			&condition{
 				rw:  &testResponse{},
 				req: &http.Request{},
@@ -700,8 +645,6 @@ func TestHandleUpgradeResponse(t *testing.T) {
 		),
 		gen(
 			"Hijacker",
-			[]string{},
-			[]string{},
 			&condition{
 				rw: &testHijacker{
 					ResponseWriter: &testResponse{},
@@ -726,22 +669,20 @@ func TestHandleUpgradeResponse(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			httpErr := handleUpgradeResponse(tt.C().rw, tt.C().req, tt.C().res)
+		t.Run(tt.Name, func(t *testing.T) {
+			httpErr := handleUpgradeResponse(tt.C.rw, tt.C.req, tt.C.res)
 
 			opts := []cmp.Option{
 				cmp.AllowUnexported(utilhttp.HTTPError{}),
 				cmpopts.IgnoreFields(utilhttp.HTTPError{}, "inner"),
 			}
-			testutil.Diff(t, tt.A().httpErr, httpErr, opts...)
-			if tt.A().httpErr != nil {
+			testutil.Diff(t, tt.A.httpErr, httpErr, opts...)
+			if tt.A.httpErr != nil {
 				err, ok := httpErr.(*utilhttp.HTTPError)
 				testutil.Diff(t, true, ok)
-				testutil.DiffError(t, tt.A().err, tt.A().errPattern, err.Unwrap())
+				testutil.DiffError(t, tt.A.err, tt.A.errPattern, err.Unwrap())
 			}
 		})
 	}

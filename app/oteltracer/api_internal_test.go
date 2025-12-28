@@ -11,8 +11,8 @@ import (
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/core"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"go.opentelemetry.io/contrib/propagators/aws/xray"
@@ -35,16 +35,10 @@ func TestCreate(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"create with default manifest",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: Resource.Default(),
 			},
@@ -55,8 +49,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create with service and library names",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.OpenTelemetryTracer{
 					Spec: &v1.OpenTelemetryTracerSpec{
@@ -77,8 +69,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create with headers",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.OpenTelemetryTracer{
 					Spec: &v1.OpenTelemetryTracerSpec{
@@ -100,8 +90,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create with limit options",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.OpenTelemetryTracer{
 					Spec: &v1.OpenTelemetryTracerSpec{
@@ -127,8 +115,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create with batch options",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.OpenTelemetryTracer{
 					Spec: &v1.OpenTelemetryTracerSpec{
@@ -153,8 +139,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"HTTPExporter",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.OpenTelemetryTracer{
 					Spec: &v1.OpenTelemetryTracerSpec{
@@ -173,8 +157,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"HTTPExporter with invalid TLS",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.OpenTelemetryTracer{
 					Spec: &v1.OpenTelemetryTracerSpec{
@@ -196,8 +178,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"gRPCExporter",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.OpenTelemetryTracer{
 					Spec: &v1.OpenTelemetryTracerSpec{
@@ -216,8 +196,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"gRPCExporter with Insecure option",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.OpenTelemetryTracer{
 					Spec: &v1.OpenTelemetryTracerSpec{
@@ -238,8 +216,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"gRPCExporter with invalid TLS",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.OpenTelemetryTracer{
 					Spec: &v1.OpenTelemetryTracerSpec{
@@ -261,8 +237,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"stdoutExporter",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.OpenTelemetryTracer{
 					Spec: &v1.OpenTelemetryTracerSpec{
@@ -284,8 +258,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"zipkinExporter",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.OpenTelemetryTracer{
 					Spec: &v1.OpenTelemetryTracerSpec{
@@ -306,22 +278,20 @@ func TestCreate(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			server := api.NewContainerAPI()
 			postTestResource(server, nil)
 
-			tracer, err := Resource.Create(server, tt.C().manifest)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+			tracer, err := Resource.Create(server, tt.C.manifest)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 
 			opts := []cmp.Option{
 				cmp.AllowUnexported(otelTracer{}),
 				cmpopts.IgnoreFields(otelTracer{}, "tracer", "tp", "pg"),
 			}
-			testutil.Diff(t, tt.A().tracer, tracer, opts...)
+			testutil.Diff(t, tt.A.tracer, tracer, opts...)
 		})
 	}
 }
@@ -352,16 +322,10 @@ func TestPropagators(t *testing.T) {
 		props []propagation.TextMapPropagator
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"nil",
-			[]string{},
-			[]string{},
 			&condition{
 				types: nil,
 			},
@@ -374,8 +338,6 @@ func TestPropagators(t *testing.T) {
 		),
 		gen(
 			"TraceContext",
-			[]string{},
-			[]string{},
 			&condition{
 				types: []v1.PropagationType{
 					v1.PropagationType_W3CTraceContext,
@@ -389,8 +351,6 @@ func TestPropagators(t *testing.T) {
 		),
 		gen(
 			"Baggage",
-			[]string{},
-			[]string{},
 			&condition{
 				types: []v1.PropagationType{
 					v1.PropagationType_W3CBaggage,
@@ -404,8 +364,6 @@ func TestPropagators(t *testing.T) {
 		),
 		gen(
 			"B3",
-			[]string{},
-			[]string{},
 			&condition{
 				types: []v1.PropagationType{
 					v1.PropagationType_B3,
@@ -419,8 +377,6 @@ func TestPropagators(t *testing.T) {
 		),
 		gen(
 			"Jaeger",
-			[]string{},
-			[]string{},
 			&condition{
 				types: []v1.PropagationType{
 					v1.PropagationType_Jaeger,
@@ -434,8 +390,6 @@ func TestPropagators(t *testing.T) {
 		),
 		gen(
 			"XRay",
-			[]string{},
-			[]string{},
 			&condition{
 				types: []v1.PropagationType{
 					v1.PropagationType_XRay,
@@ -449,8 +403,6 @@ func TestPropagators(t *testing.T) {
 		),
 		gen(
 			"OpenCensus",
-			[]string{},
-			[]string{},
 			&condition{
 				types: []v1.PropagationType{
 					v1.PropagationType_OpenCensus,
@@ -464,8 +416,6 @@ func TestPropagators(t *testing.T) {
 		),
 		gen(
 			"OpenTracing",
-			[]string{},
-			[]string{},
 			&condition{
 				types: []v1.PropagationType{
 					v1.PropagationType_OpenTracing,
@@ -479,8 +429,6 @@ func TestPropagators(t *testing.T) {
 		),
 		gen(
 			"all",
-			[]string{},
-			[]string{},
 			&condition{
 				types: []v1.PropagationType{
 					v1.PropagationType_W3CTraceContext,
@@ -506,16 +454,14 @@ func TestPropagators(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			props := propagators(tt.C().types)
+		t.Run(tt.Name, func(t *testing.T) {
+			props := propagators(tt.C.types)
 			opts := []cmp.Option{
 				cmp.AllowUnexported(b3.New()),
 			}
-			testutil.Diff(t, tt.A().props, props, opts...)
+			testutil.Diff(t, tt.A.props, props, opts...)
 		})
 	}
 }

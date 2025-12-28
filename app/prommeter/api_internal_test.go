@@ -11,8 +11,8 @@ import (
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -29,16 +29,10 @@ func TestMutate(t *testing.T) {
 		manifest protoreflect.ProtoMessage
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"default manifest",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: Resource.Default(),
 			},
@@ -58,8 +52,6 @@ func TestMutate(t *testing.T) {
 		),
 		gen(
 			"not mutated",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.PrometheusMeter{
 					APIVersion: apiVersion,
@@ -87,18 +79,16 @@ func TestMutate(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			msg := Resource.Mutate(tt.C().manifest)
+		t.Run(tt.Name, func(t *testing.T) {
+			msg := Resource.Mutate(tt.C.manifest)
 
 			opts := []cmp.Option{
 				cmpopts.IgnoreUnexported(v1.PrometheusMeter{}, v1.PrometheusMeterSpec{}),
 				cmpopts.IgnoreUnexported(k.Metadata{}, k.Status{}),
 			}
-			testutil.Diff(t, tt.A().manifest, msg, opts...)
+			testutil.Diff(t, tt.A.manifest, msg, opts...)
 		})
 	}
 }
@@ -114,16 +104,10 @@ func TestCreate(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"default",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: Resource.Default(),
 			},
@@ -151,15 +135,13 @@ func TestCreate(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			server := api.NewContainerAPI()
 			a := &API{}
-			resp, err := a.Create(server, tt.C().manifest)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+			resp, err := a.Create(server, tt.C.manifest)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 			if err != nil {
 				return
 			}
@@ -171,7 +153,7 @@ func TestCreate(t *testing.T) {
 				cmp.AllowUnexported(metrics{}),
 				cmpopts.IgnoreFields(metrics{}, "Handler"),
 			}
-			testutil.Diff(t, tt.A().metrics, resp.(*metrics), opts...)
+			testutil.Diff(t, tt.A.metrics, resp.(*metrics), opts...)
 		})
 	}
 }

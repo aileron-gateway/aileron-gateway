@@ -7,7 +7,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -20,20 +20,13 @@ func TestSessionFromContext(t *testing.T) {
 		ss Session
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	testSession := NewDefaultSession(SerializeJSON)
 	testSession.Persist("foo", nil)
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"session exists",
-			[]string{},
-			[]string{},
-			&condition{
+			"session exists", &condition{
 				ctx: context.WithValue(context.Background(), sessionContextKey, testSession),
 			},
 			&action{
@@ -41,10 +34,7 @@ func TestSessionFromContext(t *testing.T) {
 			},
 		),
 		gen(
-			"session not exists",
-			[]string{},
-			[]string{},
-			&condition{
+			"session not exists", &condition{
 				ctx: context.Background(),
 			},
 			&action{
@@ -53,19 +43,17 @@ func TestSessionFromContext(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			ss := SessionFromContext(tt.C().ctx)
+		t.Run(tt.Name, func(t *testing.T) {
+			ss := SessionFromContext(tt.C.ctx)
 
 			opts := []cmp.Option{
 				cmp.AllowUnexported(DefaultSession{}),
 				cmp.Comparer(testutil.ComparePointer[func(any) ([]byte, error)]),
 				cmp.Comparer(testutil.ComparePointer[func([]byte, any) error]),
 			}
-			testutil.Diff(t, tt.A().ss, ss, opts...)
+			testutil.Diff(t, tt.A.ss, ss, opts...)
 		})
 	}
 }
@@ -80,10 +68,6 @@ func TestContextWithSession(t *testing.T) {
 		ss Session
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	testSession1 := NewDefaultSession(SerializeJSON)
 	testSession1.Persist("foo", nil)
 	testSession2 := NewDefaultSession(SerializeJSON)
@@ -92,10 +76,7 @@ func TestContextWithSession(t *testing.T) {
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"session saved",
-			[]string{},
-			[]string{},
-			&condition{
+			"session saved", &condition{
 				ctx: context.Background(),
 				ss:  testSession1,
 			},
@@ -104,10 +85,7 @@ func TestContextWithSession(t *testing.T) {
 			},
 		),
 		gen(
-			"session override",
-			[]string{},
-			[]string{},
-			&condition{
+			"session override", &condition{
 				ctx: context.WithValue(context.Background(), sessionContextKey, testSession1),
 				ss:  testSession2,
 			},
@@ -116,10 +94,7 @@ func TestContextWithSession(t *testing.T) {
 			},
 		),
 		gen(
-			"nil, session",
-			[]string{},
-			[]string{},
-			&condition{
+			"nil, session", &condition{
 				ctx: context.Background(),
 				ss:  nil,
 			},
@@ -129,12 +104,10 @@ func TestContextWithSession(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			ctx := ContextWithSession(tt.C().ctx, tt.C().ss)
+		t.Run(tt.Name, func(t *testing.T) {
+			ctx := ContextWithSession(tt.C.ctx, tt.C.ss)
 			ss := SessionFromContext(ctx)
 
 			opts := []cmp.Option{
@@ -142,7 +115,7 @@ func TestContextWithSession(t *testing.T) {
 				cmp.Comparer(testutil.ComparePointer[func(any) ([]byte, error)]),
 				cmp.Comparer(testutil.ComparePointer[func([]byte, any) error]),
 			}
-			testutil.Diff(t, tt.A().ss, ss, opts...)
+			testutil.Diff(t, tt.A.ss, ss, opts...)
 		})
 	}
 }

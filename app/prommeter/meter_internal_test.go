@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/aileron-gateway/aileron-gateway/core"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/google/go-cmp/cmp"
 	"github.com/prometheus/client_golang/prometheus"
 	promtestutil "github.com/prometheus/client_golang/prometheus/testutil"
@@ -23,16 +23,10 @@ func TestRegistry(t *testing.T) {
 	type action struct {
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"nil registry",
-			[]string{},
-			[]string{},
 			&condition{
 				reg: nil,
 			},
@@ -40,8 +34,6 @@ func TestRegistry(t *testing.T) {
 		),
 		gen(
 			"non nil registry",
-			[]string{},
-			[]string{},
 			&condition{
 				reg: prometheus.NewRegistry(),
 			},
@@ -49,13 +41,11 @@ func TestRegistry(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			metrics := &metrics{
-				reg: tt.C().reg,
+				reg: tt.C.reg,
 			}
 
 			reg := metrics.Registry()
@@ -63,7 +53,7 @@ func TestRegistry(t *testing.T) {
 			opts := []cmp.Option{
 				cmp.Comparer(testutil.ComparePointer[*prometheus.Registry]),
 			}
-			testutil.Diff(t, tt.C().reg, reg, opts...)
+			testutil.Diff(t, tt.C.reg, reg, opts...)
 		})
 	}
 }
@@ -78,16 +68,10 @@ func TestMiddleware(t *testing.T) {
 		value float64
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"single request",
-			[]string{},
-			[]string{},
 			&condition{
 				requestCount: 1,
 				statusCode:   200,
@@ -98,8 +82,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"multiple requests",
-			[]string{},
-			[]string{},
 			&condition{
 				requestCount: 5,
 				statusCode:   200,
@@ -110,8 +92,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"single request with 500 error",
-			[]string{},
-			[]string{},
 			&condition{
 				requestCount: 1,
 				statusCode:   500,
@@ -122,8 +102,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"single request with 404 error",
-			[]string{},
-			[]string{},
 			&condition{
 				requestCount: 1,
 				statusCode:   404,
@@ -134,11 +112,9 @@ func TestMiddleware(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			metrics := &metrics{
 				mAPICalls: prometheus.NewCounterVec(
 					prometheus.CounterOpts{
@@ -152,15 +128,15 @@ func TestMiddleware(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "/test", nil)
 			resp := httptest.NewRecorder()
 			h := metrics.Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(tt.C().statusCode)
+				w.WriteHeader(tt.C.statusCode)
 			}))
 
-			for i := 0; i < tt.C().requestCount; i++ {
+			for i := 0; i < tt.C.requestCount; i++ {
 				h.ServeHTTP(resp, req)
 			}
 
 			v := promtestutil.ToFloat64(metrics.mAPICalls)
-			testutil.Diff(t, tt.A().value, v)
+			testutil.Diff(t, tt.A.value, v)
 		})
 	}
 }
@@ -176,16 +152,10 @@ func TestTripperware(t *testing.T) {
 		value float64
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"single request",
-			[]string{},
-			[]string{},
 			&condition{
 				requestCount: 1,
 				responseCode: 200,
@@ -196,8 +166,6 @@ func TestTripperware(t *testing.T) {
 		),
 		gen(
 			"multiple requests",
-			[]string{},
-			[]string{},
 			&condition{
 				requestCount: 5,
 				responseCode: 200,
@@ -208,8 +176,6 @@ func TestTripperware(t *testing.T) {
 		),
 		gen(
 			"single request with 404 error",
-			[]string{},
-			[]string{},
 			&condition{
 				requestCount: 1,
 				responseCode: 404,
@@ -220,8 +186,6 @@ func TestTripperware(t *testing.T) {
 		),
 		gen(
 			"single request with network error",
-			[]string{},
-			[]string{},
 			&condition{
 				requestCount: 1,
 				returnError:  true,
@@ -232,11 +196,9 @@ func TestTripperware(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			metrics := &metrics{
 				tAPICalls: prometheus.NewCounterVec(
 					prometheus.CounterOpts{
@@ -249,21 +211,21 @@ func TestTripperware(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodGet, "/test", nil)
 			h := metrics.Tripperware(core.RoundTripperFunc(func(r *http.Request) (*http.Response, error) {
-				if tt.C().returnError {
+				if tt.C.returnError {
 					return nil, http.ErrHandlerTimeout
 				}
 				return &http.Response{
-					StatusCode: tt.C().responseCode,
+					StatusCode: tt.C.responseCode,
 					Request:    r,
 				}, nil
 			}))
 
-			for i := 0; i < tt.C().requestCount; i++ {
+			for i := 0; i < tt.C.requestCount; i++ {
 				h.RoundTrip(req)
 			}
 
 			v := promtestutil.ToFloat64(metrics.tAPICalls)
-			testutil.Diff(t, tt.A().value, v)
+			testutil.Diff(t, tt.A.value, v)
 		})
 	}
 }

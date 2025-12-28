@@ -20,9 +20,9 @@ import (
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
 	"github.com/aileron-gateway/aileron-gateway/app"
 	"github.com/aileron-gateway/aileron-gateway/core"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 	"github.com/aileron-gateway/aileron-gateway/util/security"
 	"github.com/aileron-gateway/aileron-gateway/util/session"
@@ -132,11 +132,6 @@ func TestNewROPCHandler(t *testing.T) {
 		h *ropcHandler
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	actNoError := tb.Action("no error", "check that the there is no error")
-	table := tb.Build()
-
 	bh := &baseHandler{
 		lg: log.GlobalLogger(log.DefaultLoggerName),
 		oauthCtxs: map[string]*oauthContext{
@@ -153,8 +148,6 @@ func TestNewROPCHandler(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"no error",
-			[]string{},
-			[]string{actNoError},
 			&condition{
 				bh: bh,
 				spec: &v1.ROPCHandler{
@@ -175,12 +168,10 @@ func TestNewROPCHandler(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			h := newROPCHandler(tt.C().bh, tt.C().spec)
+		t.Run(tt.Name, func(t *testing.T) {
+			h := newROPCHandler(tt.C.bh, tt.C.spec)
 
 			opts := []cmp.Option{
 				cmp.Comparer(testutil.ComparePointer[log.Logger]),
@@ -190,7 +181,7 @@ func TestNewROPCHandler(t *testing.T) {
 				cmp.AllowUnexported(testSkipper{}),
 				cmpopts.IgnoreUnexported(sync.RWMutex{}, atomic.Bool{}),
 			}
-			testutil.Diff(t, tt.A().h, h, opts...)
+			testutil.Diff(t, tt.A.h, h, opts...)
 		})
 	}
 }
@@ -224,17 +215,6 @@ func TestROPCHandler_ServeHTTP(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	// cndHeader := tb.Condition("header", "credentials in authorization header")
-	// cndEmptyUsername := tb.Condition("empty usernameKey", "usernameKey is empty")
-	// cndEmptyPassword := tb.Condition("empty passwordKey", "passwordKey is empty")
-	// cndInsufficientCredential := tb.Condition("insufficient credentials", "provided username or password is invalid")
-	// cndInvalidAuthHeader := tb.Condition("invalid auth header", "invalid authorization header value")
-	// actCheckError := tb.Action("error", "check that the expected error is returned")
-	actCheckNoError := tb.Action("no error", "check that the there is no error")
-	table := tb.Build()
-
 	defaultCtxReq := httptest.NewRequest(http.MethodPost, "https://test.com/token", nil)
 	defaultCtxReq.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte("testUser:testPassword")))
 	testCtxReq := httptest.NewRequest(http.MethodPost, "https://test.com/token?oauthContext=testContext", nil)
@@ -246,8 +226,6 @@ func TestROPCHandler_ServeHTTP(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"default context",
-			[]string{},
-			[]string{actCheckNoError},
 			&condition{
 				r: defaultCtxReq,
 				redeemer: &testTokenRedeemer{
@@ -272,8 +250,6 @@ func TestROPCHandler_ServeHTTP(t *testing.T) {
 		),
 		gen(
 			"test context",
-			[]string{},
-			[]string{actCheckNoError},
 			&condition{
 				r: testCtxReq,
 				redeemer: &testTokenRedeemer{
@@ -298,8 +274,6 @@ func TestROPCHandler_ServeHTTP(t *testing.T) {
 		),
 		gen(
 			"invalid context",
-			[]string{},
-			[]string{actCheckNoError},
 			&condition{
 				r:        invalidCtxReq,
 				redeemer: &testTokenRedeemer{},
@@ -314,8 +288,6 @@ func TestROPCHandler_ServeHTTP(t *testing.T) {
 		),
 		gen(
 			"redeemer returns error",
-			[]string{},
-			[]string{actCheckNoError},
 			&condition{
 				r: defaultCtxReq,
 				redeemer: &testTokenRedeemer{
@@ -336,11 +308,9 @@ func TestROPCHandler_ServeHTTP(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			eh := &testErrorHandler{}
 			h := &ropcHandler{
 				eh: eh,
@@ -359,7 +329,7 @@ func TestROPCHandler_ServeHTTP(t *testing.T) {
 								issuer:  "https://default.com/",
 								tokenEP: "https://default.com/token",
 							},
-							tokenRedeemer: tt.C().redeemer,
+							tokenRedeemer: tt.C.redeemer,
 						},
 						"testContext": {
 							lg:   log.GlobalLogger(log.DefaultLoggerName),
@@ -374,26 +344,26 @@ func TestROPCHandler_ServeHTTP(t *testing.T) {
 								issuer:  "https://test.com/",
 								tokenEP: "https://test.com/token",
 							},
-							tokenRedeemer: tt.C().redeemer,
+							tokenRedeemer: tt.C.redeemer,
 						},
 					},
 				},
 			}
 
 			w := httptest.NewRecorder()
-			h.ServeHTTP(w, tt.C().r)
+			h.ServeHTTP(w, tt.C.r)
 			b, _ := io.ReadAll(w.Result().Body)
-			testutil.Diff(t, tt.A().body, string(b))
-			testutil.Diff(t, tt.A().query, tt.C().redeemer.params)
+			testutil.Diff(t, tt.A.body, string(b))
+			testutil.Diff(t, tt.A.query, tt.C.redeemer.params)
 
-			if tt.A().err != nil {
+			if tt.A.err != nil {
 				testutil.Diff(t, true, eh.called)
 				e := eh.err.(*utilhttp.HTTPError)
-				testutil.DiffError(t, tt.A().err, tt.A().errPattern, e.Unwrap(), cmpopts.EquateErrors())
-				testutil.Diff(t, tt.A().status, e.StatusCode())
+				testutil.DiffError(t, tt.A.err, tt.A.errPattern, e.Unwrap(), cmpopts.EquateErrors())
+				testutil.Diff(t, tt.A.status, e.StatusCode())
 			} else {
 				testutil.Diff(t, false, eh.called)
-				testutil.Diff(t, tt.A().status, w.Result().StatusCode)
+				testutil.Diff(t, tt.A.status, w.Result().StatusCode)
 			}
 		})
 	}
@@ -440,22 +410,10 @@ func TestROPCHandler_ServeAuthn(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	// condRedeemPath := tb.Condition("authentication via redeem token endpoint", "authentication via redeem token endpoint")
-	// condTokenRequestFailed := tb.Condition("failed to request token", "failed to request token")
-	// condValidClaimsFailed := tb.Condition("failed to valid claims", "failed to valid claims")
-	// condExistTokensInSession := tb.Condition("exist tokens in the session", "exist tokens in the session")
-	// actError := tb.Action("error", "check that the expected error is returned")
-	actNoError := tb.Action("no error", "check that the there is no error")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"valid AT in session",
-			[]string{},
-			[]string{actNoError},
 			&condition{
 				redeemer: &testTokenRedeemer{
 					status: http.StatusOK,
@@ -484,8 +442,6 @@ func TestROPCHandler_ServeAuthn(t *testing.T) {
 		),
 		gen(
 			"valid AT in session / use non-default context",
-			[]string{},
-			[]string{actNoError},
 			&condition{
 				redeemer: &testTokenRedeemer{
 					status: http.StatusOK,
@@ -514,8 +470,6 @@ func TestROPCHandler_ServeAuthn(t *testing.T) {
 		),
 		gen(
 			"no AT in session",
-			[]string{},
-			[]string{actNoError},
 			&condition{
 				redeemer: &testTokenRedeemer{
 					status: http.StatusOK,
@@ -542,8 +496,6 @@ func TestROPCHandler_ServeAuthn(t *testing.T) {
 		),
 		gen(
 			"valid AT in session / redeem new AT",
-			[]string{},
-			[]string{actNoError},
 			&condition{
 				redeemer: &testTokenRedeemer{
 					status: http.StatusOK,
@@ -573,8 +525,6 @@ func TestROPCHandler_ServeAuthn(t *testing.T) {
 		),
 		gen(
 			"no AT in session / redeem new AT",
-			[]string{},
-			[]string{actNoError},
 			&condition{
 				redeemer: &testTokenRedeemer{
 					status: http.StatusOK,
@@ -602,8 +552,6 @@ func TestROPCHandler_ServeAuthn(t *testing.T) {
 		),
 		gen(
 			"no session",
-			[]string{},
-			[]string{actNoError},
 			&condition{
 				redeemer: &testTokenRedeemer{
 					status: http.StatusOK,
@@ -622,8 +570,6 @@ func TestROPCHandler_ServeAuthn(t *testing.T) {
 		),
 		gen(
 			"invalid AT",
-			[]string{},
-			[]string{actNoError},
 			&condition{
 				redeemer: &testTokenRedeemer{
 					status: http.StatusOK,
@@ -647,8 +593,6 @@ func TestROPCHandler_ServeAuthn(t *testing.T) {
 		),
 		gen(
 			"expired AT in session",
-			[]string{},
-			[]string{actNoError},
 			&condition{
 				redeemer: &testTokenRedeemer{
 					response: &TokenResponse{},
@@ -669,8 +613,6 @@ func TestROPCHandler_ServeAuthn(t *testing.T) {
 		),
 		gen(
 			"no tokens in session / oauth context not found",
-			[]string{},
-			[]string{actNoError},
 			&condition{
 				redeemer: &testTokenRedeemer{
 					status:   http.StatusOK,
@@ -689,8 +631,6 @@ func TestROPCHandler_ServeAuthn(t *testing.T) {
 		),
 		gen(
 			"no tokens in session / token request error",
-			[]string{},
-			[]string{actNoError},
 			&condition{
 				redeemer: &testTokenRedeemer{
 					status: http.StatusOK,
@@ -712,11 +652,9 @@ func TestROPCHandler_ServeAuthn(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			eh := &testErrorHandler{}
 			h := &ropcHandler{
 				eh:         eh,
@@ -739,7 +677,7 @@ func TestROPCHandler_ServeAuthn(t *testing.T) {
 								issuer:  "https://test.com/",
 								tokenEP: "https://test.com/token",
 							},
-							tokenRedeemer: tt.C().redeemer,
+							tokenRedeemer: tt.C.redeemer,
 							jh:            jh,
 							atParseOpts:   []jwt.ParserOption{jwt.WithIssuer("https://test.com/")},
 							idtParseOpts:  []jwt.ParserOption{jwt.WithIssuer("https://test.com/")},
@@ -757,7 +695,7 @@ func TestROPCHandler_ServeAuthn(t *testing.T) {
 								issuer:  "https://test.com/",
 								tokenEP: "https://test.com/token",
 							},
-							tokenRedeemer: tt.C().redeemer,
+							tokenRedeemer: tt.C.redeemer,
 							jh:            jh,
 							claimsKey:     "testClaimsKey",
 							atParseOpts:   []jwt.ParserOption{jwt.WithIssuer("https://test.com/")},
@@ -767,30 +705,30 @@ func TestROPCHandler_ServeAuthn(t *testing.T) {
 				},
 			}
 
-			r := tt.C().r
-			if tt.C().tokens != nil {
+			r := tt.C.r
+			if tt.C.tokens != nil {
 				ss := session.NewDefaultSession(session.SerializeJSON)
-				session.MustPersist(ss, ropcSessionKey, tt.C().tokens)
-				ctx := session.ContextWithSession(tt.C().r.Context(), ss)
+				session.MustPersist(ss, ropcSessionKey, tt.C.tokens)
+				ctx := session.ContextWithSession(tt.C.r.Context(), ss)
 				r = r.WithContext(ctx)
 			}
 
 			w := httptest.NewRecorder()
 			nr, ia, sr, err := h.ServeAuthn(w, r)
 			t.Logf("%#v\n", err)
-			t.Logf("%#v, %#v\n", nr, tt.A().tokens)
-			if tt.A().tokens != nil && tt.A().tokens != (*OAuthTokens)(nil) {
+			t.Logf("%#v, %#v\n", nr, tt.A.tokens)
+			if tt.A.tokens != nil && tt.A.tokens != (*OAuthTokens)(nil) {
 				newSess := session.SessionFromContext(nr.Context())
 				token := &OAuthTokens{}
 				err := newSess.Extract(ropcSessionKey, token)
-				testutil.Diff(t, tt.A().tokens, token, cmp.AllowUnexported(OAuthTokens{}))
+				testutil.Diff(t, tt.A.tokens, token, cmp.AllowUnexported(OAuthTokens{}))
 				testutil.Diff(t, nil, err)
 			} else {
 				testutil.Diff(t, (*http.Request)(nil), nr)
 			}
-			testutil.Diff(t, tt.A().ia, ia) // authenticated
-			testutil.Diff(t, tt.A().sr, sr) // shouldReturn
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err, cmpopts.EquateErrors())
+			testutil.Diff(t, tt.A.ia, ia) // authenticated
+			testutil.Diff(t, tt.A.sr, sr) // shouldReturn
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err, cmpopts.EquateErrors())
 		})
 	}
 }
@@ -810,24 +748,10 @@ func TestROPCHandler_TokenRequest(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndForm := tb.Condition("form", "credentials in form request body")
-	cndHeader := tb.Condition("header", "credentials in authorization header")
-	cndEmptyUsername := tb.Condition("empty usernameKey", "usernameKey is empty")
-	cndEmptyPassword := tb.Condition("empty passwordKey", "passwordKey is empty")
-	cndInsufficientCredential := tb.Condition("insufficient credentials", "provided username or password is invalid")
-	cndInvalidAuthHeader := tb.Condition("invalid auth header", "invalid authorization header value")
-	actCheckError := tb.Action("error", "check that the expected error is returned")
-	actCheckNoError := tb.Action("no error", "check that the there is no error")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"credential in form body",
-			[]string{cndForm},
-			[]string{actCheckNoError},
 			&condition{
 				usernameKey: "username",
 				passwordKey: "password",
@@ -853,8 +777,6 @@ func TestROPCHandler_TokenRequest(t *testing.T) {
 		),
 		gen(
 			"credential in authorization header/empty username key",
-			[]string{cndHeader, cndEmptyUsername},
-			[]string{actCheckNoError},
 			&condition{
 				usernameKey: "",
 				passwordKey: "password",
@@ -880,8 +802,6 @@ func TestROPCHandler_TokenRequest(t *testing.T) {
 		),
 		gen(
 			"credential in authorization header/empty password key",
-			[]string{cndHeader, cndEmptyPassword},
-			[]string{actCheckNoError},
 			&condition{
 				usernameKey: "username",
 				passwordKey: "",
@@ -907,8 +827,6 @@ func TestROPCHandler_TokenRequest(t *testing.T) {
 		),
 		gen(
 			"credential in authorization header/empty username&password keys",
-			[]string{cndHeader, cndEmptyUsername, cndEmptyPassword},
-			[]string{actCheckNoError},
 			&condition{
 				usernameKey: "",
 				passwordKey: "",
@@ -934,8 +852,6 @@ func TestROPCHandler_TokenRequest(t *testing.T) {
 		),
 		gen(
 			"body read error",
-			[]string{cndForm},
-			[]string{actCheckError},
 			&condition{
 				usernameKey: "username",
 				passwordKey: "password",
@@ -956,8 +872,6 @@ func TestROPCHandler_TokenRequest(t *testing.T) {
 		),
 		gen(
 			"username not found in form body",
-			[]string{cndForm, cndInsufficientCredential},
-			[]string{actCheckError},
 			&condition{
 				usernameKey: "username",
 				passwordKey: "password",
@@ -978,8 +892,6 @@ func TestROPCHandler_TokenRequest(t *testing.T) {
 		),
 		gen(
 			"password not found in form body",
-			[]string{cndForm, cndInsufficientCredential},
-			[]string{actCheckError},
 			&condition{
 				usernameKey: "username",
 				passwordKey: "password",
@@ -1000,8 +912,6 @@ func TestROPCHandler_TokenRequest(t *testing.T) {
 		),
 		gen(
 			"authorization header not found",
-			[]string{cndHeader, cndInvalidAuthHeader},
-			[]string{actCheckError},
 			&condition{
 				usernameKey: "",
 				passwordKey: "",
@@ -1022,8 +932,6 @@ func TestROPCHandler_TokenRequest(t *testing.T) {
 		),
 		gen(
 			"empty username",
-			[]string{cndHeader, cndInvalidAuthHeader},
-			[]string{actCheckError},
 			&condition{
 				usernameKey: "",
 				passwordKey: "",
@@ -1044,11 +952,9 @@ func TestROPCHandler_TokenRequest(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			oc := &oauthContext{
 				lg:   log.GlobalLogger(log.DefaultLoggerName),
 				name: "test-context",
@@ -1061,20 +967,20 @@ func TestROPCHandler_TokenRequest(t *testing.T) {
 					issuer:  "https://test.com/",
 					tokenEP: "https://test.com/token",
 				},
-				tokenRedeemer: tt.C().redeemer,
+				tokenRedeemer: tt.C.redeemer,
 			}
 
 			h := &ropcHandler{
-				usernameKey: tt.C().usernameKey,
-				passwordKey: tt.C().passwordKey,
+				usernameKey: tt.C.usernameKey,
+				passwordKey: tt.C.passwordKey,
 				queryParams: map[string]string{"testParam": "testValue"},
 			}
 
-			resp, err := h.tokenRequest(tt.C().r, oc)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+			resp, err := h.tokenRequest(tt.C.r, oc)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 
-			testutil.Diff(t, tt.A().resp, resp)
-			testutil.Diff(t, tt.A().query, tt.C().redeemer.params)
+			testutil.Diff(t, tt.A.resp, resp)
+			testutil.Diff(t, tt.A.query, tt.C.redeemer.params)
 		})
 	}
 }

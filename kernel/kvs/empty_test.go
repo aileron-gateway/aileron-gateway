@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/kvs"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
@@ -29,16 +29,10 @@ func TestMapKVS(t *testing.T) {
 		value string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"non empty key",
-			[]string{},
-			[]string{},
 			&condition{
 				s:     &kvs.MapKVS[string, string]{},
 				key:   "foo",
@@ -50,8 +44,6 @@ func TestMapKVS(t *testing.T) {
 		),
 		gen(
 			"empty key",
-			[]string{},
-			[]string{},
 			&condition{
 				s:     &kvs.MapKVS[string, string]{},
 				key:   "",
@@ -63,33 +55,31 @@ func TestMapKVS(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			store := tt.C().s
+		t.Run(tt.Name, func(t *testing.T) {
+			store := tt.C.s
 
 			var err error
 			err = store.Open(ctx)
 			testutil.Diff(t, nil, err)
 
 			var v string
-			_, err = store.Get(ctx, tt.C().key)
+			_, err = store.Get(ctx, tt.C.key)
 			testutil.Diff(t, kvs.Nil, err, cmpopts.EquateErrors())
 
-			err = store.Set(ctx, tt.C().key, tt.C().value)
+			err = store.Set(ctx, tt.C.key, tt.C.value)
 			testutil.Diff(t, nil, err)
 
-			ok := store.Exists(ctx, tt.C().key)
+			ok := store.Exists(ctx, tt.C.key)
 			testutil.Diff(t, true, ok)
-			v, err = store.Get(ctx, tt.C().key)
+			v, err = store.Get(ctx, tt.C.key)
 			testutil.Diff(t, nil, err)
-			testutil.Diff(t, tt.A().value, v)
+			testutil.Diff(t, tt.A.value, v)
 
-			err = store.Delete(ctx, tt.C().key)
+			err = store.Delete(ctx, tt.C.key)
 			testutil.Diff(t, nil, err)
-			_, err = store.Get(ctx, tt.C().key)
+			_, err = store.Get(ctx, tt.C.key)
 			testutil.Diff(t, kvs.Nil, err, cmpopts.EquateErrors())
 
 			err = store.Close(ctx)
@@ -111,16 +101,10 @@ func TestMapKVS_SetWithTTL(t *testing.T) {
 		value   string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"no ttl",
-			[]string{},
-			[]string{},
 			&condition{
 				s:     &kvs.MapKVS[string, string]{},
 				key:   "foo",
@@ -134,8 +118,6 @@ func TestMapKVS_SetWithTTL(t *testing.T) {
 		),
 		gen(
 			"with ttl",
-			[]string{},
-			[]string{},
 			&condition{
 				s:     &kvs.MapKVS[string, string]{},
 				key:   "",
@@ -149,35 +131,33 @@ func TestMapKVS_SetWithTTL(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			store := tt.C().s
+		t.Run(tt.Name, func(t *testing.T) {
+			store := tt.C.s
 
 			var err error
 			err = store.Open(ctx)
 			testutil.Diff(t, nil, err)
 
-			err = store.SetWithTTL(ctx, tt.C().key, tt.C().value, tt.C().ttl)
+			err = store.SetWithTTL(ctx, tt.C.key, tt.C.value, tt.C.ttl)
 			testutil.Diff(t, nil, err)
 
-			ok := store.Exists(ctx, tt.C().key)
+			ok := store.Exists(ctx, tt.C.key)
 			testutil.Diff(t, true, ok)
 
 			// Key exists after ttl reset.
-			time.Sleep(tt.C().ttl / 2)
-			store.SetWithTTL(ctx, tt.C().key, tt.C().value, tt.C().ttl)
-			time.Sleep(tt.C().ttl / 2)
-			testutil.Diff(t, true, store.Exists(ctx, tt.C().key))
+			time.Sleep(tt.C.ttl / 2)
+			store.SetWithTTL(ctx, tt.C.key, tt.C.value, tt.C.ttl)
+			time.Sleep(tt.C.ttl / 2)
+			testutil.Diff(t, true, store.Exists(ctx, tt.C.key))
 
 			// After ttl.
-			time.Sleep(2 * tt.C().ttl)
-			ok = store.Exists(ctx, tt.C().key)
-			testutil.Diff(t, tt.A().deleted, !ok)
+			time.Sleep(2 * tt.C.ttl)
+			ok = store.Exists(ctx, tt.C.key)
+			testutil.Diff(t, tt.A.deleted, !ok)
 
-			err = store.Delete(ctx, tt.C().key)
+			err = store.Delete(ctx, tt.C.key)
 			testutil.Diff(t, nil, err)
 			err = store.Close(ctx)
 			testutil.Diff(t, nil, err)

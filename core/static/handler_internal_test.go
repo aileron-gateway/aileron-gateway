@@ -12,7 +12,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
@@ -71,25 +71,10 @@ func TestHandler_ServeHTTP(t *testing.T) {
 		body   *regexp.Regexp
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndStatus200 := tb.Condition("200", "write status 200")
-	cndStatus399 := tb.Condition("399", "write status 399")
-	cndStatus400 := tb.Condition("400", "write status 400")
-	cndStatus499 := tb.Condition("499", "write status 499")
-	cndStatus500 := tb.Condition("500", "write status 500")
-	actCheckStatus := tb.Action("check status", "check the responded status code")
-	actCheckBody := tb.Action("check body", "check the written body")
-	actCheckError := tb.Action("error", "check that there is an error")
-	actCheckNoError := tb.Action("no error", "check that there is no error")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"200 OK",
-			[]string{cndStatus200},
-			[]string{actCheckStatus, actCheckBody, actCheckNoError},
 			&condition{
 				h: &handler{
 					Handler: testStatusHandler(http.StatusOK),
@@ -104,8 +89,6 @@ func TestHandler_ServeHTTP(t *testing.T) {
 		),
 		gen(
 			"200 OK with header",
-			[]string{cndStatus200},
-			[]string{actCheckStatus, actCheckBody, actCheckNoError},
 			&condition{
 				h: &handler{
 					Handler: testStatusHandler(http.StatusOK),
@@ -122,8 +105,6 @@ func TestHandler_ServeHTTP(t *testing.T) {
 		),
 		gen(
 			"200 OK with path",
-			[]string{cndStatus200},
-			[]string{actCheckStatus, actCheckBody, actCheckNoError},
 			&condition{
 				h: &handler{
 					Handler: testStatusHandler(http.StatusOK),
@@ -139,8 +120,6 @@ func TestHandler_ServeHTTP(t *testing.T) {
 		),
 		gen(
 			"399",
-			[]string{cndStatus399},
-			[]string{actCheckStatus, actCheckBody, actCheckNoError},
 			&condition{
 				h: &handler{
 					Handler: testStatusHandler(300),
@@ -155,8 +134,6 @@ func TestHandler_ServeHTTP(t *testing.T) {
 		),
 		gen(
 			"400 Bad Request",
-			[]string{cndStatus400},
-			[]string{actCheckStatus, actCheckBody, actCheckError},
 			&condition{
 				h: &handler{
 					Handler: testStatusHandler(http.StatusBadRequest),
@@ -171,8 +148,6 @@ func TestHandler_ServeHTTP(t *testing.T) {
 		),
 		gen(
 			"499",
-			[]string{cndStatus499},
-			[]string{actCheckStatus, actCheckBody, actCheckError},
 			&condition{
 				h: &handler{
 					Handler: testStatusHandler(499),
@@ -187,8 +162,6 @@ func TestHandler_ServeHTTP(t *testing.T) {
 		),
 		gen(
 			"500 Internal Server Error",
-			[]string{cndStatus500},
-			[]string{actCheckStatus, actCheckBody, actCheckError},
 			&condition{
 				h: &handler{
 					Handler: testStatusHandler(http.StatusInternalServerError),
@@ -203,25 +176,23 @@ func TestHandler_ServeHTTP(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			w := httptest.NewRecorder()
-			r, _ := http.NewRequest(http.MethodGet, "http://test.com"+tt.C().path, nil)
+			r, _ := http.NewRequest(http.MethodGet, "http://test.com"+tt.C.path, nil)
 
-			tt.C().h.ServeHTTP(w, r)
+			tt.C.h.ServeHTTP(w, r)
 
 			res := w.Result()
 			defer res.Body.Close()
 			b, _ := io.ReadAll(res.Body)
 			t.Log(string(b))
 
-			testutil.Diff(t, tt.A().path, r.URL.Path)
-			testutil.Diff(t, tt.A().status, res.StatusCode)
-			testutil.Diff(t, true, tt.A().body.Match(b))
-			for k, v := range tt.A().header {
+			testutil.Diff(t, tt.A.path, r.URL.Path)
+			testutil.Diff(t, tt.A.status, res.StatusCode)
+			testutil.Diff(t, true, tt.A.body.Match(b))
+			for k, v := range tt.A.header {
 				testutil.Diff(t, v, res.Header.Get(k))
 			}
 		})
@@ -239,21 +210,10 @@ func TestFileOnlyDir_Open(t *testing.T) {
 		err     any // error or errorutil.Kind
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndFileExist := tb.Condition("file exists", "access to a file exists")
-	cndStatError := tb.Condition("file not exists", "getting file info returns an error ")
-	cndDirectory := tb.Condition("directory", "access to a directory exists")
-	actCheckError := tb.Action("discard", "check that the written stats are discarded")
-	actCheckNoError := tb.Action("written", "check that the written status are written to the underlying writer")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"file exists",
-			[]string{cndFileExist},
-			[]string{actCheckNoError},
 			&condition{
 				fs:   http.Dir(testDir + "ut/core/static/"),
 				name: "/testdir/test.txt",
@@ -264,8 +224,6 @@ func TestFileOnlyDir_Open(t *testing.T) {
 		),
 		gen(
 			"file not exists",
-			[]string{},
-			[]string{actCheckError},
 			&condition{
 				fs:   http.Dir(testDir + "ut/core/static/"),
 				name: "/testdir/not-exist.txt",
@@ -277,8 +235,6 @@ func TestFileOnlyDir_Open(t *testing.T) {
 		),
 		gen(
 			"stat error",
-			[]string{cndStatError},
-			[]string{actCheckError},
 			&condition{
 				fs:   &errorFS{},
 				name: "/testdir/test.txt",
@@ -290,8 +246,6 @@ func TestFileOnlyDir_Open(t *testing.T) {
 		),
 		gen(
 			"directory",
-			[]string{cndDirectory},
-			[]string{actCheckError},
 			&condition{
 				fs:   http.Dir(testDir + "ut/core/static/"),
 				name: "/testdir",
@@ -303,24 +257,22 @@ func TestFileOnlyDir_Open(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			fod := &fileOnlyDir{
-				fs: tt.C().fs,
+				fs: tt.C.fs,
 			}
 
-			f, err := fod.Open(tt.C().name)
-			testutil.DiffError(t, tt.A().err, nil, err, cmpopts.EquateErrors())
+			f, err := fod.Open(tt.C.name)
+			testutil.DiffError(t, tt.A.err, nil, err, cmpopts.EquateErrors())
 
 			if err != nil {
 				testutil.Diff(t, nil, f)
 			} else {
 				var b bytes.Buffer
 				b.ReadFrom(f)
-				testutil.Diff(t, tt.A().content, b.String())
+				testutil.Diff(t, tt.A.content, b.String())
 			}
 		})
 	}
@@ -336,22 +288,10 @@ func TestDiscardWriter_Write(t *testing.T) {
 		expect []byte
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndStatus0 := tb.Condition("0", "write to the 0 status writer")
-	cndStatus399 := tb.Condition("399", "write to the 399 status writer")
-	cndStatus400 := tb.Condition("400", "write to the 400 status writer")
-	cndStatus500 := tb.Condition("500", "write to the 500 status writer")
-	actCheckDiscard := tb.Action("discard", "check that the written bytes are discarded")
-	actCheckWritten := tb.Action("written", "check that the written bytes are written to the underlying writer")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"status 0",
-			[]string{cndStatus0},
-			[]string{actCheckWritten},
 			&condition{
 				dw: &discardWriter{
 					ResponseWriter: &testResponseWriter{},
@@ -365,8 +305,6 @@ func TestDiscardWriter_Write(t *testing.T) {
 		),
 		gen(
 			"status 399",
-			[]string{cndStatus399},
-			[]string{actCheckWritten},
 			&condition{
 				dw: &discardWriter{
 					ResponseWriter: &testResponseWriter{},
@@ -380,8 +318,6 @@ func TestDiscardWriter_Write(t *testing.T) {
 		),
 		gen(
 			"status 400",
-			[]string{cndStatus400},
-			[]string{actCheckDiscard},
 			&condition{
 				dw: &discardWriter{
 					ResponseWriter: &testResponseWriter{},
@@ -395,8 +331,6 @@ func TestDiscardWriter_Write(t *testing.T) {
 		),
 		gen(
 			"status 500",
-			[]string{cndStatus500},
-			[]string{actCheckDiscard},
 			&condition{
 				dw: &discardWriter{
 					ResponseWriter: &testResponseWriter{},
@@ -410,15 +344,13 @@ func TestDiscardWriter_Write(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			tt.C().dw.Write(tt.C().write)
+		t.Run(tt.Name, func(t *testing.T) {
+			tt.C.dw.Write(tt.C.write)
 
-			w := tt.C().dw.ResponseWriter.(*testResponseWriter)
-			testutil.Diff(t, tt.A().expect, w.b.Bytes())
+			w := tt.C.dw.ResponseWriter.(*testResponseWriter)
+			testutil.Diff(t, tt.A.expect, w.b.Bytes())
 		})
 	}
 }
@@ -433,22 +365,10 @@ func TestDiscardWriter_WriteHeader(t *testing.T) {
 		status int
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndStatus0 := tb.Condition("0", "write status 0")
-	cndStatus399 := tb.Condition("399", "write status 399")
-	cndStatus400 := tb.Condition("400", "write status 400")
-	cndStatus500 := tb.Condition("500", "write status 500")
-	actCheckDiscard := tb.Action("discard", "check that the written stats are discarded")
-	actCheckWritten := tb.Action("written", "check that the written status are written to the underlying writer")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"status 0",
-			[]string{cndStatus0},
-			[]string{actCheckWritten},
 			&condition{
 				dw: &discardWriter{
 					ResponseWriter: &testResponseWriter{},
@@ -462,8 +382,6 @@ func TestDiscardWriter_WriteHeader(t *testing.T) {
 		),
 		gen(
 			"status 399",
-			[]string{cndStatus399},
-			[]string{actCheckWritten},
 			&condition{
 				dw: &discardWriter{
 					ResponseWriter: &testResponseWriter{},
@@ -477,8 +395,6 @@ func TestDiscardWriter_WriteHeader(t *testing.T) {
 		),
 		gen(
 			"status 400",
-			[]string{cndStatus400},
-			[]string{actCheckDiscard},
 			&condition{
 				dw: &discardWriter{
 					ResponseWriter: &testResponseWriter{},
@@ -492,8 +408,6 @@ func TestDiscardWriter_WriteHeader(t *testing.T) {
 		),
 		gen(
 			"status 500",
-			[]string{cndStatus500},
-			[]string{actCheckDiscard},
 			&condition{
 				dw: &discardWriter{
 					ResponseWriter: &testResponseWriter{},
@@ -507,15 +421,13 @@ func TestDiscardWriter_WriteHeader(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			tt.C().dw.WriteHeader(tt.C().status)
+		t.Run(tt.Name, func(t *testing.T) {
+			tt.C.dw.WriteHeader(tt.C.status)
 
-			w := tt.C().dw.ResponseWriter.(*testResponseWriter)
-			testutil.Diff(t, tt.A().status, w.status)
+			w := tt.C.dw.ResponseWriter.(*testResponseWriter)
+			testutil.Diff(t, tt.A.status, w.status)
 		})
 	}
 }

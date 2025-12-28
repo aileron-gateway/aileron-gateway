@@ -7,8 +7,8 @@ import (
 	"log/slog"
 	"testing"
 
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 )
 
 func TestLvToSLogLevel(t *testing.T) {
@@ -19,28 +19,10 @@ func TestLvToSLogLevel(t *testing.T) {
 	type action struct {
 		expect slog.Level
 	}
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndLvTrace := tb.Condition("Trace", "input Trace as  log.LogLevel")
-	cndLvDebug := tb.Condition("Debug", "input Debug as  log.LogLevel")
-	cndLvInfo := tb.Condition("Info", "input Info as  log.LogLevel")
-	cndLvWarn := tb.Condition("Warn", "input Warn as  log.LogLevel")
-	cndLvError := tb.Condition("Error", "input Error as  log.LogLevel")
-	cndLvFatal := tb.Condition("Fatal", "input Fatal as  log.LogLevel")
-	cndLvOther := tb.Condition("Other", "input other log level")
-	actLvDebug := tb.Action("Debug", "check that the returned slog.Level is Debug")
-	actLvInfo := tb.Action("Info", "check that the returned slog.Level is Info")
-	actLvWarn := tb.Action("Warn", "check that the returned slog.Level is Warn")
-	actLvError := tb.Action("Error", "check that the returned slog.Level is Error")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"Trace-1",
-			[]string{cndLvOther},
-			[]string{actLvDebug},
 			&condition{
 				level: log.LvTrace - 1,
 			},
@@ -50,8 +32,6 @@ func TestLvToSLogLevel(t *testing.T) {
 		),
 		gen(
 			"Trace",
-			[]string{cndLvTrace},
-			[]string{actLvDebug},
 			&condition{
 				level: log.LvTrace,
 			},
@@ -61,8 +41,6 @@ func TestLvToSLogLevel(t *testing.T) {
 		),
 		gen(
 			"Trace+1",
-			[]string{cndLvOther},
-			[]string{actLvDebug},
 			&condition{
 				level: log.LvTrace + 1,
 			},
@@ -72,8 +50,6 @@ func TestLvToSLogLevel(t *testing.T) {
 		),
 		gen(
 			"Debug-1",
-			[]string{cndLvOther},
-			[]string{actLvDebug},
 			&condition{
 				level: log.LvDebug,
 			},
@@ -83,8 +59,6 @@ func TestLvToSLogLevel(t *testing.T) {
 		),
 		gen(
 			"Debug",
-			[]string{cndLvDebug},
-			[]string{actLvDebug},
 			&condition{
 				level: log.LvDebug,
 			},
@@ -94,8 +68,6 @@ func TestLvToSLogLevel(t *testing.T) {
 		),
 		gen(
 			"Debug+1",
-			[]string{cndLvOther},
-			[]string{actLvInfo},
 			&condition{
 				level: log.LvDebug + 1,
 			},
@@ -105,8 +77,6 @@ func TestLvToSLogLevel(t *testing.T) {
 		),
 		gen(
 			"Info-1",
-			[]string{cndLvOther},
-			[]string{actLvInfo},
 			&condition{
 				level: log.LvInfo - 1,
 			},
@@ -116,8 +86,6 @@ func TestLvToSLogLevel(t *testing.T) {
 		),
 		gen(
 			"Info",
-			[]string{cndLvInfo},
-			[]string{actLvInfo},
 			&condition{
 				level: log.LvInfo,
 			},
@@ -127,8 +95,6 @@ func TestLvToSLogLevel(t *testing.T) {
 		),
 		gen(
 			"Info+1",
-			[]string{cndLvOther},
-			[]string{actLvWarn},
 			&condition{
 				level: log.LvInfo + 1,
 			},
@@ -138,8 +104,6 @@ func TestLvToSLogLevel(t *testing.T) {
 		),
 		gen(
 			"Warn-1",
-			[]string{cndLvOther},
-			[]string{actLvWarn},
 			&condition{
 				level: log.LvWarn - 1,
 			},
@@ -149,8 +113,6 @@ func TestLvToSLogLevel(t *testing.T) {
 		),
 		gen(
 			"Warn",
-			[]string{cndLvWarn},
-			[]string{actLvWarn},
 			&condition{
 				level: log.LvWarn,
 			},
@@ -160,8 +122,6 @@ func TestLvToSLogLevel(t *testing.T) {
 		),
 		gen(
 			"Warn+1",
-			[]string{cndLvOther},
-			[]string{actLvError},
 			&condition{
 				level: log.LvWarn + 1,
 			},
@@ -171,8 +131,6 @@ func TestLvToSLogLevel(t *testing.T) {
 		),
 		gen(
 			"Error-1",
-			[]string{cndLvOther},
-			[]string{actLvError},
 			&condition{
 				level: log.LvError - 1,
 			},
@@ -182,8 +140,6 @@ func TestLvToSLogLevel(t *testing.T) {
 		),
 		gen(
 			"Error",
-			[]string{cndLvError},
-			[]string{actLvError},
 			&condition{
 				level: log.LvError,
 			},
@@ -193,8 +149,6 @@ func TestLvToSLogLevel(t *testing.T) {
 		),
 		gen(
 			"Error+1",
-			[]string{cndLvOther},
-			[]string{actLvError},
 			&condition{
 				level: log.LvError + 1,
 			},
@@ -204,8 +158,6 @@ func TestLvToSLogLevel(t *testing.T) {
 		),
 		gen(
 			"Fatal-1",
-			[]string{cndLvOther},
-			[]string{actLvError},
 			&condition{
 				level: log.LvFatal - 1,
 			},
@@ -215,8 +167,6 @@ func TestLvToSLogLevel(t *testing.T) {
 		),
 		gen(
 			"Fatal",
-			[]string{cndLvFatal},
-			[]string{actLvError},
 			&condition{
 				level: log.LvFatal,
 			},
@@ -226,8 +176,6 @@ func TestLvToSLogLevel(t *testing.T) {
 		),
 		gen(
 			"Fatal+1",
-			[]string{cndLvOther},
-			[]string{actLvError},
 			&condition{
 				level: log.LvFatal + 1,
 			},
@@ -237,13 +185,11 @@ func TestLvToSLogLevel(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			got := log.LvToSLogLevel(tt.C().level)
-			testutil.Diff(t, tt.A().expect, got)
+		t.Run(tt.Name, func(t *testing.T) {
+			got := log.LvToSLogLevel(tt.C.level)
+			testutil.Diff(t, tt.A.expect, got)
 		})
 	}
 }
@@ -257,25 +203,10 @@ func TestLvFromSLogLevel(t *testing.T) {
 		expect log.LogLevel
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndLvDebug := tb.Condition("Debug", "input Debug as slog.Level")
-	cndLvInfo := tb.Condition("Info", "input Info as slog.Level")
-	cndLvWarn := tb.Condition("Warn", "input Warn as slog.Level")
-	cndLvError := tb.Condition("Error", "input Error as slog.Level")
-	cndLvOther := tb.Condition("Other", "input other log level")
-	actLvDebug := tb.Action("Debug", "check that the returned  log.LogLevel is Debug")
-	actLvInfo := tb.Action("Info", "check that the returned  log.LogLevel is Info")
-	actLvWarn := tb.Action("Warn", "check that the returned  log.LogLevel is Warn")
-	actLvError := tb.Action("Error", "check that the returned  log.LogLevel is Error")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"Debug-1",
-			[]string{cndLvOther},
-			[]string{actLvDebug},
 			&condition{
 				level: slog.LevelDebug - 1,
 			},
@@ -285,8 +216,6 @@ func TestLvFromSLogLevel(t *testing.T) {
 		),
 		gen(
 			"Debug",
-			[]string{cndLvDebug},
-			[]string{actLvDebug},
 			&condition{
 				level: slog.LevelDebug,
 			},
@@ -296,8 +225,6 @@ func TestLvFromSLogLevel(t *testing.T) {
 		),
 		gen(
 			"Debug+1",
-			[]string{cndLvOther},
-			[]string{actLvInfo},
 			&condition{
 				level: slog.LevelDebug + 1,
 			},
@@ -307,8 +234,6 @@ func TestLvFromSLogLevel(t *testing.T) {
 		),
 		gen(
 			"Info-1",
-			[]string{cndLvOther},
-			[]string{actLvInfo},
 			&condition{
 				level: slog.LevelInfo - 1,
 			},
@@ -318,8 +243,6 @@ func TestLvFromSLogLevel(t *testing.T) {
 		),
 		gen(
 			"Info",
-			[]string{cndLvInfo},
-			[]string{actLvInfo},
 			&condition{
 				level: slog.LevelInfo,
 			},
@@ -329,8 +252,6 @@ func TestLvFromSLogLevel(t *testing.T) {
 		),
 		gen(
 			"Info+1",
-			[]string{cndLvOther},
-			[]string{actLvWarn},
 			&condition{
 				level: slog.LevelInfo + 1,
 			},
@@ -340,8 +261,6 @@ func TestLvFromSLogLevel(t *testing.T) {
 		),
 		gen(
 			"Warn-1",
-			[]string{cndLvOther},
-			[]string{actLvWarn},
 			&condition{
 				level: slog.LevelWarn - 1,
 			},
@@ -351,8 +270,6 @@ func TestLvFromSLogLevel(t *testing.T) {
 		),
 		gen(
 			"Warn",
-			[]string{cndLvWarn},
-			[]string{actLvWarn},
 			&condition{
 				level: slog.LevelWarn,
 			},
@@ -362,8 +279,6 @@ func TestLvFromSLogLevel(t *testing.T) {
 		),
 		gen(
 			"Warn+1",
-			[]string{cndLvOther},
-			[]string{actLvError},
 			&condition{
 				level: slog.LevelWarn + 1,
 			},
@@ -373,8 +288,6 @@ func TestLvFromSLogLevel(t *testing.T) {
 		),
 		gen(
 			"Error-1",
-			[]string{cndLvOther},
-			[]string{actLvError},
 			&condition{
 				level: slog.LevelError - 1,
 			},
@@ -384,8 +297,6 @@ func TestLvFromSLogLevel(t *testing.T) {
 		),
 		gen(
 			"Error",
-			[]string{cndLvError},
-			[]string{actLvError},
 			&condition{
 				level: slog.LevelError,
 			},
@@ -395,8 +306,6 @@ func TestLvFromSLogLevel(t *testing.T) {
 		),
 		gen(
 			"Error+1",
-			[]string{cndLvOther},
-			[]string{actLvError},
 			&condition{
 				level: slog.LevelError + slog.Level(1),
 			},
@@ -406,13 +315,11 @@ func TestLvFromSLogLevel(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			got := log.LvFromSLogLevel(tt.C().level)
-			testutil.Diff(t, tt.A().expect, got)
+		t.Run(tt.Name, func(t *testing.T) {
+			got := log.LvFromSLogLevel(tt.C.level)
+			testutil.Diff(t, tt.A.expect, got)
 		})
 	}
 }

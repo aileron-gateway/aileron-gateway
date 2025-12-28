@@ -14,8 +14,8 @@ import (
 	"testing"
 
 	"github.com/aileron-gateway/aileron-gateway/core"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
@@ -54,16 +54,10 @@ func TestRetry_Tripperware(t *testing.T) {
 		err    error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"0 retry/without error",
-			[]string{},
-			[]string{},
 			&condition{
 				retry: &retry{
 					maxRetry: 0,
@@ -78,8 +72,6 @@ func TestRetry_Tripperware(t *testing.T) {
 		),
 		gen(
 			"0 retry/with error",
-			[]string{},
-			[]string{},
 			&condition{
 				retry: &retry{
 					maxRetry: 0,
@@ -94,8 +86,6 @@ func TestRetry_Tripperware(t *testing.T) {
 		),
 		gen(
 			"negative content length/without error",
-			[]string{},
-			[]string{},
 			&condition{
 				retry: &retry{
 					maxRetry: 1,
@@ -111,8 +101,6 @@ func TestRetry_Tripperware(t *testing.T) {
 		),
 		gen(
 			"negative content length/with error",
-			[]string{},
-			[]string{},
 			&condition{
 				retry: &retry{
 					maxRetry: 1,
@@ -128,8 +116,6 @@ func TestRetry_Tripperware(t *testing.T) {
 		),
 		gen(
 			"large content length/without error",
-			[]string{},
-			[]string{},
 			&condition{
 				retry: &retry{
 					maxRetry:         1,
@@ -146,8 +132,6 @@ func TestRetry_Tripperware(t *testing.T) {
 		),
 		gen(
 			"large content length/with error",
-			[]string{},
-			[]string{},
 			&condition{
 				retry: &retry{
 					maxRetry:         1,
@@ -164,8 +148,6 @@ func TestRetry_Tripperware(t *testing.T) {
 		),
 		gen(
 			"1 retry/without error",
-			[]string{},
-			[]string{},
 			&condition{
 				retry: &retry{
 					maxRetry:         1,
@@ -181,8 +163,6 @@ func TestRetry_Tripperware(t *testing.T) {
 		),
 		gen(
 			"1 retry/with error",
-			[]string{},
-			[]string{},
 			&condition{
 				retry: &retry{
 					maxRetry:         1,
@@ -202,8 +182,6 @@ func TestRetry_Tripperware(t *testing.T) {
 		),
 		gen(
 			"2 retry/without error",
-			[]string{},
-			[]string{},
 			&condition{
 				retry: &retry{
 					maxRetry:         2,
@@ -219,8 +197,6 @@ func TestRetry_Tripperware(t *testing.T) {
 		),
 		gen(
 			"2 retry/with error",
-			[]string{},
-			[]string{},
 			&condition{
 				retry: &retry{
 					maxRetry:         2,
@@ -240,8 +216,6 @@ func TestRetry_Tripperware(t *testing.T) {
 		),
 		gen(
 			"retry http status/without error",
-			[]string{},
-			[]string{},
 			&condition{
 				retry: &retry{
 					maxRetry:         3,
@@ -258,8 +232,6 @@ func TestRetry_Tripperware(t *testing.T) {
 		),
 		gen(
 			"retry http status/with error",
-			[]string{},
-			[]string{},
 			&condition{
 				retry: &retry{
 					maxRetry:         3,
@@ -280,8 +252,6 @@ func TestRetry_Tripperware(t *testing.T) {
 		),
 		gen(
 			"setupRewindBody error",
-			[]string{},
-			[]string{},
 			&condition{
 				retry: &retry{
 					maxRetry:         1,
@@ -301,8 +271,6 @@ func TestRetry_Tripperware(t *testing.T) {
 		),
 		gen(
 			"rewindBody error",
-			[]string{},
-			[]string{},
 			&condition{
 				retry: &retry{
 					maxRetry:         1,
@@ -325,8 +293,6 @@ func TestRetry_Tripperware(t *testing.T) {
 		),
 		gen(
 			"context cancel error",
-			[]string{},
-			[]string{},
 			&condition{
 				retry: &retry{
 					maxRetry:         1,
@@ -343,8 +309,6 @@ func TestRetry_Tripperware(t *testing.T) {
 		),
 		gen(
 			"context done",
-			[]string{},
-			[]string{},
 			&condition{
 				retry: &retry{
 					maxRetry:         1,
@@ -365,23 +329,21 @@ func TestRetry_Tripperware(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			// Test request.
 			ctx, cancel := context.WithCancel(context.Background())
 			req := &http.Request{
-				ContentLength: int64(stdcmp.Or(tt.C().contentLength, 9)),
-				Body:          tt.C().body,
-				GetBody:       tt.C().bodyFunc,
+				ContentLength: int64(stdcmp.Or(tt.C.contentLength, 9)),
+				Body:          tt.C.body,
+				GetBody:       tt.C.bodyFunc,
 			}
 			req = req.WithContext(ctx)
 
 			// Test roundtripper
 			called := 0
-			rt := tt.C().retry.Tripperware(core.RoundTripperFunc(func(r *http.Request) (*http.Response, error) {
+			rt := tt.C.retry.Tripperware(core.RoundTripperFunc(func(r *http.Request) (*http.Response, error) {
 				called += 1
 
 				var body []byte
@@ -392,16 +354,16 @@ func TestRetry_Tripperware(t *testing.T) {
 				testutil.Diff(t, nil, err)
 				testutil.Diff(t, "test body", string(body))
 
-				if tt.C().doneCtx {
+				if tt.C.doneCtx {
 					cancel() // Simulate client's cancel while waiting.
 				}
-				if tt.C().cancelCtx {
+				if tt.C.cancelCtx {
 					return nil, context.Canceled
 				}
 
 				status := 0
-				if len(tt.C().status) >= called {
-					status = tt.C().status[called-1]
+				if len(tt.C.status) >= called {
+					status = tt.C.status[called-1]
 				}
 				if status == 0 {
 					return nil, io.EOF
@@ -414,10 +376,10 @@ func TestRetry_Tripperware(t *testing.T) {
 
 			res, err := rt.RoundTrip(req)
 
-			testutil.Diff(t, tt.A().called, called)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
-			if tt.A().status > 0 {
-				testutil.Diff(t, tt.A().status, res.StatusCode)
+			testutil.Diff(t, tt.A.called, called)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
+			if tt.A.status > 0 {
+				testutil.Diff(t, tt.A.status, res.StatusCode)
 			}
 		})
 	}
@@ -436,16 +398,10 @@ func TestSetupRewindBody(t *testing.T) {
 		err  error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"nil body",
-			[]string{},
-			[]string{},
 			&condition{
 				req: &http.Request{
 					Body: nil,
@@ -459,8 +415,6 @@ func TestSetupRewindBody(t *testing.T) {
 		),
 		gen(
 			"NoBody body",
-			[]string{},
-			[]string{},
 			&condition{
 				req: &http.Request{
 					Body: http.NoBody,
@@ -474,8 +428,6 @@ func TestSetupRewindBody(t *testing.T) {
 		),
 		gen(
 			"trackingBody/not read/not closed",
-			[]string{},
-			[]string{},
 			&condition{
 				req: &http.Request{
 					Body: io.NopCloser(bytes.NewReader([]byte("test body"))),
@@ -497,8 +449,6 @@ func TestSetupRewindBody(t *testing.T) {
 		),
 		gen(
 			"trackingBody/read/not closed",
-			[]string{},
-			[]string{},
 			&condition{
 				req: &http.Request{
 					Body: io.NopCloser(bytes.NewReader([]byte("test body"))),
@@ -520,8 +470,6 @@ func TestSetupRewindBody(t *testing.T) {
 		),
 		gen(
 			"trackingBody/not read/closed",
-			[]string{},
-			[]string{},
 			&condition{
 				req: &http.Request{
 					Body: io.NopCloser(bytes.NewReader([]byte("test body"))),
@@ -543,8 +491,6 @@ func TestSetupRewindBody(t *testing.T) {
 		),
 		gen(
 			"trackingBody/read/closed",
-			[]string{},
-			[]string{},
 			&condition{
 				req: &http.Request{
 					Body: io.NopCloser(bytes.NewReader([]byte("test body"))),
@@ -566,8 +512,6 @@ func TestSetupRewindBody(t *testing.T) {
 		),
 		gen(
 			"with GetBody",
-			[]string{},
-			[]string{},
 			&condition{
 				req: &http.Request{
 					Body: io.NopCloser(bytes.NewReader([]byte("test body"))),
@@ -592,8 +536,6 @@ func TestSetupRewindBody(t *testing.T) {
 		),
 		gen(
 			"with error body",
-			[]string{},
-			[]string{},
 			&condition{
 				req: &http.Request{
 					Body:    &testBody{readErr: io.ErrUnexpectedEOF},
@@ -607,15 +549,13 @@ func TestSetupRewindBody(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			newReq, err := setupRewindBody(tt.C().req)
+		t.Run(tt.Name, func(t *testing.T) {
+			newReq, err := setupRewindBody(tt.C.req)
 
-			if tt.A().err != nil {
-				testutil.Diff(t, tt.A().err.Error(), err.Error())
+			if tt.A.err != nil {
+				testutil.Diff(t, tt.A.err.Error(), err.Error())
 				testutil.Diff(t, (*http.Request)(nil), newReq)
 				return
 			}
@@ -639,20 +579,20 @@ func TestSetupRewindBody(t *testing.T) {
 					return bytes.Equal(bx, by)
 				}),
 			}
-			testutil.Diff(t, tt.A().req, newReq, opts...)
+			testutil.Diff(t, tt.A.req, newReq, opts...)
 
-			if tt.C().read > 0 {
-				b := make([]byte, tt.C().read)
+			if tt.C.read > 0 {
+				b := make([]byte, tt.C.read)
 				newReq.Body.Read(b)
 			}
-			if tt.C().close {
+			if tt.C.close {
 				newReq.Body.Close()
 			}
 
 			if newReq.Body != nil {
 				newReq, _ = rewindBody(newReq)
 				b, _ := io.ReadAll(newReq.Body)
-				testutil.Diff(t, tt.A().body, string(b))
+				testutil.Diff(t, tt.A.body, string(b))
 			}
 		})
 	}
@@ -669,10 +609,6 @@ func TestRewindBody(t *testing.T) {
 		err  error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	testGetBody := func() (io.ReadCloser, error) {
 		return io.NopCloser(bytes.NewReader([]byte("rewound body"))), nil
 	}
@@ -684,8 +620,6 @@ func TestRewindBody(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"nil body",
-			[]string{},
-			[]string{},
 			&condition{
 				body: nil,
 			},
@@ -695,8 +629,6 @@ func TestRewindBody(t *testing.T) {
 		),
 		gen(
 			"NoBody body",
-			[]string{},
-			[]string{},
 			&condition{
 				body: http.NoBody,
 			},
@@ -706,8 +638,6 @@ func TestRewindBody(t *testing.T) {
 		),
 		gen(
 			"trackingBody/not read/not closed",
-			[]string{},
-			[]string{},
 			&condition{
 				body: &readTrackingBody{
 					ReadCloser: io.NopCloser(bytes.NewReader([]byte("test body"))),
@@ -723,8 +653,6 @@ func TestRewindBody(t *testing.T) {
 		),
 		gen(
 			"trackingBody/not read/closed",
-			[]string{},
-			[]string{},
 			&condition{
 				body: &readTrackingBody{
 					ReadCloser: io.NopCloser(bytes.NewReader([]byte("test body"))),
@@ -741,8 +669,6 @@ func TestRewindBody(t *testing.T) {
 		),
 		gen(
 			"trackingBody/read/not closed",
-			[]string{},
-			[]string{},
 			&condition{
 				body: &readTrackingBody{
 					ReadCloser: io.NopCloser(bytes.NewReader([]byte("test body"))),
@@ -759,8 +685,6 @@ func TestRewindBody(t *testing.T) {
 		),
 		gen(
 			"trackingBody/read/closed",
-			[]string{},
-			[]string{},
 			&condition{
 				body: &readTrackingBody{
 					ReadCloser: io.NopCloser(bytes.NewReader([]byte("test body"))),
@@ -777,8 +701,6 @@ func TestRewindBody(t *testing.T) {
 		),
 		gen(
 			"cannot get body",
-			[]string{},
-			[]string{},
 			&condition{
 				body:    io.NopCloser(bytes.NewReader([]byte("test body"))),
 				getBody: nil,
@@ -790,8 +712,6 @@ func TestRewindBody(t *testing.T) {
 		),
 		gen(
 			"get body returns error",
-			[]string{},
-			[]string{},
 			&condition{
 				body:    io.NopCloser(bytes.NewReader([]byte("test body"))),
 				getBody: testErrGetBody,
@@ -803,19 +723,17 @@ func TestRewindBody(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			req := &http.Request{
-				Body:    tt.C().body,
-				GetBody: tt.C().getBody,
+				Body:    tt.C.body,
+				GetBody: tt.C.getBody,
 			}
 
 			newReq, err := rewindBody(req)
-			if tt.A().err != nil {
-				testutil.Diff(t, tt.A().err.Error(), err.Error())
+			if tt.A.err != nil {
+				testutil.Diff(t, tt.A.err.Error(), err.Error())
 				return
 			}
 			testutil.Diff(t, nil, err)
@@ -825,7 +743,7 @@ func TestRewindBody(t *testing.T) {
 				cmp.AllowUnexported(bytes.Reader{}),
 			}
 			fmt.Printf("%#v\n", newReq)
-			testutil.Diff(t, tt.A().body, newReq.Body, opts...)
+			testutil.Diff(t, tt.A.body, newReq.Body, opts...)
 		})
 	}
 }

@@ -15,8 +15,8 @@ import (
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/cmd/aileron/app"
 	"github.com/aileron-gateway/aileron-gateway/core"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
@@ -34,29 +34,10 @@ func TestLoadEnvFiles(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	cndInputNil := "input nil"
-	cndFileExists := "file exists"
-	cndFileNotExists := "file not exists"
-	actCheckValues := "check values"
-	actCheckNoError := "no error"
-	actCheckError := "non-nil error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndInputNil, "input nil slice as the argument")
-	tb.Condition(cndFileExists, "input file path which exists")
-	tb.Condition(cndFileNotExists, "input file path which is not exists")
-	tb.Action(actCheckValues, "check the environmental variable read from files")
-	tb.Action(actCheckNoError, "check that there is no error")
-	tb.Action(actCheckError, "check that non-nil error was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"input nil",
-			[]string{cndInputNil},
-			[]string{actCheckNoError},
 			&condition{
 				paths: []string{},
 			},
@@ -64,8 +45,6 @@ func TestLoadEnvFiles(t *testing.T) {
 		),
 		gen(
 			"read env",
-			[]string{cndFileExists},
-			[]string{actCheckValues, actCheckNoError},
 			&condition{
 				paths: []string{
 					testDir + "ut/cmd/aileron/app/env1.txt",
@@ -77,8 +56,6 @@ func TestLoadEnvFiles(t *testing.T) {
 		),
 		gen(
 			"read invalid env",
-			[]string{cndFileExists},
-			[]string{actCheckError},
 			&condition{
 				paths: []string{
 					testDir + "ut/cmd/aileron/app/env2.txt",
@@ -91,8 +68,6 @@ func TestLoadEnvFiles(t *testing.T) {
 		),
 		gen(
 			"no args",
-			[]string{cndFileNotExists},
-			[]string{actCheckError},
 			&condition{
 				paths: []string{
 					testDir + "ut/cmd/aileron/app/not-exist.txt",
@@ -105,14 +80,12 @@ func TestLoadEnvFiles(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			err := app.LoadEnvFiles(tt.C().paths)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
-			for k, v := range tt.A().envs {
+		t.Run(tt.Name, func(t *testing.T) {
+			err := app.LoadEnvFiles(tt.C.paths)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
+			for k, v := range tt.A.envs {
 				testutil.Diff(t, v, os.Getenv(k))
 			}
 		})
@@ -142,37 +115,10 @@ func TestLoadConfigFiles(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	cndInputNil := "input nil"
-	cndFileExists := "file exists"
-	cndJSON := "json file"
-	cndYAML := "yaml file"
-	cndUnsupported := "unsupported file extension"
-	cndFieldInsufficient := "insufficient fields"
-	cndFileInvalid := "file content is invalid"
-	actCheckRequests := "check requests"
-	actCheckNoError := "no error"
-	actCheckError := "non-nil error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndInputNil, "input nil for paths")
-	tb.Condition(cndFileExists, "given files are exist")
-	tb.Condition(cndJSON, "input file paths with .json extension")
-	tb.Condition(cndYAML, "input file paths with .yaml extension")
-	tb.Condition(cndUnsupported, "input file paths with unsupported file extension")
-	tb.Condition(cndFieldInsufficient, "both apiVersion and kind fields are not defined")
-	tb.Condition(cndFileInvalid, "invalid yaml or json format")
-	tb.Action(actCheckRequests, "check the API request sent for the server")
-	tb.Action(actCheckNoError, "check that there is no error")
-	tb.Action(actCheckError, "check that non-nil error was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"input nil",
-			[]string{cndInputNil},
-			[]string{actCheckNoError},
 			&condition{
 				server: &testServer{},
 				paths:  []string{},
@@ -183,8 +129,6 @@ func TestLoadConfigFiles(t *testing.T) {
 		),
 		gen(
 			"read yaml",
-			[]string{cndYAML, cndFileExists},
-			[]string{actCheckRequests, actCheckNoError},
 			&condition{
 				server: &testServer{},
 				paths: []string{
@@ -204,8 +148,6 @@ func TestLoadConfigFiles(t *testing.T) {
 		),
 		gen(
 			"read yml",
-			[]string{cndYAML, cndFileExists},
-			[]string{actCheckRequests, actCheckNoError},
 			&condition{
 				server: &testServer{},
 				paths: []string{
@@ -225,8 +167,6 @@ func TestLoadConfigFiles(t *testing.T) {
 		),
 		gen(
 			"read json",
-			[]string{cndJSON, cndFileExists},
-			[]string{actCheckRequests, actCheckNoError},
 			&condition{
 				server: &testServer{},
 				paths: []string{
@@ -246,8 +186,6 @@ func TestLoadConfigFiles(t *testing.T) {
 		),
 		gen(
 			"file not exists",
-			[]string{cndYAML},
-			[]string{actCheckError},
 			&condition{
 				server: &testServer{},
 				paths: []string{
@@ -262,8 +200,6 @@ func TestLoadConfigFiles(t *testing.T) {
 		),
 		gen(
 			"not supported extension",
-			[]string{cndUnsupported, cndFileExists},
-			[]string{actCheckNoError},
 			&condition{
 				server: &testServer{},
 				paths: []string{
@@ -276,8 +212,6 @@ func TestLoadConfigFiles(t *testing.T) {
 		),
 		gen(
 			"invalid yaml format",
-			[]string{cndYAML, cndFileExists, cndFileInvalid},
-			[]string{actCheckError},
 			&condition{
 				server: &testServer{},
 				paths: []string{
@@ -292,8 +226,6 @@ func TestLoadConfigFiles(t *testing.T) {
 		),
 		gen(
 			"apiVersion and kind are empty",
-			[]string{cndYAML, cndFileExists, cndFieldInsufficient},
-			[]string{actCheckNoError},
 			&condition{
 				server: &testServer{},
 				paths: []string{
@@ -306,8 +238,6 @@ func TestLoadConfigFiles(t *testing.T) {
 		),
 		gen(
 			"server error",
-			[]string{cndYAML, cndFileExists},
-			[]string{actCheckRequests, actCheckError},
 			&condition{
 				server: &testServer{
 					err: errors.New("test server error"),
@@ -331,15 +261,13 @@ func TestLoadConfigFiles(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			err := app.LoadConfigFiles(tt.C().server, tt.C().paths)
+		t.Run(tt.Name, func(t *testing.T) {
+			err := app.LoadConfigFiles(tt.C.server, tt.C.paths)
 			t.Logf("%#v\n", err)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
-			testutil.Diff(t, tt.A().reqs, tt.C().server.reqs)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
+			testutil.Diff(t, tt.A.reqs, tt.C.server.reqs)
 		})
 	}
 }
@@ -358,37 +286,10 @@ func TestShowTemplate(t *testing.T) {
 		reqs       []*api.Request
 	}
 
-	cndInputEmpty := "empty string template"
-	cndInvalidTemplate := "invalid template"
-	cndOutJSON := "expect json"
-	cndOutYAML := "expect yaml"
-	cndOutUnsupported := "unsupported template"
-	cndServerError := "server returns error"
-	actCheckRequest := "check API request"
-	actCheckOutput := "check output"
-	actCheckErrorExit := "exit with error"
-	actCheckSuccessExit := "exit successfully"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndInputEmpty, "input an empty string as template")
-	tb.Condition(cndInvalidTemplate, "input invalid format as template")
-	tb.Condition(cndOutJSON, "set out format to expect json format")
-	tb.Condition(cndOutYAML, "set out format to expect yaml format")
-	tb.Condition(cndOutUnsupported, "input unsupported format for out")
-	tb.Condition(cndServerError, "server returns an error for API request")
-	tb.Action(actCheckRequest, "check the API request sent for the server")
-	tb.Action(actCheckOutput, "check the string in the standard output")
-	tb.Action(actCheckErrorExit, "check the function exist with an error")
-	tb.Action(actCheckSuccessExit, "check the function exist without any errors")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"input nil",
-			[]string{cndInputEmpty},
-			[]string{},
 			&condition{
 				server: &testServer{
 					res: &api.Response{Content: []byte("test response")},
@@ -403,8 +304,6 @@ func TestShowTemplate(t *testing.T) {
 		),
 		gen(
 			"apiGroup/apiVersion/kind",
-			[]string{cndOutYAML},
-			[]string{actCheckRequest, actCheckOutput, actCheckSuccessExit},
 			&condition{
 				server: &testServer{
 					res: &api.Response{Content: []byte("test response")},
@@ -434,8 +333,6 @@ func TestShowTemplate(t *testing.T) {
 		),
 		gen(
 			"apiGroup/apiVersion/kind/namespace/name",
-			[]string{cndOutYAML},
-			[]string{actCheckRequest, actCheckOutput, actCheckSuccessExit},
 			&condition{
 				server: &testServer{
 					res: &api.Response{Content: []byte("test response")},
@@ -465,8 +362,6 @@ func TestShowTemplate(t *testing.T) {
 		),
 		gen(
 			"output in json",
-			[]string{cndOutJSON},
-			[]string{actCheckRequest, actCheckOutput, actCheckSuccessExit},
 			&condition{
 				server: &testServer{
 					res: &api.Response{Content: []byte("test response")},
@@ -496,8 +391,6 @@ func TestShowTemplate(t *testing.T) {
 		),
 		gen(
 			"output in unsupported format",
-			[]string{cndOutUnsupported},
-			[]string{actCheckRequest, actCheckOutput, actCheckSuccessExit},
 			&condition{
 				server: &testServer{
 					res: &api.Response{Content: []byte("test response")},
@@ -527,8 +420,6 @@ func TestShowTemplate(t *testing.T) {
 		),
 		gen(
 			"invalid template",
-			[]string{cndInvalidTemplate},
-			[]string{actCheckOutput, actCheckErrorExit},
 			&condition{
 				server: &testServer{
 					res: &api.Response{Content: []byte("test response")},
@@ -545,8 +436,6 @@ func TestShowTemplate(t *testing.T) {
 		),
 		gen(
 			"server error",
-			[]string{cndServerError},
-			[]string{actCheckRequest, actCheckOutput, actCheckErrorExit},
 			&condition{
 				server: &testServer{
 					res: &api.Response{Content: []byte("test response")},
@@ -577,16 +466,14 @@ func TestShowTemplate(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
 	// Set default exit function at the end of this test.
 	defer func() {
 		app.Exit = os.Exit
 	}()
 
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			tmp := os.Stdout
 			defer func() {
 				os.Stdout = tmp
@@ -595,18 +482,18 @@ func TestShowTemplate(t *testing.T) {
 			os.Stdout = w
 
 			app.Exit = func(code int) {
-				testutil.Diff(t, true, tt.A().shouldExit)
-				testutil.Diff(t, tt.A().exitCode, code)
+				testutil.Diff(t, true, tt.A.shouldExit)
+				testutil.Diff(t, tt.A.exitCode, code)
 			}
 
-			app.ShowTemplate(tt.C().server, tt.C().tpl, tt.C().out)
-			testutil.Diff(t, tt.A().reqs, tt.C().server.reqs, cmpopts.IgnoreUnexported(k.Reference{}))
+			app.ShowTemplate(tt.C.server, tt.C.tpl, tt.C.out)
+			testutil.Diff(t, tt.A.reqs, tt.C.server.reqs, cmpopts.IgnoreUnexported(k.Reference{}))
 
 			w.Close()
 
 			out, err := io.ReadAll(r)
 			testutil.Diff(t, nil, err)
-			testutil.Diff(t, true, strings.Contains(string(out), tt.A().contains))
+			testutil.Diff(t, true, strings.Contains(string(out), tt.A.contains))
 			t.Log(string(out))
 		})
 	}
@@ -621,15 +508,10 @@ func TestSplitMultiDoc(t *testing.T) {
 		contents [][]byte
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"read docs with 1 block",
-			[]string{}, []string{},
 			&condition{
 				docs: []byte("test"),
 				sep:  "",
@@ -642,7 +524,6 @@ func TestSplitMultiDoc(t *testing.T) {
 		),
 		gen(
 			"read docs with 2 blocks",
-			[]string{}, []string{},
 			&condition{
 				docs: []byte("test1\n---\ntest2"),
 				sep:  "",
@@ -656,7 +537,6 @@ func TestSplitMultiDoc(t *testing.T) {
 		),
 		gen(
 			"read empty docs",
-			[]string{}, []string{},
 			&condition{
 				docs: []byte(""),
 				sep:  "",
@@ -667,7 +547,6 @@ func TestSplitMultiDoc(t *testing.T) {
 		),
 		gen(
 			"read docs double separator",
-			[]string{}, []string{},
 			&condition{
 				docs: []byte("test1\n---\n---\ntest2"),
 				sep:  "",
@@ -681,7 +560,6 @@ func TestSplitMultiDoc(t *testing.T) {
 		),
 		gen(
 			"read docs with only separator",
-			[]string{}, []string{},
 			&condition{
 				docs: []byte("---\n"),
 				sep:  "",
@@ -692,7 +570,6 @@ func TestSplitMultiDoc(t *testing.T) {
 		),
 		gen(
 			"read docs with non default separator",
-			[]string{}, []string{},
 			&condition{
 				docs: []byte("test1\n***\ntest2"),
 				sep:  "***\n",
@@ -706,13 +583,11 @@ func TestSplitMultiDoc(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			contents := app.SplitMultiDoc(tt.C().docs, tt.C().sep)
-			testutil.Diff(t, tt.A().contents, contents)
+		t.Run(tt.Name, func(t *testing.T) {
+			contents := app.SplitMultiDoc(tt.C.docs, tt.C.sep)
+			testutil.Diff(t, tt.A.contents, contents)
 		})
 	}
 }

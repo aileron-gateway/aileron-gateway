@@ -11,8 +11,8 @@ import (
 	"testing"
 
 	"github.com/aileron-gateway/aileron-gateway/core"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/google/go-cmp/cmp"
 	"github.com/spf13/pflag"
 )
@@ -28,21 +28,10 @@ func TestNewApp(t *testing.T) {
 		app *App
 	}
 
-	cndNew := "new App"
-	actCheckApp := "check API request"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndNew, "create a new App instance with NewApp() function")
-	tb.Action(actCheckApp, "check the values in returned App instance")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"new app",
-			[]string{cndNew},
-			[]string{actCheckApp},
 			&condition{},
 			&action{
 				app: &App{},
@@ -50,13 +39,11 @@ func TestNewApp(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			app := New()
-			testutil.Diff(t, tt.A().app, app, cmp.AllowUnexported(App{}))
+			testutil.Diff(t, tt.A.app, app, cmp.AllowUnexported(App{}))
 		})
 	}
 }
@@ -71,21 +58,10 @@ func TestApp_ParseArgs(t *testing.T) {
 		args []string
 	}
 
-	cndWithArgs := "input non-zero args"
-	actCheckArgs := "check args"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndWithArgs, "input at least 1 arguments")
-	tb.Action(actCheckArgs, "check parsed arguments")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"no args",
-			[]string{},
-			[]string{actCheckArgs},
 			&condition{
 				args: []string{},
 			},
@@ -95,8 +71,6 @@ func TestApp_ParseArgs(t *testing.T) {
 		),
 		gen(
 			"with args",
-			[]string{cndWithArgs},
-			[]string{actCheckArgs},
 			&condition{
 				args: []string{"-f", "config.yaml"},
 			},
@@ -106,19 +80,17 @@ func TestApp_ParseArgs(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
 	Exit = func(_ int) {} // Avoid os.Exit during the tests.
 	defer func() {
 		Exit = os.Exit
 	}()
 
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			a := &App{}
-			a.ParseArgs(tt.C().args, tt.C().customFlags...)
-			testutil.Diff(t, tt.A().args, a.args)
+			a.ParseArgs(tt.C.args, tt.C.customFlags...)
+			testutil.Diff(t, tt.A.args, a.args)
 		})
 	}
 }
@@ -153,31 +125,10 @@ func TestApp_Run(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	cndConsole := "run as console"
-	cndInvalidArgs := "invalid arg"
-	cndFileLoadError := "file load error"
-	cndServerError := "server returns error"
-	cndEntrypointError := "entrypoint error"
-	actCheckError := "non-nil error"
-	actCheckNoError := "no error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndConsole, "run as console app")
-	tb.Condition(cndInvalidArgs, "args contains any invalid args which result in an error")
-	tb.Condition(cndFileLoadError, "file paths are specified in the args which cannot read successfully")
-	tb.Condition(cndServerError, "server returns an error")
-	tb.Condition(cndEntrypointError, "entry point has invalid interface or returns an error")
-	tb.Action(actCheckError, "check that a non-nil error was returned")
-	tb.Action(actCheckNoError, "check that there was no error")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"successfully run console",
-			[]string{cndConsole},
-			[]string{actCheckNoError},
 			&condition{
 				app: &App{
 					opts: &Options{
@@ -193,8 +144,6 @@ func TestApp_Run(t *testing.T) {
 		),
 		gen(
 			"load env fails",
-			[]string{cndConsole, cndFileLoadError},
-			[]string{actCheckError},
 			&condition{
 				app: &App{
 					args: []string{"-e", testDir + "ut/cmd/aileron/app/not-exist.txt"},
@@ -211,8 +160,6 @@ func TestApp_Run(t *testing.T) {
 		),
 		gen(
 			"load config fails",
-			[]string{cndConsole, cndFileLoadError},
-			[]string{actCheckError},
 			&condition{
 				app: &App{
 					args: []string{"-f", testDir + "ut/cmd/aileron/app/not-exist.txt"},
@@ -229,8 +176,6 @@ func TestApp_Run(t *testing.T) {
 		),
 		gen(
 			"server error",
-			[]string{cndConsole, cndServerError},
-			[]string{actCheckError},
 			&condition{
 				app: &App{
 					opts: &Options{
@@ -250,8 +195,6 @@ func TestApp_Run(t *testing.T) {
 		),
 		gen(
 			"entrypoint interface error",
-			[]string{cndConsole, cndEntrypointError},
-			[]string{actCheckError},
 			&condition{
 				app: &App{
 					opts: &Options{
@@ -270,8 +213,6 @@ func TestApp_Run(t *testing.T) {
 		),
 		gen(
 			"entrypoint run error",
-			[]string{cndConsole, cndEntrypointError},
-			[]string{actCheckError},
 			&condition{
 				app: &App{
 					opts: &Options{
@@ -294,13 +235,11 @@ func TestApp_Run(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			err := tt.C().app.Run(tt.C().server)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+		t.Run(tt.Name, func(t *testing.T) {
+			err := tt.C.app.Run(tt.C.server)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 		})
 	}
 }

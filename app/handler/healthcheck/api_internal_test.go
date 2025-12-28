@@ -13,8 +13,8 @@ import (
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/app"
 	"github.com/aileron-gateway/aileron-gateway/core"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -33,17 +33,10 @@ func TestMutate(t *testing.T) {
 		expect     protoreflect.ProtoMessage
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"default patterns applied",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.HealthCheckHandler{
 					Metadata: &k.Metadata{},
@@ -62,8 +55,6 @@ func TestMutate(t *testing.T) {
 		),
 		gen(
 			"custom patterns, no changes applied",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.HealthCheckHandler{
 					Metadata: &k.Metadata{},
@@ -84,21 +75,19 @@ func TestMutate(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			a := &API{}
-			got := a.Mutate(tt.C().manifest)
+			got := a.Mutate(tt.C.manifest)
 
 			opts := []cmp.Option{
 				protocmp.Transform(),
 				cmpopts.IgnoreUnexported(k.Metadata{}, k.Status{}),
 			}
 
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, nil)
-			testutil.Diff(t, tt.A().expect, got, opts...)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, nil)
+			testutil.Diff(t, tt.A.expect, got, opts...)
 		})
 	}
 }
@@ -114,16 +103,10 @@ func TestCreate(t *testing.T) {
 		expect     any
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-
-	table := tb.Build()
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"create with default manifest",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: Resource.Default(),
 			},
@@ -142,8 +125,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"fail to get errorhandler",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.HealthCheckHandler{
 					Metadata: &k.Metadata{},
@@ -161,8 +142,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"input custom timeout",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.HealthCheckHandler{
 					Metadata: &k.Metadata{},
@@ -186,8 +165,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"fail to get external probes",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.HealthCheckHandler{
 					Metadata: &k.Metadata{},
@@ -207,21 +184,19 @@ func TestCreate(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			server := api.NewContainerAPI()
 			a := &API{}
-			got, err := a.Create(server, tt.C().manifest)
+			got, err := a.Create(server, tt.C.manifest)
 			opts := []cmp.Option{
 				cmp.AllowUnexported(healthCheck{}),
 				cmpopts.IgnoreInterfaces(struct{ core.Matcher[*http.Request] }{}),
 				cmp.Comparer(testutil.ComparePointer[core.ErrorHandler]),
 			}
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
-			testutil.Diff(t, tt.A().expect, got, opts...)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
+			testutil.Diff(t, tt.A.expect, got, opts...)
 		})
 	}
 }

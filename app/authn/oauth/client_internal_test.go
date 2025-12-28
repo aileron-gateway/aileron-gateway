@@ -14,8 +14,8 @@ import (
 
 	"github.com/aileron-gateway/aileron-gateway/app"
 	"github.com/aileron-gateway/aileron-gateway/core"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -35,21 +35,10 @@ func TestTokenIntrospectionClient_tokenIntrospection(t *testing.T) {
 		errStatus  int
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndSuccess := tb.Condition("valid", "success to introspection")
-	cndRequestOK := tb.Condition("doRequest OK", "internal requester returns 200 OK")
-	cndUnmarshalError := tb.Condition("unmarshal error", "response body is not json")
-	actCheckError := tb.Action("error", "check that an error was returned")
-	actCheckNoError := tb.Action("no error", "check that there is no error")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"success",
-			[]string{cndSuccess, cndRequestOK},
-			[]string{actCheckNoError},
 			&condition{
 				client: &tokenIntrospectionClient{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -73,8 +62,6 @@ func TestTokenIntrospectionClient_tokenIntrospection(t *testing.T) {
 		),
 		gen(
 			"doRequest error",
-			[]string{},
-			[]string{actCheckError},
 			&condition{
 				client: &tokenIntrospectionClient{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -98,8 +85,6 @@ func TestTokenIntrospectionClient_tokenIntrospection(t *testing.T) {
 		),
 		gen(
 			"server error",
-			[]string{cndRequestOK},
-			[]string{actCheckError},
 			&condition{
 				client: &tokenIntrospectionClient{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -123,8 +108,6 @@ func TestTokenIntrospectionClient_tokenIntrospection(t *testing.T) {
 		),
 		gen(
 			"authn error",
-			[]string{cndRequestOK},
-			[]string{actCheckError},
 			&condition{
 				client: &tokenIntrospectionClient{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -148,8 +131,6 @@ func TestTokenIntrospectionClient_tokenIntrospection(t *testing.T) {
 		),
 		gen(
 			"unmarshal error",
-			[]string{cndRequestOK, cndUnmarshalError},
-			[]string{actCheckError},
 			&condition{
 				client: &tokenIntrospectionClient{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -173,18 +154,16 @@ func TestTokenIntrospectionClient_tokenIntrospection(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			status, claims, err := tt.C().client.tokenIntrospection(tt.C().ctx, tt.C().query)
-			testutil.Diff(t, tt.A().status, status)
-			testutil.Diff(t, tt.A().claims, claims)
-			if tt.A().err != nil {
+		t.Run(tt.Name, func(t *testing.T) {
+			status, claims, err := tt.C.client.tokenIntrospection(tt.C.ctx, tt.C.query)
+			testutil.Diff(t, tt.A.status, status)
+			testutil.Diff(t, tt.A.claims, claims)
+			if tt.A.err != nil {
 				e := err.(*utilhttp.HTTPError)
-				testutil.DiffError(t, tt.A().err, tt.A().errPattern, e.Unwrap())
-				testutil.Diff(t, tt.A().errStatus, e.StatusCode())
+				testutil.DiffError(t, tt.A.err, tt.A.errPattern, e.Unwrap())
+				testutil.Diff(t, tt.A.errStatus, e.StatusCode())
 			}
 		})
 	}
@@ -205,21 +184,10 @@ func TestRedeemTokenClient_redeemToken(t *testing.T) {
 		errStatus  int
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndSuccess := tb.Condition("valid", "success to introspection")
-	cndRequestOK := tb.Condition("doRequest OK", "internal requester returns 200 OK")
-	cndUnmarshalError := tb.Condition("unmarshal error", "response body is not json")
-	actCheckError := tb.Action("error", "check that an error was returned")
-	actCheckNoError := tb.Action("no error", "check that there is no error")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"success",
-			[]string{cndSuccess, cndRequestOK},
-			[]string{actCheckNoError},
 			&condition{
 				client: &redeemTokenClient{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -245,8 +213,6 @@ func TestRedeemTokenClient_redeemToken(t *testing.T) {
 		),
 		gen(
 			"doRequest error",
-			[]string{},
-			[]string{actCheckError},
 			&condition{
 				client: &redeemTokenClient{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -270,8 +236,6 @@ func TestRedeemTokenClient_redeemToken(t *testing.T) {
 		),
 		gen(
 			"server error",
-			[]string{cndRequestOK},
-			[]string{actCheckError},
 			&condition{
 				client: &redeemTokenClient{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -295,8 +259,6 @@ func TestRedeemTokenClient_redeemToken(t *testing.T) {
 		),
 		gen(
 			"authn error",
-			[]string{cndRequestOK},
-			[]string{actCheckError},
 			&condition{
 				client: &redeemTokenClient{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -320,8 +282,6 @@ func TestRedeemTokenClient_redeemToken(t *testing.T) {
 		),
 		gen(
 			"unmarshal error",
-			[]string{cndRequestOK, cndUnmarshalError},
-			[]string{actCheckError},
 			&condition{
 				client: &redeemTokenClient{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -345,18 +305,16 @@ func TestRedeemTokenClient_redeemToken(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			status, resp, err := tt.C().client.redeemToken(tt.C().ctx, tt.C().query)
-			testutil.Diff(t, tt.A().status, status)
-			testutil.Diff(t, tt.A().resp, resp)
-			if tt.A().err != nil {
+		t.Run(tt.Name, func(t *testing.T) {
+			status, resp, err := tt.C.client.redeemToken(tt.C.ctx, tt.C.query)
+			testutil.Diff(t, tt.A.status, status)
+			testutil.Diff(t, tt.A.resp, resp)
+			if tt.A.err != nil {
 				e := err.(*utilhttp.HTTPError)
-				testutil.DiffError(t, tt.A().err, tt.A().errPattern, e.Unwrap())
-				testutil.Diff(t, tt.A().errStatus, e.StatusCode())
+				testutil.DiffError(t, tt.A.err, tt.A.errPattern, e.Unwrap())
+				testutil.Diff(t, tt.A.errStatus, e.StatusCode())
 			}
 		})
 	}
@@ -379,21 +337,10 @@ func TestClientRequester_doRequest(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndBasicAuth := tb.Condition("basic auth", "enable basic authentication")
-	cndFormAuth := tb.Condition("form auth", "enable form authentication")
-	cndWithQuery := tb.Condition("with query", "input query params as the argument")
-	actCheckError := tb.Action("error", "check that an error was returned")
-	actCheckNoError := tb.Action("no error", "check that there is no error")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"success / basic auth",
-			[]string{cndBasicAuth},
-			[]string{actCheckNoError},
 			&condition{
 				req: &clientRequester{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -418,8 +365,6 @@ func TestClientRequester_doRequest(t *testing.T) {
 		),
 		gen(
 			"success / form auth",
-			[]string{cndFormAuth},
-			[]string{actCheckNoError},
 			&condition{
 				req: &clientRequester{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -445,8 +390,6 @@ func TestClientRequester_doRequest(t *testing.T) {
 		),
 		gen(
 			"with query param",
-			[]string{cndWithQuery},
-			[]string{actCheckNoError},
 			&condition{
 				req: &clientRequester{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -473,8 +416,6 @@ func TestClientRequester_doRequest(t *testing.T) {
 		),
 		gen(
 			"request create error",
-			[]string{},
-			[]string{actCheckError},
 			&condition{
 				req: &clientRequester{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -499,8 +440,6 @@ func TestClientRequester_doRequest(t *testing.T) {
 		),
 		gen(
 			"round trip error",
-			[]string{},
-			[]string{actCheckError},
 			&condition{
 				req: &clientRequester{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -524,8 +463,6 @@ func TestClientRequester_doRequest(t *testing.T) {
 		),
 		gen(
 			"invalid content type",
-			[]string{},
-			[]string{actCheckError},
 			&condition{
 				req: &clientRequester{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -551,8 +488,6 @@ func TestClientRequester_doRequest(t *testing.T) {
 		),
 		gen(
 			"read body error",
-			[]string{},
-			[]string{actCheckError},
 			&condition{
 				req: &clientRequester{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -578,23 +513,21 @@ func TestClientRequester_doRequest(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			status, body, err := tt.C().req.doRequest(tt.C().ctx, "http://test.com", tt.C().query)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
-			testutil.Diff(t, tt.A().status, status)
-			testutil.Diff(t, tt.A().body, body)
+		t.Run(tt.Name, func(t *testing.T) {
+			status, body, err := tt.C.req.doRequest(tt.C.ctx, "http://test.com", tt.C.query)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
+			testutil.Diff(t, tt.A.status, status)
+			testutil.Diff(t, tt.A.body, body)
 
-			c := tt.C().req.rt.(*testClient)
+			c := tt.C.req.rt.(*testClient)
 			if c.got != nil {
 				b, _ := io.ReadAll(c.got.Body)
 				testutil.Diff(t, "application/json", c.got.Header.Get("Accept"))
 				testutil.Diff(t, "application/x-www-form-urlencoded", c.got.Header.Get("Content-Type"))
-				testutil.Diff(t, tt.A().authHeader, c.got.Header.Get("Authorization"))
-				testutil.Diff(t, tt.A().bodyQuery, string(b))
+				testutil.Diff(t, tt.A.authHeader, c.got.Header.Get("Authorization"))
+				testutil.Diff(t, tt.A.bodyQuery, string(b))
 			}
 		})
 	}
@@ -611,20 +544,10 @@ func TestMapValue(t *testing.T) {
 		result any
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndClaimEmpty := tb.Condition("empty claim", "input empty claims")
-	cndClaimNil := tb.Condition("nil claim", "input nil as claims")
-	cndKeyExists := tb.Condition("key exists", "key exists in the claims")
-	actCheckZero := tb.Action("check zero value", "check that zero value is returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"key exists for int",
-			[]string{cndKeyExists},
-			[]string{},
 			&condition{
 				claims: jwt.MapClaims{
 					"test": 123,
@@ -640,8 +563,6 @@ func TestMapValue(t *testing.T) {
 		),
 		gen(
 			"key exists for map",
-			[]string{cndKeyExists},
-			[]string{},
 			&condition{
 				claims: jwt.MapClaims{
 					"test": map[string]string{"foo": "bar"},
@@ -657,8 +578,6 @@ func TestMapValue(t *testing.T) {
 		),
 		gen(
 			"wrong value type",
-			[]string{cndKeyExists},
-			[]string{actCheckZero},
 			&condition{
 				claims: jwt.MapClaims{
 					"test": 123,
@@ -674,8 +593,6 @@ func TestMapValue(t *testing.T) {
 		),
 		gen(
 			"key not found for int",
-			[]string{cndClaimEmpty},
-			[]string{actCheckZero},
 			&condition{
 				claims: jwt.MapClaims{},
 				key:    "not-exist",
@@ -689,8 +606,6 @@ func TestMapValue(t *testing.T) {
 		),
 		gen(
 			"key not found for map",
-			[]string{cndClaimEmpty},
-			[]string{actCheckZero},
 			&condition{
 				claims: jwt.MapClaims{},
 				key:    "not-exist",
@@ -704,8 +619,6 @@ func TestMapValue(t *testing.T) {
 		),
 		gen(
 			"claim is nil",
-			[]string{cndClaimNil},
-			[]string{actCheckZero},
 			&condition{
 				claims: nil,
 				key:    "not-exist",
@@ -719,13 +632,11 @@ func TestMapValue(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			result := tt.C().f(tt.C().claims, tt.C().key)
-			testutil.Diff(t, tt.A().result, result)
+		t.Run(tt.Name, func(t *testing.T) {
+			result := tt.C.f(tt.C.claims, tt.C.key)
+			testutil.Diff(t, tt.A.result, result)
 		})
 	}
 }

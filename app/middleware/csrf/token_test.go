@@ -13,8 +13,8 @@ import (
 	"testing"
 
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/hash"
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 )
 
 type mockReader struct {
@@ -57,16 +57,10 @@ func TestCsrfToken_New(t *testing.T) {
 		expectedToken string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"success case with mock reader",
-			[]string{},
-			[]string{},
 			&condition{
 				useMockReader: true,
 				seedSize:      4,                              // Small size for testing purposes
@@ -80,8 +74,6 @@ func TestCsrfToken_New(t *testing.T) {
 		),
 		gen(
 			"error case with standard random reader",
-			[]string{},
-			[]string{},
 			&condition{
 				useMockReader: false,
 				seedSize:      32,
@@ -93,30 +85,28 @@ func TestCsrfToken_New(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			// Set up and reset rand.Reader only if using mock reader
-			if tt.C().useMockReader {
+			if tt.C.useMockReader {
 				originalReader := rand.Reader
-				defer func() { rand.Reader = originalReader }()  // Restore rand.Reader after test
-				rand.Reader = &mockReader{seed: tt.C().mockSeed} // Use mock reader for predictable seed
+				defer func() { rand.Reader = originalReader }() // Restore rand.Reader after test
+				rand.Reader = &mockReader{seed: tt.C.mockSeed}  // Use mock reader for predictable seed
 			}
 
 			csrfToken := &csrfToken{
 				secret:   []byte("some-secret-key"),
-				seedSize: tt.C().seedSize,
-				hashSize: tt.C().hashSize,
+				seedSize: tt.C.seedSize,
+				hashSize: tt.C.hashSize,
 				hmac:     hash.HMACFromHashAlg(kernel.HashAlg_SHA256),
 			}
 
 			token, err := csrfToken.new()
-			testutil.Diff(t, tt.A().expectError, err != nil)
+			testutil.Diff(t, tt.A.expectError, err != nil)
 
-			if !tt.A().expectError && tt.C().useMockReader {
-				testutil.Diff(t, tt.A().expectedToken, token) // Validate the generated token matches expected value
+			if !tt.A.expectError && tt.C.useMockReader {
+				testutil.Diff(t, tt.A.expectedToken, token) // Validate the generated token matches expected value
 			} else {
 				testutil.Diff(t, token == "", err != nil)
 			}
@@ -137,16 +127,10 @@ func TestCsrfToken_Verify(t *testing.T) {
 		expectValid bool
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"valid token with generated seed",
-			[]string{},
-			[]string{},
 			&condition{
 				useGeneratedToken: true,
 				seedSize:          4,                              // Small size for testing purposes
@@ -159,8 +143,6 @@ func TestCsrfToken_Verify(t *testing.T) {
 		),
 		gen(
 			"short token length",
-			[]string{},
-			[]string{},
 			&condition{
 				token:    "short-token",
 				seedSize: 32,
@@ -172,8 +154,6 @@ func TestCsrfToken_Verify(t *testing.T) {
 		),
 		gen(
 			"long token length",
-			[]string{},
-			[]string{},
 			&condition{
 				token:    "long-token-value-exceeding-size",
 				seedSize: 32,
@@ -185,8 +165,6 @@ func TestCsrfToken_Verify(t *testing.T) {
 		),
 		gen(
 			"incorrect token length",
-			[]string{},
-			[]string{},
 			&condition{
 				token:    "abcd", // Token shorter than required seedSize + hashSize
 				seedSize: 16,
@@ -198,27 +176,25 @@ func TestCsrfToken_Verify(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			// Set up and reset rand.Reader only if using a generated token with mock seed
-			if tt.C().useGeneratedToken {
+			if tt.C.useGeneratedToken {
 				originalReader := rand.Reader
-				defer func() { rand.Reader = originalReader }()  // Restore rand.Reader after test
-				rand.Reader = &mockReader{seed: tt.C().mockSeed} // Use mock reader for predictable seed
+				defer func() { rand.Reader = originalReader }() // Restore rand.Reader after test
+				rand.Reader = &mockReader{seed: tt.C.mockSeed}  // Use mock reader for predictable seed
 			}
 
 			csrfToken := &csrfToken{
 				secret:   []byte("some-secret-key"),
-				seedSize: tt.C().seedSize,
-				hashSize: tt.C().hashSize,
+				seedSize: tt.C.seedSize,
+				hashSize: tt.C.hashSize,
 				hmac:     hash.HMACFromHashAlg(kernel.HashAlg_SHA256),
 			}
 
 			var token string
-			if tt.C().useGeneratedToken {
+			if tt.C.useGeneratedToken {
 				// Generate a valid token with the mock seed for reproducible testing
 				var err error
 				token, err = csrfToken.new()
@@ -227,14 +203,14 @@ func TestCsrfToken_Verify(t *testing.T) {
 				}
 			} else {
 				// Use provided token from the condition
-				token = tt.C().token
+				token = tt.C.token
 			}
 
 			// Verify the token
 			valid := csrfToken.verify(token)
 
 			// Check the result
-			testutil.Diff(t, tt.A().expectValid, valid)
+			testutil.Diff(t, tt.A.expectValid, valid)
 		})
 	}
 }
@@ -249,16 +225,10 @@ func TestHeaderExtractor(t *testing.T) {
 		expectedToken string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"extract from header",
-			[]string{},
-			[]string{},
 			&condition{
 				header:     map[string]string{"X-CSRF-TOKEN": "header-token"}, // Define header as key-value
 				headerName: "X-CSRF-TOKEN",
@@ -269,8 +239,6 @@ func TestHeaderExtractor(t *testing.T) {
 		),
 		gen(
 			"empty header",
-			[]string{},
-			[]string{},
 			&condition{
 				header:     map[string]string{}, // Empty header case
 				headerName: "X-CSRF-TOKEN",
@@ -281,29 +249,27 @@ func TestHeaderExtractor(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
 
 			// Set headers directly using key-value pairs in condition
-			for key, value := range tt.C().header {
+			for key, value := range tt.C.header {
 				req.Header.Set(key, value)
 			}
 
 			// Debug output to confirm headers are set correctly
-			fmt.Printf("Testing with headerName: %s and request headers: %v", tt.C().headerName, req.Header)
+			fmt.Printf("Testing with headerName: %s and request headers: %v", tt.C.headerName, req.Header)
 
-			extractor := &headerExtractor{headerName: tt.C().headerName}
+			extractor := &headerExtractor{headerName: tt.C.headerName}
 			token, err := extractor.extract(req)
 
 			// Additional debug information to confirm expected behavior
-			fmt.Printf("Extracted token: %s, Expected token: %s", token, tt.A().expectedToken)
+			fmt.Printf("Extracted token: %s, Expected token: %s", token, tt.A.expectedToken)
 
 			testutil.Diff(t, nil, err)
-			testutil.Diff(t, tt.A().expectedToken, token)
+			testutil.Diff(t, tt.A.expectedToken, token)
 		})
 	}
 }
@@ -320,16 +286,10 @@ func TestFormExtractor(t *testing.T) {
 		expectError   bool
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"invalid content type",
-			[]string{},
-			[]string{},
 			&condition{
 				paramName:   "csrf_token",
 				contentType: "application/json",
@@ -342,8 +302,6 @@ func TestFormExtractor(t *testing.T) {
 		),
 		gen(
 			"body read error",
-			[]string{},
-			[]string{},
 			&condition{
 				paramName:   "csrf_token",
 				contentType: "application/x-www-form-urlencoded",
@@ -356,8 +314,6 @@ func TestFormExtractor(t *testing.T) {
 		),
 		gen(
 			"missing token in form",
-			[]string{},
-			[]string{},
 			&condition{
 				paramName:   "csrf_token",
 				contentType: "application/x-www-form-urlencoded",
@@ -370,19 +326,17 @@ func TestFormExtractor(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			req := httptest.NewRequest(http.MethodPost, "/", tt.C().body) // Use body directly from condition
-			req.Header.Set("Content-Type", tt.C().contentType)
+		t.Run(tt.Name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodPost, "/", tt.C.body) // Use body directly from condition
+			req.Header.Set("Content-Type", tt.C.contentType)
 
-			extractor := &formExtractor{paramName: tt.C().paramName}
+			extractor := &formExtractor{paramName: tt.C.paramName}
 			token, err := extractor.extract(req)
 
-			testutil.Diff(t, tt.A().expectError, err != nil)
-			testutil.Diff(t, tt.A().expectedToken, token)
+			testutil.Diff(t, tt.A.expectError, err != nil)
+			testutil.Diff(t, tt.A.expectedToken, token)
 		})
 	}
 }
@@ -400,16 +354,10 @@ func TestJsonExtractor(t *testing.T) {
 		expectError   bool
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"extract from json",
-			[]string{},
-			[]string{},
 			&condition{
 				jsonPath:    "csrf.token",
 				jsonContent: `{"csrf": {"token": "json-token"}}`,
@@ -422,8 +370,6 @@ func TestJsonExtractor(t *testing.T) {
 		),
 		gen(
 			"invalid content type",
-			[]string{},
-			[]string{},
 			&condition{
 				jsonPath:    "csrf.token",
 				jsonContent: `{"csrf": {"token": "json-token"}}`,
@@ -436,8 +382,6 @@ func TestJsonExtractor(t *testing.T) {
 		),
 		gen(
 			"body read error",
-			[]string{},
-			[]string{},
 			&condition{
 				jsonPath:    "csrf.token",
 				contentType: "application/json",
@@ -450,26 +394,24 @@ func TestJsonExtractor(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 
 			var req *http.Request
-			if tt.C().bodyError {
+			if tt.C.bodyError {
 				req = httptest.NewRequest(http.MethodPost, "/", errReader(0))
 			} else {
-				req = httptest.NewRequest(http.MethodPost, "/", strings.NewReader(tt.C().jsonContent))
+				req = httptest.NewRequest(http.MethodPost, "/", strings.NewReader(tt.C.jsonContent))
 			}
 
-			req.Header.Set("Content-Type", tt.C().contentType)
+			req.Header.Set("Content-Type", tt.C.contentType)
 
-			extractor := &jsonExtractor{jsonPath: tt.C().jsonPath}
+			extractor := &jsonExtractor{jsonPath: tt.C.jsonPath}
 
 			token, err := extractor.extract(req)
-			testutil.Diff(t, tt.A().expectError, err != nil)
-			testutil.Diff(t, tt.A().expectedToken, token)
+			testutil.Diff(t, tt.A.expectError, err != nil)
+			testutil.Diff(t, tt.A.expectedToken, token)
 		})
 	}
 }

@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 )
 
 var (
@@ -28,23 +28,10 @@ func TestNewLocationAttrs(t *testing.T) {
 		fn     string
 	}
 
-	ActCheckFile := "check file"
-	ActCheckFunc := "check func"
-	ActCheckLine := "check line"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Action(ActCheckFile, "check that the returned file is the expected one")
-	tb.Action(ActCheckFunc, "check that the returned func is the expected one")
-	tb.Action(ActCheckLine, "check that the returned line is the expected one")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"skip -10000",
-			[]string{},
-			[]string{ActCheckFile, ActCheckFunc, ActCheckLine},
 			&condition{
 				skip: -10000,
 			},
@@ -55,8 +42,6 @@ func TestNewLocationAttrs(t *testing.T) {
 		),
 		gen(
 			"skip -1",
-			[]string{},
-			[]string{ActCheckFile, ActCheckFunc, ActCheckLine},
 			&condition{
 				skip: -1,
 			},
@@ -67,8 +52,6 @@ func TestNewLocationAttrs(t *testing.T) {
 		),
 		gen(
 			"skip 0",
-			[]string{},
-			[]string{ActCheckFile, ActCheckFunc, ActCheckLine},
 			&condition{
 				skip: 0,
 			},
@@ -79,8 +62,6 @@ func TestNewLocationAttrs(t *testing.T) {
 		),
 		gen(
 			"skip 1",
-			[]string{},
-			[]string{ActCheckFile, ActCheckFunc, ActCheckLine},
 			&condition{
 				skip: 1,
 			},
@@ -91,8 +72,6 @@ func TestNewLocationAttrs(t *testing.T) {
 		),
 		gen(
 			"skip 10000",
-			[]string{},
-			[]string{ActCheckFile, ActCheckFunc, ActCheckLine},
 			&condition{
 				skip: 10000,
 			},
@@ -102,21 +81,19 @@ func TestNewLocationAttrs(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			loc := NewLocationAttrs(tt.C().skip)
-			if tt.A().noData {
+		t.Run(tt.Name, func(t *testing.T) {
+			loc := NewLocationAttrs(tt.C.skip)
+			if tt.A.noData {
 				testutil.Diff(t, "", loc.file)
 				testutil.Diff(t, "", loc.fn)
 				testutil.Diff(t, 0, loc.line)
 				return
 			}
 
-			testutil.Diff(t, true, strings.Contains(loc.file, tt.A().file))
-			testutil.Diff(t, true, strings.Contains(loc.fn, tt.A().fn))
+			testutil.Diff(t, true, strings.Contains(loc.file, tt.A.file))
+			testutil.Diff(t, true, strings.Contains(loc.fn, tt.A.fn))
 			testutil.Diff(t, true, loc.line > 0)
 		})
 	}
@@ -131,19 +108,10 @@ func TestLocationAttrs_Name(t *testing.T) {
 		name string
 	}
 
-	ActCheckName := "check name"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Action(ActCheckName, "check that the returned name is the one expected")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"non empty name",
-			[]string{},
-			[]string{},
 			&condition{
 				loc: &LocationAttrs{
 					name: "test",
@@ -155,8 +123,6 @@ func TestLocationAttrs_Name(t *testing.T) {
 		),
 		gen(
 			"empty name",
-			[]string{},
-			[]string{},
 			&condition{
 				loc: &LocationAttrs{
 					name: "",
@@ -168,12 +134,10 @@ func TestLocationAttrs_Name(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			testutil.Diff(t, tt.A().name, tt.C().loc.Name())
+		t.Run(tt.Name, func(t *testing.T) {
+			testutil.Diff(t, tt.A.name, tt.C.loc.Name())
 		})
 	}
 }
@@ -187,25 +151,10 @@ func TestLocationAttrs_Map(t *testing.T) {
 		expect map[string]any
 	}
 
-	CndWithFile := "with file"
-	CndWithFunc := "with func"
-	CndWithLine := "with line"
-	ActCheckMap := "check map"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(CndWithFile, "file has non empty value")
-	tb.Condition(CndWithFunc, "func has non empty value")
-	tb.Condition(CndWithLine, "line is not 0")
-	tb.Action(ActCheckMap, "check that the returned map is the one expected")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"without values",
-			[]string{},
-			[]string{ActCheckMap},
 			&condition{
 				loc: &LocationAttrs{
 					name: "test",
@@ -221,8 +170,6 @@ func TestLocationAttrs_Map(t *testing.T) {
 		),
 		gen(
 			"with file",
-			[]string{CndWithFile},
-			[]string{ActCheckMap},
 			&condition{
 				loc: &LocationAttrs{
 					name: "test",
@@ -239,8 +186,6 @@ func TestLocationAttrs_Map(t *testing.T) {
 		),
 		gen(
 			"with func",
-			[]string{CndWithFunc},
-			[]string{ActCheckMap},
 			&condition{
 				loc: &LocationAttrs{
 					name: "test",
@@ -257,8 +202,6 @@ func TestLocationAttrs_Map(t *testing.T) {
 		),
 		gen(
 			"with line",
-			[]string{CndWithLine},
-			[]string{ActCheckMap},
 			&condition{
 				loc: &LocationAttrs{
 					name: "test",
@@ -275,8 +218,6 @@ func TestLocationAttrs_Map(t *testing.T) {
 		),
 		gen(
 			"with file/func/line",
-			[]string{CndWithFile, CndWithFunc, CndWithLine},
-			[]string{ActCheckMap},
 			&condition{
 				loc: &LocationAttrs{
 					name: "test",
@@ -295,12 +236,10 @@ func TestLocationAttrs_Map(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			testutil.Diff(t, tt.A().expect, tt.C().loc.Map())
+		t.Run(tt.Name, func(t *testing.T) {
+			testutil.Diff(t, tt.A.expect, tt.C.loc.Map())
 		})
 	}
 }
@@ -314,25 +253,10 @@ func TestLocationAttrs_KeyValues(t *testing.T) {
 		expect []any
 	}
 
-	CndWithFile := "with file"
-	CndWithFunc := "with func"
-	CndWithLine := "with line"
-	ActCheckSlice := "check slice"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(CndWithFile, "file has non empty value")
-	tb.Condition(CndWithFunc, "func has non empty value")
-	tb.Condition(CndWithLine, "line is not 0")
-	tb.Action(ActCheckSlice, "check that the returned slice is the one expected")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"without values",
-			[]string{},
-			[]string{ActCheckSlice},
 			&condition{
 				loc: &LocationAttrs{
 					name: "test",
@@ -348,8 +272,6 @@ func TestLocationAttrs_KeyValues(t *testing.T) {
 		),
 		gen(
 			"with file",
-			[]string{CndWithFile},
-			[]string{ActCheckSlice},
 			&condition{
 				loc: &LocationAttrs{
 					name: "test",
@@ -366,8 +288,6 @@ func TestLocationAttrs_KeyValues(t *testing.T) {
 		),
 		gen(
 			"with func",
-			[]string{CndWithFunc},
-			[]string{ActCheckSlice},
 			&condition{
 				loc: &LocationAttrs{
 					name: "test",
@@ -384,8 +304,6 @@ func TestLocationAttrs_KeyValues(t *testing.T) {
 		),
 		gen(
 			"with line",
-			[]string{CndWithLine},
-			[]string{ActCheckSlice},
 			&condition{
 				loc: &LocationAttrs{
 					name: "test",
@@ -402,8 +320,6 @@ func TestLocationAttrs_KeyValues(t *testing.T) {
 		),
 		gen(
 			"with file/func/line",
-			[]string{CndWithFile, CndWithFunc, CndWithLine},
-			[]string{ActCheckSlice},
 			&condition{
 				loc: &LocationAttrs{
 					name: "test",
@@ -422,12 +338,10 @@ func TestLocationAttrs_KeyValues(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			testutil.Diff(t, tt.A().expect, tt.C().loc.KeyValues())
+		t.Run(tt.Name, func(t *testing.T) {
+			testutil.Diff(t, tt.A.expect, tt.C.loc.KeyValues())
 		})
 	}
 }
@@ -445,16 +359,10 @@ func TestNewDatetimeAttrs(t *testing.T) {
 		zone string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"valid zone",
-			[]string{},
-			[]string{},
 			&condition{
 				dfmt: "2006-01-02",
 				tfmt: "15:04:05",
@@ -468,8 +376,6 @@ func TestNewDatetimeAttrs(t *testing.T) {
 		),
 		gen(
 			"nil zone",
-			[]string{},
-			[]string{},
 			&condition{
 				dfmt: "2006-01-02",
 				tfmt: "15:04:05",
@@ -483,8 +389,6 @@ func TestNewDatetimeAttrs(t *testing.T) {
 		),
 		gen(
 			"empty dfmt",
-			[]string{},
-			[]string{},
 			&condition{
 				dfmt: "",
 				tfmt: "15:04:05",
@@ -498,8 +402,6 @@ func TestNewDatetimeAttrs(t *testing.T) {
 		),
 		gen(
 			"empty tfmt",
-			[]string{},
-			[]string{},
 			&condition{
 				dfmt: "2006-01-02",
 				tfmt: "",
@@ -513,19 +415,17 @@ func TestNewDatetimeAttrs(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			dt := NewDatetimeAttrs(tt.C().dfmt, tt.C().tfmt, tt.C().loc)
+		t.Run(tt.Name, func(t *testing.T) {
+			dt := NewDatetimeAttrs(tt.C.dfmt, tt.C.tfmt, tt.C.loc)
 			now := time.Now()
-			if tt.C().loc != nil {
-				now = now.In(tt.C().loc)
+			if tt.C.loc != nil {
+				now = now.In(tt.C.loc)
 			}
-			testutil.Diff(t, now.Format(tt.A().date), dt.date)
-			testutil.Diff(t, now.Format(tt.A().time), dt.time)
-			testutil.Diff(t, now.Location().String(), tt.A().zone)
+			testutil.Diff(t, now.Format(tt.A.date), dt.date)
+			testutil.Diff(t, now.Format(tt.A.time), dt.time)
+			testutil.Diff(t, now.Location().String(), tt.A.zone)
 		})
 	}
 }
@@ -538,16 +438,10 @@ func TestDatetimeAttrs_Name(t *testing.T) {
 		name string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"non empty name",
-			[]string{},
-			[]string{},
 			&condition{
 				dt: &DatetimeAttrs{
 					name: "test",
@@ -559,8 +453,6 @@ func TestDatetimeAttrs_Name(t *testing.T) {
 		),
 		gen(
 			"empty name",
-			[]string{},
-			[]string{},
 			&condition{
 				dt: &DatetimeAttrs{
 					name: "",
@@ -572,12 +464,10 @@ func TestDatetimeAttrs_Name(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			testutil.Diff(t, tt.A().name, tt.C().dt.Name())
+		t.Run(tt.Name, func(t *testing.T) {
+			testutil.Diff(t, tt.A.name, tt.C.dt.Name())
 		})
 	}
 }
@@ -590,15 +480,10 @@ func TestDatetimeAttrs_Map(t *testing.T) {
 		expect map[string]any
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"without values",
-			[]string{}, []string{},
 			&condition{
 				dt: &DatetimeAttrs{
 					name: "test",
@@ -614,7 +499,6 @@ func TestDatetimeAttrs_Map(t *testing.T) {
 		),
 		gen(
 			"with date",
-			[]string{}, []string{},
 			&condition{
 				dt: &DatetimeAttrs{
 					name: "test",
@@ -631,7 +515,6 @@ func TestDatetimeAttrs_Map(t *testing.T) {
 		),
 		gen(
 			"with time",
-			[]string{}, []string{},
 			&condition{
 				dt: &DatetimeAttrs{
 					name: "test",
@@ -648,7 +531,6 @@ func TestDatetimeAttrs_Map(t *testing.T) {
 		),
 		gen(
 			"with zone",
-			[]string{}, []string{},
 			&condition{
 				dt: &DatetimeAttrs{
 					name: "test",
@@ -665,7 +547,6 @@ func TestDatetimeAttrs_Map(t *testing.T) {
 		),
 		gen(
 			"with date/time/zone",
-			[]string{}, []string{},
 			&condition{
 				dt: &DatetimeAttrs{
 					name: "test",
@@ -683,11 +564,11 @@ func TestDatetimeAttrs_Map(t *testing.T) {
 			},
 		),
 	}
-	testutil.Register(table, testCases...)
-	for _, tt := range table.Entries() {
+
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			testutil.Diff(t, tt.A().expect, tt.C().dt.Map())
+		t.Run(tt.Name, func(t *testing.T) {
+			testutil.Diff(t, tt.A.expect, tt.C.dt.Map())
 		})
 	}
 }
@@ -700,15 +581,10 @@ func TestDatetimeAttrs_KeyValues(t *testing.T) {
 		expect []any
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"without values",
-			[]string{}, []string{},
 			&condition{
 				dt: &DatetimeAttrs{
 					name: "test",
@@ -724,7 +600,6 @@ func TestDatetimeAttrs_KeyValues(t *testing.T) {
 		),
 		gen(
 			"with date",
-			[]string{}, []string{},
 			&condition{
 				dt: &DatetimeAttrs{
 					name: "test",
@@ -741,7 +616,6 @@ func TestDatetimeAttrs_KeyValues(t *testing.T) {
 		),
 		gen(
 			"with time",
-			[]string{}, []string{},
 			&condition{
 				dt: &DatetimeAttrs{
 					name: "test",
@@ -758,7 +632,6 @@ func TestDatetimeAttrs_KeyValues(t *testing.T) {
 		),
 		gen(
 			"with zone",
-			[]string{}, []string{},
 			&condition{
 				dt: &DatetimeAttrs{
 					name: "test",
@@ -775,7 +648,6 @@ func TestDatetimeAttrs_KeyValues(t *testing.T) {
 		),
 		gen(
 			"with date/time/zone",
-			[]string{}, []string{},
 			&condition{
 				dt: &DatetimeAttrs{
 					name: "test",
@@ -793,11 +665,11 @@ func TestDatetimeAttrs_KeyValues(t *testing.T) {
 			},
 		),
 	}
-	testutil.Register(table, testCases...)
-	for _, tt := range table.Entries() {
+
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			testutil.Diff(t, tt.A().expect, tt.C().dt.KeyValues())
+		t.Run(tt.Name, func(t *testing.T) {
+			testutil.Diff(t, tt.A.expect, tt.C.dt.KeyValues())
 		})
 	}
 }
@@ -811,15 +683,10 @@ func TestNewCustomAttrs(t *testing.T) {
 		attrs map[string]any
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"non nil map",
-			[]string{}, []string{},
 			&condition{
 				name:  "test",
 				attrs: map[string]any{"foo": "bar", "hoge": "fuga"},
@@ -830,7 +697,6 @@ func TestNewCustomAttrs(t *testing.T) {
 		),
 		gen(
 			"nil map",
-			[]string{}, []string{},
 			&condition{
 				name:  "test",
 				attrs: nil,
@@ -840,13 +706,13 @@ func TestNewCustomAttrs(t *testing.T) {
 			},
 		),
 	}
-	testutil.Register(table, testCases...)
-	for _, tt := range table.Entries() {
+
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			cus := NewCustomAttrs(tt.C().name, tt.C().attrs)
-			testutil.Diff(t, tt.C().name, cus.name)
-			testutil.Diff(t, tt.A().attrs, cus.m)
+		t.Run(tt.Name, func(t *testing.T) {
+			cus := NewCustomAttrs(tt.C.name, tt.C.attrs)
+			testutil.Diff(t, tt.C.name, cus.name)
+			testutil.Diff(t, tt.A.attrs, cus.m)
 		})
 	}
 }
@@ -858,15 +724,11 @@ func TestCustomAttrs_Name(t *testing.T) {
 	type action struct {
 		name string
 	}
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"non empty name",
-			[]string{}, []string{},
 			&condition{
 				ct: &CustomAttrs{
 					name: "test",
@@ -878,7 +740,6 @@ func TestCustomAttrs_Name(t *testing.T) {
 		),
 		gen(
 			"empty name",
-			[]string{}, []string{},
 			&condition{
 				ct: &CustomAttrs{
 					name: "",
@@ -889,11 +750,11 @@ func TestCustomAttrs_Name(t *testing.T) {
 			},
 		),
 	}
-	testutil.Register(table, testCases...)
-	for _, tt := range table.Entries() {
+
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			testutil.Diff(t, tt.A().name, tt.C().ct.Name())
+		t.Run(tt.Name, func(t *testing.T) {
+			testutil.Diff(t, tt.A.name, tt.C.ct.Name())
 		})
 	}
 }
@@ -906,15 +767,11 @@ func TestCustomAttrs_Map(t *testing.T) {
 	type action struct {
 		expect map[string]any
 	}
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"without attribute",
-			[]string{}, []string{},
 			&condition{
 				ct: &CustomAttrs{
 					name: "test",
@@ -926,7 +783,6 @@ func TestCustomAttrs_Map(t *testing.T) {
 		),
 		gen(
 			"with attribute",
-			[]string{}, []string{},
 			&condition{
 				ct: &CustomAttrs{
 					name: "test",
@@ -939,7 +795,6 @@ func TestCustomAttrs_Map(t *testing.T) {
 		),
 		gen(
 			"with 2 attributes",
-			[]string{}, []string{},
 			&condition{
 				ct: &CustomAttrs{
 					name: "test",
@@ -951,11 +806,11 @@ func TestCustomAttrs_Map(t *testing.T) {
 			},
 		),
 	}
-	testutil.Register(table, testCases...)
-	for _, tt := range table.Entries() {
+
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			testutil.Diff(t, tt.A().expect, tt.C().ct.Map())
+		t.Run(tt.Name, func(t *testing.T) {
+			testutil.Diff(t, tt.A.expect, tt.C.ct.Map())
 		})
 	}
 }
@@ -968,15 +823,10 @@ func TestCustomAttrs_KeyValues(t *testing.T) {
 		expect []any
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"without attribute",
-			[]string{}, []string{},
 			&condition{
 				ct: &CustomAttrs{
 					name: "test",
@@ -988,7 +838,6 @@ func TestCustomAttrs_KeyValues(t *testing.T) {
 		),
 		gen(
 			"with attribute",
-			[]string{}, []string{},
 			&condition{
 				ct: &CustomAttrs{
 					name: "test",
@@ -1004,11 +853,11 @@ func TestCustomAttrs_KeyValues(t *testing.T) {
 			},
 		),
 	}
-	testutil.Register(table, testCases...)
-	for _, tt := range table.Entries() {
+
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			testutil.Diff(t, tt.A().expect, tt.C().ct.KeyValues())
+		t.Run(tt.Name, func(t *testing.T) {
+			testutil.Diff(t, tt.A.expect, tt.C.ct.KeyValues())
 		})
 	}
 }
