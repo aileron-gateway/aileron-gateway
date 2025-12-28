@@ -9,7 +9,6 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
-	"slices"
 	"testing"
 
 	"github.com/aileron-gateway/aileron-gateway/core"
