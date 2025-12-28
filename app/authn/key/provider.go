@@ -12,7 +12,7 @@ import (
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
-	"github.com/aileron-gateway/aileron-gateway/kernel/encoder"
+	"github.com/aileron-gateway/aileron-gateway/internal/encoder"
 	"github.com/aileron-gateway/aileron-gateway/kernel/kvs"
 	"github.com/aileron-projects/go/zos"
 )

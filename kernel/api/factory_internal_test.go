@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
+	"github.com/aileron-gateway/aileron-gateway/internal/encoder"
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
-	"github.com/aileron-gateway/aileron-gateway/kernel/encoder"
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"

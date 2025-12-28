@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
-	"github.com/aileron-gateway/aileron-gateway/kernel/encoder"
+	"github.com/aileron-gateway/aileron-gateway/internal/encoder"
 	"github.com/aileron-gateway/aileron-gateway/kernel/encrypt"
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
 	"github.com/aileron-gateway/aileron-gateway/kernel/hash"
