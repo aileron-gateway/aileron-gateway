@@ -9,6 +9,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"testing"
 
 	"github.com/aileron-gateway/aileron-gateway/core"
@@ -209,7 +210,6 @@ func TestMiddleware(t *testing.T) {
 			if tt.C.childSpan {
 				childCtx, childSpan := tracer.Start(ctx, "childSpan")
 				defer childSpan.End()
-
 				ot.pg.Inject(childCtx, propagation.HeaderCarrier(req.Header))
 			}
 
