@@ -21,38 +21,10 @@ func TestMethods(t *testing.T) {
 		methods []string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndInputNil := tb.Condition("nil", "input nil")
-	cndInputUnknown := tb.Condition("Unknown", "input unknown method")
-	cndInputGet := tb.Condition("Get", "input Get method")
-	cndInputHead := tb.Condition("Head", "input Head method")
-	cndInputPost := tb.Condition("Post", "input Post method")
-	cndInputPut := tb.Condition("Put", "input Put method")
-	cndInputPatch := tb.Condition("Patch", "input Patch method")
-	cndInputDelete := tb.Condition("Delete", "input Delete method")
-	cndInputConnect := tb.Condition("Connect", "input Connect method")
-	cndInputOptions := tb.Condition("Options", "input Options method")
-	cndInputTrace := tb.Condition("Trace", "input Trace method")
-	actCheckNil := tb.Action("nil", "check that nil is returned")
-	actCheckGet := tb.Action("Get", "check that Get is included in the returned slice")
-	actCheckHead := tb.Action("Head", "check that Head is included in the returned slice")
-	actCheckPost := tb.Action("Post", "check that Post is included in the returned slice")
-	actCheckPut := tb.Action("Put", "check that Put is included in the returned slice")
-	actCheckPatch := tb.Action("Patch", "check that Patch is included in the returned slice")
-	actCheckDelete := tb.Action("Delete", "check that Delete is included in the returned slice")
-	actCheckConnect := tb.Action("Connect", "check that Connect is included in the returned slice")
-	actCheckOptions := tb.Action("Options", "check that Options is included in the returned slice")
-	actCheckTrace := tb.Action("Trace", "check that Trace is included in the returned slice")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"nil",
-			[]string{cndInputNil},
-			[]string{actCheckNil},
-			&condition{
+			"nil", &condition{
 				methods: nil,
 			},
 			&action{
@@ -60,10 +32,7 @@ func TestMethods(t *testing.T) {
 			},
 		),
 		gen(
-			"unknown",
-			[]string{cndInputUnknown},
-			[]string{actCheckNil},
-			&condition{
+			"unknown", &condition{
 				methods: []v1.HTTPMethod{v1.HTTPMethod_HTTPMethodUnknown},
 			},
 			&action{
@@ -71,10 +40,7 @@ func TestMethods(t *testing.T) {
 			},
 		),
 		gen(
-			"GET",
-			[]string{cndInputGet},
-			[]string{actCheckGet},
-			&condition{
+			"GET", &condition{
 				methods: []v1.HTTPMethod{v1.HTTPMethod_GET},
 			},
 			&action{
@@ -82,10 +48,7 @@ func TestMethods(t *testing.T) {
 			},
 		),
 		gen(
-			"HEAD",
-			[]string{cndInputHead},
-			[]string{actCheckHead},
-			&condition{
+			"HEAD", &condition{
 				methods: []v1.HTTPMethod{v1.HTTPMethod_HEAD},
 			},
 			&action{
@@ -93,10 +56,7 @@ func TestMethods(t *testing.T) {
 			},
 		),
 		gen(
-			"POST",
-			[]string{cndInputPost},
-			[]string{actCheckPost},
-			&condition{
+			"POST", &condition{
 				methods: []v1.HTTPMethod{v1.HTTPMethod_POST},
 			},
 			&action{
@@ -104,10 +64,7 @@ func TestMethods(t *testing.T) {
 			},
 		),
 		gen(
-			"PUT",
-			[]string{cndInputPut},
-			[]string{actCheckPut},
-			&condition{
+			"PUT", &condition{
 				methods: []v1.HTTPMethod{v1.HTTPMethod_PUT},
 			},
 			&action{
@@ -115,10 +72,7 @@ func TestMethods(t *testing.T) {
 			},
 		),
 		gen(
-			"PATCH",
-			[]string{cndInputPatch},
-			[]string{actCheckPatch},
-			&condition{
+			"PATCH", &condition{
 				methods: []v1.HTTPMethod{v1.HTTPMethod_PATCH},
 			},
 			&action{
@@ -126,10 +80,7 @@ func TestMethods(t *testing.T) {
 			},
 		),
 		gen(
-			"DELETE",
-			[]string{cndInputDelete},
-			[]string{actCheckDelete},
-			&condition{
+			"DELETE", &condition{
 				methods: []v1.HTTPMethod{v1.HTTPMethod_DELETE},
 			},
 			&action{
@@ -137,10 +88,7 @@ func TestMethods(t *testing.T) {
 			},
 		),
 		gen(
-			"CONNECT",
-			[]string{cndInputConnect},
-			[]string{actCheckConnect},
-			&condition{
+			"CONNECT", &condition{
 				methods: []v1.HTTPMethod{v1.HTTPMethod_CONNECT},
 			},
 			&action{
@@ -148,10 +96,7 @@ func TestMethods(t *testing.T) {
 			},
 		),
 		gen(
-			"OPTIONS",
-			[]string{cndInputOptions},
-			[]string{actCheckOptions},
-			&condition{
+			"OPTIONS", &condition{
 				methods: []v1.HTTPMethod{v1.HTTPMethod_OPTIONS},
 			},
 			&action{
@@ -159,10 +104,7 @@ func TestMethods(t *testing.T) {
 			},
 		),
 		gen(
-			"Trace",
-			[]string{cndInputTrace},
-			[]string{actCheckTrace},
-			&condition{
+			"Trace", &condition{
 				methods: []v1.HTTPMethod{v1.HTTPMethod_TRACE},
 			},
 			&action{
@@ -170,10 +112,7 @@ func TestMethods(t *testing.T) {
 			},
 		),
 		gen(
-			"GET/HEAD/POST",
-			[]string{cndInputGet, cndInputHead, cndInputPost},
-			[]string{actCheckGet, actCheckHead, actCheckPost},
-			&condition{
+			"GET/HEAD/POST", &condition{
 				methods: []v1.HTTPMethod{
 					v1.HTTPMethod_GET,
 					v1.HTTPMethod_HEAD,
@@ -190,13 +129,11 @@ func TestMethods(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			methods := utilhttp.Methods(tt.C().methods)
-			testutil.Diff(t, tt.A().methods, methods)
+		t.Run(tt.Name, func(t *testing.T) {
+			methods := utilhttp.Methods(tt.C.methods)
+			testutil.Diff(t, tt.A.methods, methods)
 		})
 	}
 }
@@ -210,18 +147,10 @@ func TestBaseHandler_Patterns(t *testing.T) {
 		patterns []string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	actCheckPattern := tb.Action("check pattern", "check the returned pattern")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"no pattern",
-			[]string{},
-			[]string{actCheckPattern},
-			&condition{
+			"no pattern", &condition{
 				h: &utilhttp.HandlerBase{
 					AcceptPatterns: []string{},
 				},
@@ -231,10 +160,7 @@ func TestBaseHandler_Patterns(t *testing.T) {
 			},
 		),
 		gen(
-			"empty pattern",
-			[]string{},
-			[]string{actCheckPattern},
-			&condition{
+			"empty pattern", &condition{
 				h: &utilhttp.HandlerBase{
 					AcceptPatterns: []string{""},
 				},
@@ -244,10 +170,7 @@ func TestBaseHandler_Patterns(t *testing.T) {
 			},
 		),
 		gen(
-			"non empty pattern",
-			[]string{},
-			[]string{actCheckPattern},
-			&condition{
+			"non empty pattern", &condition{
 				h: &utilhttp.HandlerBase{
 					AcceptPatterns: []string{"/test"},
 				},
@@ -257,10 +180,7 @@ func TestBaseHandler_Patterns(t *testing.T) {
 			},
 		),
 		gen(
-			"multiple patterns",
-			[]string{},
-			[]string{actCheckPattern},
-			&condition{
+			"multiple patterns", &condition{
 				h: &utilhttp.HandlerBase{
 					AcceptPatterns: []string{"/test1", "/test2"},
 				},
@@ -271,13 +191,11 @@ func TestBaseHandler_Patterns(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			p := tt.C().h.Patterns()
-			testutil.Diff(t, tt.A().patterns, p)
+		t.Run(tt.Name, func(t *testing.T) {
+			p := tt.C.h.Patterns()
+			testutil.Diff(t, tt.A.patterns, p)
 		})
 	}
 }
@@ -291,18 +209,10 @@ func TestHandler_Methods(t *testing.T) {
 		methods []string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	actCheckMethods := tb.Action("check methods", "check the returned methods")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"no methods",
-			[]string{},
-			[]string{actCheckMethods},
-			&condition{
+			"no methods", &condition{
 				h: &utilhttp.HandlerBase{},
 			},
 			&action{
@@ -310,10 +220,7 @@ func TestHandler_Methods(t *testing.T) {
 			},
 		),
 		gen(
-			"no methods",
-			[]string{},
-			[]string{actCheckMethods},
-			&condition{
+			"no methods", &condition{
 				h: &utilhttp.HandlerBase{
 					AcceptMethods: []string{""},
 				},
@@ -323,10 +230,7 @@ func TestHandler_Methods(t *testing.T) {
 			},
 		),
 		gen(
-			"one method",
-			[]string{},
-			[]string{actCheckMethods},
-			&condition{
+			"one method", &condition{
 				h: &utilhttp.HandlerBase{
 					AcceptMethods: []string{
 						http.MethodGet,
@@ -340,10 +244,7 @@ func TestHandler_Methods(t *testing.T) {
 			},
 		),
 		gen(
-			"multiple methods",
-			[]string{},
-			[]string{actCheckMethods},
-			&condition{
+			"multiple methods", &condition{
 				h: &utilhttp.HandlerBase{
 					AcceptMethods: []string{
 						http.MethodGet,
@@ -360,13 +261,11 @@ func TestHandler_Methods(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			ms := tt.C().h.Methods()
-			testutil.Diff(t, tt.A().methods, ms)
+		t.Run(tt.Name, func(t *testing.T) {
+			ms := tt.C.h.Methods()
+			testutil.Diff(t, tt.A.methods, ms)
 		})
 	}
 }

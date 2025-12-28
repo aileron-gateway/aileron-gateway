@@ -32,10 +32,6 @@ func TestMutate(t *testing.T) {
 		manifest protoreflect.ProtoMessage
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	host, _ := os.Hostname()
 	hmacSecret := sha512.Sum512([]byte(host)) // Create default secret.
 
@@ -43,8 +39,6 @@ func TestMutate(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"default values",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: Resource.Default(),
 			},
@@ -72,8 +66,6 @@ func TestMutate(t *testing.T) {
 		),
 		gen(
 			"custom header/overwrite",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.CSRFMiddleware{
 					APIVersion: apiVersion,
@@ -120,8 +112,6 @@ func TestMutate(t *testing.T) {
 		),
 		gen(
 			"double submit cookie",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.CSRFMiddleware{
 					APIVersion: apiVersion,
@@ -166,8 +156,6 @@ func TestMutate(t *testing.T) {
 		),
 		gen(
 			"double submit cookie/overwrite",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.CSRFMiddleware{
 					APIVersion: apiVersion,
@@ -216,8 +204,6 @@ func TestMutate(t *testing.T) {
 		),
 		gen(
 			"synchronizer token",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.CSRFMiddleware{
 					APIVersion: apiVersion,
@@ -261,8 +247,6 @@ func TestMutate(t *testing.T) {
 		),
 		gen(
 			"synchronizer token/overwrite",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.CSRFMiddleware{
 					APIVersion: apiVersion,
@@ -309,12 +293,10 @@ func TestMutate(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			msg := Resource.Mutate(tt.C().manifest)
+		t.Run(tt.Name, func(t *testing.T) {
+			msg := Resource.Mutate(tt.C.manifest)
 
 			opts := []cmp.Option{
 				cmpopts.IgnoreUnexported(v1.CSRFMiddleware{}, v1.CSRFMiddlewareSpec{}),
@@ -323,7 +305,7 @@ func TestMutate(t *testing.T) {
 				cmpopts.IgnoreUnexported(v1.CSRFMiddlewareSpec_SynchronizerToken{}, v1.SynchronizerTokenSpec{}),
 				cmpopts.IgnoreUnexported(kernel.Metadata{}, kernel.Status{}),
 			}
-			testutil.Diff(t, tt.A().manifest, msg, opts...)
+			testutil.Diff(t, tt.A.manifest, msg, opts...)
 		})
 	}
 }
@@ -340,16 +322,10 @@ func TestCreate(t *testing.T) {
 		expect     any
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"create with default manifest",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: Resource.Default(),
 			},
@@ -380,8 +356,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"invalid secret",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.CSRFMiddleware{
 					APIVersion: apiVersion,
@@ -402,8 +376,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"invalid hash algorithm",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.CSRFMiddleware{
 					APIVersion: apiVersion,
@@ -424,8 +396,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"custom request header",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.CSRFMiddleware{
 					APIVersion: apiVersion,
@@ -469,8 +439,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"custom request header failure",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.CSRFMiddleware{
 					APIVersion: apiVersion,
@@ -497,8 +465,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"double submit cookies",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.CSRFMiddleware{
 					APIVersion: apiVersion,
@@ -544,8 +510,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"double submit cookies with form",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.CSRFMiddleware{
 					APIVersion: apiVersion,
@@ -595,8 +559,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"double submit cookies with JSON",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.CSRFMiddleware{
 					APIVersion: apiVersion,
@@ -646,8 +608,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"synchronizer token",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.CSRFMiddleware{
 					APIVersion: apiVersion,
@@ -691,8 +651,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"synchronizer token with form",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.CSRFMiddleware{
 					APIVersion: apiVersion,
@@ -739,8 +697,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"synchronizer token with JSON",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.CSRFMiddleware{
 					APIVersion: apiVersion,
@@ -787,15 +743,13 @@ func TestCreate(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 
 			server := api.NewContainerAPI()
 			a := &API{}
-			got, err := a.Create(server, tt.C().manifest)
+			got, err := a.Create(server, tt.C.manifest)
 
 			opts := []cmp.Option{
 				protocmp.Transform(),
@@ -808,8 +762,8 @@ func TestCreate(t *testing.T) {
 						x.hmac != nil && y.hmac != nil // Avoid function comparison failures
 				}),
 			}
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
-			testutil.Diff(t, tt.A().expect, got, opts...)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
+			testutil.Diff(t, tt.A.expect, got, opts...)
 
 		})
 	}

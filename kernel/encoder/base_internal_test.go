@@ -25,15 +25,11 @@ func TestEncoderDecoder(t *testing.T) {
 		dec     DecodeStringFunc
 		pattern *regexp.Regexp
 	}
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"Base32",
-			[]string{}, []string{},
 			&condition{
 				typ: k.EncodingType_Base32,
 			},
@@ -45,7 +41,6 @@ func TestEncoderDecoder(t *testing.T) {
 		),
 		gen(
 			"Base32Hex",
-			[]string{}, []string{},
 			&condition{
 				typ: k.EncodingType_Base32Hex,
 			},
@@ -57,7 +52,6 @@ func TestEncoderDecoder(t *testing.T) {
 		),
 		gen(
 			"Base32Escaped",
-			[]string{}, []string{},
 			&condition{
 				typ: k.EncodingType_Base32Escaped,
 			},
@@ -69,7 +63,6 @@ func TestEncoderDecoder(t *testing.T) {
 		),
 		gen(
 			"Base32HexEscaped",
-			[]string{}, []string{},
 			&condition{
 				typ: k.EncodingType_Base32HexEscaped,
 			},
@@ -81,7 +74,6 @@ func TestEncoderDecoder(t *testing.T) {
 		),
 		gen(
 			"Base64",
-			[]string{}, []string{},
 			&condition{
 				typ: k.EncodingType_Base64,
 			},
@@ -93,7 +85,6 @@ func TestEncoderDecoder(t *testing.T) {
 		),
 		gen(
 			"Base64Raw",
-			[]string{}, []string{},
 			&condition{
 				typ: k.EncodingType_Base64Raw,
 			},
@@ -105,7 +96,6 @@ func TestEncoderDecoder(t *testing.T) {
 		),
 		gen(
 			"Base64URL",
-			[]string{}, []string{},
 			&condition{
 				typ: k.EncodingType_Base64URL,
 			},
@@ -117,7 +107,6 @@ func TestEncoderDecoder(t *testing.T) {
 		),
 		gen(
 			"Base64RawURL",
-			[]string{}, []string{},
 			&condition{
 				typ: k.EncodingType_Base64RawURL,
 			},
@@ -129,7 +118,6 @@ func TestEncoderDecoder(t *testing.T) {
 		),
 		gen(
 			"Base16",
-			[]string{}, []string{},
 			&condition{
 				typ: k.EncodingType_Base16,
 			},
@@ -141,7 +129,6 @@ func TestEncoderDecoder(t *testing.T) {
 		),
 		gen(
 			"Unknown will be Base32HexEscaped",
-			[]string{}, []string{},
 			&condition{
 				typ: k.EncodingType_EncodingTypeUnknown,
 			},
@@ -153,19 +140,17 @@ func TestEncoderDecoder(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			enc, dec := EncoderDecoder(tt.C().typ)
-			testutil.Diff(t, tt.A().enc, enc, cmp.Comparer(testutil.ComparePointer[EncodeToStringFunc]))
-			testutil.Diff(t, tt.A().dec, dec, cmp.Comparer(testutil.ComparePointer[DecodeStringFunc]))
+		t.Run(tt.Name, func(t *testing.T) {
+			enc, dec := EncoderDecoder(tt.C.typ)
+			testutil.Diff(t, tt.A.enc, enc, cmp.Comparer(testutil.ComparePointer[EncodeToStringFunc]))
+			testutil.Diff(t, tt.A.dec, dec, cmp.Comparer(testutil.ComparePointer[DecodeStringFunc]))
 
 			data := "abcdefghijklmnopqrstuvwxyz1234 !\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
 			e := enc([]byte(data))
-			fmt.Println(tt.Name(), e)
-			testutil.Diff(t, true, tt.A().pattern.MatchString(e))
+			fmt.Println(tt.Name, e)
+			testutil.Diff(t, true, tt.A.pattern.MatchString(e))
 			d, err := dec(e)
 			testutil.Diff(t, nil, err)
 			testutil.Diff(t, data, string(d))

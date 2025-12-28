@@ -28,19 +28,10 @@ func TestMutate(t *testing.T) {
 		manifest protoreflect.ProtoMessage
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	CndDefaultManifest := tb.Condition("input default manifest", "input default manifest")
-	CndMutateBaseContext := tb.Condition("mutate base context", "mutate base context")
-	CndMutateContext := tb.Condition("mutate context", "mutate context")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"apply default values",
-			[]string{CndDefaultManifest},
-			[]string{},
 			&condition{
 				manifest: Resource.Default(),
 			},
@@ -58,8 +49,6 @@ func TestMutate(t *testing.T) {
 		),
 		gen(
 			"mutate base context",
-			[]string{CndMutateBaseContext},
-			[]string{},
 			&condition{
 				manifest: &v1.OAuthAuthenticationHandler{
 					APIVersion: apiVersion,
@@ -107,8 +96,6 @@ func TestMutate(t *testing.T) {
 		),
 		gen(
 			"mutate context",
-			[]string{CndMutateContext},
-			[]string{},
 			&condition{
 				manifest: &v1.OAuthAuthenticationHandler{
 					APIVersion: apiVersion,
@@ -175,18 +162,16 @@ func TestMutate(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			msg := Resource.Mutate(tt.C().manifest)
+		t.Run(tt.Name, func(t *testing.T) {
+			msg := Resource.Mutate(tt.C.manifest)
 
 			opts := []cmp.Option{
 				protocmp.Transform(),
 				cmpopts.IgnoreUnexported(k.Metadata{}, k.Status{}),
 			}
-			testutil.Diff(t, tt.A().manifest, msg, opts...)
+			testutil.Diff(t, tt.A.manifest, msg, opts...)
 		})
 	}
 }
@@ -201,23 +186,10 @@ func TestCreate(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	CndDefaultManifest := tb.Condition("input default manifest", "input default manifest")
-	CndErrorReferenceLogSet := tb.Condition("input error reference to logger or log creator", "input error reference to logger or log creator")
-	CndErrorGetOAuthContext := tb.Condition("input error get OAuthContext", "input error get OAuthContext")
-	CndSetHeaderKey := tb.Condition("input HeaderKey", "input HeaderKey")
-	CndSuccessToGetOAuthContext := tb.Condition("input OAuthContext", "input OAuthContext")
-	ActCheckNoError := tb.Action("check no error was returned", "check no error was returned")
-	ActCheckErrorMsg := tb.Action("check error message", "check the error messages that was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"create with default manifest",
-			[]string{CndDefaultManifest},
-			[]string{ActCheckNoError},
 			&condition{
 				manifest: &v1.OAuthAuthenticationHandler{
 					Metadata: &k.Metadata{},
@@ -234,8 +206,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"fail to get logger",
-			[]string{CndErrorReferenceLogSet},
-			[]string{ActCheckErrorMsg},
 			&condition{
 				manifest: &v1.OAuthAuthenticationHandler{
 					Metadata: &k.Metadata{},
@@ -256,8 +226,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"fail to get OAuthContext",
-			[]string{CndErrorGetOAuthContext},
-			[]string{ActCheckErrorMsg},
 			&condition{
 				manifest: &v1.OAuthAuthenticationHandler{
 					Metadata: &k.Metadata{},
@@ -293,8 +261,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"input HeaderKey",
-			[]string{CndSetHeaderKey},
-			[]string{ActCheckNoError},
 			&condition{
 				manifest: &v1.OAuthAuthenticationHandler{
 					Metadata: &k.Metadata{},
@@ -313,8 +279,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"success to get OAuthContext",
-			[]string{CndSuccessToGetOAuthContext},
-			[]string{ActCheckErrorMsg},
 			&condition{
 				manifest: &v1.OAuthAuthenticationHandler{
 					Metadata: &k.Metadata{},
@@ -372,15 +336,14 @@ func TestCreate(t *testing.T) {
 			},
 		),
 	}
-	testutil.Register(table, testCases...)
 
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			server := api.NewContainerAPI()
 			a := &API{&api.BaseResource{}}
-			_, err := a.Create(server, tt.C().manifest)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+			_, err := a.Create(server, tt.C.manifest)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 		})
 	}
 }

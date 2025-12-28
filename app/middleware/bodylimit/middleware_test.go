@@ -26,16 +26,10 @@ func TestLimitReadCloser_Unwrap(t *testing.T) {
 		inner io.ReadCloser
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"nil ReadCloser",
-			[]string{},
-			[]string{},
 			&condition{
 				rc: &limitReadCloser{
 					ReadCloser: nil,
@@ -47,8 +41,6 @@ func TestLimitReadCloser_Unwrap(t *testing.T) {
 		),
 		gen(
 			"non-nil ReadCloser",
-			[]string{},
-			[]string{},
 			&condition{
 				rc: &limitReadCloser{
 					ReadCloser: os.Stdin,
@@ -60,13 +52,11 @@ func TestLimitReadCloser_Unwrap(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			inner := tt.C().rc.Unwrap()
-			testutil.Diff(t, tt.A().inner, inner, cmp.Comparer(testutil.ComparePointer[io.ReadCloser]))
+		t.Run(tt.Name, func(t *testing.T) {
+			inner := tt.C.rc.Unwrap()
+			testutil.Diff(t, tt.A.inner, inner, cmp.Comparer(testutil.ComparePointer[io.ReadCloser]))
 		})
 	}
 }
@@ -82,16 +72,10 @@ func TestLimitReadCloser_Read(t *testing.T) {
 		rec    any
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"shorter than max size",
-			[]string{},
-			[]string{},
 			&condition{
 				rc: &limitReadCloser{
 					ReadCloser: io.NopCloser(bytes.NewReader([]byte("1234567890"))),
@@ -105,8 +89,6 @@ func TestLimitReadCloser_Read(t *testing.T) {
 		),
 		gen(
 			"same as max size",
-			[]string{},
-			[]string{},
 			&condition{
 				rc: &limitReadCloser{
 					ReadCloser: io.NopCloser(bytes.NewReader([]byte("1234567890"))),
@@ -120,8 +102,6 @@ func TestLimitReadCloser_Read(t *testing.T) {
 		),
 		gen(
 			"longer than max size",
-			[]string{},
-			[]string{},
 			&condition{
 				rc: &limitReadCloser{
 					ReadCloser: io.NopCloser(bytes.NewReader([]byte("1234567890"))),
@@ -136,24 +116,22 @@ func TestLimitReadCloser_Read(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			defer func() {
-				testutil.Diff(t, tt.A().rec, recover(), cmpopts.EquateErrors())
+				testutil.Diff(t, tt.A.rec, recover(), cmpopts.EquateErrors())
 			}()
 
 			p := make([]byte, 100)
 			exceed := false
-			tt.C().rc.exceedFunc = func() {
+			tt.C.rc.exceedFunc = func() {
 				exceed = true
 			}
-			n, err := tt.C().rc.Read(p)
+			n, err := tt.C.rc.Read(p)
 			testutil.Diff(t, nil, err)
-			testutil.Diff(t, tt.A().exceed, exceed)
-			testutil.Diff(t, tt.A().read, string(p[:n]))
+			testutil.Diff(t, tt.A.exceed, exceed)
+			testutil.Diff(t, tt.A.read, string(p[:n]))
 		})
 	}
 }
@@ -179,16 +157,10 @@ func TestBodyLimit(t *testing.T) {
 		body   string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"empty body",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &bodyLimit{
 					eh:       utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
@@ -207,8 +179,6 @@ func TestBodyLimit(t *testing.T) {
 		),
 		gen(
 			"skip checking",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &bodyLimit{
 					eh:       utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
@@ -227,8 +197,6 @@ func TestBodyLimit(t *testing.T) {
 		),
 		gen(
 			"length not exists",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &bodyLimit{
 					eh:       utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
@@ -247,8 +215,6 @@ func TestBodyLimit(t *testing.T) {
 		),
 		gen(
 			"body shorter than limit/load on memory",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &bodyLimit{
 					eh:       utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
@@ -267,8 +233,6 @@ func TestBodyLimit(t *testing.T) {
 		),
 		gen(
 			"body same as limit/load on memory",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &bodyLimit{
 					eh:       utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
@@ -287,8 +251,6 @@ func TestBodyLimit(t *testing.T) {
 		),
 		gen(
 			"body longer than limit/load on memory",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &bodyLimit{
 					eh:       utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
@@ -307,8 +269,6 @@ func TestBodyLimit(t *testing.T) {
 		),
 		gen(
 			"content length mismatch/load on memory",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &bodyLimit{
 					eh:       utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
@@ -327,8 +287,6 @@ func TestBodyLimit(t *testing.T) {
 		),
 		gen(
 			"body shorter than limit/load on file",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &bodyLimit{
 					eh:       utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
@@ -347,8 +305,6 @@ func TestBodyLimit(t *testing.T) {
 		),
 		gen(
 			"body same as limit/load on file",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &bodyLimit{
 					eh:       utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
@@ -367,8 +323,6 @@ func TestBodyLimit(t *testing.T) {
 		),
 		gen(
 			"body longer than limit/load on file",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &bodyLimit{
 					eh:       utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
@@ -387,8 +341,6 @@ func TestBodyLimit(t *testing.T) {
 		),
 		gen(
 			"content length mismatch/load on file",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &bodyLimit{
 					eh:       utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
@@ -407,8 +359,6 @@ func TestBodyLimit(t *testing.T) {
 		),
 		gen(
 			"body shorter than limit/check on read",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &bodyLimit{
 					eh:       utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
@@ -427,8 +377,6 @@ func TestBodyLimit(t *testing.T) {
 		),
 		gen(
 			"body same as limit/check on read",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &bodyLimit{
 					eh:       utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
@@ -447,8 +395,6 @@ func TestBodyLimit(t *testing.T) {
 		),
 		gen(
 			"body longer than limit/check on read",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &bodyLimit{
 					eh:       utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
@@ -467,8 +413,6 @@ func TestBodyLimit(t *testing.T) {
 		),
 		gen(
 			"temp file create error",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &bodyLimit{
 					eh:       utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
@@ -487,8 +431,6 @@ func TestBodyLimit(t *testing.T) {
 		),
 		gen(
 			"body shorter than limit/body read error",
-			[]string{},
-			[]string{},
 			&condition{
 				bl: &bodyLimit{
 					eh:       utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
@@ -528,25 +470,23 @@ func TestBodyLimit(t *testing.T) {
 		// ),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			req := httptest.NewRequest(http.MethodPost, "/test", tt.C().body)
-			req.ContentLength = tt.C().length
+		t.Run(tt.Name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodPost, "/test", tt.C.body)
+			req.ContentLength = tt.C.length
 			rec := httptest.NewRecorder()
 			next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				defer func() {
-					testutil.Diff(t, tt.A().rec, recover(), cmpopts.EquateErrors())
+					testutil.Diff(t, tt.A.rec, recover(), cmpopts.EquateErrors())
 				}()
 				b, err := io.ReadAll(r.Body)
 				testutil.Diff(t, nil, err)
-				testutil.Diff(t, tt.A().body, string(b))
+				testutil.Diff(t, tt.A.body, string(b))
 				w.WriteHeader(http.StatusOK)
 			})
-			tt.C().bl.Middleware(next).ServeHTTP(rec, req)
-			testutil.Diff(t, tt.A().status, rec.Result().StatusCode)
+			tt.C.bl.Middleware(next).ServeHTTP(rec, req)
+			testutil.Diff(t, tt.A.status, rec.Result().StatusCode)
 		})
 	}
 }

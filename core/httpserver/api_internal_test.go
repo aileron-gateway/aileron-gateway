@@ -41,18 +41,10 @@ func TestMutate(t *testing.T) {
 		manifest protoreflect.ProtoMessage
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndDefault := tb.Condition("default", "input default manifest")
-	actCheckMutated := tb.Action("check mutated", "check that the intended fields are mutated")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"mutate default",
-			[]string{cndDefault},
-			[]string{actCheckMutated},
 			&condition{
 				manifest: Resource.Default(),
 			},
@@ -81,8 +73,6 @@ func TestMutate(t *testing.T) {
 
 		gen(
 			"mutate NextProto",
-			[]string{},
-			[]string{actCheckMutated},
 			&condition{
 				manifest: &v1.HTTPServer{
 					Spec: &v1.HTTPServerSpec{
@@ -112,12 +102,10 @@ func TestMutate(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			manifest := Resource.Mutate(tt.C().manifest)
+		t.Run(tt.Name, func(t *testing.T) {
+			manifest := Resource.Mutate(tt.C.manifest)
 
 			opts := []cmp.Option{
 				cmpopts.IgnoreUnexported(k.Metadata{}, k.Status{}, k.Reference{}),
@@ -126,7 +114,7 @@ func TestMutate(t *testing.T) {
 				cmpopts.IgnoreUnexported(k.ListenConfig{}, k.TLSConfig{}),
 				cmpopts.IgnoreUnexported(v1.VirtualHostSpec{}),
 			}
-			testutil.Diff(t, tt.A().manifest, manifest, opts...)
+			testutil.Diff(t, tt.A.manifest, manifest, opts...)
 		})
 	}
 }
@@ -141,10 +129,6 @@ func TestCreate(t *testing.T) {
 		err        any // error or errorutil.Kind
 		errPattern *regexp.Regexp
 	}
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
 
 	// Get available port for testing.
 	ln, err := net.Listen("tcp", ":0")
@@ -171,7 +155,6 @@ func TestCreate(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"create with default manifest",
-			[]string{}, []string{},
 			&condition{
 				manifest: Resource.Default(),
 			},
@@ -197,7 +180,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create http1 server only",
-			[]string{}, []string{},
 			&condition{
 				manifest: &v1.HTTPServer{
 					Metadata: &k.Metadata{},
@@ -230,7 +212,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create http2 server only",
-			[]string{}, []string{},
 			&condition{
 				manifest: &v1.HTTPServer{
 					Metadata: &k.Metadata{},
@@ -268,7 +249,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create http3 server only",
-			[]string{}, []string{},
 			&condition{
 				manifest: &v1.HTTPServer{
 					Metadata: &k.Metadata{},
@@ -299,7 +279,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"specify virtual hosts",
-			[]string{}, []string{},
 			&condition{
 				manifest: &v1.HTTPServer{
 					Metadata: &k.Metadata{},
@@ -332,7 +311,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"register not found",
-			[]string{}, []string{},
 			&condition{
 				manifest: &v1.HTTPServer{
 					Metadata: &k.Metadata{},
@@ -367,7 +345,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"error register virtual host mux",
-			[]string{}, []string{},
 			&condition{
 				manifest: &v1.HTTPServer{
 					Metadata: &k.Metadata{},
@@ -393,7 +370,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"fail to get middleware",
-			[]string{}, []string{},
 			&condition{
 				manifest: &v1.HTTPServer{
 					Metadata: &k.Metadata{},
@@ -415,7 +391,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"invalid http2 server",
-			[]string{}, []string{},
 			&condition{
 				manifest: &v1.HTTPServer{
 					Metadata: &k.Metadata{},
@@ -439,7 +414,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"invalid http3 server",
-			[]string{}, []string{},
 			&condition{
 				manifest: &v1.HTTPServer{
 					Metadata: &k.Metadata{},
@@ -461,13 +435,11 @@ func TestCreate(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			got, err := Resource.Create(testAPI, tt.C().manifest)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+		t.Run(tt.Name, func(t *testing.T) {
+			got, err := Resource.Create(testAPI, tt.C.manifest)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 
 			defer func() {
 				server, ok := got.(*runner)
@@ -493,7 +465,7 @@ func TestCreate(t *testing.T) {
 				cmpopts.IgnoreFields(http.Server{}, "TLSNextProto"),
 				cmpopts.IgnoreFields(http.Server{}, "Addr"),
 			}
-			testutil.Diff(t, tt.A().expect, got, opts...)
+			testutil.Diff(t, tt.A.expect, got, opts...)
 		})
 	}
 }
@@ -512,13 +484,6 @@ func TestNewHTTP2Server(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndInvalidTLSConfig := tb.Condition("invalid TLS config", "input an invalid TLS configuration")
-	actCheckError := tb.Action("check the returned error", "check that the returned error is the one expected")
-	actCheckNoError := tb.Action("check no error", "check that there is no error returned")
-	table := tb.Build()
-
 	// Get available port for testing.
 	ln, err := net.Listen("tcp", ":0")
 	if err != nil {
@@ -531,8 +496,6 @@ func TestNewHTTP2Server(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"nil",
-			[]string{},
-			[]string{actCheckNoError},
 			&condition{
 				addr: testPort,
 				h:    &testHandler{id: "test"},
@@ -544,8 +507,6 @@ func TestNewHTTP2Server(t *testing.T) {
 		),
 		gen(
 			"zero HTTP config",
-			[]string{},
-			[]string{actCheckNoError},
 			&condition{
 				addr: testPort,
 				h:    &testHandler{id: "test"},
@@ -565,8 +526,6 @@ func TestNewHTTP2Server(t *testing.T) {
 		),
 		gen(
 			"full HTTP config",
-			[]string{},
-			[]string{actCheckNoError},
 			&condition{
 				addr: testPort,
 				h:    &testHandler{id: "test"},
@@ -600,8 +559,6 @@ func TestNewHTTP2Server(t *testing.T) {
 		),
 		gen(
 			"zero HTTP2 config",
-			[]string{},
-			[]string{actCheckNoError},
 			&condition{
 				addr: testPort,
 				h:    &testHandler{id: "test"},
@@ -626,8 +583,6 @@ func TestNewHTTP2Server(t *testing.T) {
 		),
 		gen(
 			"full HTTP2 config",
-			[]string{},
-			[]string{actCheckNoError},
 			&condition{
 				addr: testPort,
 				h:    &testHandler{id: "test"},
@@ -672,8 +627,6 @@ func TestNewHTTP2Server(t *testing.T) {
 		),
 		gen(
 			"invalid TLS Config",
-			[]string{cndInvalidTLSConfig},
-			[]string{actCheckError},
 			&condition{
 				addr: testPort,
 				h:    &testHandler{id: "test"},
@@ -693,8 +646,6 @@ func TestNewHTTP2Server(t *testing.T) {
 		),
 		gen(
 			"invalid HTTP2 config",
-			[]string{},
-			[]string{actCheckNoError},
 			&condition{
 				addr: testPort,
 				h:    &testHandler{id: "test"},
@@ -718,13 +669,11 @@ func TestNewHTTP2Server(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			srv, err := newHTTP2Server(tt.C().addr, tt.C().h, tt.C().c1, tt.C().c2)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+		t.Run(tt.Name, func(t *testing.T) {
+			srv, err := newHTTP2Server(tt.C.addr, tt.C.h, tt.C.c1, tt.C.c2)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 			if srv != nil {
 				srv.Shutdown(context.Background())
 				srv.listener.Close()
@@ -738,7 +687,7 @@ func TestNewHTTP2Server(t *testing.T) {
 				cmpopts.IgnoreFields(http.Server{}, "TLSNextProto"),
 				testutil.DeepAllowUnexported(h2c.NewHandler(nil, nil)),
 			}
-			testutil.Diff(t, tt.A().svr, srv, opts...)
+			testutil.Diff(t, tt.A.svr, srv, opts...)
 		})
 	}
 }
@@ -756,13 +705,6 @@ func TestNewHTTP3Server(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndInvalidTLSConfig := tb.Condition("invalid TLS config", "input an invalid TLS configuration")
-	actCheckError := tb.Action("check the returned error", "check that the returned error is the one expected")
-	actCheckNoError := tb.Action("check no error", "check that there is no error returned")
-	table := tb.Build()
-
 	// Get available port for testing.
 	ln, err := net.Listen("tcp", ":0")
 	if err != nil {
@@ -774,8 +716,6 @@ func TestNewHTTP3Server(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"nil",
-			[]string{},
-			[]string{actCheckNoError},
 			&condition{
 				addr: ln.Addr().String(),
 				h:    &testHandler{id: "test"},
@@ -787,8 +727,6 @@ func TestNewHTTP3Server(t *testing.T) {
 		),
 		gen(
 			"zero config",
-			[]string{},
-			[]string{actCheckNoError},
 			&condition{
 				addr: ln.Addr().String(),
 				h:    &testHandler{id: "test"},
@@ -806,8 +744,6 @@ func TestNewHTTP3Server(t *testing.T) {
 		),
 		gen(
 			"full config",
-			[]string{},
-			[]string{actCheckNoError},
 			&condition{
 				addr: ln.Addr().String(),
 				h:    &testHandler{id: "test"},
@@ -839,8 +775,6 @@ func TestNewHTTP3Server(t *testing.T) {
 		),
 		gen(
 			"invalid TLS Config",
-			[]string{cndInvalidTLSConfig},
-			[]string{actCheckError},
 			&condition{
 				addr: ln.Addr().String(),
 				h:    &testHandler{id: "test"},
@@ -858,13 +792,11 @@ func TestNewHTTP3Server(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			srv, err := newHTTP3Server(tt.C().addr, tt.C().h, tt.C().c)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+		t.Run(tt.Name, func(t *testing.T) {
+			srv, err := newHTTP3Server(tt.C.addr, tt.C.h, tt.C.c)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 			if srv != nil {
 				srv.Shutdown(context.Background())
 			}
@@ -876,7 +808,7 @@ func TestNewHTTP3Server(t *testing.T) {
 				cmpopts.IgnoreFields(tls.Config{}, "RootCAs", "ClientCAs"),
 				cmpopts.IgnoreTypes(http.HandlerFunc(nil)), // Skip alt-svc middlewarte.
 			}
-			testutil.Diff(t, tt.A().svr, srv, opts...)
+			testutil.Diff(t, tt.A.svr, srv, opts...)
 		})
 	}
 }
@@ -965,16 +897,10 @@ func TestRegisterProfile(t *testing.T) {
 		handler http.Handler
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"index handler",
-			[]string{},
-			[]string{},
 			&condition{
 				enabled: true,
 			},
@@ -985,8 +911,6 @@ func TestRegisterProfile(t *testing.T) {
 		),
 		gen(
 			"cmdline handler",
-			[]string{},
-			[]string{},
 			&condition{
 				enabled: true,
 			},
@@ -997,8 +921,6 @@ func TestRegisterProfile(t *testing.T) {
 		),
 		gen(
 			"profile handler",
-			[]string{},
-			[]string{},
 			&condition{
 				enabled: true,
 			},
@@ -1009,8 +931,6 @@ func TestRegisterProfile(t *testing.T) {
 		),
 		gen(
 			"symbol handler",
-			[]string{},
-			[]string{},
 			&condition{
 				enabled: true,
 			},
@@ -1021,8 +941,6 @@ func TestRegisterProfile(t *testing.T) {
 		),
 		gen(
 			"trace handler",
-			[]string{},
-			[]string{},
 			&condition{
 				enabled: true,
 			},
@@ -1033,8 +951,6 @@ func TestRegisterProfile(t *testing.T) {
 		),
 		gen(
 			"profile disabled",
-			[]string{},
-			[]string{},
 			&condition{
 				enabled: false,
 			},
@@ -1045,17 +961,15 @@ func TestRegisterProfile(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			mux := &testMux{
 				hs: map[string]http.Handler{},
 			}
-			registerProfile(mux, tt.C().enabled)
-			h := mux.hs[tt.A().path]
-			testutil.Diff(t, tt.A().handler, h, cmp.Comparer(testutil.ComparePointer[http.Handler]))
+			registerProfile(mux, tt.C.enabled)
+			h := mux.hs[tt.A.path]
+			testutil.Diff(t, tt.A.handler, h, cmp.Comparer(testutil.ComparePointer[http.Handler]))
 		})
 	}
 }
@@ -1068,16 +982,11 @@ func TestRegisterExpvar(t *testing.T) {
 		path    string
 		handler http.Handler
 	}
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"register",
-			[]string{},
-			[]string{},
 			&condition{
 				enabled: true,
 			},
@@ -1088,8 +997,6 @@ func TestRegisterExpvar(t *testing.T) {
 		),
 		gen(
 			"disabled",
-			[]string{},
-			[]string{},
 			&condition{
 				enabled: false,
 			},
@@ -1100,17 +1007,15 @@ func TestRegisterExpvar(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			mux := &testMux{
 				hs: map[string]http.Handler{},
 			}
-			registerExpvar(mux, tt.C().enabled)
-			h := mux.hs[tt.A().path]
-			testutil.Diff(t, tt.A().handler, h, cmp.Comparer(testutil.ComparePointer[http.Handler]))
+			registerExpvar(mux, tt.C.enabled)
+			h := mux.hs[tt.A.path]
+			testutil.Diff(t, tt.A.handler, h, cmp.Comparer(testutil.ComparePointer[http.Handler]))
 		})
 	}
 }

@@ -40,10 +40,6 @@ func TestMiddleware(t *testing.T) {
 		status int
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	cert, _ := os.ReadFile(certPath)
 	fp, _ := os.ReadFile(fpPath)
 	failCert, _ := os.ReadFile(failCertPath)
@@ -55,8 +51,6 @@ func TestMiddleware(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"valid client cert and fingerprint",
-			[]string{},
-			[]string{},
 			&condition{
 				method:     http.MethodGet,
 				certHeader: "X-SSL-Client-Cert",
@@ -72,8 +66,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"no client cert",
-			[]string{},
-			[]string{},
 			&condition{
 				method:   http.MethodGet,
 				fpHeader: "X-SSL-Client-Fingerprint",
@@ -88,8 +80,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"no necessary fingerprint",
-			[]string{},
-			[]string{},
 			&condition{
 				method:     http.MethodGet,
 				certHeader: "X-SSL-Client-Cert",
@@ -105,8 +95,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"no unnecessary fingerprint",
-			[]string{},
-			[]string{},
 			&condition{
 				method:     http.MethodGet,
 				certHeader: "X-SSL-Client-Cert",
@@ -121,8 +109,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"invalid client cert",
-			[]string{},
-			[]string{},
 			&condition{
 				method:     http.MethodGet,
 				certHeader: "X-SSL-Client-Cert",
@@ -138,8 +124,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"fail to verify the client cert",
-			[]string{},
-			[]string{},
 			&condition{
 				method:     http.MethodGet,
 				certHeader: "X-SSL-Client-Cert",
@@ -155,8 +139,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"fingerprint not matched",
-			[]string{},
-			[]string{},
 			&condition{
 				method:     http.MethodGet,
 				certHeader: "X-SSL-Client-Cert",
@@ -172,8 +154,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"expired client cert",
-			[]string{},
-			[]string{},
 			&condition{
 				method:     http.MethodGet,
 				certHeader: "X-SSL-Client-Cert",
@@ -189,8 +169,6 @@ func TestMiddleware(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
 	rootCAs := []string{rootCAPath}
 	roots := x509.NewCertPool()
 
@@ -205,21 +183,21 @@ func TestMiddleware(t *testing.T) {
 		Roots: roots,
 	}
 
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 
 			// Prepare the headercert middleware
 			headerCertMiddleware := &headerCert{
 				eh:         utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
 				opts:       opts,
-				certHeader: tt.C().certHeader,
-				fpHeader:   tt.C().fpHeader,
+				certHeader: tt.C.certHeader,
+				fpHeader:   tt.C.fpHeader,
 			}
 
 			// Create a test request
-			req := httptest.NewRequest(tt.C().method, "http://test.com", nil)
-			for k, v := range tt.C().headers {
+			req := httptest.NewRequest(tt.C.method, "http://test.com", nil)
+			for k, v := range tt.C.headers {
 				req.Header.Set(k, v)
 			}
 
@@ -232,7 +210,7 @@ func TestMiddleware(t *testing.T) {
 			})).ServeHTTP(resp, req)
 
 			// Verify the status code
-			testutil.Diff(t, tt.A().status, resp.Code)
+			testutil.Diff(t, tt.A.status, resp.Code)
 		})
 	}
 }

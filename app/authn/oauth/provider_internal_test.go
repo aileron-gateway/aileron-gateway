@@ -28,18 +28,10 @@ func TestNewClient(t *testing.T) {
 		client *client
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndValidValues := tb.Condition("valid values", "input valid values")
-	actCheckClient := tb.Action("check client", "check the returned client values")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"base and paths",
-			[]string{cndValidValues},
-			[]string{actCheckClient},
 			&condition{
 				spec: &v1.OAuthClient{
 					ID:       "test-id",
@@ -59,8 +51,6 @@ func TestNewClient(t *testing.T) {
 		),
 		gen(
 			"fill audience",
-			[]string{cndValidValues},
-			[]string{actCheckClient},
 			&condition{
 				spec: &v1.OAuthClient{
 					ID:       "test-id",
@@ -76,13 +66,11 @@ func TestNewClient(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			c, _ := newClient(tt.C().spec)
-			testutil.Diff(t, tt.A().client, c, cmp.AllowUnexported(client{}))
+		t.Run(tt.Name, func(t *testing.T) {
+			c, _ := newClient(tt.C.spec)
+			testutil.Diff(t, tt.A.client, c, cmp.AllowUnexported(client{}))
 		})
 	}
 }
@@ -99,22 +87,10 @@ func TestNewProvider(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndBaseURL := tb.Condition("base url", "non empty base url is set")
-	cndPaths := tb.Condition("paths", "target paths are not empty")
-	cndInvalidBaseURL := tb.Condition("invalid base url", "invalid characters are in the base url")
-	actCheckError := tb.Action("error", "check that an error was returned")
-	actCheckNoError := tb.Action("no error", "check that no error was returned")
-	actCheckURL := tb.Action("check url", "check the updated endpoint urls")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"base and paths",
-			[]string{cndBaseURL, cndPaths},
-			[]string{actCheckURL, actCheckNoError},
 			&condition{
 				spec: &v1.OAuthProvider{
 					Issuer:  "http://test.com/issuer",
@@ -145,8 +121,6 @@ func TestNewProvider(t *testing.T) {
 		),
 		gen(
 			"empty base url",
-			[]string{cndPaths},
-			[]string{actCheckURL, actCheckNoError},
 			&condition{
 				spec: &v1.OAuthProvider{
 					Issuer:  "http://test.com/issuer",
@@ -177,8 +151,6 @@ func TestNewProvider(t *testing.T) {
 		),
 		gen(
 			"empty path",
-			[]string{cndBaseURL},
-			[]string{actCheckURL, actCheckNoError},
 			&condition{
 				spec: &v1.OAuthProvider{
 					BaseURL: "http://test.com",
@@ -195,8 +167,6 @@ func TestNewProvider(t *testing.T) {
 		),
 		gen(
 			"path join error",
-			[]string{cndBaseURL, cndPaths, cndInvalidBaseURL},
-			[]string{actCheckURL, actCheckError},
 			&condition{
 				spec: &v1.OAuthProvider{
 					BaseURL: "http://test.com\n",
@@ -213,13 +183,11 @@ func TestNewProvider(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			p, err := newProvider(tt.C().spec, tt.C().rt)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+		t.Run(tt.Name, func(t *testing.T) {
+			p, err := newProvider(tt.C.spec, tt.C.rt)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 
 			if p != nil && p.discoveryEP != "" {
 				p.close = make(chan struct{})
@@ -230,7 +198,7 @@ func TestNewProvider(t *testing.T) {
 				cmp.AllowUnexported(provider{}),
 				cmpopts.IgnoreFields(provider{}, "lg", "rt", "ticker", "close"),
 			}
-			testutil.Diff(t, tt.A().provider, p, opts...)
+			testutil.Diff(t, tt.A.provider, p, opts...)
 		})
 	}
 }
@@ -245,21 +213,10 @@ func TestProvider_discover(t *testing.T) {
 		provider *provider
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndValidDiscovery := tb.Condition("discovery", "valid discovery endpoint set")
-	cndOldValue := tb.Condition("old value", "old values are already exists")
-	cndExpectError := tb.Condition("expect error", "input error-able condition")
-	actCheckUpdated := tb.Action("check updated", "check that old values are updated by new ones")
-	actCheckNoUpdated := tb.Action("check no update", "check that old values are not updated by new ones")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"update with new value",
-			[]string{cndValidDiscovery},
-			[]string{actCheckUpdated},
 			&condition{
 				provider: &provider{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -295,8 +252,6 @@ func TestProvider_discover(t *testing.T) {
 		),
 		gen(
 			"respect old value",
-			[]string{cndValidDiscovery, cndOldValue},
-			[]string{actCheckNoUpdated},
 			&condition{
 				provider: &provider{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -339,8 +294,6 @@ func TestProvider_discover(t *testing.T) {
 		),
 		gen(
 			"invalid url returned",
-			[]string{cndValidDiscovery, cndOldValue, cndExpectError},
-			[]string{actCheckNoUpdated},
 			&condition{
 				provider: &provider{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -363,8 +316,6 @@ func TestProvider_discover(t *testing.T) {
 		),
 		gen(
 			"request generate error",
-			[]string{cndValidDiscovery, cndExpectError},
-			[]string{actCheckNoUpdated},
 			&condition{
 				provider: &provider{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -387,8 +338,6 @@ func TestProvider_discover(t *testing.T) {
 		),
 		gen(
 			"parse invalid url",
-			[]string{cndValidDiscovery, cndExpectError},
-			[]string{actCheckNoUpdated},
 			&condition{
 				provider: &provider{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -411,8 +360,6 @@ func TestProvider_discover(t *testing.T) {
 		),
 		gen(
 			"round trip error",
-			[]string{cndValidDiscovery, cndExpectError},
-			[]string{actCheckNoUpdated},
 			&condition{
 				provider: &provider{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -434,8 +381,6 @@ func TestProvider_discover(t *testing.T) {
 		),
 		gen(
 			"response body read error",
-			[]string{cndValidDiscovery, cndExpectError},
-			[]string{actCheckNoUpdated},
 			&condition{
 				provider: &provider{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -458,8 +403,6 @@ func TestProvider_discover(t *testing.T) {
 		),
 		gen(
 			"500 server error",
-			[]string{cndValidDiscovery, cndExpectError},
-			[]string{actCheckNoUpdated},
 			&condition{
 				provider: &provider{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -480,22 +423,20 @@ func TestProvider_discover(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			go func() {
 				time.Sleep(10 * time.Millisecond)
-				close(tt.C().provider.close)
+				close(tt.C.provider.close)
 			}()
-			tt.C().provider.discover()
+			tt.C.provider.discover()
 
 			opts := []cmp.Option{
 				cmp.AllowUnexported(provider{}),
 				cmpopts.IgnoreFields(provider{}, "lg", "rt", "ticker", "close"),
 			}
-			testutil.Diff(t, tt.A().provider, tt.C().provider, opts...)
+			testutil.Diff(t, tt.A.provider, tt.C.provider, opts...)
 		})
 	}
 }

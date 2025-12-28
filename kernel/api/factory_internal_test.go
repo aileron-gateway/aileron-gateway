@@ -24,21 +24,10 @@ func TestNewFactoryAPI(t *testing.T) {
 		a *FactoryAPI
 	}
 
-	cndNewDefault := "new default"
-	actCheckInitialized := "check initialized "
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndNewDefault, "create a new instance")
-	tb.Action(actCheckInitialized, "check that the returned instance is initialized with expected values")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"new instance",
-			[]string{cndNewDefault},
-			[]string{actCheckInitialized},
 			&condition{},
 			&action{
 				a: &FactoryAPI{
@@ -50,13 +39,11 @@ func TestNewFactoryAPI(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			a := NewFactoryAPI()
-			testutil.Diff(t, tt.A().a, a, cmp.AllowUnexported(FactoryAPI{}))
+			testutil.Diff(t, tt.A.a, a, cmp.AllowUnexported(FactoryAPI{}))
 		})
 	}
 }
@@ -85,31 +72,10 @@ func TestFactoryAPI_Register(t *testing.T) {
 		err       error
 	}
 
-	cndRegisterOne := "1 resource"
-	cndRegisterMultiple := "multiple resources"
-	cndRegisterNil := "register nil"
-	cndRegisterDuplicateKey := "duplicate key"
-	actCheckRegistered := "check registered resources"
-	actCheckNoError := "no error"
-	actCheckError := "non-nil error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndRegisterOne, "register 1 non-nil resource")
-	tb.Condition(cndRegisterMultiple, "register multiple non-nil resource with different keys")
-	tb.Condition(cndRegisterNil, "try to register nil resource")
-	tb.Condition(cndRegisterDuplicateKey, "try to register resources with the same key")
-	tb.Action(actCheckRegistered, "check that the registered resources are the same as expected")
-	tb.Action(actCheckNoError, "check that there is no error")
-	tb.Action(actCheckError, "check that a non-nil error was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"register 1 resource",
-			[]string{cndRegisterOne},
-			[]string{actCheckRegistered, actCheckNoError},
 			&condition{
 				keys:      []string{"test"},
 				resources: []Resource{&noopResource{ID: "foo"}},
@@ -122,8 +88,6 @@ func TestFactoryAPI_Register(t *testing.T) {
 		),
 		gen(
 			"register multiple resources",
-			[]string{cndRegisterMultiple},
-			[]string{actCheckRegistered, actCheckNoError},
 			&condition{
 				keys:      []string{"test1", "test2"},
 				resources: []Resource{&noopResource{ID: "foo"}, &noopResource{ID: "bar"}},
@@ -137,8 +101,6 @@ func TestFactoryAPI_Register(t *testing.T) {
 		),
 		gen(
 			"register nil",
-			[]string{cndRegisterNil},
-			[]string{actCheckRegistered, actCheckNoError},
 			&condition{
 				keys:      []string{"test"},
 				resources: []Resource{nil},
@@ -149,8 +111,6 @@ func TestFactoryAPI_Register(t *testing.T) {
 		),
 		gen(
 			"duplicate key",
-			[]string{cndRegisterDuplicateKey},
-			[]string{actCheckRegistered, actCheckError},
 			&condition{
 				keys:      []string{"test", "test"},
 				resources: []Resource{&noopResource{ID: "foo"}, &noopResource{ID: "bar"}},
@@ -168,19 +128,17 @@ func TestFactoryAPI_Register(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			a := NewFactoryAPI()
 
 			var err error
-			for i := range tt.C().keys {
-				err = a.Register(tt.C().keys[i], tt.C().resources[i])
+			for i := range tt.C.keys {
+				err = a.Register(tt.C.keys[i], tt.C.resources[i])
 			}
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
-			testutil.Diff(t, tt.A().resources, a.resources)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
+			testutil.Diff(t, tt.A.resources, a.resources)
 		})
 	}
 }
@@ -226,27 +184,10 @@ func TestFactoryAPI_delete(t *testing.T) {
 		err        error
 	}
 
-	cndErrorDelete := "delete error"
-	cndWrongType := "wrong content"
-	cndUnsupportedFormat := "unsupported format"
-	actCheckNoError := "no error"
-	actCheckError := "non-nil error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndErrorDelete, "error occurred in delete method")
-	tb.Condition(cndWrongType, "content in the request is invalid")
-	tb.Condition(cndUnsupportedFormat, "specify unsupported format")
-	tb.Action(actCheckNoError, "check that there is no error")
-	tb.Action(actCheckError, "check that a non-nil error was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"Delete nothing",
-			[]string{},
-			[]string{actCheckNoError},
 			&condition{
 				a:        NewFactoryAPI(),
 				resource: &testResource{},
@@ -264,8 +205,6 @@ func TestFactoryAPI_delete(t *testing.T) {
 		),
 		gen(
 			"Delete object",
-			[]string{},
-			[]string{actCheckNoError},
 			&condition{
 				a: &FactoryAPI{
 					protoStore: map[string]protoreflect.ProtoMessage{"test1/test2/test3/test4": &k.Reference{}},
@@ -286,8 +225,6 @@ func TestFactoryAPI_delete(t *testing.T) {
 		),
 		gen(
 			"Delete fails",
-			[]string{cndErrorDelete},
-			[]string{actCheckError},
 			&condition{
 				a:        NewFactoryAPI(),
 				resource: &testResource{err: &er.Error{}}, // Use APIError for dummy.
@@ -306,8 +243,6 @@ func TestFactoryAPI_delete(t *testing.T) {
 		),
 		gen(
 			"Invalid content type",
-			[]string{cndWrongType},
-			[]string{actCheckError},
 			&condition{
 				a:        NewFactoryAPI(),
 				resource: &testResource{},
@@ -330,8 +265,6 @@ func TestFactoryAPI_delete(t *testing.T) {
 		),
 		gen(
 			"Invalid format",
-			[]string{cndUnsupportedFormat},
-			[]string{actCheckError},
 			&condition{
 				a:        NewFactoryAPI(),
 				resource: &testResource{},
@@ -353,17 +286,15 @@ func TestFactoryAPI_delete(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			a := tt.C().a
-			err := a.delete(context.Background(), tt.C().req, tt.C().resource)
+		t.Run(tt.Name, func(t *testing.T) {
+			a := tt.C.a
+			err := a.delete(context.Background(), tt.C.req, tt.C.resource)
 
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
-			testutil.Diff(t, tt.A().objStore, a.objStore)
-			testutil.Diff(t, tt.A().protoStore, a.protoStore)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
+			testutil.Diff(t, tt.A.objStore, a.objStore)
+			testutil.Diff(t, tt.A.protoStore, a.protoStore)
 		})
 	}
 }
@@ -381,29 +312,10 @@ func TestFactoryAPI_post(t *testing.T) {
 		err        error
 	}
 
-	cndErrorPost := "post error"
-	cndDuplicateKey := "duplicate key"
-	cndWrongType := "wrong content"
-	cndUnsupportedFormat := "unsupported format"
-	actCheckNoError := "no error"
-	actCheckError := "non-nil error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndErrorPost, "error occurred in post method")
-	tb.Condition(cndDuplicateKey, "post manifest with the same key")
-	tb.Condition(cndWrongType, "content in the request is invalid")
-	tb.Condition(cndUnsupportedFormat, "specify unsupported format")
-	tb.Action(actCheckNoError, "check that there is no error")
-	tb.Action(actCheckError, "check that a non-nil error was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"Post manifest",
-			[]string{},
-			[]string{actCheckNoError},
 			&condition{
 				a:        NewFactoryAPI(),
 				resource: &testResource{},
@@ -430,8 +342,6 @@ func TestFactoryAPI_post(t *testing.T) {
 		),
 		gen(
 			"duplicate key",
-			[]string{cndDuplicateKey},
-			[]string{actCheckNoError},
 			&condition{
 				a: &FactoryAPI{
 					protoStore: map[string]protoreflect.ProtoMessage{"test1/test2/test3/test4": nil},
@@ -455,8 +365,6 @@ func TestFactoryAPI_post(t *testing.T) {
 		),
 		gen(
 			"Post fails",
-			[]string{cndErrorPost},
-			[]string{actCheckError},
 			&condition{
 				a:        NewFactoryAPI(),
 				resource: &testResource{err: &er.Error{}}, // Use APIError for dummy.
@@ -475,8 +383,6 @@ func TestFactoryAPI_post(t *testing.T) {
 		),
 		gen(
 			"Invalid content type",
-			[]string{cndWrongType},
-			[]string{actCheckError},
 			&condition{
 				a:        NewFactoryAPI(),
 				resource: &testResource{},
@@ -499,8 +405,6 @@ func TestFactoryAPI_post(t *testing.T) {
 		),
 		gen(
 			"Unsupported format",
-			[]string{cndUnsupportedFormat},
-			[]string{actCheckError},
 			&condition{
 				a:        NewFactoryAPI(),
 				resource: &testResource{},
@@ -522,17 +426,15 @@ func TestFactoryAPI_post(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			a := tt.C().a
-			err := a.post(context.Background(), tt.C().req, tt.C().resource)
+		t.Run(tt.Name, func(t *testing.T) {
+			a := tt.C.a
+			err := a.post(context.Background(), tt.C.req, tt.C.resource)
 
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
-			testutil.Diff(t, tt.A().objStore, a.objStore)
-			testutil.Diff(t, tt.A().protoStore, a.protoStore, cmpopts.IgnoreUnexported(k.Resource{}, k.Metadata{}))
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
+			testutil.Diff(t, tt.A.objStore, a.objStore)
+			testutil.Diff(t, tt.A.protoStore, a.protoStore, cmpopts.IgnoreUnexported(k.Resource{}, k.Metadata{}))
 		})
 	}
 }
@@ -551,37 +453,10 @@ func TestFactoryAPI_get(t *testing.T) {
 		err        error
 	}
 
-	cndAcceptJSON := "accept JSON"
-	cndAcceptYAML := "accept YAML"
-	cndAcceptProtoMessage := "accept ProtoMessage"
-	cndDefault := "use default"
-	cndErrorGet := "get error"
-	cndWrongType := "wrong content"
-	cndUnsupportedFormat := "unsupported format"
-	actCheckObject := "check returned object"
-	actCheckNoError := "no error"
-	actCheckError := "non-nil error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndAcceptJSON, "specify accept parameter to get JSON response")
-	tb.Condition(cndAcceptYAML, "specify accept parameter to get YAML response")
-	tb.Condition(cndAcceptProtoMessage, "specify accept parameter to get ProtoMessage response")
-	tb.Condition(cndDefault, "specify namespace and name to use default ProtoMessage")
-	tb.Condition(cndErrorGet, "error occurred in get method")
-	tb.Condition(cndWrongType, "content in the request is invalid")
-	tb.Condition(cndUnsupportedFormat, "specify unsupported format")
-	tb.Action(actCheckObject, "check that the returned object is the same as expected")
-	tb.Action(actCheckNoError, "check that there is no error")
-	tb.Action(actCheckError, "check that a non-nil error was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"Get new instance",
-			[]string{},
-			[]string{actCheckObject, actCheckNoError},
 			&condition{
 				a: &FactoryAPI{
 					protoStore: map[string]protoreflect.ProtoMessage{
@@ -621,8 +496,6 @@ func TestFactoryAPI_get(t *testing.T) {
 		),
 		gen(
 			"Get existing instance",
-			[]string{},
-			[]string{actCheckObject, actCheckNoError},
 			&condition{
 				a: &FactoryAPI{
 					protoStore: map[string]protoreflect.ProtoMessage{
@@ -662,8 +535,6 @@ func TestFactoryAPI_get(t *testing.T) {
 		),
 		gen(
 			"accept as json",
-			[]string{cndAcceptJSON},
-			[]string{actCheckNoError},
 			&condition{
 				a: &FactoryAPI{
 					protoStore: map[string]protoreflect.ProtoMessage{
@@ -702,8 +573,6 @@ func TestFactoryAPI_get(t *testing.T) {
 		),
 		gen(
 			"accept as yaml",
-			[]string{cndAcceptYAML},
-			[]string{actCheckObject, actCheckNoError},
 			&condition{
 				a: &FactoryAPI{
 					protoStore: map[string]protoreflect.ProtoMessage{
@@ -743,8 +612,6 @@ func TestFactoryAPI_get(t *testing.T) {
 		),
 		gen(
 			"accept as proto message",
-			[]string{cndAcceptProtoMessage},
-			[]string{actCheckObject, actCheckNoError},
 			&condition{
 				a: &FactoryAPI{
 					protoStore: map[string]protoreflect.ProtoMessage{
@@ -790,8 +657,6 @@ func TestFactoryAPI_get(t *testing.T) {
 		),
 		gen(
 			"use template",
-			[]string{cndDefault, cndAcceptProtoMessage},
-			[]string{actCheckObject, actCheckNoError},
 			&condition{
 				a:        &FactoryAPI{},
 				resource: &testResource{},
@@ -809,8 +674,6 @@ func TestFactoryAPI_get(t *testing.T) {
 		),
 		gen(
 			"Get fails",
-			[]string{cndErrorGet},
-			[]string{actCheckObject, actCheckError},
 			&condition{
 				a: &FactoryAPI{
 					protoStore: map[string]protoreflect.ProtoMessage{"test1/test2/test3/test4": nil},
@@ -831,8 +694,6 @@ func TestFactoryAPI_get(t *testing.T) {
 		),
 		gen(
 			"Invalid content type",
-			[]string{cndWrongType},
-			[]string{actCheckObject, actCheckError},
 			&condition{
 				a:        NewFactoryAPI(),
 				resource: &testResource{},
@@ -855,8 +716,6 @@ func TestFactoryAPI_get(t *testing.T) {
 		),
 		gen(
 			"Unsupported format",
-			[]string{cndUnsupportedFormat},
-			[]string{actCheckObject, actCheckError},
 			&condition{
 				a:        NewFactoryAPI(),
 				resource: &testResource{},
@@ -878,24 +737,22 @@ func TestFactoryAPI_get(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			a := tt.C().a
-			obj, err := a.get(context.Background(), tt.C().req, tt.C().resource)
+		t.Run(tt.Name, func(t *testing.T) {
+			a := tt.C.a
+			obj, err := a.get(context.Background(), tt.C.req, tt.C.resource)
 
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
-			testutil.Diff(t, tt.A().objStore, a.objStore)
-			testutil.Diff(t, tt.A().protoStore, a.protoStore, cmpopts.IgnoreUnexported(k.Resource{}, k.Metadata{}))
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
+			testutil.Diff(t, tt.A.objStore, a.objStore)
+			testutil.Diff(t, tt.A.protoStore, a.protoStore, cmpopts.IgnoreUnexported(k.Resource{}, k.Metadata{}))
 
 			// Because JSON does not ensure the order of objects init,
 			// except the check for JSON returned by the get method.
 			// Note that the protoreflect package intentionally use single space " " and double space "  " randomly
 			// when marshalling ProtoMessage to JSON.
-			if tt.C().req.Params != nil && tt.C().req.Params[KeyAccept] != string(FormatJSON) {
-				testutil.Diff(t, tt.A().obj, obj, cmpopts.IgnoreUnexported(k.Resource{}, k.Metadata{}))
+			if tt.C.req.Params != nil && tt.C.req.Params[KeyAccept] != string(FormatJSON) {
+				testutil.Diff(t, tt.A.obj, obj, cmpopts.IgnoreUnexported(k.Resource{}, k.Metadata{}))
 			}
 		})
 	}

@@ -37,19 +37,10 @@ func TestMutate(t *testing.T) {
 		manifest protoreflect.ProtoMessage
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndDefault := tb.Condition("default", "input default manifest")
-	cndNoLB := tb.Condition("no LB", "default values are applied to LB upstream")
-	actCheckMutated := tb.Action("check mutated", "check that the intended fields are mutated")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"mutate default",
-			[]string{cndDefault},
-			[]string{actCheckMutated},
 			&condition{
 				manifest: Resource.Default(),
 			},
@@ -67,8 +58,6 @@ func TestMutate(t *testing.T) {
 		),
 		gen(
 			"mutate default",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: Resource.Default(),
 			},
@@ -86,8 +75,6 @@ func TestMutate(t *testing.T) {
 		),
 		gen(
 			"mutate lb spec",
-			[]string{cndNoLB},
-			[]string{actCheckMutated},
 			&condition{
 				manifest: &v1.ReverseProxyHandler{
 					APIVersion: apiVersion,
@@ -126,19 +113,17 @@ func TestMutate(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			manifest := Resource.Mutate(tt.C().manifest)
+		t.Run(tt.Name, func(t *testing.T) {
+			manifest := Resource.Mutate(tt.C.manifest)
 
 			opts := []cmp.Option{
 				cmpopts.IgnoreUnexported(v1.ReverseProxyHandler{}, v1.ReverseProxyHandlerSpec{}),
 				cmpopts.IgnoreUnexported(v1.LoadBalancerSpec{}, v1.UpstreamSpec{}, v1.PathMatcherSpec{}),
 				cmpopts.IgnoreUnexported(k.Metadata{}, k.Status{}, k.Reference{}),
 			}
-			testutil.Diff(t, tt.A().manifest, manifest, opts...)
+			testutil.Diff(t, tt.A.manifest, manifest, opts...)
 		})
 	}
 }
@@ -154,10 +139,6 @@ func TestCreate(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	server := api.NewContainerAPI()
 	postTestResource(server, "roundTripper", http.DefaultTransport)
 
@@ -165,7 +146,6 @@ func TestCreate(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"create with default manifest",
-			[]string{}, []string{},
 			&condition{
 				manifest: Resource.Default(),
 			},
@@ -182,7 +162,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create with round tripper",
-			[]string{}, []string{},
 			&condition{
 				manifest: &v1.ReverseProxyHandler{
 					Metadata: &k.Metadata{},
@@ -204,7 +183,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"fail to get round tripper",
-			[]string{}, []string{},
 			&condition{
 				manifest: &v1.ReverseProxyHandler{
 					Metadata: &k.Metadata{},
@@ -223,7 +201,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"fail to refer tripperware",
-			[]string{}, []string{},
 			&condition{
 				manifest: &v1.ReverseProxyHandler{
 					Metadata: &k.Metadata{},
@@ -244,7 +221,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"fail to create load balancer",
-			[]string{}, []string{},
 			&condition{
 				manifest: &v1.ReverseProxyHandler{
 					Metadata: &k.Metadata{},
@@ -269,14 +245,12 @@ func TestCreate(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			a := &API{}
-			rp, err := a.Create(server, tt.C().manifest)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+			rp, err := a.Create(server, tt.C.manifest)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 
 			opts := []cmp.Option{
 				cmp.Comparer(testutil.ComparePointer[log.Logger]),
@@ -284,7 +258,7 @@ func TestCreate(t *testing.T) {
 				cmp.AllowUnexported(utilhttp.DefaultErrorHandler{}),
 				cmp.AllowUnexported(reverseProxy{}),
 			}
-			testutil.Diff(t, tt.A().rp, rp, opts...)
+			testutil.Diff(t, tt.A.rp, rp, opts...)
 		})
 	}
 }
@@ -299,19 +273,6 @@ func TestNewLoadBalancers(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndInputNil := tb.Condition("input nil", "input nil specs")
-	cndNoUpstream := tb.Condition("no upstream", "no upstream")
-	cndWithHosts := tb.Condition("with hosts", "specs contains at least 1 host")
-	cndWithMethods := tb.Condition("with methods", "specs contains at least 1 method")
-	cndRoundRobin := tb.Condition("round robin", "round-robin load balancer")
-	cndRandom := tb.Condition("random", "random load balancer")
-	cndInvalidSpec := tb.Condition("invalid spec", "input an invalid spec which should result in an error")
-	actCheckError := tb.Action("error", "check that there is an error")
-	actCheckNoError := tb.Action("no error", "check that there is no error")
-	table := tb.Build()
-
 	mustMatcher := func(typ txtutil.MatchType, patterns ...string) txtutil.MatchFunc[string] {
 		mf, err := txtutil.NewStringMatcher(typ, patterns...)
 		if err != nil {
@@ -324,8 +285,6 @@ func TestNewLoadBalancers(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"input nil",
-			[]string{cndInputNil},
-			[]string{actCheckNoError},
 			&condition{
 				specs: nil,
 			},
@@ -336,8 +295,6 @@ func TestNewLoadBalancers(t *testing.T) {
 		),
 		gen(
 			"single path matcher",
-			[]string{cndNoUpstream, cndWithHosts, cndWithMethods},
-			[]string{actCheckNoError},
 			&condition{
 				specs: []*v1.LoadBalancerSpec{
 					{
@@ -363,8 +320,6 @@ func TestNewLoadBalancers(t *testing.T) {
 		),
 		gen(
 			"multiple path matchers",
-			[]string{cndNoUpstream, cndWithHosts, cndWithMethods},
-			[]string{actCheckNoError},
 			&condition{
 				specs: []*v1.LoadBalancerSpec{
 					{
@@ -395,8 +350,6 @@ func TestNewLoadBalancers(t *testing.T) {
 		),
 		gen(
 			"roundrobin/1 host/1 method",
-			[]string{cndNoUpstream, cndWithHosts, cndWithMethods},
-			[]string{actCheckNoError},
 			&condition{
 				specs: []*v1.LoadBalancerSpec{
 					{
@@ -426,8 +379,6 @@ func TestNewLoadBalancers(t *testing.T) {
 		),
 		gen(
 			"roundrobin/2 host2/2 methods",
-			[]string{cndNoUpstream, cndWithHosts, cndWithMethods},
-			[]string{actCheckNoError},
 			&condition{
 				specs: []*v1.LoadBalancerSpec{
 					{
@@ -457,8 +408,6 @@ func TestNewLoadBalancers(t *testing.T) {
 		),
 		gen(
 			"roundrobin/param matcher",
-			[]string{cndNoUpstream},
-			[]string{actCheckNoError},
 			&condition{
 				specs: []*v1.LoadBalancerSpec{
 					{
@@ -491,8 +440,6 @@ func TestNewLoadBalancers(t *testing.T) {
 		),
 		gen(
 			"roundrobin/0 upstream",
-			[]string{cndNoUpstream},
-			[]string{actCheckNoError},
 			&condition{
 				specs: []*v1.LoadBalancerSpec{
 					{
@@ -519,8 +466,6 @@ func TestNewLoadBalancers(t *testing.T) {
 		),
 		gen(
 			"roundrobin/1 upstream/weight 0",
-			[]string{cndRoundRobin},
-			[]string{actCheckNoError},
 			&condition{
 				specs: []*v1.LoadBalancerSpec{
 					{
@@ -549,8 +494,6 @@ func TestNewLoadBalancers(t *testing.T) {
 		),
 		gen(
 			"roundrobin/1 upstream/weight 1",
-			[]string{cndRoundRobin},
-			[]string{actCheckNoError},
 			&condition{
 				specs: []*v1.LoadBalancerSpec{
 					{
@@ -579,8 +522,6 @@ func TestNewLoadBalancers(t *testing.T) {
 		),
 		gen(
 			"roundrobin/2 upstream/weight contain 0",
-			[]string{cndRoundRobin},
-			[]string{actCheckNoError},
 			&condition{
 				specs: []*v1.LoadBalancerSpec{
 					{
@@ -610,8 +551,6 @@ func TestNewLoadBalancers(t *testing.T) {
 		),
 		gen(
 			"roundrobin/2 upstream/same weights",
-			[]string{cndRoundRobin},
-			[]string{actCheckNoError},
 			&condition{
 				specs: []*v1.LoadBalancerSpec{
 					{
@@ -641,8 +580,6 @@ func TestNewLoadBalancers(t *testing.T) {
 		),
 		gen(
 			"roundrobin/2 upstream/different weights",
-			[]string{cndRoundRobin},
-			[]string{actCheckNoError},
 			&condition{
 				specs: []*v1.LoadBalancerSpec{
 					{
@@ -672,8 +609,6 @@ func TestNewLoadBalancers(t *testing.T) {
 		),
 		gen(
 			"random",
-			[]string{cndRandom},
-			[]string{actCheckNoError},
 			&condition{
 				specs: []*v1.LoadBalancerSpec{
 					{
@@ -704,8 +639,6 @@ func TestNewLoadBalancers(t *testing.T) {
 		),
 		gen(
 			"maglev",
-			[]string{},
-			[]string{actCheckNoError},
 			&condition{
 				specs: []*v1.LoadBalancerSpec{
 					{
@@ -737,8 +670,6 @@ func TestNewLoadBalancers(t *testing.T) {
 		),
 		gen(
 			"ring hash",
-			[]string{},
-			[]string{actCheckNoError},
 			&condition{
 				specs: []*v1.LoadBalancerSpec{
 					{
@@ -770,8 +701,6 @@ func TestNewLoadBalancers(t *testing.T) {
 		),
 		gen(
 			"direct hash",
-			[]string{},
-			[]string{actCheckNoError},
 			&condition{
 				specs: []*v1.LoadBalancerSpec{
 					{
@@ -803,8 +732,6 @@ func TestNewLoadBalancers(t *testing.T) {
 		),
 		gen(
 			"path matcher create error",
-			[]string{cndInvalidSpec},
-			[]string{actCheckError},
 			&condition{
 				specs: []*v1.LoadBalancerSpec{
 					{
@@ -823,8 +750,6 @@ func TestNewLoadBalancers(t *testing.T) {
 		),
 		gen(
 			"path param matcher error",
-			[]string{cndInvalidSpec},
-			[]string{actCheckError},
 			&condition{
 				specs: []*v1.LoadBalancerSpec{
 					{
@@ -846,8 +771,6 @@ func TestNewLoadBalancers(t *testing.T) {
 		),
 		gen(
 			"header param matcher error",
-			[]string{cndInvalidSpec},
-			[]string{actCheckError},
 			&condition{
 				specs: []*v1.LoadBalancerSpec{
 					{
@@ -869,8 +792,6 @@ func TestNewLoadBalancers(t *testing.T) {
 		),
 		gen(
 			"query param matcher error",
-			[]string{cndInvalidSpec},
-			[]string{actCheckError},
 			&condition{
 				specs: []*v1.LoadBalancerSpec{
 					{
@@ -892,8 +813,6 @@ func TestNewLoadBalancers(t *testing.T) {
 		),
 		gen(
 			"upstream create error",
-			[]string{cndInvalidSpec},
-			[]string{actCheckError},
 			&condition{
 				specs: []*v1.LoadBalancerSpec{
 					{
@@ -919,13 +838,11 @@ func TestNewLoadBalancers(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			lbs, err := newLoadBalancers(http.DefaultTransport, tt.C().specs)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+		t.Run(tt.Name, func(t *testing.T) {
+			lbs, err := newLoadBalancers(http.DefaultTransport, tt.C.specs)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 
 			opts := []cmp.Option{
 				cmp.AllowUnexported(lbMatcher{}, loadbalancer{}),
@@ -941,8 +858,8 @@ func TestNewLoadBalancers(t *testing.T) {
 				cmpopts.IgnoreTypes(zlb.DirectHashW[upstream]{}),
 				cmpopts.IgnoreTypes(zlb.RingHash[upstream]{}),
 			}
-			testutil.Diff(t, tt.A().lbs, lbs, opts...)
-			// testutil.Diff(t, tt.A().upstreams, lbs., opts...)
+			testutil.Diff(t, tt.A.lbs, lbs, opts...)
+			// testutil.Diff(t, tt.A.upstreams, lbs., opts...)
 		})
 	}
 }
@@ -957,16 +874,10 @@ func TestNewUpstreams(t *testing.T) {
 		shouldErr bool
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"input nil",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: nil,
 			},
@@ -976,8 +887,6 @@ func TestNewUpstreams(t *testing.T) {
 		),
 		gen(
 			"1 valid spec",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.UpstreamSpec{
 					{
@@ -1000,8 +909,6 @@ func TestNewUpstreams(t *testing.T) {
 		),
 		gen(
 			"multiple valid specs",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.UpstreamSpec{
 					{
@@ -1035,8 +942,6 @@ func TestNewUpstreams(t *testing.T) {
 		),
 		gen(
 			"invalid spec",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.UpstreamSpec{
 					{
@@ -1052,8 +957,6 @@ func TestNewUpstreams(t *testing.T) {
 		),
 		gen(
 			"weight 0",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.UpstreamSpec{
 					{
@@ -1076,8 +979,6 @@ func TestNewUpstreams(t *testing.T) {
 		),
 		gen(
 			"weight -1",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.UpstreamSpec{
 					{
@@ -1093,20 +994,18 @@ func TestNewUpstreams(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			ups, err := newUpstreams(http.DefaultTransport, tt.C().specs)
-			if tt.A().shouldErr {
+		t.Run(tt.Name, func(t *testing.T) {
+			ups, err := newUpstreams(http.DefaultTransport, tt.C.specs)
+			if tt.A.shouldErr {
 				testutil.Diff(t, true, err != nil)
 			}
 			opts := []cmp.Option{
 				cmp.AllowUnexported(lbUpstream{}, noopUpstream{}),
 				cmpopts.IgnoreFields(lbUpstream{}, "closer"),
 			}
-			testutil.Diff(t, tt.A().ups, ups, opts...)
+			testutil.Diff(t, tt.A.ups, ups, opts...)
 		})
 	}
 }

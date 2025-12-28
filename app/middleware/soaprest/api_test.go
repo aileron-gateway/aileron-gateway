@@ -29,16 +29,10 @@ func TestCreate(t *testing.T) {
 		expect     any
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"create with default manifest",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: Resource.Default(),
 			},
@@ -60,8 +54,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create with modified simple converter",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.SOAPRESTMiddleware{
 					APIVersion: apiVersion,
@@ -101,8 +93,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create with modified rayfish converter",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.SOAPRESTMiddleware{
 					APIVersion: apiVersion,
@@ -144,8 +134,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create with modified badgerfish converter",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.SOAPRESTMiddleware{
 					APIVersion: apiVersion,
@@ -183,14 +171,12 @@ func TestCreate(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			server := api.NewContainerAPI()
 			a := &API{}
-			got, err := a.Create(server, tt.C().manifest)
+			got, err := a.Create(server, tt.C.manifest)
 			opts := []cmp.Option{
 				cmp.AllowUnexported(soapREST{}, zxml.JSONConverter{}, zxml.Simple{}),
 				cmpopts.IgnoreFields(soapREST{}, "eh"),
@@ -199,8 +185,8 @@ func TestCreate(t *testing.T) {
 				cmpopts.IgnoreFields(zxml.RayFish{}, "emptyVal"),
 				cmpopts.IgnoreFields(zxml.BadgerFish{}, "emptyVal"),
 			}
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
-			testutil.Diff(t, tt.A().expect, got, opts...)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
+			testutil.Diff(t, tt.A.expect, got, opts...)
 		})
 	}
 }

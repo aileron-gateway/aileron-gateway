@@ -33,10 +33,6 @@ func TestCreate(t *testing.T) {
 		expect     any
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	testRepl, _ := txtutil.NewStringReplacer(&kernel.ReplacerSpec{
 		Replacers: &kernel.ReplacerSpec_Fixed{
 			Fixed: &kernel.FixedReplacer{Value: "***"},
@@ -47,8 +43,6 @@ func TestCreate(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"default manifest",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: Resource.Default(),
 			},
@@ -61,8 +55,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"with request policy",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.HeaderPolicyMiddleware{
 					Metadata: &k.Metadata{},
@@ -102,8 +94,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"with response policy",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.HeaderPolicyMiddleware{
 					Metadata: &k.Metadata{},
@@ -143,8 +133,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"invalid request policy",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.HeaderPolicyMiddleware{
 					Metadata: &k.Metadata{},
@@ -171,8 +159,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"invalid response policy",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.HeaderPolicyMiddleware{
 					Metadata: &k.Metadata{},
@@ -199,15 +185,13 @@ func TestCreate(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			server := api.NewContainerAPI()
 
-			got, err := Resource.Create(server, tt.C().manifest)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+			got, err := Resource.Create(server, tt.C.manifest)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 
 			opts := []cmp.Option{
 				cmp.AllowUnexported(headerPolicy{}, policy{}),
@@ -215,7 +199,7 @@ func TestCreate(t *testing.T) {
 				cmp.Comparer(testutil.ComparePointer[core.ErrorHandler]),
 				cmp.Comparer(testutil.ComparePointer[txtutil.ReplaceFunc[string]]),
 			}
-			testutil.Diff(t, tt.A().expect, got, opts...)
+			testutil.Diff(t, tt.A.expect, got, opts...)
 		})
 	}
 }
@@ -230,10 +214,6 @@ func TestNewRewriters(t *testing.T) {
 		err   error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	testRepl, _ := txtutil.NewStringReplacer(&kernel.ReplacerSpec{
 		Replacers: &kernel.ReplacerSpec_Fixed{
 			Fixed: &kernel.FixedReplacer{Value: "***"},
@@ -244,8 +224,6 @@ func TestNewRewriters(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"nil map",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: nil,
 			},
@@ -255,8 +233,6 @@ func TestNewRewriters(t *testing.T) {
 		),
 		gen(
 			"1 spec",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.HeaderRewriteSpec{
 					{
@@ -277,8 +253,6 @@ func TestNewRewriters(t *testing.T) {
 		),
 		gen(
 			"2 specs",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.HeaderRewriteSpec{
 					{
@@ -308,8 +282,6 @@ func TestNewRewriters(t *testing.T) {
 		),
 		gen(
 			"empty header name",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.HeaderRewriteSpec{
 					{
@@ -328,8 +300,6 @@ func TestNewRewriters(t *testing.T) {
 		),
 		gen(
 			"contain nil",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.HeaderRewriteSpec{
 					nil,
@@ -341,8 +311,6 @@ func TestNewRewriters(t *testing.T) {
 		),
 		gen(
 			"error spec",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.HeaderRewriteSpec{
 					{
@@ -365,18 +333,16 @@ func TestNewRewriters(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			repls, err := newRewriters(tt.C().specs)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
+		t.Run(tt.Name, func(t *testing.T) {
+			repls, err := newRewriters(tt.C.specs)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
 
 			opts := []cmp.Option{
 				cmp.Comparer(testutil.ComparePointer[txtutil.ReplaceFunc[string]]),
 			}
-			testutil.Diff(t, tt.A().repls, repls, opts...)
+			testutil.Diff(t, tt.A.repls, repls, opts...)
 		})
 	}
 }
@@ -390,16 +356,10 @@ func TestCanonicalSlice(t *testing.T) {
 		headers []string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"nil slice",
-			[]string{},
-			[]string{},
 			&condition{
 				headers: nil,
 			},
@@ -409,8 +369,6 @@ func TestCanonicalSlice(t *testing.T) {
 		),
 		gen(
 			"1 value",
-			[]string{},
-			[]string{},
 			&condition{
 				headers: []string{"foo"},
 			},
@@ -420,8 +378,6 @@ func TestCanonicalSlice(t *testing.T) {
 		),
 		gen(
 			"2 values",
-			[]string{},
-			[]string{},
 			&condition{
 				headers: []string{"foo", "bar"},
 			},
@@ -431,13 +387,11 @@ func TestCanonicalSlice(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			result := canonicalSlice(tt.C().headers)
-			testutil.Diff(t, tt.A().headers, result)
+		t.Run(tt.Name, func(t *testing.T) {
+			result := canonicalSlice(tt.C.headers)
+			testutil.Diff(t, tt.A.headers, result)
 		})
 	}
 }
@@ -451,16 +405,10 @@ func TestCanonicalMapKey(t *testing.T) {
 		headers map[string]string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"nil map",
-			[]string{},
-			[]string{},
 			&condition{
 				headers: nil,
 			},
@@ -470,8 +418,6 @@ func TestCanonicalMapKey(t *testing.T) {
 		),
 		gen(
 			"1 value",
-			[]string{},
-			[]string{},
 			&condition{
 				headers: map[string]string{
 					"foo": "foo",
@@ -485,8 +431,6 @@ func TestCanonicalMapKey(t *testing.T) {
 		),
 		gen(
 			"2 values",
-			[]string{},
-			[]string{},
 			&condition{
 				headers: map[string]string{
 					"foo": "foo",
@@ -502,13 +446,11 @@ func TestCanonicalMapKey(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			result := canonicalMapKey(tt.C().headers)
-			testutil.Diff(t, tt.A().headers, result)
+		t.Run(tt.Name, func(t *testing.T) {
+			result := canonicalMapKey(tt.C.headers)
+			testutil.Diff(t, tt.A.headers, result)
 		})
 	}
 }

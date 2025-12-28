@@ -22,16 +22,10 @@ func TestError_Wrap(t *testing.T) {
 		err *Error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"wrap nil",
-			[]string{},
-			[]string{},
 			&condition{
 				err: &Error{
 					inner: nil,
@@ -46,8 +40,6 @@ func TestError_Wrap(t *testing.T) {
 		),
 		gen(
 			"wrap non-nil",
-			[]string{},
-			[]string{},
 			&condition{
 				err: &Error{
 					inner: nil,
@@ -62,8 +54,6 @@ func TestError_Wrap(t *testing.T) {
 		),
 		gen(
 			"wrap already existing non-nil",
-			[]string{},
-			[]string{},
 			&condition{
 				err: &Error{
 					inner: io.ErrUnexpectedEOF,
@@ -78,13 +68,11 @@ func TestError_Wrap(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			err := tt.C().err.Wrap(tt.C().wrap)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
+		t.Run(tt.Name, func(t *testing.T) {
+			err := tt.C.err.Wrap(tt.C.wrap)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
 		})
 	}
 }
@@ -98,16 +86,10 @@ func TestError_Unwrap(t *testing.T) {
 		err error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"nil error",
-			[]string{},
-			[]string{},
 			&condition{
 				err: &Error{
 					inner: nil,
@@ -119,8 +101,6 @@ func TestError_Unwrap(t *testing.T) {
 		),
 		gen(
 			"non nil error",
-			[]string{},
-			[]string{},
 			&condition{
 				err: &Error{
 					inner: io.EOF,
@@ -132,13 +112,11 @@ func TestError_Unwrap(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			err := tt.C().err.Unwrap()
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
+		t.Run(tt.Name, func(t *testing.T) {
+			err := tt.C.err.Unwrap()
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
 		})
 	}
 }
@@ -161,16 +139,10 @@ func TestError_Is(t *testing.T) {
 		is bool
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"nil",
-			[]string{},
-			[]string{},
 			&condition{
 				err:    nil,
 				target: nil,
@@ -181,8 +153,6 @@ func TestError_Is(t *testing.T) {
 		),
 		gen(
 			"match empty",
-			[]string{},
-			[]string{},
 			&condition{
 				err:    &Error{},
 				target: &Error{},
@@ -193,8 +163,6 @@ func TestError_Is(t *testing.T) {
 		),
 		gen(
 			"match all",
-			[]string{},
-			[]string{},
 			&condition{
 				err: &Error{
 					Package:     "err",
@@ -215,8 +183,6 @@ func TestError_Is(t *testing.T) {
 		),
 		gen(
 			"package not match",
-			[]string{},
-			[]string{},
 			&condition{
 				err:    &Error{Package: "err"},
 				target: &Error{},
@@ -227,8 +193,6 @@ func TestError_Is(t *testing.T) {
 		),
 		gen(
 			"Type not match",
-			[]string{},
-			[]string{},
 			&condition{
 				err:    &Error{Type: "err"},
 				target: &Error{},
@@ -239,8 +203,6 @@ func TestError_Is(t *testing.T) {
 		),
 		gen(
 			"description not match",
-			[]string{},
-			[]string{},
 			&condition{
 				err:    &Error{Description: "err"},
 				target: &Error{},
@@ -251,8 +213,6 @@ func TestError_Is(t *testing.T) {
 		),
 		gen(
 			"match after unwrap",
-			[]string{},
-			[]string{},
 			&condition{
 				err: &Error{Package: "test"},
 				target: &testWrapErr{
@@ -265,8 +225,6 @@ func TestError_Is(t *testing.T) {
 		),
 		gen(
 			"not match after unwrap",
-			[]string{},
-			[]string{},
 			&condition{
 				err: &Error{Package: "test"},
 				target: &testWrapErr{
@@ -279,13 +237,11 @@ func TestError_Is(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			is := tt.C().err.Is(tt.C().target)
-			testutil.Diff(t, tt.A().is, is)
+		t.Run(tt.Name, func(t *testing.T) {
+			is := tt.C.err.Is(tt.C.target)
+			testutil.Diff(t, tt.A.is, is)
 		})
 	}
 }
@@ -299,16 +255,10 @@ func TestError_Error(t *testing.T) {
 		err string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"all",
-			[]string{},
-			[]string{},
 			&condition{
 				err: &Error{
 					inner:       io.EOF,
@@ -324,12 +274,10 @@ func TestError_Error(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			testutil.Diff(t, tt.A().err, tt.C().err.Error())
+		t.Run(tt.Name, func(t *testing.T) {
+			testutil.Diff(t, tt.A.err, tt.C.err.Error())
 		})
 	}
 }

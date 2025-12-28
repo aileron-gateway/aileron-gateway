@@ -24,21 +24,10 @@ func TestNew(t *testing.T) {
 	type action struct {
 	}
 
-	CndInputNonZeroValues := "input non-zero values"
-	ActCheckExpected := "expected value"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(CndInputNonZeroValues, "input non-zero value")
-	tb.Action(ActCheckExpected, "check that an expected values returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"zero values",
-			[]string{},
-			[]string{ActCheckExpected},
 			&condition{
 				code:  "",
 				kind:  "",
@@ -50,8 +39,6 @@ func TestNew(t *testing.T) {
 		),
 		gen(
 			"non-zero values",
-			[]string{CndInputNonZeroValues},
-			[]string{ActCheckExpected},
 			&condition{
 				code:  "code",
 				kind:  "kind",
@@ -63,18 +50,16 @@ func TestNew(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			err := errorutil.New(tt.C().code, tt.C().kind, tt.C().msg, tt.C().stack, tt.C().err)
+		t.Run(tt.Name, func(t *testing.T) {
+			err := errorutil.New(tt.C.code, tt.C.kind, tt.C.msg, tt.C.stack, tt.C.err)
 
-			testutil.Diff(t, tt.C().code, err.Code())
-			testutil.Diff(t, tt.C().kind, err.Kind())
-			testutil.Diff(t, tt.C().msg, err.Error())
-			testutil.Diff(t, string(tt.C().stack), err.StackTrace())
-			testutil.Diff(t, tt.C().err, err.Unwrap(), cmpopts.EquateErrors())
+			testutil.Diff(t, tt.C.code, err.Code())
+			testutil.Diff(t, tt.C.kind, err.Kind())
+			testutil.Diff(t, tt.C.msg, err.Error())
+			testutil.Diff(t, string(tt.C.stack), err.StackTrace())
+			testutil.Diff(t, tt.C.err, err.Unwrap(), cmpopts.EquateErrors())
 		})
 	}
 }

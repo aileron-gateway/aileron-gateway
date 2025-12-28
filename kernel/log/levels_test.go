@@ -19,15 +19,10 @@ func TestLevelFromText(t *testing.T) {
 		expect log.LogLevel
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]().Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"Trace",
-			[]string{},
-			[]string{},
 			&condition{
 				level: log.Trace,
 			},
@@ -37,8 +32,6 @@ func TestLevelFromText(t *testing.T) {
 		),
 		gen(
 			"Debug",
-			[]string{},
-			[]string{},
 			&condition{
 				level: log.Debug,
 			},
@@ -48,8 +41,6 @@ func TestLevelFromText(t *testing.T) {
 		),
 		gen(
 			"INFO",
-			[]string{},
-			[]string{},
 			&condition{
 				level: log.Info,
 			},
@@ -59,8 +50,6 @@ func TestLevelFromText(t *testing.T) {
 		),
 		gen(
 			"WARN",
-			[]string{},
-			[]string{},
 			&condition{
 				level: log.Warn,
 			},
@@ -70,8 +59,6 @@ func TestLevelFromText(t *testing.T) {
 		),
 		gen(
 			"ERROR",
-			[]string{},
-			[]string{},
 			&condition{
 				level: log.Error,
 			},
@@ -81,8 +68,6 @@ func TestLevelFromText(t *testing.T) {
 		),
 		gen(
 			"FATAL",
-			[]string{},
-			[]string{},
 			&condition{
 				level: log.Fatal,
 			},
@@ -92,8 +77,6 @@ func TestLevelFromText(t *testing.T) {
 		),
 		gen(
 			"UNKNOWN",
-			[]string{},
-			[]string{},
 			&condition{
 				level: "UNKNOWN",
 			},
@@ -103,8 +86,6 @@ func TestLevelFromText(t *testing.T) {
 		),
 		gen(
 			"DeBug",
-			[]string{},
-			[]string{},
 			&condition{
 				level: "DeBug",
 			},
@@ -114,13 +95,11 @@ func TestLevelFromText(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			got := log.LevelFromText(tt.C().level)
-			testutil.Diff(t, tt.A().expect, got)
+		t.Run(tt.Name, func(t *testing.T) {
+			got := log.LevelFromText(tt.C.level)
+			testutil.Diff(t, tt.A.expect, got)
 		})
 	}
 }

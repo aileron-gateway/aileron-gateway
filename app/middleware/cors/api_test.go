@@ -28,16 +28,10 @@ func TestMutate(t *testing.T) {
 		manifest protoreflect.ProtoMessage
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"apply default values",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: Resource.Default(),
 			},
@@ -61,19 +55,17 @@ func TestMutate(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			msg := Resource.Mutate(tt.C().manifest)
+		t.Run(tt.Name, func(t *testing.T) {
+			msg := Resource.Mutate(tt.C.manifest)
 
 			opts := []cmp.Option{
 				cmpopts.IgnoreUnexported(v1.CORSMiddleware{}, v1.CORSMiddlewareSpec{}),
 				cmpopts.IgnoreUnexported(v1.CORSPolicySpec{}),
 				cmpopts.IgnoreUnexported(k.Metadata{}, k.Status{}),
 			}
-			testutil.Diff(t, tt.A().manifest, msg, opts...)
+			testutil.Diff(t, tt.A.manifest, msg, opts...)
 		})
 	}
 }
@@ -88,16 +80,10 @@ func TestCreate(t *testing.T) {
 		expect     any
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"create with default manifest",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: Resource.Default(),
 			},
@@ -115,8 +101,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"open policy unsafe-none",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.CORSMiddleware{
 					Metadata: &k.Metadata{},
@@ -142,8 +126,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"open policy same-origin-allow-popups",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.CORSMiddleware{
 					Metadata: &k.Metadata{},
@@ -169,8 +151,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"open policy same-origin",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.CORSMiddleware{
 					Metadata: &k.Metadata{},
@@ -196,8 +176,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"resource policy same-saite",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.CORSMiddleware{
 					Metadata: &k.Metadata{},
@@ -223,8 +201,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"resource policy same-origin",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.CORSMiddleware{
 					Metadata: &k.Metadata{},
@@ -250,8 +226,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"resource policy cross-origin",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.CORSMiddleware{
 					Metadata: &k.Metadata{},
@@ -277,8 +251,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"embedder policy unsafe-none",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.CORSMiddleware{
 					Metadata: &k.Metadata{},
@@ -304,8 +276,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"embedder policy require-corp",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.CORSMiddleware{
 					Metadata: &k.Metadata{},
@@ -331,8 +301,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"embedder policy require-corp",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.CORSMiddleware{
 					Metadata: &k.Metadata{},
@@ -357,21 +325,20 @@ func TestCreate(t *testing.T) {
 			},
 		),
 	}
-	testutil.Register(table, testCases...)
 
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			server := api.NewContainerAPI()
 			a := &API{}
-			got, err := a.Create(server, tt.C().manifest)
+			got, err := a.Create(server, tt.C.manifest)
 			opts := []cmp.Option{
 				cmp.AllowUnexported(cors{}),
 				cmp.AllowUnexported(corsPolicy{}),
 				cmp.Comparer(testutil.ComparePointer[core.ErrorHandler]),
 			}
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
-			testutil.Diff(t, tt.A().expect, got, opts...)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
+			testutil.Diff(t, tt.A.expect, got, opts...)
 		})
 	}
 }

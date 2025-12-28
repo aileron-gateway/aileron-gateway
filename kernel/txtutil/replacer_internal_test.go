@@ -25,17 +25,10 @@ func TestNewStringReplacers(t *testing.T) {
 		err   error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"nil specs",
-			[]string{},
-			[]string{},
-			&condition{
+			"nil specs", &condition{
 				specs: nil,
 			},
 			&action{
@@ -48,10 +41,7 @@ func TestNewStringReplacers(t *testing.T) {
 			},
 		),
 		gen(
-			"nil replacer",
-			[]string{},
-			[]string{},
-			&condition{
+			"nil replacer", &condition{
 				specs: []*k.ReplacerSpec{
 					{Replacers: nil},
 				},
@@ -65,10 +55,7 @@ func TestNewStringReplacers(t *testing.T) {
 			},
 		),
 		gen(
-			"multiple specs",
-			[]string{},
-			[]string{},
-			&condition{
+			"multiple specs", &condition{
 				specs: []*k.ReplacerSpec{
 					{
 						Replacers: &k.ReplacerSpec_Value{
@@ -101,18 +88,16 @@ func TestNewStringReplacers(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			reps, err := NewStringReplacers(tt.C().specs...)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
+		t.Run(tt.Name, func(t *testing.T) {
+			reps, err := NewStringReplacers(tt.C.specs...)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
 			if err != nil {
 				return
 			}
 
-			for k, v := range tt.A().inout {
+			for k, v := range tt.A.inout {
 				t.Log("Replace:", k, "Expect:", v)
 				out := k
 				for _, rep := range reps {
@@ -134,17 +119,10 @@ func TestNewStringReplacer(t *testing.T) {
 		err   error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"nil spec",
-			[]string{},
-			[]string{},
-			&condition{
+			"nil spec", &condition{
 				spec: nil,
 			},
 			&action{
@@ -156,10 +134,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"nil replacer",
-			[]string{},
-			[]string{},
-			&condition{
+			"nil replacer", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: nil,
 				},
@@ -173,10 +148,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"fixed",
-			[]string{},
-			[]string{},
-			&condition{
+			"fixed", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Fixed{
 						Fixed: &k.FixedReplacer{
@@ -195,10 +167,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"value/no value",
-			[]string{},
-			[]string{},
-			&condition{
+			"value/no value", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Value{
 						Value: &k.ValueReplacer{
@@ -217,10 +186,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"value/with value",
-			[]string{},
-			[]string{},
-			&condition{
+			"value/with value", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Value{
 						Value: &k.ValueReplacer{
@@ -242,10 +208,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"left/empty char",
-			[]string{},
-			[]string{},
-			&condition{
+			"left/empty char", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Left{
 						Left: &k.LeftReplacer{
@@ -265,10 +228,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"left/with char",
-			[]string{},
-			[]string{},
-			&condition{
+			"left/with char", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Left{
 						Left: &k.LeftReplacer{
@@ -288,10 +248,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"right/empty char",
-			[]string{},
-			[]string{},
-			&condition{
+			"right/empty char", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Right{
 						Right: &k.RightReplacer{
@@ -311,10 +268,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"right/with char",
-			[]string{},
-			[]string{},
-			&condition{
+			"right/with char", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Right{
 						Right: &k.RightReplacer{
@@ -334,10 +288,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"trim/no cutSets",
-			[]string{},
-			[]string{},
-			&condition{
+			"trim/no cutSets", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Trim{
 						Trim: &k.TrimReplacer{
@@ -356,10 +307,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"trim/single cutSets",
-			[]string{},
-			[]string{},
-			&condition{
+			"trim/single cutSets", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Trim{
 						Trim: &k.TrimReplacer{
@@ -379,10 +327,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"trim/multiple cutSets",
-			[]string{},
-			[]string{},
-			&condition{
+			"trim/multiple cutSets", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Trim{
 						Trim: &k.TrimReplacer{
@@ -402,10 +347,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"trimLeft/no cutSets",
-			[]string{},
-			[]string{},
-			&condition{
+			"trimLeft/no cutSets", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_TrimLeft{
 						TrimLeft: &k.TrimLeftReplacer{
@@ -424,10 +366,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"trimLeft/single cutSets",
-			[]string{},
-			[]string{},
-			&condition{
+			"trimLeft/single cutSets", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_TrimLeft{
 						TrimLeft: &k.TrimLeftReplacer{
@@ -447,10 +386,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"trimLeft/multiple cutSets",
-			[]string{},
-			[]string{},
-			&condition{
+			"trimLeft/multiple cutSets", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_TrimLeft{
 						TrimLeft: &k.TrimLeftReplacer{
@@ -470,10 +406,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"trimRight/no cutSets",
-			[]string{},
-			[]string{},
-			&condition{
+			"trimRight/no cutSets", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_TrimRight{
 						TrimRight: &k.TrimRightReplacer{
@@ -492,10 +425,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"trimRight/single cutSets",
-			[]string{},
-			[]string{},
-			&condition{
+			"trimRight/single cutSets", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_TrimRight{
 						TrimRight: &k.TrimRightReplacer{
@@ -515,10 +445,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"trimRight/multiple cutSets",
-			[]string{},
-			[]string{},
-			&condition{
+			"trimRight/multiple cutSets", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_TrimRight{
 						TrimRight: &k.TrimRightReplacer{
@@ -538,10 +465,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"trimPrefix/no cutSets",
-			[]string{},
-			[]string{},
-			&condition{
+			"trimPrefix/no cutSets", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_TrimPrefix{
 						TrimPrefix: &k.TrimPrefixReplacer{
@@ -560,10 +484,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"trimPrefix/single cutSets",
-			[]string{},
-			[]string{},
-			&condition{
+			"trimPrefix/single cutSets", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_TrimPrefix{
 						TrimPrefix: &k.TrimPrefixReplacer{
@@ -583,10 +504,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"trimPrefix/multiple cutSets",
-			[]string{},
-			[]string{},
-			&condition{
+			"trimPrefix/multiple cutSets", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_TrimPrefix{
 						TrimPrefix: &k.TrimPrefixReplacer{
@@ -607,10 +525,7 @@ func TestNewStringReplacer(t *testing.T) {
 		),
 
 		gen(
-			"trimSuffix/no cutSets",
-			[]string{},
-			[]string{},
-			&condition{
+			"trimSuffix/no cutSets", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_TrimSuffix{
 						TrimSuffix: &k.TrimSuffixReplacer{
@@ -629,10 +544,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"trimSuffix/single cutSets",
-			[]string{},
-			[]string{},
-			&condition{
+			"trimSuffix/single cutSets", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_TrimSuffix{
 						TrimSuffix: &k.TrimSuffixReplacer{
@@ -652,10 +564,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"trimSuffix/multiple cutSets",
-			[]string{},
-			[]string{},
-			&condition{
+			"trimSuffix/multiple cutSets", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_TrimSuffix{
 						TrimSuffix: &k.TrimSuffixReplacer{
@@ -675,10 +584,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"encode/empty spec",
-			[]string{},
-			[]string{},
-			&condition{
+			"encode/empty spec", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Encode{
 						Encode: &k.EncodeReplacer{},
@@ -694,10 +600,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"encode/without pattern",
-			[]string{},
-			[]string{},
-			&condition{
+			"encode/without pattern", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Encode{
 						Encode: &k.EncodeReplacer{
@@ -716,10 +619,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"encode/with pattern",
-			[]string{},
-			[]string{},
-			&condition{
+			"encode/with pattern", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Encode{
 						Encode: &k.EncodeReplacer{
@@ -739,10 +639,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"hash/empty spec",
-			[]string{},
-			[]string{},
-			&condition{
+			"hash/empty spec", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Hash{
 						Hash: &k.HashReplacer{},
@@ -758,10 +655,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"hash/no hash",
-			[]string{},
-			[]string{},
-			&condition{
+			"hash/no hash", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Hash{
 						Hash: &k.HashReplacer{
@@ -779,10 +673,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"hash/no encoding",
-			[]string{},
-			[]string{},
-			&condition{
+			"hash/no encoding", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Hash{
 						Hash: &k.HashReplacer{
@@ -800,10 +691,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"hash/without pattern",
-			[]string{},
-			[]string{},
-			&condition{
+			"hash/without pattern", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Hash{
 						Hash: &k.HashReplacer{
@@ -823,10 +711,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"hash/with pattern",
-			[]string{},
-			[]string{},
-			&condition{
+			"hash/with pattern", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Hash{
 						Hash: &k.HashReplacer{
@@ -847,10 +732,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"regexp/empty spec",
-			[]string{},
-			[]string{},
-			&condition{
+			"regexp/empty spec", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Regexp{
 						Regexp: &k.RegexpReplacer{},
@@ -866,10 +748,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"regexp/invalid regexp",
-			[]string{},
-			[]string{},
-			&condition{
+			"regexp/invalid regexp", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Regexp{
 						Regexp: &k.RegexpReplacer{
@@ -887,10 +766,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"regexp/invalid POSIX regexp",
-			[]string{},
-			[]string{},
-			&condition{
+			"regexp/invalid POSIX regexp", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Regexp{
 						Regexp: &k.RegexpReplacer{
@@ -909,10 +785,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"regexp/posix=false,literal=false",
-			[]string{},
-			[]string{},
-			&condition{
+			"regexp/posix=false,literal=false", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Regexp{
 						Regexp: &k.RegexpReplacer{
@@ -934,10 +807,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"regexp/posix=true",
-			[]string{},
-			[]string{},
-			&condition{
+			"regexp/posix=true", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Regexp{
 						Regexp: &k.RegexpReplacer{
@@ -959,10 +829,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"regexp/literal=true",
-			[]string{},
-			[]string{},
-			&condition{
+			"regexp/literal=true", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Regexp{
 						Regexp: &k.RegexpReplacer{
@@ -984,10 +851,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"expand/empty spec",
-			[]string{},
-			[]string{},
-			&condition{
+			"expand/empty spec", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Expand{
 						Expand: &k.ExpandReplacer{},
@@ -1003,10 +867,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"expand/invalid regexp",
-			[]string{},
-			[]string{},
-			&condition{
+			"expand/invalid regexp", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Expand{
 						Expand: &k.ExpandReplacer{
@@ -1024,10 +885,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"expand/invalid POSIX regexp",
-			[]string{},
-			[]string{},
-			&condition{
+			"expand/invalid POSIX regexp", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Expand{
 						Expand: &k.ExpandReplacer{
@@ -1046,10 +904,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"expand/posix=false,literal=false",
-			[]string{},
-			[]string{},
-			&condition{
+			"expand/posix=false,literal=false", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Expand{
 						Expand: &k.ExpandReplacer{
@@ -1070,10 +925,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"expand/posix=true",
-			[]string{},
-			[]string{},
-			&condition{
+			"expand/posix=true", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Expand{
 						Expand: &k.ExpandReplacer{
@@ -1094,10 +946,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"encrypt/empty spec",
-			[]string{},
-			[]string{},
-			&condition{
+			"encrypt/empty spec", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Encrypt{
 						Encrypt: &k.EncryptReplacer{},
@@ -1113,10 +962,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"encrypt/no alg",
-			[]string{},
-			[]string{},
-			&condition{
+			"encrypt/no alg", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Encrypt{
 						Encrypt: &k.EncryptReplacer{
@@ -1135,10 +981,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"encrypt/no encoding",
-			[]string{},
-			[]string{},
-			&condition{
+			"encrypt/no encoding", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Encrypt{
 						Encrypt: &k.EncryptReplacer{
@@ -1157,10 +1000,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"encrypt/invalid password",
-			[]string{},
-			[]string{},
-			&condition{
+			"encrypt/invalid password", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Encrypt{
 						Encrypt: &k.EncryptReplacer{
@@ -1181,10 +1021,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"encrypt/invalid password with pattern",
-			[]string{},
-			[]string{},
-			&condition{
+			"encrypt/invalid password with pattern", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Encrypt{
 						Encrypt: &k.EncryptReplacer{
@@ -1206,10 +1043,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"encrypt/invalid hex password",
-			[]string{},
-			[]string{},
-			&condition{
+			"encrypt/invalid hex password", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Encrypt{
 						Encrypt: &k.EncryptReplacer{
@@ -1229,10 +1063,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"encrypt/without pattern",
-			[]string{},
-			[]string{},
-			&condition{
+			"encrypt/without pattern", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Encrypt{
 						Encrypt: &k.EncryptReplacer{
@@ -1253,10 +1084,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"encrypt/with pattern",
-			[]string{},
-			[]string{},
-			&condition{
+			"encrypt/with pattern", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Encrypt{
 						Encrypt: &k.EncryptReplacer{
@@ -1278,10 +1106,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"hmac/empty spec",
-			[]string{},
-			[]string{},
-			&condition{
+			"hmac/empty spec", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_HMAC{
 						HMAC: &k.HMACReplacer{},
@@ -1297,10 +1122,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"hmac/no hash",
-			[]string{},
-			[]string{},
-			&condition{
+			"hmac/no hash", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_HMAC{
 						HMAC: &k.HMACReplacer{
@@ -1318,10 +1140,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"hmac/no encoding",
-			[]string{},
-			[]string{},
-			&condition{
+			"hmac/no encoding", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_HMAC{
 						HMAC: &k.HMACReplacer{
@@ -1339,10 +1158,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"hmac/invalid key",
-			[]string{},
-			[]string{},
-			&condition{
+			"hmac/invalid key", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_HMAC{
 						HMAC: &k.HMACReplacer{
@@ -1362,10 +1178,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"hmac/without pattern",
-			[]string{},
-			[]string{},
-			&condition{
+			"hmac/without pattern", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_HMAC{
 						HMAC: &k.HMACReplacer{
@@ -1386,10 +1199,7 @@ func TestNewStringReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"hmac/with pattern",
-			[]string{},
-			[]string{},
-			&condition{
+			"hmac/with pattern", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_HMAC{
 						HMAC: &k.HMACReplacer{
@@ -1412,11 +1222,9 @@ func TestNewStringReplacer(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			// Fix the random value for reducibility.
 			// Random value is used for initial vectors when encryption.
 			tmp := rand.Reader
@@ -1425,13 +1233,13 @@ func TestNewStringReplacer(t *testing.T) {
 				rand.Reader = tmp
 			}()
 
-			rep, err := NewStringReplacer(tt.C().spec)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
+			rep, err := NewStringReplacer(tt.C.spec)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
 			if err != nil {
 				return
 			}
 
-			for k, v := range tt.A().inout {
+			for k, v := range tt.A.inout {
 				t.Log("Replace:", k, "Expect:", v)
 				out := rep.Replace(k)
 				testutil.Diff(t, v, out)
@@ -1450,17 +1258,10 @@ func TestNewBytesReplacers(t *testing.T) {
 		err   error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"nil specs",
-			[]string{},
-			[]string{},
-			&condition{
+			"nil specs", &condition{
 				specs: nil,
 			},
 			&action{
@@ -1473,10 +1274,7 @@ func TestNewBytesReplacers(t *testing.T) {
 			},
 		),
 		gen(
-			"nil replacer",
-			[]string{},
-			[]string{},
-			&condition{
+			"nil replacer", &condition{
 				specs: []*k.ReplacerSpec{
 					{Replacers: nil},
 				},
@@ -1490,10 +1288,7 @@ func TestNewBytesReplacers(t *testing.T) {
 			},
 		),
 		gen(
-			"multiple specs",
-			[]string{},
-			[]string{},
-			&condition{
+			"multiple specs", &condition{
 				specs: []*k.ReplacerSpec{
 					{
 						Replacers: &k.ReplacerSpec_Value{
@@ -1526,18 +1321,16 @@ func TestNewBytesReplacers(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			reps, err := NewBytesReplacers(tt.C().specs...)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
+		t.Run(tt.Name, func(t *testing.T) {
+			reps, err := NewBytesReplacers(tt.C.specs...)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
 			if err != nil {
 				return
 			}
 
-			for k, v := range tt.A().inout {
+			for k, v := range tt.A.inout {
 				t.Log("Replace:", k, "Expect:", v)
 				out := []byte(k)
 				for _, rep := range reps {
@@ -1559,17 +1352,10 @@ func TestNewBytesReplacer(t *testing.T) {
 		err   error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"nil spec",
-			[]string{},
-			[]string{},
-			&condition{
+			"nil spec", &condition{
 				spec: nil,
 			},
 			&action{
@@ -1581,10 +1367,7 @@ func TestNewBytesReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"nil replacer",
-			[]string{},
-			[]string{},
-			&condition{
+			"nil replacer", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: nil,
 				},
@@ -1598,10 +1381,7 @@ func TestNewBytesReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"fixed",
-			[]string{},
-			[]string{},
-			&condition{
+			"fixed", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Fixed{
 						Fixed: &k.FixedReplacer{
@@ -1620,10 +1400,7 @@ func TestNewBytesReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"value/no value",
-			[]string{},
-			[]string{},
-			&condition{
+			"value/no value", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Value{
 						Value: &k.ValueReplacer{
@@ -1642,10 +1419,7 @@ func TestNewBytesReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"value/with value",
-			[]string{},
-			[]string{},
-			&condition{
+			"value/with value", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Value{
 						Value: &k.ValueReplacer{
@@ -1667,10 +1441,7 @@ func TestNewBytesReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"left/empty char",
-			[]string{},
-			[]string{},
-			&condition{
+			"left/empty char", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Left{
 						Left: &k.LeftReplacer{
@@ -1690,10 +1461,7 @@ func TestNewBytesReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"left/with char",
-			[]string{},
-			[]string{},
-			&condition{
+			"left/with char", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Left{
 						Left: &k.LeftReplacer{
@@ -1713,10 +1481,7 @@ func TestNewBytesReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"right/empty char",
-			[]string{},
-			[]string{},
-			&condition{
+			"right/empty char", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Right{
 						Right: &k.RightReplacer{
@@ -1736,10 +1501,7 @@ func TestNewBytesReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"right/with char",
-			[]string{},
-			[]string{},
-			&condition{
+			"right/with char", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Right{
 						Right: &k.RightReplacer{
@@ -1759,10 +1521,7 @@ func TestNewBytesReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"trim/no cutSets",
-			[]string{},
-			[]string{},
-			&condition{
+			"trim/no cutSets", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Trim{
 						Trim: &k.TrimReplacer{
@@ -1781,10 +1540,7 @@ func TestNewBytesReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"trim/single cutSets",
-			[]string{},
-			[]string{},
-			&condition{
+			"trim/single cutSets", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Trim{
 						Trim: &k.TrimReplacer{
@@ -1804,10 +1560,7 @@ func TestNewBytesReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"trim/multiple cutSets",
-			[]string{},
-			[]string{},
-			&condition{
+			"trim/multiple cutSets", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Trim{
 						Trim: &k.TrimReplacer{
@@ -1827,10 +1580,7 @@ func TestNewBytesReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"trimLeft/no cutSets",
-			[]string{},
-			[]string{},
-			&condition{
+			"trimLeft/no cutSets", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_TrimLeft{
 						TrimLeft: &k.TrimLeftReplacer{
@@ -1849,10 +1599,7 @@ func TestNewBytesReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"trimLeft/single cutSets",
-			[]string{},
-			[]string{},
-			&condition{
+			"trimLeft/single cutSets", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_TrimLeft{
 						TrimLeft: &k.TrimLeftReplacer{
@@ -1872,10 +1619,7 @@ func TestNewBytesReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"trimLeft/multiple cutSets",
-			[]string{},
-			[]string{},
-			&condition{
+			"trimLeft/multiple cutSets", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_TrimLeft{
 						TrimLeft: &k.TrimLeftReplacer{
@@ -1895,10 +1639,7 @@ func TestNewBytesReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"trimRight/no cutSets",
-			[]string{},
-			[]string{},
-			&condition{
+			"trimRight/no cutSets", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_TrimRight{
 						TrimRight: &k.TrimRightReplacer{
@@ -1917,10 +1658,7 @@ func TestNewBytesReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"trimRight/single cutSets",
-			[]string{},
-			[]string{},
-			&condition{
+			"trimRight/single cutSets", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_TrimRight{
 						TrimRight: &k.TrimRightReplacer{
@@ -1940,10 +1678,7 @@ func TestNewBytesReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"trimRight/multiple cutSets",
-			[]string{},
-			[]string{},
-			&condition{
+			"trimRight/multiple cutSets", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_TrimRight{
 						TrimRight: &k.TrimRightReplacer{
@@ -1963,10 +1698,7 @@ func TestNewBytesReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"trimPrefix/no cutSets",
-			[]string{},
-			[]string{},
-			&condition{
+			"trimPrefix/no cutSets", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_TrimPrefix{
 						TrimPrefix: &k.TrimPrefixReplacer{
@@ -1985,10 +1717,7 @@ func TestNewBytesReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"trimPrefix/single cutSets",
-			[]string{},
-			[]string{},
-			&condition{
+			"trimPrefix/single cutSets", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_TrimPrefix{
 						TrimPrefix: &k.TrimPrefixReplacer{
@@ -2008,10 +1737,7 @@ func TestNewBytesReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"trimPrefix/multiple cutSets",
-			[]string{},
-			[]string{},
-			&condition{
+			"trimPrefix/multiple cutSets", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_TrimPrefix{
 						TrimPrefix: &k.TrimPrefixReplacer{
@@ -2030,12 +1756,8 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 		),
-
 		gen(
-			"trimSuffix/no cutSets",
-			[]string{},
-			[]string{},
-			&condition{
+			"trimSuffix/no cutSets", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_TrimSuffix{
 						TrimSuffix: &k.TrimSuffixReplacer{
@@ -2054,10 +1776,7 @@ func TestNewBytesReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"trimSuffix/single cutSets",
-			[]string{},
-			[]string{},
-			&condition{
+			"trimSuffix/single cutSets", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_TrimSuffix{
 						TrimSuffix: &k.TrimSuffixReplacer{
@@ -2077,10 +1796,7 @@ func TestNewBytesReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"trimSuffix/multiple cutSets",
-			[]string{},
-			[]string{},
-			&condition{
+			"trimSuffix/multiple cutSets", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_TrimSuffix{
 						TrimSuffix: &k.TrimSuffixReplacer{
@@ -2100,10 +1816,7 @@ func TestNewBytesReplacer(t *testing.T) {
 			},
 		),
 		gen(
-			"encode/empty spec",
-			[]string{},
-			[]string{},
-			&condition{
+			"encode/empty spec", &condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Encode{
 						Encode: &k.EncodeReplacer{},
@@ -2120,8 +1833,6 @@ func TestNewBytesReplacer(t *testing.T) {
 		),
 		gen(
 			"encode/without pattern",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Encode{
@@ -2142,8 +1853,6 @@ func TestNewBytesReplacer(t *testing.T) {
 		),
 		gen(
 			"encode/with pattern",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Encode{
@@ -2165,8 +1874,6 @@ func TestNewBytesReplacer(t *testing.T) {
 		),
 		gen(
 			"hash/empty spec",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Hash{
@@ -2184,8 +1891,6 @@ func TestNewBytesReplacer(t *testing.T) {
 		),
 		gen(
 			"hash/no hash",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Hash{
@@ -2205,8 +1910,6 @@ func TestNewBytesReplacer(t *testing.T) {
 		),
 		gen(
 			"hash/no encoding",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Hash{
@@ -2226,8 +1929,6 @@ func TestNewBytesReplacer(t *testing.T) {
 		),
 		gen(
 			"hash/without pattern",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Hash{
@@ -2249,8 +1950,6 @@ func TestNewBytesReplacer(t *testing.T) {
 		),
 		gen(
 			"hash/with pattern",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Hash{
@@ -2273,8 +1972,6 @@ func TestNewBytesReplacer(t *testing.T) {
 		),
 		gen(
 			"regexp/empty spec",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Regexp{
@@ -2292,8 +1989,6 @@ func TestNewBytesReplacer(t *testing.T) {
 		),
 		gen(
 			"regexp/invalid regexp",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Regexp{
@@ -2313,8 +2008,6 @@ func TestNewBytesReplacer(t *testing.T) {
 		),
 		gen(
 			"regexp/invalid POSIX regexp",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Regexp{
@@ -2335,8 +2028,6 @@ func TestNewBytesReplacer(t *testing.T) {
 		),
 		gen(
 			"regexp/posix=false,literal=false",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Regexp{
@@ -2360,8 +2051,6 @@ func TestNewBytesReplacer(t *testing.T) {
 		),
 		gen(
 			"regexp/posix=true",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Regexp{
@@ -2385,8 +2074,6 @@ func TestNewBytesReplacer(t *testing.T) {
 		),
 		gen(
 			"regexp/literal=true",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Regexp{
@@ -2410,8 +2097,6 @@ func TestNewBytesReplacer(t *testing.T) {
 		),
 		gen(
 			"expand/empty spec",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Expand{
@@ -2429,8 +2114,6 @@ func TestNewBytesReplacer(t *testing.T) {
 		),
 		gen(
 			"expand/invalid regexp",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Expand{
@@ -2450,8 +2133,6 @@ func TestNewBytesReplacer(t *testing.T) {
 		),
 		gen(
 			"expand/invalid POSIX regexp",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Expand{
@@ -2472,8 +2153,6 @@ func TestNewBytesReplacer(t *testing.T) {
 		),
 		gen(
 			"expand/posix=false,literal=false",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Expand{
@@ -2496,8 +2175,6 @@ func TestNewBytesReplacer(t *testing.T) {
 		),
 		gen(
 			"expand/posix=true",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Expand{
@@ -2520,8 +2197,6 @@ func TestNewBytesReplacer(t *testing.T) {
 		),
 		gen(
 			"encrypt/empty spec",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Encrypt{
@@ -2539,8 +2214,6 @@ func TestNewBytesReplacer(t *testing.T) {
 		),
 		gen(
 			"encrypt/no alg",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Encrypt{
@@ -2561,8 +2234,6 @@ func TestNewBytesReplacer(t *testing.T) {
 		),
 		gen(
 			"encrypt/no encoding",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Encrypt{
@@ -2583,8 +2254,6 @@ func TestNewBytesReplacer(t *testing.T) {
 		),
 		gen(
 			"encrypt/invalid password",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Encrypt{
@@ -2607,8 +2276,6 @@ func TestNewBytesReplacer(t *testing.T) {
 		),
 		gen(
 			"encrypt/invalid password with pattern",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Encrypt{
@@ -2632,8 +2299,6 @@ func TestNewBytesReplacer(t *testing.T) {
 		),
 		gen(
 			"encrypt/invalid hex password",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Encrypt{
@@ -2655,8 +2320,6 @@ func TestNewBytesReplacer(t *testing.T) {
 		),
 		gen(
 			"encrypt/without pattern",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Encrypt{
@@ -2679,8 +2342,6 @@ func TestNewBytesReplacer(t *testing.T) {
 		),
 		gen(
 			"encrypt/with pattern",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_Encrypt{
@@ -2704,8 +2365,6 @@ func TestNewBytesReplacer(t *testing.T) {
 		),
 		gen(
 			"hmac/empty spec",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_HMAC{
@@ -2723,8 +2382,6 @@ func TestNewBytesReplacer(t *testing.T) {
 		),
 		gen(
 			"hmac/no hash",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_HMAC{
@@ -2744,8 +2401,6 @@ func TestNewBytesReplacer(t *testing.T) {
 		),
 		gen(
 			"hmac/no encoding",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_HMAC{
@@ -2765,8 +2420,6 @@ func TestNewBytesReplacer(t *testing.T) {
 		),
 		gen(
 			"hmac/invalid key",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_HMAC{
@@ -2788,8 +2441,6 @@ func TestNewBytesReplacer(t *testing.T) {
 		),
 		gen(
 			"hmac/without pattern",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_HMAC{
@@ -2812,8 +2463,6 @@ func TestNewBytesReplacer(t *testing.T) {
 		),
 		gen(
 			"hmac/with pattern",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &k.ReplacerSpec{
 					Replacers: &k.ReplacerSpec_HMAC{
@@ -2837,11 +2486,9 @@ func TestNewBytesReplacer(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			// Fix the random value for reducibility.
 			// Random value is used for initial vectors when encryption.
 			tmp := rand.Reader
@@ -2850,13 +2497,13 @@ func TestNewBytesReplacer(t *testing.T) {
 				rand.Reader = tmp
 			}()
 
-			rep, err := NewBytesReplacer(tt.C().spec)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
+			rep, err := NewBytesReplacer(tt.C.spec)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
 			if err != nil {
 				return
 			}
 
-			for k, v := range tt.A().inout {
+			for k, v := range tt.A.inout {
 				t.Log("Replace:", k, "Expect:", v)
 				out := rep.Replace([]byte(k))
 				testutil.Diff(t, v, string(out))

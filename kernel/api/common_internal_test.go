@@ -31,17 +31,10 @@ func TestPrintDebug(t *testing.T) {
 		notContains string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"print lv3",
-			[]string{},
-			[]string{},
-			&condition{
+			"print lv3", &condition{
 				level:    debugLv3,
 				args:     []any{"foo", "bar"},
 				debugLv3: true,
@@ -54,10 +47,7 @@ func TestPrintDebug(t *testing.T) {
 			},
 		),
 		gen(
-			"not print lv3",
-			[]string{},
-			[]string{},
-			&condition{
+			"not print lv3", &condition{
 				level:    debugLv3,
 				args:     []any{"foo", "bar"},
 				debugLv3: false,
@@ -69,10 +59,7 @@ func TestPrintDebug(t *testing.T) {
 			},
 		),
 		gen(
-			"print lv2",
-			[]string{},
-			[]string{},
-			&condition{
+			"print lv2", &condition{
 				level:    debugLv2,
 				args:     []any{"foo", "bar"},
 				debugLv3: false,
@@ -85,10 +72,7 @@ func TestPrintDebug(t *testing.T) {
 			},
 		),
 		gen(
-			"not print lv2",
-			[]string{},
-			[]string{},
-			&condition{
+			"not print lv2", &condition{
 				level:    debugLv2,
 				args:     []any{"foo", "bar"},
 				debugLv3: false,
@@ -100,10 +84,7 @@ func TestPrintDebug(t *testing.T) {
 			},
 		),
 		gen(
-			"print lv1",
-			[]string{},
-			[]string{},
-			&condition{
+			"print lv1", &condition{
 				level:    debugLv1,
 				args:     []any{"foo", "bar"},
 				debugLv3: false,
@@ -116,10 +97,7 @@ func TestPrintDebug(t *testing.T) {
 			},
 		),
 		gen(
-			"not print lv1",
-			[]string{},
-			[]string{},
-			&condition{
+			"not print lv1", &condition{
 				level:    debugLv1,
 				args:     []any{"foo", "bar"},
 				debugLv3: false,
@@ -132,23 +110,21 @@ func TestPrintDebug(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			DebugLv3 = tt.C().debugLv3
-			DebugLv2 = tt.C().debugLv2
-			DebugLv1 = tt.C().debugLv1
+		t.Run(tt.Name, func(t *testing.T) {
+			DebugLv3 = tt.C.debugLv3
+			DebugLv2 = tt.C.debugLv2
+			DebugLv1 = tt.C.debugLv1
 
 			var buf bytes.Buffer
 			log.SetOutput(&buf)
 			defer func() { log.SetOutput(os.Stdout) }()
 
-			printDebug(tt.C().level, tt.C().args...)
+			printDebug(tt.C.level, tt.C.args...)
 			t.Log(buf.String())
-			testutil.Diff(t, true, strings.Contains(buf.String(), tt.A().contains))
-			testutil.Diff(t, false, strings.Contains(buf.String(), tt.A().notContains))
+			testutil.Diff(t, true, strings.Contains(buf.String(), tt.A.contains))
+			testutil.Diff(t, false, strings.Contains(buf.String(), tt.A.notContains))
 		})
 	}
 }
@@ -161,22 +137,10 @@ func TestNewDefaultServeMux(t *testing.T) {
 		mux *DefaultServeMux
 	}
 
-	cndNewDefault := "new default"
-	actCheckInitialized := "check initialized "
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndNewDefault, "create a new instance")
-	tb.Action(actCheckInitialized, "check that the returned instance is initialized with expected values")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"new serve mux",
-			[]string{cndNewDefault},
-			[]string{actCheckInitialized},
-			&condition{},
+			"new serve mux", &condition{},
 			&action{
 				mux: &DefaultServeMux{
 					keys: nil,
@@ -186,13 +150,11 @@ func TestNewDefaultServeMux(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			mux := NewDefaultServeMux()
-			testutil.Diff(t, tt.A().mux, mux, cmp.AllowUnexported(DefaultServeMux{}))
+			testutil.Diff(t, tt.A.mux, mux, cmp.AllowUnexported(DefaultServeMux{}))
 		})
 	}
 }
@@ -218,28 +180,10 @@ func TestDefaultServeMux_Serve(t *testing.T) {
 		err error
 	}
 
-	cndNoExactKey := "no exact match key"
-	cndNoRoute := "no API route"
-	actCheckResponse := "check keys are sorted"
-	actCheckNoError := "check no error"
-	actCheckError := "check error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndNoExactKey, "there is no keys which exactly match the request")
-	tb.Condition(cndNoRoute, "there is no APIs to route to")
-	tb.Action(actCheckResponse, "check the responded content is the one expected")
-	tb.Action(actCheckNoError, "check that no error occurred")
-	tb.Action(actCheckError, "check that the expected error was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"exact match",
-			[]string{},
-			[]string{actCheckResponse, actCheckNoError},
-			&condition{
+			"exact match", &condition{
 				keys: []string{"test1", "test2"},
 				apis: []API[*Request, *Response]{
 					&stringResponderAPI{response: "test1"},
@@ -252,10 +196,7 @@ func TestDefaultServeMux_Serve(t *testing.T) {
 			},
 		),
 		gen(
-			"exact match",
-			[]string{},
-			[]string{actCheckResponse, actCheckNoError},
-			&condition{
+			"exact match", &condition{
 				keys: []string{"test1", "test2"},
 				apis: []API[*Request, *Response]{
 					&stringResponderAPI{response: "test1"},
@@ -268,10 +209,7 @@ func TestDefaultServeMux_Serve(t *testing.T) {
 			},
 		),
 		gen(
-			"longest match",
-			[]string{cndNoExactKey},
-			[]string{actCheckResponse, actCheckNoError},
-			&condition{
+			"longest match", &condition{
 				keys: []string{"foo", "foobar"},
 				apis: []API[*Request, *Response]{
 					&stringResponderAPI{response: "foo"},
@@ -284,10 +222,7 @@ func TestDefaultServeMux_Serve(t *testing.T) {
 			},
 		),
 		gen(
-			"nil request",
-			[]string{cndNoExactKey, cndNoRoute},
-			[]string{actCheckResponse, actCheckError},
-			&condition{
+			"nil request", &condition{
 				keys: []string{},
 				apis: []API[*Request, *Response]{},
 				req:  nil,
@@ -302,10 +237,7 @@ func TestDefaultServeMux_Serve(t *testing.T) {
 			},
 		),
 		gen(
-			"no route",
-			[]string{cndNoExactKey, cndNoRoute},
-			[]string{actCheckResponse, actCheckError},
-			&condition{
+			"no route", &condition{
 				keys: []string{},
 				apis: []API[*Request, *Response]{},
 				req:  &Request{Key: "no route"},
@@ -321,25 +253,23 @@ func TestDefaultServeMux_Serve(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			a := NewDefaultServeMux()
 
-			for i := range tt.C().keys {
-				a.Handle(tt.C().keys[i], tt.C().apis[i]) // Register APIs.
+			for i := range tt.C.keys {
+				a.Handle(tt.C.keys[i], tt.C.apis[i]) // Register APIs.
 			}
-			for _, k := range tt.C().keys {
+			for _, k := range tt.C.keys {
 				res, _ := a.Serve(context.Background(), &Request{Key: k}) // Check registered APIs.
 				testutil.Diff(t, k, res.Content)
 			}
 
 			ctx := context.Background()
-			res, err := a.Serve(ctx, tt.C().req)
-			testutil.Diff(t, tt.A().res, res, cmp.AllowUnexported(Response{}))
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
+			res, err := a.Serve(ctx, tt.C.req)
+			testutil.Diff(t, tt.A.res, res, cmp.AllowUnexported(Response{}))
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
 		})
 	}
 }
@@ -355,32 +285,10 @@ func TestDefaultServeMux_Handle(t *testing.T) {
 		err  error
 	}
 
-	cndMultipleAPI := "multiple api"
-	cndNilAPI := "nil api"
-	cndKeyDuplicate := "key duplicate"
-	actCheckAPIRegistered := "check API registered"
-	actCheckSorted := "check keys are sorted"
-	actCheckNoError := "check no error"
-	actCheckError := "check error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndMultipleAPI, "register multiple APIs")
-	tb.Condition(cndNilAPI, "input nil API")
-	tb.Condition(cndKeyDuplicate, "register with the same key")
-	tb.Action(actCheckAPIRegistered, "check that APIs are successfully registered")
-	tb.Action(actCheckSorted, "check that the registered keys are sorted")
-	tb.Action(actCheckNoError, "check that no error occurred")
-	tb.Action(actCheckError, "check that the expected error was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"1 api",
-			[]string{},
-			[]string{actCheckAPIRegistered, actCheckNoError},
-			&condition{
+			"1 api", &condition{
 				keys: []string{"test"},
 				apis: []API[*Request, *Response]{
 					&stringResponderAPI{response: "test"},
@@ -391,10 +299,7 @@ func TestDefaultServeMux_Handle(t *testing.T) {
 			},
 		),
 		gen(
-			"2 api",
-			[]string{cndMultipleAPI},
-			[]string{actCheckSorted, actCheckAPIRegistered, actCheckNoError},
-			&condition{
+			"2 api", &condition{
 				keys: []string{"test1", "test2"},
 				apis: []API[*Request, *Response]{
 					&stringResponderAPI{response: "test1"},
@@ -406,10 +311,7 @@ func TestDefaultServeMux_Handle(t *testing.T) {
 			},
 		),
 		gen(
-			"3 api",
-			[]string{cndMultipleAPI},
-			[]string{actCheckSorted, actCheckAPIRegistered, actCheckNoError},
-			&condition{
+			"3 api", &condition{
 				keys: []string{"foo", "foobar", "foobarbaz"},
 				apis: []API[*Request, *Response]{
 					&stringResponderAPI{response: "foo"},
@@ -422,10 +324,7 @@ func TestDefaultServeMux_Handle(t *testing.T) {
 			},
 		),
 		gen(
-			"nil api",
-			[]string{cndNilAPI},
-			[]string{actCheckAPIRegistered, actCheckNoError},
-			&condition{
+			"nil api", &condition{
 				keys: []string{"test"},
 				apis: []API[*Request, *Response]{nil},
 			},
@@ -434,10 +333,7 @@ func TestDefaultServeMux_Handle(t *testing.T) {
 			},
 		),
 		gen(
-			"duplicate key",
-			[]string{cndKeyDuplicate},
-			[]string{actCheckAPIRegistered, actCheckError},
-			&condition{
+			"duplicate key", &condition{
 				keys: []string{"test", "test"},
 				apis: []API[*Request, *Response]{
 					&stringResponderAPI{response: "test"},
@@ -455,23 +351,21 @@ func TestDefaultServeMux_Handle(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			a := NewDefaultServeMux()
 
 			var err error
-			for i := range tt.C().keys {
-				if err = a.Handle(tt.C().keys[i], tt.C().apis[i]); err != nil {
+			for i := range tt.C.keys {
+				if err = a.Handle(tt.C.keys[i], tt.C.apis[i]); err != nil {
 					break
 				}
 			}
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
 
-			testutil.Diff(t, tt.A().keys, a.keys)
-			for _, k := range tt.A().keys {
+			testutil.Diff(t, tt.A.keys, a.keys)
+			for _, k := range tt.A.keys {
 				res, _ := a.apis[k].Serve(context.Background(), nil)
 				testutil.Diff(t, k, res.Content)
 			}

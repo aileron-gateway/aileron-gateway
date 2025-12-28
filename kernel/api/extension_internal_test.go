@@ -20,21 +20,10 @@ func TestNewExtensionAPI(t *testing.T) {
 		a *ExtensionAPI
 	}
 
-	cndNewDefault := "new default"
-	actCheckInitialized := "check initialized "
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndNewDefault, "create a new instance")
-	tb.Action(actCheckInitialized, "check that the returned instance is initialized with expected values")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"new instance",
-			[]string{cndNewDefault},
-			[]string{actCheckInitialized},
 			&condition{},
 			&action{
 				a: &ExtensionAPI{
@@ -47,13 +36,11 @@ func TestNewExtensionAPI(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			a := NewExtensionAPI()
-			testutil.Diff(t, tt.A().a, a, cmp.AllowUnexported(ExtensionAPI{}))
+			testutil.Diff(t, tt.A.a, a, cmp.AllowUnexported(ExtensionAPI{}))
 		})
 	}
 }
@@ -75,31 +62,10 @@ func TestExtensionAPI_Register(t *testing.T) {
 		err      error
 	}
 
-	cndRegisterOne := "1 creator"
-	cndRegisterMultiple := "multiple creators"
-	cndRegisterNil := "register nil"
-	cndRegisterDuplicateKey := "duplicate key"
-	actCheckRegistered := "check registered creators"
-	actCheckNoError := "no error"
-	actCheckError := "non-nil error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndRegisterOne, "register 1 non-nil creator")
-	tb.Condition(cndRegisterMultiple, "register multiple non-nil creator with different keys")
-	tb.Condition(cndRegisterNil, "try to register nil creator")
-	tb.Condition(cndRegisterDuplicateKey, "try to register creators with the same key")
-	tb.Action(actCheckRegistered, "check that the registered creators are the same as expected")
-	tb.Action(actCheckNoError, "check that there is no error")
-	tb.Action(actCheckError, "check that a non-nil error was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"register 1 creator",
-			[]string{cndRegisterOne},
-			[]string{actCheckRegistered, actCheckNoError},
 			&condition{
 				keys:     []string{"test"},
 				creators: []Creator{stringCreator("foo")},
@@ -112,8 +78,6 @@ func TestExtensionAPI_Register(t *testing.T) {
 		),
 		gen(
 			"register multiple creators",
-			[]string{cndRegisterMultiple},
-			[]string{actCheckRegistered, actCheckNoError},
 			&condition{
 				keys:     []string{"test1", "test2"},
 				creators: []Creator{stringCreator("foo"), stringCreator("bar")},
@@ -127,8 +91,6 @@ func TestExtensionAPI_Register(t *testing.T) {
 		),
 		gen(
 			"register nil",
-			[]string{cndRegisterNil},
-			[]string{actCheckRegistered, actCheckNoError},
 			&condition{
 				keys:     []string{"test"},
 				creators: []Creator{nil},
@@ -139,8 +101,6 @@ func TestExtensionAPI_Register(t *testing.T) {
 		),
 		gen(
 			"duplicate key",
-			[]string{cndRegisterDuplicateKey},
-			[]string{actCheckRegistered, actCheckError},
 			&condition{
 				keys:     []string{"test", "test"},
 				creators: []Creator{stringCreator("foo"), stringCreator("bar")},
@@ -158,20 +118,18 @@ func TestExtensionAPI_Register(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			a := NewExtensionAPI()
 
 			var err error
-			for i := range tt.C().keys {
-				err = a.Register(tt.C().keys[i], tt.C().creators[i])
+			for i := range tt.C.keys {
+				err = a.Register(tt.C.keys[i], tt.C.creators[i])
 			}
 
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
-			testutil.Diff(t, tt.A().creators, a.creators)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
+			testutil.Diff(t, tt.A.creators, a.creators)
 		})
 	}
 }

@@ -45,15 +45,6 @@ func TestCreate(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndDefaultManifest := tb.Condition("default manifest", "input default manifest")
-	cndErrorReference := tb.Condition("error reference", "input an error reference to an object")
-	cndWrongType := tb.Condition("wrong type", "input reference for wrong interface or type")
-	actCheckError := tb.Action("check the returned error", "check that the returned error is the one expected")
-	actCheckNoError := tb.Action("check no error", "check that there is no error returned")
-	table := tb.Build()
-
 	testServer := api.NewContainerAPI()
 	postTestResource(testServer, "wrongHandler", "This is string, not http.handler")
 	postTestResource(testServer, "handler",
@@ -67,8 +58,6 @@ func TestCreate(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"create with default manifest",
-			[]string{cndDefaultManifest},
-			[]string{actCheckNoError},
 			&condition{
 				manifest: Resource.Default(),
 				server:   testServer,
@@ -81,8 +70,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create successful",
-			[]string{},
-			[]string{actCheckNoError},
 			&condition{
 				manifest: &v1.HTTPHandler{
 					Metadata: &k.Metadata{},
@@ -108,8 +95,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create successful by joining pattern",
-			[]string{},
-			[]string{actCheckNoError},
 			&condition{
 				manifest: &v1.HTTPHandler{
 					Metadata: &k.Metadata{},
@@ -136,8 +121,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"fail to get middleware",
-			[]string{cndErrorReference},
-			[]string{actCheckError},
 			&condition{
 				manifest: &v1.HTTPHandler{
 					Metadata: &k.Metadata{},
@@ -157,8 +140,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"fail to type assert handler",
-			[]string{cndWrongType},
-			[]string{actCheckError},
 			&condition{
 				manifest: &v1.HTTPHandler{
 					Metadata: &k.Metadata{},
@@ -176,20 +157,18 @@ func TestCreate(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			got, err := Resource.Create(tt.C().server, tt.C().manifest)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+		t.Run(tt.Name, func(t *testing.T) {
+			got, err := Resource.Create(tt.C.server, tt.C.manifest)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 
 			opts := []cmp.Option{
 				cmp.AllowUnexported(handler{}, testHandler{}),
 				cmpopts.SortSlices(func(a, b string) bool { return a < b }),
 			}
 
-			testutil.Diff(t, tt.A().expect, got, opts...)
+			testutil.Diff(t, tt.A.expect, got, opts...)
 		})
 	}
 }

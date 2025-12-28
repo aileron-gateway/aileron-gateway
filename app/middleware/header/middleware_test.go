@@ -25,18 +25,12 @@ func TestWrappedWriter_Unwrap(t *testing.T) {
 		w http.ResponseWriter
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	testWriter := &httptest.ResponseRecorder{}
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"nil writer",
-			[]string{},
-			[]string{},
 			&condition{
 				ww: &wrappedWriter{
 					ResponseWriter: nil,
@@ -48,8 +42,6 @@ func TestWrappedWriter_Unwrap(t *testing.T) {
 		),
 		gen(
 			"non nil writer",
-			[]string{},
-			[]string{},
 			&condition{
 				ww: &wrappedWriter{
 					ResponseWriter: testWriter,
@@ -61,13 +53,11 @@ func TestWrappedWriter_Unwrap(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			w := tt.C().ww.Unwrap()
-			testutil.Diff(t, tt.A().w, w, cmp.Comparer(testutil.ComparePointer[http.ResponseWriter]))
+		t.Run(tt.Name, func(t *testing.T) {
+			w := tt.C.ww.Unwrap()
+			testutil.Diff(t, tt.A.w, w, cmp.Comparer(testutil.ComparePointer[http.ResponseWriter]))
 		})
 	}
 }
@@ -82,16 +72,10 @@ func TestWrappedWriter_WriteHeader(t *testing.T) {
 		header map[string][]string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"apply policy",
-			[]string{},
-			[]string{},
 			&condition{
 				applied: false,
 				p:       &policy{add: map[string]string{"Test": "value"}},
@@ -102,8 +86,6 @@ func TestWrappedWriter_WriteHeader(t *testing.T) {
 		),
 		gen(
 			"policy already applied",
-			[]string{},
-			[]string{},
 			&condition{
 				applied: true,
 				p:       &policy{add: map[string]string{"Test": "value"}},
@@ -114,21 +96,19 @@ func TestWrappedWriter_WriteHeader(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			resp := httptest.NewRecorder()
 			w := &wrappedWriter{
 				ResponseWriter: resp,
-				applied:        tt.C().applied,
-				p:              tt.C().p,
+				applied:        tt.C.applied,
+				p:              tt.C.p,
 			}
 
 			w.WriteHeader(http.StatusOK)
 			testutil.Diff(t, true, w.applied)
-			for k, v := range tt.A().header {
+			for k, v := range tt.A.header {
 				testutil.Diff(t, v, resp.Header()[k])
 			}
 		})
@@ -145,16 +125,10 @@ func TestWrappedWriter_Write(t *testing.T) {
 		header map[string][]string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"apply policy",
-			[]string{},
-			[]string{},
 			&condition{
 				applied: false,
 				p:       &policy{add: map[string]string{"Test": "value"}},
@@ -165,8 +139,6 @@ func TestWrappedWriter_Write(t *testing.T) {
 		),
 		gen(
 			"policy already applied",
-			[]string{},
-			[]string{},
 			&condition{
 				applied: true,
 				p:       &policy{add: map[string]string{"Test": "value"}},
@@ -177,21 +149,19 @@ func TestWrappedWriter_Write(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			resp := httptest.NewRecorder()
 			w := &wrappedWriter{
 				ResponseWriter: resp,
-				applied:        tt.C().applied,
-				p:              tt.C().p,
+				applied:        tt.C.applied,
+				p:              tt.C.p,
 			}
 
 			w.Write([]byte("test"))
 			testutil.Diff(t, true, w.applied)
-			for k, v := range tt.A().header {
+			for k, v := range tt.A.header {
 				testutil.Diff(t, v, resp.Header()[k])
 			}
 		})
@@ -208,16 +178,10 @@ func TestPolicy(t *testing.T) {
 		header http.Header
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"allows",
-			[]string{},
-			[]string{},
 			&condition{
 				p: &policy{
 					allows: []string{"Foo"},
@@ -230,8 +194,6 @@ func TestPolicy(t *testing.T) {
 		),
 		gen(
 			"removes",
-			[]string{},
-			[]string{},
 			&condition{
 				p: &policy{
 					removes: []string{"Foo"},
@@ -244,8 +206,6 @@ func TestPolicy(t *testing.T) {
 		),
 		gen(
 			"add to empty",
-			[]string{},
-			[]string{},
 			&condition{
 				p:      &policy{add: map[string]string{"Test": "value"}},
 				header: http.Header{},
@@ -256,8 +216,6 @@ func TestPolicy(t *testing.T) {
 		),
 		gen(
 			"add to existing",
-			[]string{},
-			[]string{},
 			&condition{
 				p:      &policy{add: map[string]string{"Test": "value"}},
 				header: http.Header{"Test": {"exist"}},
@@ -268,8 +226,6 @@ func TestPolicy(t *testing.T) {
 		),
 		gen(
 			"set to empty",
-			[]string{},
-			[]string{},
 			&condition{
 				p:      &policy{set: map[string]string{"Test": "value"}},
 				header: http.Header{},
@@ -280,8 +236,6 @@ func TestPolicy(t *testing.T) {
 		),
 		gen(
 			"set to existing",
-			[]string{},
-			[]string{},
 			&condition{
 				p:      &policy{set: map[string]string{"Test": "value"}},
 				header: http.Header{"Test": {"exist"}},
@@ -292,8 +246,6 @@ func TestPolicy(t *testing.T) {
 		),
 		gen(
 			"replace",
-			[]string{},
-			[]string{},
 			&condition{
 				p: &policy{
 					repls: map[string]txtutil.ReplaceFunc[string]{"Test": func(s string) string { return "***" }},
@@ -306,13 +258,11 @@ func TestPolicy(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			tt.C().p.apply(tt.C().header)
-			testutil.Diff(t, tt.A().header, tt.C().header, cmpopts.SortMaps(func(a, b string) bool { return a > b }))
+		t.Run(tt.Name, func(t *testing.T) {
+			tt.C.p.apply(tt.C.header)
+			testutil.Diff(t, tt.A.header, tt.C.header, cmpopts.SortMaps(func(a, b string) bool { return a > b }))
 		})
 	}
 }
@@ -330,16 +280,10 @@ func TestHeaderPolicyMiddleware(t *testing.T) {
 		header     http.Header
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"allowed MIME",
-			[]string{},
-			[]string{},
 			&condition{
 				headerPolicy: headerPolicy{
 					allowedMIMEs: []string{"application/json"},
@@ -354,8 +298,6 @@ func TestHeaderPolicyMiddleware(t *testing.T) {
 		),
 		gen(
 			"not allowed MIME",
-			[]string{},
-			[]string{},
 			&condition{
 				headerPolicy: headerPolicy{
 					allowedMIMEs: []string{"application/xml"},
@@ -370,8 +312,6 @@ func TestHeaderPolicyMiddleware(t *testing.T) {
 		),
 		gen(
 			"allowed content length",
-			[]string{},
-			[]string{},
 			&condition{
 				headerPolicy: headerPolicy{
 					maxContentLength: 1024,
@@ -387,8 +327,6 @@ func TestHeaderPolicyMiddleware(t *testing.T) {
 		),
 		gen(
 			"content length exceeded",
-			[]string{},
-			[]string{},
 			&condition{
 				headerPolicy: headerPolicy{
 					maxContentLength: 1024,
@@ -404,8 +342,6 @@ func TestHeaderPolicyMiddleware(t *testing.T) {
 		),
 		gen(
 			"content length required",
-			[]string{},
-			[]string{},
 			&condition{
 				headerPolicy: headerPolicy{
 					maxContentLength: 1024, // 1KB
@@ -420,8 +356,6 @@ func TestHeaderPolicyMiddleware(t *testing.T) {
 		),
 		gen(
 			"apply request header policy",
-			[]string{},
-			[]string{},
 			&condition{
 				headerPolicy: headerPolicy{
 					eh: httputil.GlobalErrorHandler(httputil.DefaultErrorHandlerName),
@@ -438,8 +372,6 @@ func TestHeaderPolicyMiddleware(t *testing.T) {
 		),
 		gen(
 			"apply response header policy",
-			[]string{},
-			[]string{},
 			&condition{
 				headerPolicy: headerPolicy{
 					eh: httputil.GlobalErrorHandler(httputil.DefaultErrorHandlerName),
@@ -456,27 +388,25 @@ func TestHeaderPolicyMiddleware(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
-			req.Header = tt.C().header
-			req.ContentLength = tt.C().length
+			req.Header = tt.C.header
+			req.ContentLength = tt.C.length
 
 			rec := httptest.NewRecorder()
 			next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusOK)
 			})
-			tt.C().headerPolicy.Middleware(next).ServeHTTP(rec, req)
+			tt.C.headerPolicy.Middleware(next).ServeHTTP(rec, req)
 
-			testutil.Diff(t, tt.A().statusCode, rec.Code)
-			if tt.C().headerPolicy.reqPolicy != nil {
-				testutil.Diff(t, tt.A().header, tt.C().header, cmpopts.SortMaps(func(a, b string) bool { return a > b }))
+			testutil.Diff(t, tt.A.statusCode, rec.Code)
+			if tt.C.headerPolicy.reqPolicy != nil {
+				testutil.Diff(t, tt.A.header, tt.C.header, cmpopts.SortMaps(func(a, b string) bool { return a > b }))
 			}
-			if tt.C().headerPolicy.resPolicy != nil {
-				testutil.Diff(t, tt.A().header, rec.Header(), cmpopts.SortMaps(func(a, b string) bool { return a > b }))
+			if tt.C.headerPolicy.resPolicy != nil {
+				testutil.Diff(t, tt.A.header, rec.Header(), cmpopts.SortMaps(func(a, b string) bool { return a > b }))
 			}
 		})
 	}

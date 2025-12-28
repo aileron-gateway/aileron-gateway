@@ -55,16 +55,10 @@ func TestLoggingWriter_Unwrap(t *testing.T) {
 		w http.ResponseWriter
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"nil",
-			[]string{},
-			[]string{},
 			&condition{
 				w: &wrappedWriter{
 					ResponseWriter: nil,
@@ -76,8 +70,6 @@ func TestLoggingWriter_Unwrap(t *testing.T) {
 		),
 		gen(
 			"non-nil",
-			[]string{},
-			[]string{},
 			&condition{
 				w: &wrappedWriter{
 					ResponseWriter: &testResponseWriter{
@@ -93,13 +85,11 @@ func TestLoggingWriter_Unwrap(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			w := tt.C().w.Unwrap()
-			testutil.Diff(t, tt.A().w, w, cmp.AllowUnexported(testResponseWriter{}))
+		t.Run(tt.Name, func(t *testing.T) {
+			w := tt.C.w.Unwrap()
+			testutil.Diff(t, tt.A.w, w, cmp.AllowUnexported(testResponseWriter{}))
 		})
 	}
 }
@@ -123,16 +113,10 @@ func TestLoggingWriter_Flush(t *testing.T) {
 		w http.ResponseWriter
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"non flusher",
-			[]string{},
-			[]string{},
 			&condition{
 				w: &testResponseWriter{id: "test"},
 			},
@@ -142,8 +126,6 @@ func TestLoggingWriter_Flush(t *testing.T) {
 		),
 		gen(
 			"flusher",
-			[]string{},
-			[]string{},
 			&condition{
 				w: &testFlushResponseWriter{id: "test"},
 			},
@@ -153,8 +135,6 @@ func TestLoggingWriter_Flush(t *testing.T) {
 		),
 		gen(
 			"non inner flusher",
-			[]string{},
-			[]string{},
 			&condition{
 				w: &testResponseWriter{
 					id:             "out",
@@ -170,8 +150,6 @@ func TestLoggingWriter_Flush(t *testing.T) {
 		),
 		gen(
 			"non inner flusher",
-			[]string{},
-			[]string{},
 			&condition{
 				w: &testResponseWriter{
 					id:             "out",
@@ -187,13 +165,11 @@ func TestLoggingWriter_Flush(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			w := &wrappedWriter{
-				ResponseWriter: tt.C().w,
+				ResponseWriter: tt.C.w,
 			}
 			w.Flush()
 
@@ -206,12 +182,12 @@ func TestLoggingWriter_Flush(t *testing.T) {
 				// cmp.Comparer(testutil.ComparePointer[foo.Bar])
 				// testutil.Po
 			}
-			testutil.Diff(t, tt.A().w, tt.C().w, opts...)
+			testutil.Diff(t, tt.A.w, tt.C.w, opts...)
 
 			w.Flush()
 			testutil.Diff(t, true, w.flushChecked)
 			testutil.Diff(t, true, w.flushFunc != nil)
-			testutil.Diff(t, tt.A().w, tt.C().w, opts...)
+			testutil.Diff(t, tt.A.w, tt.C.w, opts...)
 		})
 	}
 }
@@ -225,16 +201,10 @@ func TestWrappedWriter_WriteHeader(t *testing.T) {
 	type action struct {
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"write 0",
-			[]string{},
-			[]string{},
 			&condition{
 				w: &wrappedWriter{
 					ResponseWriter: &testResponseWriter{},
@@ -245,8 +215,6 @@ func TestWrappedWriter_WriteHeader(t *testing.T) {
 		),
 		gen(
 			"write 200",
-			[]string{},
-			[]string{},
 			&condition{
 				w: &wrappedWriter{
 					ResponseWriter: &testResponseWriter{},
@@ -257,8 +225,6 @@ func TestWrappedWriter_WriteHeader(t *testing.T) {
 		),
 		gen(
 			"write 500",
-			[]string{},
-			[]string{},
 			&condition{
 				w: &wrappedWriter{
 					ResponseWriter: &testResponseWriter{},
@@ -269,22 +235,20 @@ func TestWrappedWriter_WriteHeader(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			called := 0
-			tt.C().w.writtenFunc = func() {
+			tt.C.w.writtenFunc = func() {
 				called += 1
 			}
 
-			tt.C().w.WriteHeader(tt.C().status) // Call once
-			tt.C().w.WriteHeader(tt.C().status) // Call twice
+			tt.C.w.WriteHeader(tt.C.status) // Call once
+			tt.C.w.WriteHeader(tt.C.status) // Call twice
 
 			testutil.Diff(t, 1, called)
-			testutil.Diff(t, true, tt.C().w.written)
-			testutil.Diff(t, tt.C().status, tt.C().w.status)
+			testutil.Diff(t, true, tt.C.w.written)
+			testutil.Diff(t, tt.C.status, tt.C.w.status)
 		})
 	}
 }
@@ -299,16 +263,10 @@ func TestWrappedWriter_Write(t *testing.T) {
 		written string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"dump",
-			[]string{},
-			[]string{},
 			&condition{
 				w: &wrappedWriter{
 					ResponseWriter: &testResponseWriter{},
@@ -322,8 +280,6 @@ func TestWrappedWriter_Write(t *testing.T) {
 		),
 		gen(
 			"not dump",
-			[]string{},
-			[]string{},
 			&condition{
 				w: &wrappedWriter{
 					ResponseWriter: &testResponseWriter{},
@@ -337,26 +293,24 @@ func TestWrappedWriter_Write(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			var buf bytes.Buffer
-			tt.C().w.w = &buf
+			tt.C.w.w = &buf
 
 			called := 0
-			tt.C().w.writtenFunc = func() {
+			tt.C.w.writtenFunc = func() {
 				called += 1
 			}
 
-			for _, v := range tt.C().write {
-				tt.C().w.Write(v)
+			for _, v := range tt.C.write {
+				tt.C.w.Write(v)
 			}
 
 			testutil.Diff(t, 1, called)
-			testutil.Diff(t, true, tt.C().w.written)
-			testutil.Diff(t, tt.A().written, buf.String())
+			testutil.Diff(t, true, tt.C.w.written)
+			testutil.Diff(t, tt.A.written, buf.String())
 		})
 	}
 }
@@ -398,10 +352,6 @@ func TestHTTPLogger_Middleware(t *testing.T) {
 		resKVs    []any
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	testGetReq, _ := http.NewRequest(http.MethodGet, "http://test.com/get?foo=bar&alice=bob", nil)
 	testGetReq = testGetReq.WithContext(context.WithValue(context.Background(), idContextKey, "test-id"))
 	testPostReq, _ := http.NewRequest(http.MethodPost, "http://test.com/post?foo=bar&alice=bob", bytes.NewReader([]byte("testRequestBody")))
@@ -411,8 +361,6 @@ func TestHTTPLogger_Middleware(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"record GET",
-			[]string{},
-			[]string{},
 			&condition{
 				logger: &httpLogger{
 					req:  &baseLogger{allHeaders: true},
@@ -457,8 +405,6 @@ func TestHTTPLogger_Middleware(t *testing.T) {
 		),
 		gen(
 			"record POST",
-			[]string{},
-			[]string{},
 			&condition{
 				logger: &httpLogger{
 					req:  &baseLogger{allHeaders: true},
@@ -503,8 +449,6 @@ func TestHTTPLogger_Middleware(t *testing.T) {
 		),
 		gen(
 			"Status was not written",
-			[]string{},
-			[]string{},
 			&condition{
 				logger: &httpLogger{
 					req:  &baseLogger{allHeaders: true},
@@ -549,37 +493,35 @@ func TestHTTPLogger_Middleware(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				for k, vv := range tt.C().resHeader {
+				for k, vv := range tt.C.resHeader {
 					for _, v := range vv {
 						w.Header().Add(k, v)
 					}
 				}
-				if tt.C().resStatus > 0 {
-					w.WriteHeader(tt.C().resStatus)
+				if tt.C.resStatus > 0 {
+					w.WriteHeader(tt.C.resStatus)
 				}
-				for _, b := range tt.C().resBody {
+				for _, b := range tt.C.resBody {
 					w.Write(b)
 				}
 			})
 
 			reqLg := &testLogger{Logger: log.GlobalLogger(log.DefaultLoggerName)}
 			resLg := &testLogger{Logger: log.GlobalLogger(log.DefaultLoggerName)}
-			tt.C().logger.req.lg, tt.C().logger.req.w = reqLg, reqLg
-			tt.C().logger.res.lg, tt.C().logger.res.w = resLg, resLg
+			tt.C.logger.req.lg, tt.C.logger.req.w = reqLg, reqLg
+			tt.C.logger.res.lg, tt.C.logger.res.w = resLg, resLg
 
-			handler := tt.C().logger.Middleware(h)
+			handler := tt.C.logger.Middleware(h)
 			w := httptest.NewRecorder()
-			handler.ServeHTTP(w, tt.C().req)
+			handler.ServeHTTP(w, tt.C.req)
 			w.Result()
 			body, _ := io.ReadAll(w.Result().Body)
-			testutil.Diff(t, tt.A().status, w.Result().StatusCode)
-			testutil.Diff(t, tt.A().body, string(body))
+			testutil.Diff(t, tt.A.status, w.Result().StatusCode)
+			testutil.Diff(t, tt.A.body, string(body))
 
 			opts := []cmp.Option{
 				cmpopts.EquateEmpty(),
@@ -587,10 +529,10 @@ func TestHTTPLogger_Middleware(t *testing.T) {
 					return k == keyDuration || k == keyID || k == keyTime
 				}),
 			}
-			testutil.Diff(t, tt.A().reqFmtLog, string(reqLg.b))
-			testutil.Diff(t, tt.A().resFmtLog, string(resLg.b))
-			testutil.Diff(t, tt.A().reqKVs, reqLg.kvs, opts...)
-			testutil.Diff(t, tt.A().resKVs, resLg.kvs, opts...)
+			testutil.Diff(t, tt.A.reqFmtLog, string(reqLg.b))
+			testutil.Diff(t, tt.A.resFmtLog, string(resLg.b))
+			testutil.Diff(t, tt.A.reqKVs, reqLg.kvs, opts...)
+			testutil.Diff(t, tt.A.resKVs, resLg.kvs, opts...)
 		})
 	}
 }
@@ -613,10 +555,6 @@ func TestJournalLogger_Middleware(t *testing.T) {
 		resKVs    []any
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	testGetReq, _ := http.NewRequest(http.MethodGet, "http://test.com/get?foo=bar&alice=bob", nil)
 	testGetReq = testGetReq.WithContext(context.WithValue(context.Background(), idContextKey, "test-id"))
 	testPostReq := func() *http.Request {
@@ -629,8 +567,6 @@ func TestJournalLogger_Middleware(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"record GET",
-			[]string{},
-			[]string{},
 			&condition{
 				logger: &journalLogger{
 					req:  &baseLogger{allHeaders: true, maxBody: 100, mimes: []string{"text/plain"}},
@@ -685,8 +621,6 @@ func TestJournalLogger_Middleware(t *testing.T) {
 		),
 		gen(
 			"record POST",
-			[]string{},
-			[]string{},
 			&condition{
 				logger: &journalLogger{
 					req:  &baseLogger{allHeaders: true, maxBody: 100, mimes: []string{"text/plain"}},
@@ -741,8 +675,6 @@ func TestJournalLogger_Middleware(t *testing.T) {
 		),
 		gen(
 			"Status was not written",
-			[]string{},
-			[]string{},
 			&condition{
 				logger: &journalLogger{
 					req:  &baseLogger{allHeaders: true, maxBody: 100, mimes: []string{"text/plain"}},
@@ -791,8 +723,6 @@ func TestJournalLogger_Middleware(t *testing.T) {
 		),
 		gen(
 			"reader create error",
-			[]string{},
-			[]string{},
 			&condition{
 				logger: &journalLogger{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -829,8 +759,6 @@ func TestJournalLogger_Middleware(t *testing.T) {
 		),
 		gen(
 			"writer create error",
-			[]string{},
-			[]string{},
 			&condition{
 				logger: &journalLogger{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -896,37 +824,35 @@ func TestJournalLogger_Middleware(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				for k, vv := range tt.C().resHeader {
+				for k, vv := range tt.C.resHeader {
 					for _, v := range vv {
 						w.Header().Add(k, v)
 					}
 				}
-				if tt.C().resStatus > 0 {
-					w.WriteHeader(tt.C().resStatus)
+				if tt.C.resStatus > 0 {
+					w.WriteHeader(tt.C.resStatus)
 				}
-				for _, b := range tt.C().resBody {
+				for _, b := range tt.C.resBody {
 					w.Write(b)
 				}
 			})
 
 			reqLg := &testLogger{Logger: log.GlobalLogger(log.DefaultLoggerName)}
 			resLg := &testLogger{Logger: log.GlobalLogger(log.DefaultLoggerName)}
-			tt.C().logger.req.lg, tt.C().logger.req.w = reqLg, reqLg
-			tt.C().logger.res.lg, tt.C().logger.res.w = resLg, resLg
+			tt.C.logger.req.lg, tt.C.logger.req.w = reqLg, reqLg
+			tt.C.logger.res.lg, tt.C.logger.res.w = resLg, resLg
 
-			handler := tt.C().logger.Middleware(h)
+			handler := tt.C.logger.Middleware(h)
 			w := httptest.NewRecorder()
-			handler.ServeHTTP(w, tt.C().req)
+			handler.ServeHTTP(w, tt.C.req)
 			w.Result()
 			body, _ := io.ReadAll(w.Result().Body)
-			testutil.Diff(t, tt.A().status, w.Result().StatusCode)
-			testutil.Diff(t, tt.A().body, string(body))
+			testutil.Diff(t, tt.A.status, w.Result().StatusCode)
+			testutil.Diff(t, tt.A.body, string(body))
 
 			opts := []cmp.Option{
 				cmpopts.EquateEmpty(),
@@ -934,10 +860,10 @@ func TestJournalLogger_Middleware(t *testing.T) {
 					return k == keyDuration || k == keyID || k == keyTime
 				}),
 			}
-			testutil.Diff(t, tt.A().reqFmtLog, string(reqLg.b))
-			testutil.Diff(t, tt.A().resFmtLog, string(resLg.b))
-			testutil.Diff(t, tt.A().reqKVs, reqLg.kvs, opts...)
-			testutil.Diff(t, tt.A().resKVs, resLg.kvs, opts...)
+			testutil.Diff(t, tt.A.reqFmtLog, string(reqLg.b))
+			testutil.Diff(t, tt.A.resFmtLog, string(resLg.b))
+			testutil.Diff(t, tt.A.reqKVs, reqLg.kvs, opts...)
+			testutil.Diff(t, tt.A.resKVs, resLg.kvs, opts...)
 		})
 	}
 }
@@ -959,10 +885,6 @@ func TestHTTPLogger_Tripperware(t *testing.T) {
 		resKVs    []any
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	testGetReq, _ := http.NewRequest(http.MethodGet, "http://test.com/get?foo=bar&alice=bob", nil)
 	testGetReq = testGetReq.WithContext(context.WithValue(context.Background(), idContextKey, "test-id"))
 	testPostReq, _ := http.NewRequest(http.MethodPost, "http://test.com/post?foo=bar&alice=bob", bytes.NewReader([]byte("testRequestBody")))
@@ -972,8 +894,6 @@ func TestHTTPLogger_Tripperware(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"record GET",
-			[]string{},
-			[]string{},
 			&condition{
 				logger: &httpLogger{
 					req:  &baseLogger{allHeaders: true},
@@ -1021,8 +941,6 @@ func TestHTTPLogger_Tripperware(t *testing.T) {
 		),
 		gen(
 			"record POST",
-			[]string{},
-			[]string{},
 			&condition{
 				logger: &httpLogger{
 					req:  &baseLogger{allHeaders: true},
@@ -1070,26 +988,24 @@ func TestHTTPLogger_Tripperware(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			r := core.RoundTripperFunc(func(r *http.Request) (*http.Response, error) {
-				return tt.C().res, tt.C().err
+				return tt.C.res, tt.C.err
 			})
 
 			reqLg := &testLogger{Logger: log.GlobalLogger(log.DefaultLoggerName)}
 			resLg := &testLogger{Logger: log.GlobalLogger(log.DefaultLoggerName)}
-			tt.C().logger.req.lg, tt.C().logger.req.w = reqLg, reqLg
-			tt.C().logger.res.lg, tt.C().logger.res.w = resLg, resLg
+			tt.C.logger.req.lg, tt.C.logger.req.w = reqLg, reqLg
+			tt.C.logger.res.lg, tt.C.logger.res.w = resLg, resLg
 
-			roundTripper := tt.C().logger.Tripperware(r)
-			w, _ := roundTripper.RoundTrip(tt.C().req)
+			roundTripper := tt.C.logger.Tripperware(r)
+			w, _ := roundTripper.RoundTrip(tt.C.req)
 
 			body, _ := io.ReadAll(w.Body)
-			testutil.Diff(t, tt.A().status, w.StatusCode)
-			testutil.Diff(t, tt.A().body, string(body))
+			testutil.Diff(t, tt.A.status, w.StatusCode)
+			testutil.Diff(t, tt.A.body, string(body))
 
 			opts := []cmp.Option{
 				cmpopts.EquateEmpty(),
@@ -1097,10 +1013,10 @@ func TestHTTPLogger_Tripperware(t *testing.T) {
 					return k == keyDuration || k == keyID || k == keyTime
 				}),
 			}
-			testutil.Diff(t, tt.A().reqFmtLog, string(reqLg.b))
-			testutil.Diff(t, tt.A().resFmtLog, string(resLg.b))
-			testutil.Diff(t, tt.A().reqKVs, reqLg.kvs, opts...)
-			testutil.Diff(t, tt.A().resKVs, resLg.kvs, opts...)
+			testutil.Diff(t, tt.A.reqFmtLog, string(reqLg.b))
+			testutil.Diff(t, tt.A.resFmtLog, string(resLg.b))
+			testutil.Diff(t, tt.A.reqKVs, reqLg.kvs, opts...)
+			testutil.Diff(t, tt.A.resKVs, resLg.kvs, opts...)
 		})
 	}
 }
@@ -1122,10 +1038,6 @@ func TestJournalLogger_Tripperware(t *testing.T) {
 		resKVs    []any
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	testGetReq, _ := http.NewRequest(http.MethodGet, "http://test.com/get?foo=bar&alice=bob", nil)
 	testGetReq = testGetReq.WithContext(context.WithValue(context.Background(), idContextKey, "test-id"))
 	testPostReq := func() *http.Request {
@@ -1138,8 +1050,6 @@ func TestJournalLogger_Tripperware(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"record GET",
-			[]string{},
-			[]string{},
 			&condition{
 				logger: &journalLogger{
 					req:  &baseLogger{allHeaders: true, maxBody: 100, mimes: []string{"text/plain"}},
@@ -1189,8 +1099,6 @@ func TestJournalLogger_Tripperware(t *testing.T) {
 		),
 		gen(
 			"record POST",
-			[]string{},
-			[]string{},
 			&condition{
 				logger: &journalLogger{
 					req:  &baseLogger{allHeaders: true, maxBody: 100, mimes: []string{"text/plain"}},
@@ -1240,8 +1148,6 @@ func TestJournalLogger_Tripperware(t *testing.T) {
 		),
 		gen(
 			"reader create error",
-			[]string{},
-			[]string{},
 			&condition{
 				logger: &journalLogger{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -1277,8 +1183,6 @@ func TestJournalLogger_Tripperware(t *testing.T) {
 		),
 		gen(
 			"writer create error",
-			[]string{},
-			[]string{},
 			&condition{
 				logger: &journalLogger{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -1343,30 +1247,28 @@ func TestJournalLogger_Tripperware(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			r := core.RoundTripperFunc(func(r *http.Request) (*http.Response, error) {
-				return tt.C().res, tt.C().err
+				return tt.C.res, tt.C.err
 			})
 
 			reqLg := &testLogger{Logger: log.GlobalLogger(log.DefaultLoggerName)}
 			resLg := &testLogger{Logger: log.GlobalLogger(log.DefaultLoggerName)}
-			tt.C().logger.req.lg, tt.C().logger.req.w = reqLg, reqLg
-			tt.C().logger.res.lg, tt.C().logger.res.w = resLg, resLg
+			tt.C.logger.req.lg, tt.C.logger.req.w = reqLg, reqLg
+			tt.C.logger.res.lg, tt.C.logger.res.w = resLg, resLg
 
-			roundTripper := tt.C().logger.Tripperware(r)
-			w, err := roundTripper.RoundTrip(tt.C().req)
+			roundTripper := tt.C.logger.Tripperware(r)
+			w, err := roundTripper.RoundTrip(tt.C.req)
 			if err != nil {
 				testutil.Diff(t, (*http.Response)(nil), w)
 				return
 			}
 
 			body, _ := io.ReadAll(w.Body)
-			testutil.Diff(t, tt.A().status, w.StatusCode)
-			testutil.Diff(t, tt.A().body, string(body))
+			testutil.Diff(t, tt.A.status, w.StatusCode)
+			testutil.Diff(t, tt.A.body, string(body))
 
 			opts := []cmp.Option{
 				cmpopts.EquateEmpty(),
@@ -1374,10 +1276,10 @@ func TestJournalLogger_Tripperware(t *testing.T) {
 					return k == keyDuration || k == keyID || k == keyTime
 				}),
 			}
-			testutil.Diff(t, tt.A().reqFmtLog, string(reqLg.b))
-			testutil.Diff(t, tt.A().resFmtLog, string(resLg.b))
-			testutil.Diff(t, tt.A().reqKVs, reqLg.kvs, opts...)
-			testutil.Diff(t, tt.A().resKVs, resLg.kvs, opts...)
+			testutil.Diff(t, tt.A.reqFmtLog, string(reqLg.b))
+			testutil.Diff(t, tt.A.resFmtLog, string(resLg.b))
+			testutil.Diff(t, tt.A.reqKVs, reqLg.kvs, opts...)
+			testutil.Diff(t, tt.A.resKVs, resLg.kvs, opts...)
 		})
 	}
 }

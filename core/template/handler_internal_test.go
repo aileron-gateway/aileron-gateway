@@ -28,10 +28,6 @@ func TestHandler_ServeHTTP(t *testing.T) {
 		header http.Header
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	tpl0, _ := txtutil.NewTemplate(txtutil.TplGoText, "")
 	tpl1, _ := txtutil.NewTemplate(txtutil.TplGoText, "{{.proto}} {{.host}} {{.method}} {{.path}}")
 	tpl2, _ := txtutil.NewTemplate(txtutil.TplGoText, "{{.header.Foo}}")
@@ -41,8 +37,6 @@ func TestHandler_ServeHTTP(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"no content",
-			[]string{},
-			[]string{},
 			&condition{
 				h: &templateHandler{
 					eh: utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
@@ -55,8 +49,6 @@ func TestHandler_ServeHTTP(t *testing.T) {
 		),
 		gen(
 			"add response header",
-			[]string{},
-			[]string{},
 			&condition{
 				h: &templateHandler{
 					eh: utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
@@ -82,8 +74,6 @@ func TestHandler_ServeHTTP(t *testing.T) {
 		),
 		gen(
 			"basic info",
-			[]string{},
-			[]string{},
 			&condition{
 				h: &templateHandler{
 					eh: utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
@@ -107,8 +97,6 @@ func TestHandler_ServeHTTP(t *testing.T) {
 		),
 		gen(
 			"template header",
-			[]string{},
-			[]string{},
 			&condition{
 				h: &templateHandler{
 					eh: utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
@@ -133,8 +121,6 @@ func TestHandler_ServeHTTP(t *testing.T) {
 		),
 		gen(
 			"template header",
-			[]string{},
-			[]string{},
 			&condition{
 				h: &templateHandler{
 					eh: utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
@@ -159,24 +145,22 @@ func TestHandler_ServeHTTP(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			w := httptest.NewRecorder()
-			r, _ := http.NewRequest(http.MethodPost, "http://test.com/unit-test?"+tt.C().query, nil)
-			maps.Copy(r.Header, tt.C().header)
+			r, _ := http.NewRequest(http.MethodPost, "http://test.com/unit-test?"+tt.C.query, nil)
+			maps.Copy(r.Header, tt.C.header)
 
-			tt.C().h.ServeHTTP(w, r)
+			tt.C.h.ServeHTTP(w, r)
 
 			res := w.Result()
 			b, _ := io.ReadAll(res.Body)
-			testutil.Diff(t, tt.A().status, res.StatusCode)
-			for k, v := range tt.A().header {
+			testutil.Diff(t, tt.A.status, res.StatusCode)
+			for k, v := range tt.A.header {
 				testutil.Diff(t, v, res.Header[k])
 			}
-			testutil.Diff(t, tt.A().body, string(b))
+			testutil.Diff(t, tt.A.body, string(b))
 		})
 	}
 }

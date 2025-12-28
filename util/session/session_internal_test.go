@@ -24,17 +24,10 @@ func TestNewDefaultSession(t *testing.T) {
 		df *DefaultSession
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"default",
-			[]string{},
-			[]string{},
-			&condition{},
+			"default", &condition{},
 			&action{
 				df: &DefaultSession{
 					flags:     New,
@@ -46,10 +39,7 @@ func TestNewDefaultSession(t *testing.T) {
 			},
 		),
 		gen(
-			"msgpack",
-			[]string{},
-			[]string{},
-			&condition{
+			"msgpack", &condition{
 				sm: SerializeMsgPack,
 			},
 			&action{
@@ -63,10 +53,7 @@ func TestNewDefaultSession(t *testing.T) {
 			},
 		),
 		gen(
-			"json",
-			[]string{},
-			[]string{},
-			&condition{
+			"json", &condition{
 				sm: SerializeJSON,
 			},
 			&action{
@@ -81,19 +68,17 @@ func TestNewDefaultSession(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			df := NewDefaultSession(tt.C().sm)
+		t.Run(tt.Name, func(t *testing.T) {
+			df := NewDefaultSession(tt.C.sm)
 
 			opts := []cmp.Option{
 				cmp.AllowUnexported(DefaultSession{}),
 				cmp.Comparer(testutil.ComparePointer[func(any) ([]byte, error)]),
 				cmp.Comparer(testutil.ComparePointer[func([]byte, any) error]),
 			}
-			testutil.Diff(t, tt.A().df, df, opts...)
+			testutil.Diff(t, tt.A.df, df, opts...)
 		})
 	}
 }
@@ -109,17 +94,10 @@ func TestDefaultSession_SetFlag(t *testing.T) {
 		flagFalse uint
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"set zero",
-			[]string{},
-			[]string{},
-			&condition{
+			"set zero", &condition{
 				df: &DefaultSession{
 					flags: 0b0001,
 				},
@@ -131,10 +109,7 @@ func TestDefaultSession_SetFlag(t *testing.T) {
 			},
 		),
 		gen(
-			"set non- zero",
-			[]string{},
-			[]string{},
-			&condition{
+			"set non- zero", &condition{
 				df: &DefaultSession{
 					flags: 0b0001,
 				},
@@ -147,16 +122,14 @@ func TestDefaultSession_SetFlag(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			result := tt.C().df.SetFlag(tt.C().flag)
-			testutil.Diff(t, true, tt.C().df.flags&tt.A().flagTrue > 0)
-			testutil.Diff(t, true, tt.C().df.flags&tt.A().flagFalse == 0)
-			testutil.Diff(t, true, result&tt.A().flagTrue > 0)
-			testutil.Diff(t, true, result&tt.A().flagFalse == 0)
+		t.Run(tt.Name, func(t *testing.T) {
+			result := tt.C.df.SetFlag(tt.C.flag)
+			testutil.Diff(t, true, tt.C.df.flags&tt.A.flagTrue > 0)
+			testutil.Diff(t, true, tt.C.df.flags&tt.A.flagFalse == 0)
+			testutil.Diff(t, true, result&tt.A.flagTrue > 0)
+			testutil.Diff(t, true, result&tt.A.flagFalse == 0)
 		})
 	}
 }
@@ -170,17 +143,10 @@ func TestDefaultSession_Attributes(t *testing.T) {
 		attrs map[string]any
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"non nil",
-			[]string{},
-			[]string{},
-			&condition{
+			"non nil", &condition{
 				df: &DefaultSession{
 					attrs: map[string]any{"foo": "bar"},
 				},
@@ -191,13 +157,11 @@ func TestDefaultSession_Attributes(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			attrs := tt.C().df.Attributes()
-			testutil.Diff(t, tt.A().attrs, attrs)
+		t.Run(tt.Name, func(t *testing.T) {
+			attrs := tt.C.df.Attributes()
+			testutil.Diff(t, tt.A.attrs, attrs)
 		})
 	}
 }
@@ -212,17 +176,10 @@ func TestDefaultSession_Delete(t *testing.T) {
 		data map[string][]byte
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"delete existing key",
-			[]string{},
-			[]string{},
-			&condition{
+			"delete existing key", &condition{
 				df: &DefaultSession{
 					data: map[string][]byte{
 						"foo":   []byte("bar"),
@@ -238,10 +195,7 @@ func TestDefaultSession_Delete(t *testing.T) {
 			},
 		),
 		gen(
-			"delete non-existing key",
-			[]string{},
-			[]string{},
-			&condition{
+			"delete non-existing key", &condition{
 				df: &DefaultSession{
 					data: map[string][]byte{
 						"foo":   []byte("bar"),
@@ -259,13 +213,11 @@ func TestDefaultSession_Delete(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			tt.C().df.Delete(tt.C().key)
-			testutil.Diff(t, tt.A().data, tt.C().df.data)
+		t.Run(tt.Name, func(t *testing.T) {
+			tt.C.df.Delete(tt.C.key)
+			testutil.Diff(t, tt.A.data, tt.C.df.data)
 		})
 	}
 }
@@ -294,19 +246,12 @@ func TestDefaultSession_Persist(t *testing.T) {
 		err  error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	testStr := testMarshalUnmarshaler("bar")
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"msgpack/persist nil",
-			[]string{},
-			[]string{},
-			&condition{
+			"msgpack/persist nil", &condition{
 				df: &DefaultSession{
 					data:    map[string][]byte{},
 					marshal: msgpack.Marshal,
@@ -321,10 +266,7 @@ func TestDefaultSession_Persist(t *testing.T) {
 			},
 		),
 		gen(
-			"msgpack/persist value",
-			[]string{},
-			[]string{},
-			&condition{
+			"msgpack/persist value", &condition{
 				df: &DefaultSession{
 					data:    map[string][]byte{},
 					marshal: msgpack.Marshal,
@@ -339,10 +281,7 @@ func TestDefaultSession_Persist(t *testing.T) {
 			},
 		),
 		gen(
-			"json/persist nil",
-			[]string{},
-			[]string{},
-			&condition{
+			"json/persist nil", &condition{
 				df: &DefaultSession{
 					data:    map[string][]byte{},
 					marshal: json.Marshal,
@@ -357,10 +296,7 @@ func TestDefaultSession_Persist(t *testing.T) {
 			},
 		),
 		gen(
-			"json/persist value",
-			[]string{},
-			[]string{},
-			&condition{
+			"json/persist value", &condition{
 				df: &DefaultSession{
 					data:    map[string][]byte{},
 					marshal: json.Marshal,
@@ -375,10 +311,7 @@ func TestDefaultSession_Persist(t *testing.T) {
 			},
 		),
 		gen(
-			"binary marshaler",
-			[]string{},
-			[]string{},
-			&condition{
+			"binary marshaler", &condition{
 				df: &DefaultSession{
 					data: map[string][]byte{},
 				},
@@ -392,10 +325,7 @@ func TestDefaultSession_Persist(t *testing.T) {
 			},
 		),
 		gen(
-			"marshal error",
-			[]string{},
-			[]string{},
-			&condition{
+			"marshal error", &condition{
 				df: &DefaultSession{
 					data:    map[string][]byte{},
 					marshal: json.Marshal,
@@ -410,20 +340,18 @@ func TestDefaultSession_Persist(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			err := tt.C().df.Persist(tt.C().key, tt.C().val)
-			testutil.Diff(t, tt.A().data, tt.C().df.data)
+		t.Run(tt.Name, func(t *testing.T) {
+			err := tt.C.df.Persist(tt.C.key, tt.C.val)
+			testutil.Diff(t, tt.A.data, tt.C.df.data)
 
-			if tt.A().err != nil {
-				testutil.Diff(t, tt.A().err.Error(), err.Error())
-				testutil.Diff(t, false, tt.C().df.flags&Updated > 0)
+			if tt.A.err != nil {
+				testutil.Diff(t, tt.A.err.Error(), err.Error())
+				testutil.Diff(t, false, tt.C.df.flags&Updated > 0)
 			} else {
 				testutil.Diff(t, nil, err)
-				testutil.Diff(t, true, tt.C().df.flags&Updated > 0)
+				testutil.Diff(t, true, tt.C.df.flags&Updated > 0)
 			}
 		})
 	}
@@ -442,10 +370,6 @@ func TestDefaultSession_Extract(t *testing.T) {
 		err  error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	testStrEmpty := testMarshalUnmarshaler("")
 	testStr := testMarshalUnmarshaler("bar")
 	strPtr := func(s string) *string { return &s }
@@ -453,10 +377,7 @@ func TestDefaultSession_Extract(t *testing.T) {
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"msgpack/extract nil",
-			[]string{},
-			[]string{},
-			&condition{
+			"msgpack/extract nil", &condition{
 				df: &DefaultSession{
 					data: map[string][]byte{
 						"foo": {0xc0},
@@ -474,10 +395,7 @@ func TestDefaultSession_Extract(t *testing.T) {
 			},
 		),
 		gen(
-			"msgpack/extract value",
-			[]string{},
-			[]string{},
-			&condition{
+			"msgpack/extract value", &condition{
 				df: &DefaultSession{
 					data: map[string][]byte{
 						"foo": {0xa3, 0x62, 0x61, 0x72},
@@ -495,10 +413,7 @@ func TestDefaultSession_Extract(t *testing.T) {
 			},
 		),
 		gen(
-			"json/extract nil",
-			[]string{},
-			[]string{},
-			&condition{
+			"json/extract nil", &condition{
 				df: &DefaultSession{
 					data: map[string][]byte{
 						"foo": []byte("null"),
@@ -516,10 +431,7 @@ func TestDefaultSession_Extract(t *testing.T) {
 			},
 		),
 		gen(
-			"json/extract value",
-			[]string{},
-			[]string{},
-			&condition{
+			"json/extract value", &condition{
 				df: &DefaultSession{
 					data: map[string][]byte{
 						"foo": []byte(`"bar"`),
@@ -537,10 +449,7 @@ func TestDefaultSession_Extract(t *testing.T) {
 			},
 		),
 		gen(
-			"binary unmarshaler",
-			[]string{},
-			[]string{},
-			&condition{
+			"binary unmarshaler", &condition{
 				df: &DefaultSession{
 					data: map[string][]byte{
 						"foo": []byte("bar"),
@@ -557,10 +466,7 @@ func TestDefaultSession_Extract(t *testing.T) {
 			},
 		),
 		gen(
-			"not found",
-			[]string{},
-			[]string{},
-			&condition{
+			"not found", &condition{
 				df: &DefaultSession{
 					data: map[string][]byte{
 						"foo": []byte("bar"),
@@ -579,16 +485,14 @@ func TestDefaultSession_Extract(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			err := tt.C().df.Extract(tt.C().key, tt.A().val)
-			testutil.Diff(t, &tt.A().data, &tt.C().df.data)
+		t.Run(tt.Name, func(t *testing.T) {
+			err := tt.C.df.Extract(tt.C.key, tt.A.val)
+			testutil.Diff(t, &tt.A.data, &tt.C.df.data)
 
-			if tt.A().err != nil {
-				testutil.Diff(t, tt.A().err.Error(), err.Error())
+			if tt.A.err != nil {
+				testutil.Diff(t, tt.A.err.Error(), err.Error())
 			} else {
 				testutil.Diff(t, nil, err)
 			}
@@ -607,17 +511,10 @@ func TestDefaultSession_UnmarshalBinary(t *testing.T) {
 		err error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"msgpack/unmarshal nil",
-			[]string{},
-			[]string{},
-			&condition{
+			"msgpack/unmarshal nil", &condition{
 				df: &DefaultSession{
 					data:      map[string][]byte{},
 					unmarshal: msgpack.Unmarshal,
@@ -629,10 +526,7 @@ func TestDefaultSession_UnmarshalBinary(t *testing.T) {
 			},
 		),
 		gen(
-			"msgpack/unmarshal empty",
-			[]string{},
-			[]string{},
-			&condition{
+			"msgpack/unmarshal empty", &condition{
 				df: &DefaultSession{
 					data:      map[string][]byte{},
 					unmarshal: msgpack.Unmarshal,
@@ -644,10 +538,7 @@ func TestDefaultSession_UnmarshalBinary(t *testing.T) {
 			},
 		),
 		gen(
-			"msgpack/unmarshal",
-			[]string{},
-			[]string{},
-			&condition{
+			"msgpack/unmarshal", &condition{
 				df: &DefaultSession{
 					data:      map[string][]byte{},
 					unmarshal: msgpack.Unmarshal,
@@ -659,10 +550,7 @@ func TestDefaultSession_UnmarshalBinary(t *testing.T) {
 			},
 		),
 		gen(
-			"json/unmarshal nil",
-			[]string{},
-			[]string{},
-			&condition{
+			"json/unmarshal nil", &condition{
 				df: &DefaultSession{
 					data:      map[string][]byte{},
 					unmarshal: json.Unmarshal,
@@ -674,10 +562,7 @@ func TestDefaultSession_UnmarshalBinary(t *testing.T) {
 			},
 		),
 		gen(
-			"json/unmarshal empty",
-			[]string{},
-			[]string{},
-			&condition{
+			"json/unmarshal empty", &condition{
 				df: &DefaultSession{
 					data:      map[string][]byte{},
 					unmarshal: json.Unmarshal,
@@ -689,10 +574,7 @@ func TestDefaultSession_UnmarshalBinary(t *testing.T) {
 			},
 		),
 		gen(
-			"json/unmarshal",
-			[]string{},
-			[]string{},
-			&condition{
+			"json/unmarshal", &condition{
 				df: &DefaultSession{
 					data:      map[string][]byte{},
 					unmarshal: json.Unmarshal,
@@ -705,15 +587,13 @@ func TestDefaultSession_UnmarshalBinary(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			err := tt.C().df.UnmarshalBinary(tt.C().b)
-			testutil.Diff(t, tt.A().err, err)
-			testutil.Diff(t, tt.A().m, tt.C().df.data)
-			testutil.Diff(t, true, tt.C().df.flags&Restored > 0)
+		t.Run(tt.Name, func(t *testing.T) {
+			err := tt.C.df.UnmarshalBinary(tt.C.b)
+			testutil.Diff(t, tt.A.err, err)
+			testutil.Diff(t, tt.A.m, tt.C.df.data)
+			testutil.Diff(t, true, tt.C.df.flags&Restored > 0)
 		})
 	}
 }
@@ -728,17 +608,10 @@ func TestDefaultSession_MarshalBinary(t *testing.T) {
 		err error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"not updated",
-			[]string{},
-			[]string{},
-			&condition{
+			"not updated", &condition{
 				df: &DefaultSession{
 					raw:  []byte("raw"),
 					data: nil,
@@ -749,10 +622,7 @@ func TestDefaultSession_MarshalBinary(t *testing.T) {
 			},
 		),
 		gen(
-			"msgpack/marshal nil",
-			[]string{},
-			[]string{},
-			&condition{
+			"msgpack/marshal nil", &condition{
 				df: &DefaultSession{
 					flags:   Updated,
 					data:    nil,
@@ -764,10 +634,7 @@ func TestDefaultSession_MarshalBinary(t *testing.T) {
 			},
 		),
 		gen(
-			"msgpack/marshal empty",
-			[]string{},
-			[]string{},
-			&condition{
+			"msgpack/marshal empty", &condition{
 				df: &DefaultSession{
 					flags:   Updated,
 					data:    map[string][]byte{},
@@ -779,10 +646,7 @@ func TestDefaultSession_MarshalBinary(t *testing.T) {
 			},
 		),
 		gen(
-			"msgpack/marshal",
-			[]string{},
-			[]string{},
-			&condition{
+			"msgpack/marshal", &condition{
 				df: &DefaultSession{
 					flags:   Updated,
 					data:    map[string][]byte{"foo": []byte("test")},
@@ -794,10 +658,7 @@ func TestDefaultSession_MarshalBinary(t *testing.T) {
 			},
 		),
 		gen(
-			"json/marshal nil",
-			[]string{},
-			[]string{},
-			&condition{
+			"json/marshal nil", &condition{
 				df: &DefaultSession{
 					flags:   Updated,
 					data:    nil,
@@ -809,10 +670,7 @@ func TestDefaultSession_MarshalBinary(t *testing.T) {
 			},
 		),
 		gen(
-			"json/marshal empty",
-			[]string{},
-			[]string{},
-			&condition{
+			"json/marshal empty", &condition{
 				df: &DefaultSession{
 					flags:   Updated,
 					data:    map[string][]byte{},
@@ -824,10 +682,7 @@ func TestDefaultSession_MarshalBinary(t *testing.T) {
 			},
 		),
 		gen(
-			"json/marshal",
-			[]string{},
-			[]string{},
-			&condition{
+			"json/marshal", &condition{
 				df: &DefaultSession{
 					flags:   Updated,
 					data:    map[string][]byte{"foo": []byte("test")},
@@ -840,15 +695,13 @@ func TestDefaultSession_MarshalBinary(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			b, err := tt.C().df.MarshalBinary()
-			testutil.Diff(t, tt.A().err, err)
+		t.Run(tt.Name, func(t *testing.T) {
+			b, err := tt.C.df.MarshalBinary()
+			testutil.Diff(t, tt.A.err, err)
 			t.Log(string(b))
-			testutil.Diff(t, tt.A().b, b)
+			testutil.Diff(t, tt.A.b, b)
 		})
 	}
 }
@@ -864,17 +717,10 @@ func TestMustPersist(t *testing.T) {
 		err   error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"valid value",
-			[]string{},
-			[]string{},
-			&condition{
+			"valid value", &condition{
 				key:   "foo",
 				value: &net.IPAddr{Zone: "test"}, // No meaning using IPAddr.
 			},
@@ -883,10 +729,7 @@ func TestMustPersist(t *testing.T) {
 			},
 		),
 		gen(
-			"invalid value",
-			[]string{},
-			[]string{},
-			&condition{
+			"invalid value", &condition{
 				key:   "foo",
 				value: complex(1, 2),
 			},
@@ -898,14 +741,12 @@ func TestMustPersist(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			defer func() {
 				err := recover()
-				testutil.Diff(t, tt.A().err,
+				testutil.Diff(t, tt.A.err,
 					err, cmp.Comparer(func(x, y reflect.Type) bool {
 						return x.String() == y.String()
 					}),
@@ -913,10 +754,10 @@ func TestMustPersist(t *testing.T) {
 			}()
 
 			ss := NewDefaultSession(SerializeJSON)
-			MustPersist(ss, tt.C().key, tt.C().value)
-			if tt.A().err != nil {
-				ss.Extract(tt.C().key, tt.A().value)
-				testutil.Diff(t, tt.C().value, tt.A().value)
+			MustPersist(ss, tt.C.key, tt.C.value)
+			if tt.A.err != nil {
+				ss.Extract(tt.C.key, tt.A.value)
+				testutil.Diff(t, tt.C.value, tt.A.value)
 			}
 		})
 	}

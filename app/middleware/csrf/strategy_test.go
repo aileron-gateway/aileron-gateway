@@ -38,16 +38,10 @@ func TestCustomRequestHeaders(t *testing.T) {
 		status      int
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"empty header",
-			[]string{},
-			[]string{},
 			&condition{
 				headerValue: "",
 				pattern:     ".*",
@@ -60,8 +54,6 @@ func TestCustomRequestHeaders(t *testing.T) {
 		),
 		gen(
 			"invalid pattern",
-			[]string{},
-			[]string{},
 			&condition{
 				headerValue: "invalid-token",
 				pattern:     "^valid-.*",
@@ -74,8 +66,6 @@ func TestCustomRequestHeaders(t *testing.T) {
 		),
 		gen(
 			"valid token",
-			[]string{},
-			[]string{},
 			&condition{
 				headerValue: "valid-token",
 				pattern:     ".*",
@@ -88,8 +78,6 @@ func TestCustomRequestHeaders(t *testing.T) {
 		),
 		gen(
 			"valid token and pattern",
-			[]string{},
-			[]string{},
 			&condition{
 				headerValue: "valid-token",
 				pattern:     "^valid-.*",
@@ -102,8 +90,6 @@ func TestCustomRequestHeaders(t *testing.T) {
 		),
 		gen(
 			"set token",
-			[]string{},
-			[]string{},
 			&condition{
 				headerValue: "",
 				pattern:     "",
@@ -116,11 +102,9 @@ func TestCustomRequestHeaders(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 
 			csrfToken := &csrfToken{
 				secret:   []byte("some-secret"),
@@ -131,14 +115,14 @@ func TestCustomRequestHeaders(t *testing.T) {
 
 			// Generate if a valid token is required.
 			validToken, _ := csrfToken.new()
-			headerValue := tt.C().headerValue
-			if tt.C().validToken {
+			headerValue := tt.C.headerValue
+			if tt.C.validToken {
 				headerValue = validToken
 			}
 
 			var pattern *regexp.Regexp
-			if tt.C().pattern != "" {
-				pattern = regexp.MustCompile(tt.C().pattern)
+			if tt.C.pattern != "" {
+				pattern = regexp.MustCompile(tt.C.pattern)
 			}
 
 			strategy := &customRequestHeaders{
@@ -153,7 +137,7 @@ func TestCustomRequestHeaders(t *testing.T) {
 			req.Header.Set("X-CSRF-Token", headerValue)
 
 			token, err := strategy.get(req)
-			if tt.A().expectError {
+			if tt.A.expectError {
 				testutil.Diff(t, err != nil, true)
 				testutil.Diff(t, token, "")
 			} else {
@@ -183,16 +167,10 @@ func TestDoubleSubmitCookies(t *testing.T) {
 		expectSet   bool
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"no cookie",
-			[]string{},
-			[]string{},
 			&condition{
 				cookieToken:  "",
 				requestToken: "",
@@ -206,8 +184,6 @@ func TestDoubleSubmitCookies(t *testing.T) {
 		),
 		gen(
 			"token mismatch",
-			[]string{},
-			[]string{},
 			&condition{
 				cookieToken:  "cookie-token",
 				requestToken: "request-token",
@@ -220,8 +196,6 @@ func TestDoubleSubmitCookies(t *testing.T) {
 		),
 		gen(
 			"valid token",
-			[]string{},
-			[]string{},
 			&condition{
 				validToken: true,
 			},
@@ -232,8 +206,6 @@ func TestDoubleSubmitCookies(t *testing.T) {
 		),
 		gen(
 			"extract token error",
-			[]string{},
-			[]string{},
 			&condition{
 				validToken:   true,
 				extractError: true,
@@ -245,8 +217,6 @@ func TestDoubleSubmitCookies(t *testing.T) {
 		),
 		gen(
 			"set token successfully",
-			[]string{},
-			[]string{},
 			&condition{
 				cookieToken: "new-valid-token",
 				validToken:  true,
@@ -259,11 +229,9 @@ func TestDoubleSubmitCookies(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 
 			csrfToken := &csrfToken{
 				secret:   []byte("some-secret"),
@@ -274,12 +242,12 @@ func TestDoubleSubmitCookies(t *testing.T) {
 
 			cookieToken, _ := csrfToken.new()
 			requestToken := cookieToken
-			if !tt.C().validToken {
+			if !tt.C.validToken {
 				requestToken = "invalid-token"
 			}
 
 			var mockError error
-			if tt.C().extractError {
+			if tt.C.extractError {
 				mockError = errors.New("extract tokken failed.")
 			}
 			strategy := &doubleSubmitCookies{
@@ -292,7 +260,7 @@ func TestDoubleSubmitCookies(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
 			resp := httptest.NewRecorder()
 
-			if !tt.C().noCookie {
+			if !tt.C.noCookie {
 				ck := &http.Cookie{
 					Name:  "csrf-token",
 					Value: cookieToken,
@@ -301,7 +269,7 @@ func TestDoubleSubmitCookies(t *testing.T) {
 			}
 			token, err := strategy.get(req)
 
-			if tt.A().expectError {
+			if tt.A.expectError {
 				testutil.Diff(t, true, err != nil)
 				testutil.Diff(t, "", token)
 			} else {
@@ -309,8 +277,8 @@ func TestDoubleSubmitCookies(t *testing.T) {
 				testutil.Diff(t, token, requestToken)
 			}
 
-			if tt.A().expectSet {
-				err := strategy.set(tt.C().cookieToken, resp, req)
+			if tt.A.expectSet {
+				err := strategy.set(tt.C.cookieToken, resp, req)
 				testutil.Diff(t, err == nil, true)
 
 				cookieHeader := resp.Header().Get("Set-Cookie")
@@ -399,16 +367,10 @@ func TestSynchronizerToken(t *testing.T) {
 		status       int
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"no session",
-			[]string{},
-			[]string{},
 			&condition{
 				sessionToken:  "",
 				requestToken:  "",
@@ -422,8 +384,6 @@ func TestSynchronizerToken(t *testing.T) {
 		),
 		gen(
 			"session token extraction failure",
-			[]string{},
-			[]string{},
 			&condition{
 				sessionToken:  "",
 				requestToken:  "",
@@ -438,8 +398,6 @@ func TestSynchronizerToken(t *testing.T) {
 		),
 		gen(
 			"request token extraction failure",
-			[]string{},
-			[]string{},
 			&condition{
 				sessionToken:  "valid-token",
 				requestToken:  "",
@@ -454,8 +412,6 @@ func TestSynchronizerToken(t *testing.T) {
 		),
 		gen(
 			"token mismatch",
-			[]string{},
-			[]string{},
 			&condition{
 				sessionToken:  "session-token",
 				requestToken:  "request-token",
@@ -469,8 +425,6 @@ func TestSynchronizerToken(t *testing.T) {
 		),
 		gen(
 			"valid token",
-			[]string{},
-			[]string{},
 			&condition{
 				validToken:    true,
 				sessionExists: true,
@@ -482,8 +436,6 @@ func TestSynchronizerToken(t *testing.T) {
 		),
 		gen(
 			"persist token failure",
-			[]string{},
-			[]string{},
 			&condition{
 				sessionToken:  "valid-token",
 				requestToken:  "valid-token",
@@ -498,11 +450,9 @@ func TestSynchronizerToken(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 
 			csrfToken := &csrfToken{
 				secret:   []byte("some-secret"),
@@ -513,12 +463,12 @@ func TestSynchronizerToken(t *testing.T) {
 
 			sessionToken, _ := csrfToken.new()
 			requestToken := sessionToken
-			if !tt.C().validToken {
+			if !tt.C.validToken {
 				requestToken = "invalid-token"
 			}
 
 			var mockExtErr error
-			if tt.C().tokenError {
+			if tt.C.tokenError {
 				mockExtErr = errors.New("request token extraction failed")
 			}
 
@@ -530,9 +480,9 @@ func TestSynchronizerToken(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
 			ctx := req.Context()
 
-			if tt.C().sessionExists {
+			if tt.C.sessionExists {
 				var mockSessErr error
-				if tt.C().extractError {
+				if tt.C.extractError {
 					mockSessErr = errors.New("session token extraction failed")
 				}
 				ctx = session.ContextWithSession(
@@ -541,7 +491,7 @@ func TestSynchronizerToken(t *testing.T) {
 						token: sessionToken,
 						err:   mockSessErr,
 						persistErr: func() error {
-							if tt.C().persistError {
+							if tt.C.persistError {
 								return errors.New("persist failed")
 							}
 							return nil
@@ -552,7 +502,7 @@ func TestSynchronizerToken(t *testing.T) {
 
 			req = req.WithContext(ctx)
 			token, err := strategy.get(req)
-			if tt.A().expectError {
+			if tt.A.expectError {
 				testutil.Diff(t, true, err != nil)
 				testutil.Diff(t, "", token)
 			} else {
@@ -561,7 +511,7 @@ func TestSynchronizerToken(t *testing.T) {
 			}
 
 			err = strategy.set(requestToken, nil, req)
-			if tt.C().persistError {
+			if tt.C.persistError {
 				testutil.Diff(t, true, err != nil)
 			}
 		})

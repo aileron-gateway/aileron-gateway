@@ -41,17 +41,10 @@ func TestPersistRequest(t *testing.T) {
 		err error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"empty request",
-			[]string{},
-			[]string{},
-			&condition{
+			"empty request", &condition{
 				req: &http.Request{
 					Method: http.MethodGet,
 					URL:    &url.URL{},
@@ -70,10 +63,7 @@ func TestPersistRequest(t *testing.T) {
 			},
 		),
 		gen(
-			"persist url",
-			[]string{},
-			[]string{},
-			&condition{
+			"persist url", &condition{
 				req: &http.Request{
 					Method: http.MethodGet,
 					URL: &url.URL{
@@ -116,10 +106,7 @@ func TestPersistRequest(t *testing.T) {
 			},
 		),
 		gen(
-			"persist header",
-			[]string{},
-			[]string{},
-			&condition{
+			"persist header", &condition{
 				req: &http.Request{
 					Method: http.MethodGet,
 					URL:    &url.URL{},
@@ -144,10 +131,7 @@ func TestPersistRequest(t *testing.T) {
 			},
 		),
 		gen(
-			"persist body",
-			[]string{},
-			[]string{},
-			&condition{
+			"persist body", &condition{
 				req: &http.Request{
 					Method: http.MethodGet,
 					URL:    &url.URL{},
@@ -166,10 +150,7 @@ func TestPersistRequest(t *testing.T) {
 			},
 		),
 		gen(
-			"body read error",
-			[]string{},
-			[]string{},
-			&condition{
+			"body read error", &condition{
 				req: &http.Request{
 					Method: http.MethodGet,
 					URL:    &url.URL{},
@@ -184,18 +165,16 @@ func TestPersistRequest(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			ss := NewDefaultSession(SerializeJSON)
-			err := PersistRequest(ss, tt.C().req)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
+			err := PersistRequest(ss, tt.C.req)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
 
 			req := &httpRequestInfo{}
 			ss.Extract(requestSessionKey, req)
-			testutil.Diff(t, tt.A().req, req)
+			testutil.Diff(t, tt.A.req, req)
 		})
 	}
 }
@@ -212,17 +191,10 @@ func TestExtractRequest(t *testing.T) {
 		err  error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"no data",
-			[]string{},
-			[]string{},
-			&condition{
+			"no data", &condition{
 				info: nil,
 				req:  &http.Request{},
 			},
@@ -232,10 +204,7 @@ func TestExtractRequest(t *testing.T) {
 			},
 		),
 		gen(
-			"empty info",
-			[]string{},
-			[]string{},
-			&condition{
+			"empty info", &condition{
 				info: &httpRequestInfo{
 					URL:    &url.URL{},
 					Header: http.Header{},
@@ -265,10 +234,7 @@ func TestExtractRequest(t *testing.T) {
 			},
 		),
 		gen(
-			"non empty request",
-			[]string{},
-			[]string{},
-			&condition{
+			"non empty request", &condition{
 				info: &httpRequestInfo{
 					Method: http.MethodPost,
 					URL: &url.URL{
@@ -328,19 +294,17 @@ func TestExtractRequest(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			ss := NewDefaultSession(SerializeJSON)
-			if tt.C().info != nil {
-				err := ss.Persist(requestSessionKey, tt.C().info)
+			if tt.C.info != nil {
+				err := ss.Persist(requestSessionKey, tt.C.info)
 				testutil.Diff(t, nil, err)
 			}
 
-			req, err := ExtractRequest(ss, tt.C().req)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
+			req, err := ExtractRequest(ss, tt.C.req)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
 			if err != nil {
 				return
 			}
@@ -348,10 +312,10 @@ func TestExtractRequest(t *testing.T) {
 			testutil.Diff(t, NoValue, err, cmpopts.EquateErrors())
 
 			body, _ := io.ReadAll(req.Body)
-			testutil.Diff(t, tt.A().req.Method, req.Method)
-			testutil.Diff(t, tt.A().req.URL, req.URL, cmp.AllowUnexported(url.Userinfo{}))
-			testutil.Diff(t, tt.A().req.Header, req.Header)
-			testutil.Diff(t, tt.A().body, string(body))
+			testutil.Diff(t, tt.A.req.Method, req.Method)
+			testutil.Diff(t, tt.A.req.URL, req.URL, cmp.AllowUnexported(url.Userinfo{}))
+			testutil.Diff(t, tt.A.req.Header, req.Header)
+			testutil.Diff(t, tt.A.body, string(body))
 		})
 	}
 }

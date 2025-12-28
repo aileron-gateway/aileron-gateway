@@ -46,16 +46,10 @@ func TestMiddleware(t *testing.T) {
 		expectError    bool
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"valid token",
-			[]string{},
-			[]string{},
 			&condition{
 				proxyHeaderName: "X-CSRF-Token",
 				strategy: &mockStrategy{
@@ -72,8 +66,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"invalid token",
-			[]string{},
-			[]string{},
 			&condition{
 				proxyHeaderName: "X-CSRF-Token",
 				strategy: &mockStrategy{
@@ -89,8 +81,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"no token",
-			[]string{},
-			[]string{},
 			&condition{
 				proxyHeaderName: "X-CSRF-Token",
 				strategy: &mockStrategy{
@@ -106,8 +96,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"valid token with no initial header",
-			[]string{},
-			[]string{},
 			&condition{
 				proxyHeaderName: "X-CSRF-Token",
 				strategy: &mockStrategy{
@@ -124,20 +112,18 @@ func TestMiddleware(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 
 			csrfMiddleware := &csrf{
-				proxyHeaderName: tt.C().proxyHeaderName,
+				proxyHeaderName: tt.C.proxyHeaderName,
 				eh:              utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
-				st:              tt.C().strategy,
+				st:              tt.C.strategy,
 			}
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
 			ctx := req.Context()
-			if tt.C().initialHeader {
+			if tt.C.initialHeader {
 				header := make(http.Header)
 				ctx = utilhttp.ContextWithProxyHeader(ctx, header)
 			}
@@ -146,15 +132,15 @@ func TestMiddleware(t *testing.T) {
 
 			nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				// Check if the header is set when the next handler is called
-				if tt.A().expectedHeader != "" {
+				if tt.A.expectedHeader != "" {
 					header := utilhttp.ProxyHeaderFromContext(r.Context())
-					testutil.Diff(t, tt.A().expectedHeader, header.Get(tt.C().proxyHeaderName))
+					testutil.Diff(t, tt.A.expectedHeader, header.Get(tt.C.proxyHeaderName))
 				}
 			})
 
 			csrfMiddleware.Middleware(nextHandler).ServeHTTP(resp, req)
 
-			testutil.Diff(t, tt.A().status, resp.Code)
+			testutil.Diff(t, tt.A.status, resp.Code)
 
 		})
 	}
@@ -177,16 +163,10 @@ func TestServeHTTP(t *testing.T) {
 		body           string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"issue new token",
-			[]string{},
-			[]string{},
 			&condition{
 				issueNew: true,
 				token: &csrfToken{
@@ -205,8 +185,6 @@ func TestServeHTTP(t *testing.T) {
 		),
 		gen(
 			"return existing token",
-			[]string{},
-			[]string{},
 			&condition{
 				issueNew: false,
 				token: &csrfToken{
@@ -227,8 +205,6 @@ func TestServeHTTP(t *testing.T) {
 		),
 		gen(
 			"issue new token with text/plain",
-			[]string{},
-			[]string{},
 			&condition{
 				issueNew: false,
 				token: &csrfToken{
@@ -249,8 +225,6 @@ func TestServeHTTP(t *testing.T) {
 		),
 		gen(
 			"issue new token with application/json",
-			[]string{},
-			[]string{},
 			&condition{
 				issueNew: false,
 				token: &csrfToken{
@@ -271,8 +245,6 @@ func TestServeHTTP(t *testing.T) {
 		),
 		gen(
 			"issue new token with application/xml",
-			[]string{},
-			[]string{},
 			&condition{
 				issueNew: false,
 				token: &csrfToken{
@@ -293,38 +265,36 @@ func TestServeHTTP(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 
-			csrfToken := tt.C().token
+			csrfToken := tt.C.token
 			csrfMiddleware := &csrf{
-				issueNew: tt.C().issueNew,
+				issueNew: tt.C.issueNew,
 				token:    csrfToken,
-				st:       tt.C().strategy,
+				st:       tt.C.strategy,
 				eh:       utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
 			}
 
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
-			req.Header.Set("Accept", tt.C().accept)
+			req.Header.Set("Accept", tt.C.accept)
 			resp := httptest.NewRecorder()
 
 			csrfMiddleware.ServeHTTP(resp, req)
 
-			testutil.Diff(t, tt.A().status, resp.Code)
-			testutil.Diff(t, tt.A().contentType, resp.Header().Get("Content-Type"))
+			testutil.Diff(t, tt.A.status, resp.Code)
+			testutil.Diff(t, tt.A.contentType, resp.Header().Get("Content-Type"))
 
-			if tt.A().expectNewToken {
+			if tt.A.expectNewToken {
 				// Check if a new token has been issued
 				token := resp.Body.String()
 				testutil.Diff(t, true, len(token) > 0)
 			}
 
-			if tt.A().expectError {
-				testutil.Diff(t, tt.A().status, http.StatusInternalServerError)
-				testutil.Diff(t, tt.A().body, resp.Body.String())
+			if tt.A.expectError {
+				testutil.Diff(t, tt.A.status, http.StatusInternalServerError)
+				testutil.Diff(t, tt.A.body, resp.Body.String())
 			}
 		})
 	}

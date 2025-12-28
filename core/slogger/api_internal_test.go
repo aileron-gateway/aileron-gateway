@@ -39,21 +39,10 @@ func TestCreate(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndDefaultManifest := tb.Condition("default manifest", "input default manifest")
-	tb.Condition(cndDefaultManifest, "input default manifest")
-	cndErrorReference := tb.Condition("error reference", "input an error reference to an object")
-	actCheckError := tb.Action("check the returned error", "check that the returned error is the one expected")
-	actCheckNoError := tb.Action("check no error", "check that there is no error returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"create with default manifest",
-			[]string{cndDefaultManifest},
-			[]string{actCheckNoError},
 			&condition{
 				manifest: Resource.Default(),
 			},
@@ -64,8 +53,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"output discard",
-			[]string{},
-			[]string{actCheckNoError},
 			&condition{
 				manifest: &v1.SLogger{
 					Spec: &v1.SLoggerSpec{
@@ -82,8 +69,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"output stderr",
-			[]string{},
-			[]string{actCheckNoError},
 			&condition{
 				manifest: &v1.SLogger{
 					Spec: &v1.SLoggerSpec{
@@ -100,8 +85,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"output stdout",
-			[]string{},
-			[]string{actCheckNoError},
 			&condition{
 				manifest: &v1.SLogger{
 					Spec: &v1.SLoggerSpec{
@@ -118,8 +101,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"output unknown",
-			[]string{},
-			[]string{actCheckNoError},
 			&condition{
 				manifest: &v1.SLogger{
 					Spec: &v1.SLoggerSpec{
@@ -136,8 +117,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create with replacer",
-			[]string{cndDefaultManifest},
-			[]string{actCheckNoError},
 			&condition{
 				manifest: &v1.SLogger{
 					Spec: &v1.SLoggerSpec{
@@ -156,8 +135,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create replacer failed",
-			[]string{cndDefaultManifest},
-			[]string{actCheckNoError},
 			&condition{
 				manifest: &v1.SLogger{
 					Spec: &v1.SLoggerSpec{
@@ -183,8 +160,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create unstructured logger",
-			[]string{cndDefaultManifest},
-			[]string{actCheckNoError},
 			&condition{
 				manifest: &v1.SLogger{
 					Spec: &v1.SLoggerSpec{
@@ -200,8 +175,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create file logger",
-			[]string{cndDefaultManifest},
-			[]string{actCheckNoError},
 			&condition{
 				manifest: &v1.SLogger{
 					Spec: &v1.SLoggerSpec{
@@ -219,8 +192,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"invalid timezone format",
-			[]string{cndErrorReference},
-			[]string{actCheckError, actCheckNoError},
 			&condition{
 				manifest: &v1.SLogger{
 					Spec: &v1.SLoggerSpec{
@@ -238,8 +209,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"invalid log output spec",
-			[]string{cndErrorReference},
-			[]string{actCheckError, actCheckNoError},
 			&condition{
 				manifest: &v1.SLogger{
 					Spec: &v1.SLoggerSpec{
@@ -257,11 +226,9 @@ func TestCreate(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			tmpDiscard, tmpStdout, tmpStderr := io.Discard, os.Stdout, os.Stderr
 			defer func() {
 				io.Discard, os.Stdout, os.Stderr = tmpDiscard, tmpStdout, tmpStderr
@@ -270,9 +237,9 @@ func TestCreate(t *testing.T) {
 			io.Discard, os.Stdout, os.Stderr = w, w, w
 
 			server := api.NewContainerAPI()
-			got, err := Resource.Create(server, tt.C().manifest)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
-			if tt.A().err != nil {
+			got, err := Resource.Create(server, tt.C.manifest)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
+			if tt.A.err != nil {
 				testutil.Diff(t, nil, got)
 				return
 			}
@@ -282,7 +249,7 @@ func TestCreate(t *testing.T) {
 			w.Close()
 
 			line, _ := io.ReadAll(r)
-			testutil.Diff(t, true, strings.Contains(string(line), tt.A().logPart))
+			testutil.Diff(t, true, strings.Contains(string(line), tt.A.logPart))
 		})
 	}
 }
@@ -306,18 +273,10 @@ func TestFinalizableLogger_Finalize(t *testing.T) {
 		err any // error or errorutil.Kind
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndCloseError := tb.Condition("close error", "input an error closer")
-	actCheckError := tb.Action("check error", "check that the returned error is the one expected")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"nil close",
-			[]string{},
-			[]string{},
 			&condition{
 				fl: &finalizableLogger{
 					closer: nil,
@@ -329,8 +288,6 @@ func TestFinalizableLogger_Finalize(t *testing.T) {
 		),
 		gen(
 			"no error closer",
-			[]string{},
-			[]string{},
 			&condition{
 				fl: &finalizableLogger{
 					closer: &testCloser{},
@@ -342,8 +299,6 @@ func TestFinalizableLogger_Finalize(t *testing.T) {
 		),
 		gen(
 			"error closer",
-			[]string{cndCloseError},
-			[]string{actCheckError},
 			&condition{
 				fl: &finalizableLogger{
 					closer: &testCloser{
@@ -357,13 +312,11 @@ func TestFinalizableLogger_Finalize(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			err := tt.C().fl.Finalize()
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
+		t.Run(tt.Name, func(t *testing.T) {
+			err := tt.C.fl.Finalize()
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
 		})
 	}
 }
@@ -377,10 +330,6 @@ func TestNewFileWriter(t *testing.T) {
 		w   *zlog.LogicalFile
 		err error
 	}
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
 
 	testConfig := &zlog.LogicalFileConfig{
 		Manager: &zlog.FileManagerConfig{
@@ -396,8 +345,6 @@ func TestNewFileWriter(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"file",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &v1.LogOutputSpec{
 					LogDir:      os.TempDir(),
@@ -412,8 +359,6 @@ func TestNewFileWriter(t *testing.T) {
 		),
 		gen(
 			"use cron",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &v1.LogOutputSpec{
 					LogDir:      os.TempDir(),
@@ -429,8 +374,6 @@ func TestNewFileWriter(t *testing.T) {
 		),
 		gen(
 			"invalid cron",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &v1.LogOutputSpec{
 					LogDir:    os.TempDir(),
@@ -445,8 +388,6 @@ func TestNewFileWriter(t *testing.T) {
 		),
 		gen(
 			"log dir not exist",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &v1.LogOutputSpec{
 					LogDir:    "this dir is not exist \x00\n",
@@ -460,8 +401,6 @@ func TestNewFileWriter(t *testing.T) {
 		),
 		gen(
 			"backup dir not exist",
-			[]string{},
-			[]string{},
 			&condition{
 				spec: &v1.LogOutputSpec{
 					OutputTarget: v1.OutputTarget_File,
@@ -476,14 +415,12 @@ func TestNewFileWriter(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			w, err := newFileWriter(tt.C().spec)
+		t.Run(tt.Name, func(t *testing.T) {
+			w, err := newFileWriter(tt.C.spec)
 			t.Logf("%#v\n", err)
-			testutil.DiffError(t, tt.A().err, nil, err, cmpopts.IgnoreFields(fs.PathError{}, "Err"))
+			testutil.DiffError(t, tt.A.err, nil, err, cmpopts.IgnoreFields(fs.PathError{}, "Err"))
 
 			opts := []cmp.Option{
 				cmp.AllowUnexported(sync.RWMutex{}, atomic.Int32{}, atomic.Int64{}, atomic.Bool{}),
@@ -491,7 +428,7 @@ func TestNewFileWriter(t *testing.T) {
 				cmp.AllowUnexported(zlog.LogicalFile{}, zlog.FileManager{}),
 				cmp.AllowUnexported(bufio.Writer{}),
 			}
-			testutil.Diff(t, tt.A().w, w, opts...)
+			testutil.Diff(t, tt.A.w, w, opts...)
 		})
 	}
 }

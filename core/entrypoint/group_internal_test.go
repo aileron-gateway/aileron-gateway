@@ -42,20 +42,10 @@ func TestChannelGroup_Run(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndNoRunners := tb.Condition("no runners", "no runners")
-	cndErrorRunner := tb.Condition("error runner", "at least one runners are contained which returns an error in the runners")
-	actCheckNoError := tb.Action("no error", "check that there is no error returned")
-	actCheckError := tb.Action("error", "check that an expected error was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"no runners",
-			[]string{cndNoRunners},
-			[]string{actCheckNoError},
 			&condition{},
 			&action{
 				err: nil,
@@ -63,8 +53,6 @@ func TestChannelGroup_Run(t *testing.T) {
 		),
 		gen(
 			"one non-error runner",
-			[]string{},
-			[]string{actCheckNoError},
 			&condition{
 				runners: []core.Runner{
 					&testRunner{},
@@ -76,8 +64,6 @@ func TestChannelGroup_Run(t *testing.T) {
 		),
 		gen(
 			"two non-error runners",
-			[]string{},
-			[]string{actCheckNoError},
 			&condition{
 				runners: []core.Runner{
 					&testRunner{},
@@ -90,8 +76,6 @@ func TestChannelGroup_Run(t *testing.T) {
 		),
 		gen(
 			"one error runner",
-			[]string{cndErrorRunner},
-			[]string{actCheckError},
 			&condition{
 				runners: []core.Runner{
 					&testRunner{err: errors.New("test error")},
@@ -104,8 +88,6 @@ func TestChannelGroup_Run(t *testing.T) {
 		),
 		gen(
 			"error and non-error runners",
-			[]string{cndErrorRunner},
-			[]string{actCheckError},
 			&condition{
 				runners: []core.Runner{
 					&testRunner{},
@@ -119,8 +101,6 @@ func TestChannelGroup_Run(t *testing.T) {
 		),
 		gen(
 			"two error runners",
-			[]string{cndErrorRunner},
-			[]string{actCheckError},
 			&condition{
 				runners: []core.Runner{
 					&testRunner{err: errors.New("test error")},
@@ -134,19 +114,17 @@ func TestChannelGroup_Run(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
 
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			cg := &channelGroup{
 				lg:      log.GlobalLogger(log.DefaultLoggerName),
-				runners: tt.C().runners,
+				runners: tt.C.runners,
 			}
 
 			err := cg.Run(context.Background())
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 		})
 	}
 }
@@ -159,20 +137,10 @@ func TestChannelGroup_Finalize(t *testing.T) {
 	type action struct {
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndEmpty := tb.Condition("no finalizer", "no finalizer was specified")
-	cndContainNil := tb.Condition("nil finalizer", "nil finalizer was contained")
-	cndError := tb.Condition("error finalizer", "finalizer returns an error")
-	actCheckCalled := tb.Action("called", "check that all finalizer were called")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"empty",
-			[]string{cndEmpty},
-			[]string{actCheckCalled},
 			&condition{
 				runner: &channelGroup{
 					finalizers: nil,
@@ -182,8 +150,6 @@ func TestChannelGroup_Finalize(t *testing.T) {
 		),
 		gen(
 			"1 finalizer",
-			[]string{},
-			[]string{actCheckCalled},
 			&condition{
 				runner: &channelGroup{
 					finalizers: []core.Finalizer{
@@ -195,8 +161,6 @@ func TestChannelGroup_Finalize(t *testing.T) {
 		),
 		gen(
 			"1 finalizer/error",
-			[]string{cndError},
-			[]string{actCheckCalled},
 			&condition{
 				runner: &channelGroup{
 					finalizers: []core.Finalizer{
@@ -208,8 +172,6 @@ func TestChannelGroup_Finalize(t *testing.T) {
 		),
 		gen(
 			"2 finalizers",
-			[]string{},
-			[]string{actCheckCalled},
 			&condition{
 				runner: &channelGroup{
 					finalizers: []core.Finalizer{
@@ -222,8 +184,6 @@ func TestChannelGroup_Finalize(t *testing.T) {
 		),
 		gen(
 			"2 finalizers/error",
-			[]string{cndError},
-			[]string{actCheckCalled},
 			&condition{
 				runner: &channelGroup{
 					finalizers: []core.Finalizer{
@@ -236,8 +196,6 @@ func TestChannelGroup_Finalize(t *testing.T) {
 		),
 		gen(
 			"nil finalizer",
-			[]string{cndContainNil},
-			[]string{actCheckCalled},
 			&condition{
 				runner: &channelGroup{
 					finalizers: []core.Finalizer{
@@ -251,14 +209,12 @@ func TestChannelGroup_Finalize(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
 
-		t.Run(tt.Name(), func(t *testing.T) {
-			tt.C().runner.finalize()
-			for _, f := range tt.C().runner.finalizers {
+		t.Run(tt.Name, func(t *testing.T) {
+			tt.C.runner.finalize()
+			for _, f := range tt.C.runner.finalizers {
 				if f == nil {
 					continue
 				}

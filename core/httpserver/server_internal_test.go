@@ -62,21 +62,11 @@ func TestRunner_Run(t *testing.T) {
 		err        any // error or errorutil.Kind
 		errPattern *regexp.Regexp
 	}
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndServe := tb.Condition("serve", "run server")
-	cndServeErr := tb.Condition("serve error", "return error on serve")
-	cndShutdownErr := tb.Condition("shutdown error", "return error on shutdown")
-	actCheckNoError := tb.Action("no error", "check that there is no error returned")
-	actCheckError := tb.Action("error", "check the returned error")
-	table := tb.Build()
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"success to start server",
-			[]string{cndServe},
-			[]string{actCheckNoError},
 			&condition{
 				s: &runner{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -93,8 +83,6 @@ func TestRunner_Run(t *testing.T) {
 		),
 		gen(
 			"failed to start server",
-			[]string{cndServe, cndServeErr},
-			[]string{actCheckError},
 			&condition{
 				s: &runner{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -113,8 +101,6 @@ func TestRunner_Run(t *testing.T) {
 		),
 		gen(
 			"success to shutdown server",
-			[]string{cndServe},
-			[]string{actCheckNoError},
 			&condition{
 				s: &runner{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -131,8 +117,6 @@ func TestRunner_Run(t *testing.T) {
 		),
 		gen(
 			"failed to shutdown server",
-			[]string{cndServe, cndShutdownErr},
-			[]string{actCheckNoError},
 			&condition{
 				s: &runner{
 					lg: log.GlobalLogger(log.DefaultLoggerName),
@@ -150,22 +134,20 @@ func TestRunner_Run(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			ctx := context.Background()
-			if tt.C().doneAfter > 0 {
+			if tt.C.doneAfter > 0 {
 				newCtx, cancel := context.WithCancel(ctx)
 				ctx = newCtx
-				time.AfterFunc(tt.C().doneAfter, func() {
+				time.AfterFunc(tt.C.doneAfter, func() {
 					cancel()
 				})
 			}
 
-			err := tt.C().s.Run(ctx)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+			err := tt.C.s.Run(ctx)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 		})
 	}
 }
@@ -182,13 +164,6 @@ func TestHttp2Server(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndHTTPServer := tb.Condition("HTTP", "start and shutdown HTTP server")
-	cndHTTPSServer := tb.Condition("HTTPS", "start and shutdown HTTPS server")
-	actCheckNoError := tb.Action("no error", "check that there is no error for start and shutdown except for ErrServerClosed")
-	table := tb.Build()
-
 	certFile := testDir + "ut/core/server/server.crt"
 	keyFile := testDir + "ut/core/server/server.key"
 	cert, _ := tls.LoadX509KeyPair(certFile, keyFile)
@@ -204,8 +179,6 @@ func TestHttp2Server(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"success to start/shutdown HTTP server",
-			[]string{cndHTTPServer},
-			[]string{actCheckNoError},
 			&condition{
 				s: &http2Server{
 					svr: &http.Server{
@@ -221,8 +194,6 @@ func TestHttp2Server(t *testing.T) {
 		),
 		gen(
 			"success to start/shutdown HTTPS server",
-			[]string{cndHTTPSServer},
-			[]string{actCheckNoError},
 			&condition{
 				s: &http2Server{
 					svr: &http.Server{
@@ -241,24 +212,22 @@ func TestHttp2Server(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			listener, err := net.Listen("tcp4", tt.C().s.svr.Addr)
+		t.Run(tt.Name, func(t *testing.T) {
+			listener, err := net.Listen("tcp4", tt.C.s.svr.Addr)
 			if err != nil {
 				panic(err) // Should not panic for this test.
 			}
-			time.AfterFunc(tt.C().shutdownAfter, func() {
-				err := tt.C().s.Shutdown(context.Background())
+			time.AfterFunc(tt.C.shutdownAfter, func() {
+				err := tt.C.s.Shutdown(context.Background())
 				testutil.Diff(t, nil, err, cmpopts.EquateErrors())
 			})
-			tt.C().s.listener = listener
+			tt.C.s.listener = listener
 
-			err = tt.C().s.Serve()
-			testutil.Diff(t, tt.A().addr, tt.C().s.Addr())
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err, cmpopts.EquateErrors())
+			err = tt.C.s.Serve()
+			testutil.Diff(t, tt.A.addr, tt.C.s.Addr())
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err, cmpopts.EquateErrors())
 		})
 	}
 }
@@ -275,13 +244,6 @@ func TestHttp3Server(t *testing.T) {
 		shutdownErr error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndHTTP3Server := tb.Condition("http3 server", "start and shutdown http3 server")
-	actCheckNoError := tb.Action("no error", "check that there is no error")
-	actCheckError := tb.Action("error", "check that an error was returned")
-	table := tb.Build()
-
 	certFile := testDir + "ut/core/server/server.crt"
 	keyFile := testDir + "ut/core/server/server.key"
 	cert, _ := tls.LoadX509KeyPair(certFile, keyFile)
@@ -297,8 +259,6 @@ func TestHttp3Server(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"success to start/shutdown http3 server",
-			[]string{cndHTTP3Server},
-			[]string{actCheckNoError},
 			&condition{
 				s: &http3Server{
 					svr: &http3.Server{
@@ -317,8 +277,6 @@ func TestHttp3Server(t *testing.T) {
 		),
 		gen(
 			"serve error",
-			[]string{cndHTTP3Server},
-			[]string{actCheckError},
 			&condition{
 				s: &http3Server{
 					svr: &http3.Server{
@@ -335,22 +293,20 @@ func TestHttp3Server(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			time.AfterFunc(tt.C().shutdownAfter, func() {
-				err := tt.C().s.Shutdown(context.Background())
-				if tt.A().shutdownErr != nil {
-					testutil.Diff(t, tt.A().shutdownErr.Error(), err.Error())
+		t.Run(tt.Name, func(t *testing.T) {
+			time.AfterFunc(tt.C.shutdownAfter, func() {
+				err := tt.C.s.Shutdown(context.Background())
+				if tt.A.shutdownErr != nil {
+					testutil.Diff(t, tt.A.shutdownErr.Error(), err.Error())
 				}
 			})
 
-			err := tt.C().s.Serve()
-			testutil.Diff(t, tt.A().addr, tt.C().s.Addr())
-			if tt.A().err != nil {
-				testutil.Diff(t, tt.A().err.Error(), err.Error())
+			err := tt.C.s.Serve()
+			testutil.Diff(t, tt.A.addr, tt.C.s.Addr())
+			if tt.A.err != nil {
+				testutil.Diff(t, tt.A.err.Error(), err.Error())
 			}
 		})
 	}
@@ -365,16 +321,10 @@ func TestAltSvcMiddleware(t *testing.T) {
 		value string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"valid address",
-			[]string{},
-			[]string{},
 			&condition{
 				value: `h3=":8443"; ma=2592000`,
 			},
@@ -384,15 +334,13 @@ func TestAltSvcMiddleware(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			w := httptest.NewRecorder()
 			r, _ := http.NewRequest(http.MethodGet, "http://test.com", nil)
 
-			m := altSvcMiddleware(tt.C().value)
+			m := altSvcMiddleware(tt.C.value)
 			h := m.Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.Write(nil)
 			}))
@@ -401,7 +349,7 @@ func TestAltSvcMiddleware(t *testing.T) {
 
 			resp := w.Result()
 			altSvc := resp.Header.Get("Alt-Svc")
-			testutil.Diff(t, tt.A().value, altSvc)
+			testutil.Diff(t, tt.A.value, altSvc)
 		})
 	}
 }

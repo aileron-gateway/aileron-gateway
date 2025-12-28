@@ -34,17 +34,10 @@ func TestGetCookie(t *testing.T) {
 		value string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"no cookie",
-			[]string{},
-			[]string{},
-			&condition{
+			"no cookie", &condition{
 				cookies: map[string]string{},
 				key:     "test",
 			},
@@ -53,10 +46,7 @@ func TestGetCookie(t *testing.T) {
 			},
 		),
 		gen(
-			"dummy cookies with key",
-			[]string{},
-			[]string{},
-			&condition{
+			"dummy cookies with key", &condition{
 				cookies: map[string]string{
 					"test": "dummy",
 					"foo":  "dummy",
@@ -69,10 +59,7 @@ func TestGetCookie(t *testing.T) {
 			},
 		),
 		gen(
-			"dummy cookies with empty key",
-			[]string{},
-			[]string{},
-			&condition{
+			"dummy cookies with empty key", &condition{
 				cookies: map[string]string{
 					"test": "dummy",
 					"foo":  "dummy",
@@ -85,10 +72,7 @@ func TestGetCookie(t *testing.T) {
 			},
 		),
 		gen(
-			"1 cookie",
-			[]string{},
-			[]string{},
-			&condition{
+			"1 cookie", &condition{
 				cookies: map[string]string{
 					"test0": "xxx",
 					"test":  "dummy",
@@ -101,10 +85,7 @@ func TestGetCookie(t *testing.T) {
 			},
 		),
 		gen(
-			"2 cookie, successive index",
-			[]string{},
-			[]string{},
-			&condition{
+			"2 cookie, successive index", &condition{
 				cookies: map[string]string{
 					"test0": "xxx",
 					"test1": "yyy",
@@ -118,10 +99,7 @@ func TestGetCookie(t *testing.T) {
 			},
 		),
 		gen(
-			"2 cookie, jumped index",
-			[]string{},
-			[]string{},
-			&condition{
+			"2 cookie, jumped index", &condition{
 				cookies: map[string]string{
 					"test0": "xxx",
 					"test3": "yyy",
@@ -135,10 +113,7 @@ func TestGetCookie(t *testing.T) {
 			},
 		),
 		gen(
-			"2 cookie, too big index",
-			[]string{},
-			[]string{},
-			&condition{
+			"2 cookie, too big index", &condition{
 				cookies: map[string]string{
 					"test0":  "xxx",
 					"test99": "dummy", // Index must be [0,len(cookie)-1].
@@ -152,10 +127,7 @@ func TestGetCookie(t *testing.T) {
 			},
 		),
 		gen(
-			"5 cookies",
-			[]string{},
-			[]string{},
-			&condition{
+			"5 cookies", &condition{
 				cookies: map[string]string{
 					"test0":  "xxx",
 					"test1":  "yyy",
@@ -173,20 +145,18 @@ func TestGetCookie(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			var cks []*http.Cookie
-			for k, v := range tt.C().cookies {
+			for k, v := range tt.C.cookies {
 				cks = append(cks, &http.Cookie{
 					Name:  k,
 					Value: v,
 				})
 			}
-			value := GetCookie(tt.C().key, cks)
-			testutil.Diff(t, tt.A().value, value)
+			value := GetCookie(tt.C.key, cks)
+			testutil.Diff(t, tt.A.value, value)
 		})
 	}
 }
@@ -203,17 +173,10 @@ func TestSetCookie(t *testing.T) {
 		deletes []string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"empty prefix",
-			[]string{},
-			[]string{},
-			&condition{
+			"empty prefix", &condition{
 				prefix: "",
 				length: 0,
 			},
@@ -223,10 +186,7 @@ func TestSetCookie(t *testing.T) {
 			},
 		),
 		gen(
-			"1 cookie",
-			[]string{},
-			[]string{},
-			&condition{
+			"1 cookie", &condition{
 				prefix: "test",
 				length: 100,
 			},
@@ -236,10 +196,7 @@ func TestSetCookie(t *testing.T) {
 			},
 		),
 		gen(
-			"1 cookie with max size",
-			[]string{},
-			[]string{},
-			&condition{
+			"1 cookie with max size", &condition{
 				prefix: "test",
 				length: (1<<12 - 1<<7) / 2,
 			},
@@ -249,10 +206,7 @@ func TestSetCookie(t *testing.T) {
 			},
 		),
 		gen(
-			"2 cookies",
-			[]string{},
-			[]string{},
-			&condition{
+			"2 cookies", &condition{
 				prefix: "test",
 				length: (1<<12 - 1<<7),
 			},
@@ -262,10 +216,7 @@ func TestSetCookie(t *testing.T) {
 			},
 		),
 		gen(
-			"4 cookies",
-			[]string{},
-			[]string{},
-			&condition{
+			"4 cookies", &condition{
 				prefix: "test",
 				length: (1<<12 - 1<<7) * 2,
 			},
@@ -275,10 +226,7 @@ func TestSetCookie(t *testing.T) {
 			},
 		),
 		gen(
-			"remove unnecessary cookies",
-			[]string{},
-			[]string{},
-			&condition{
+			"remove unnecessary cookies", &condition{
 				names:  []string{"test0", "test1", "test2", "test3"},
 				prefix: "test",
 				length: (1<<12 - 1<<7),
@@ -290,23 +238,21 @@ func TestSetCookie(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			val := make([]byte, tt.C().length)
+		t.Run(tt.Name, func(t *testing.T) {
+			val := make([]byte, tt.C.length)
 			rand.Read(val)
 			value := hex.EncodeToString(val)
 
 			w := httptest.NewRecorder()
 			cc := &testCookieCreator{}
-			SetCookie(w, tt.C().names, cc, tt.C().prefix, value)
+			SetCookie(w, tt.C.names, cc, tt.C.prefix, value)
 
-			values := make([]string, len(tt.A().keys))
+			values := make([]string, len(tt.A.keys))
 			deletes := []string{}
 			for _, v := range w.Result().Header["Set-Cookie"] {
-				for i, k := range tt.A().keys {
+				for i, k := range tt.A.keys {
 					if strings.HasPrefix(v, k+"=") {
 						values[i] = strings.TrimPrefix(v, k+"=")
 					}
@@ -318,7 +264,7 @@ func TestSetCookie(t *testing.T) {
 
 			result := strings.Join(values, "")
 			testutil.Diff(t, result, value)
-			testutil.Diff(t, tt.A().deletes, deletes, cmpopts.SortSlices(func(a, b string) bool { return a < b }))
+			testutil.Diff(t, tt.A.deletes, deletes, cmpopts.SortSlices(func(a, b string) bool { return a < b }))
 		})
 	}
 }
@@ -333,17 +279,10 @@ func TestDeleteCookie(t *testing.T) {
 		keys []string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"empty prefix",
-			[]string{},
-			[]string{},
-			&condition{
+			"empty prefix", &condition{
 				prefix: "",
 				names:  []string{},
 			},
@@ -352,10 +291,7 @@ func TestDeleteCookie(t *testing.T) {
 			},
 		),
 		gen(
-			"no cookie",
-			[]string{},
-			[]string{},
-			&condition{
+			"no cookie", &condition{
 				prefix: "test",
 				names:  []string{},
 			},
@@ -364,10 +300,7 @@ func TestDeleteCookie(t *testing.T) {
 			},
 		),
 		gen(
-			"irrelevant cookie",
-			[]string{},
-			[]string{},
-			&condition{
+			"irrelevant cookie", &condition{
 				prefix: "test",
 				names:  []string{"test", "foo"},
 			},
@@ -376,10 +309,7 @@ func TestDeleteCookie(t *testing.T) {
 			},
 		),
 		gen(
-			"delete cookie",
-			[]string{},
-			[]string{},
-			&condition{
+			"delete cookie", &condition{
 				prefix: "test",
 				names:  []string{"test", "test0", "test1", "test2", "foo"},
 			},
@@ -389,13 +319,11 @@ func TestDeleteCookie(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			w := httptest.NewRecorder()
-			DeleteCookie(w, tt.C().names, tt.C().prefix)
+			DeleteCookie(w, tt.C.names, tt.C.prefix)
 
 			deletes := []string{}
 			for _, v := range w.Result().Header["Set-Cookie"] {
@@ -403,7 +331,7 @@ func TestDeleteCookie(t *testing.T) {
 					deletes = append(deletes, strings.TrimSuffix(v, "=; Max-Age=0"))
 				}
 			}
-			testutil.Diff(t, tt.A().keys, deletes, cmpopts.SortSlices(func(a, b string) bool { return a < b }))
+			testutil.Diff(t, tt.A.keys, deletes, cmpopts.SortSlices(func(a, b string) bool { return a < b }))
 		})
 	}
 }
@@ -417,17 +345,10 @@ func TestCookieNames(t *testing.T) {
 		names []string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"no cookie",
-			[]string{},
-			[]string{},
-			&condition{
+			"no cookie", &condition{
 				cookies: map[string]string{},
 			},
 			&action{
@@ -435,10 +356,7 @@ func TestCookieNames(t *testing.T) {
 			},
 		),
 		gen(
-			"cookies",
-			[]string{},
-			[]string{},
-			&condition{
+			"cookies", &condition{
 				cookies: map[string]string{
 					"foo": "value",
 					"bar": "value",
@@ -450,20 +368,18 @@ func TestCookieNames(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			var cks []*http.Cookie
-			for k, v := range tt.C().cookies {
+			for k, v := range tt.C.cookies {
 				cks = append(cks, &http.Cookie{
 					Name:  k,
 					Value: v,
 				})
 			}
 			names := CookieNames(cks)
-			testutil.Diff(t, tt.A().names, names, cmpopts.SortSlices(func(a, b string) bool { return a < b }))
+			testutil.Diff(t, tt.A.names, names, cmpopts.SortSlices(func(a, b string) bool { return a < b }))
 		})
 	}
 }
@@ -478,17 +394,10 @@ func TestMinInt(t *testing.T) {
 		result int
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"same",
-			[]string{},
-			[]string{},
-			&condition{
+			"same", &condition{
 				x: 1,
 				y: 1,
 			},
@@ -497,10 +406,7 @@ func TestMinInt(t *testing.T) {
 			},
 		),
 		gen(
-			"x smaller than y",
-			[]string{},
-			[]string{},
-			&condition{
+			"x smaller than y", &condition{
 				x: -1,
 				y: 1,
 			},
@@ -509,10 +415,7 @@ func TestMinInt(t *testing.T) {
 			},
 		),
 		gen(
-			"y smaller than x",
-			[]string{},
-			[]string{},
-			&condition{
+			"y smaller than x", &condition{
 				x: 1,
 				y: -1,
 			},
@@ -522,13 +425,11 @@ func TestMinInt(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			result := minInt(tt.C().x, tt.C().y)
-			testutil.Diff(t, tt.A().result, result)
+		t.Run(tt.Name, func(t *testing.T) {
+			result := minInt(tt.C.x, tt.C.y)
+			testutil.Diff(t, tt.A.result, result)
 		})
 	}
 }
@@ -541,17 +442,10 @@ func TestDefaultCookieCreator(t *testing.T) {
 		ck *http.Cookie
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"default",
-			[]string{},
-			[]string{},
-			&condition{},
+			"default", &condition{},
 			&action{
 				ck: &http.Cookie{
 					Path:     "/",
@@ -563,13 +457,11 @@ func TestDefaultCookieCreator(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			ck := DefaultCookieCreator()
-			testutil.Diff(t, tt.A().ck, ck.NewCookie())
+			testutil.Diff(t, tt.A.ck, ck.NewCookie())
 		})
 	}
 }
@@ -583,17 +475,10 @@ func TestNewCookieCreator(t *testing.T) {
 		ck *http.Cookie
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"nil spec",
-			[]string{},
-			[]string{},
-			&condition{
+			"nil spec", &condition{
 				spec: nil,
 			},
 			&action{
@@ -606,10 +491,7 @@ func TestNewCookieCreator(t *testing.T) {
 			},
 		),
 		gen(
-			"empty spec",
-			[]string{},
-			[]string{},
-			&condition{
+			"empty spec", &condition{
 				spec: &v1.CookieSpec{},
 			},
 			&action{
@@ -617,10 +499,7 @@ func TestNewCookieCreator(t *testing.T) {
 			},
 		),
 		gen(
-			"full spec",
-			[]string{},
-			[]string{},
-			&condition{
+			"full spec", &condition{
 				spec: &v1.CookieSpec{
 					Name:      "test",
 					Value:     "value",
@@ -649,13 +528,11 @@ func TestNewCookieCreator(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			ck := NewCookieCreator(tt.C().spec)
-			testutil.Diff(t, tt.A().ck, ck.NewCookie(), cmpopts.EquateApproxTime(time.Second))
+		t.Run(tt.Name, func(t *testing.T) {
+			ck := NewCookieCreator(tt.C.spec)
+			testutil.Diff(t, tt.A.ck, ck.NewCookie(), cmpopts.EquateApproxTime(time.Second))
 		})
 	}
 }
@@ -669,17 +546,10 @@ func TestSameSite(t *testing.T) {
 		val http.SameSite
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"undefined",
-			[]string{},
-			[]string{},
-			&condition{
+			"undefined", &condition{
 				in: 999,
 			},
 			&action{
@@ -687,10 +557,7 @@ func TestSameSite(t *testing.T) {
 			},
 		),
 		gen(
-			"default",
-			[]string{},
-			[]string{},
-			&condition{
+			"default", &condition{
 				in: v1.SameSite_Default,
 			},
 			&action{
@@ -698,10 +565,7 @@ func TestSameSite(t *testing.T) {
 			},
 		),
 		gen(
-			"lax",
-			[]string{},
-			[]string{},
-			&condition{
+			"lax", &condition{
 				in: v1.SameSite_Lax,
 			},
 			&action{
@@ -709,10 +573,7 @@ func TestSameSite(t *testing.T) {
 			},
 		),
 		gen(
-			"strict",
-			[]string{},
-			[]string{},
-			&condition{
+			"strict", &condition{
 				in: v1.SameSite_Strict,
 			},
 			&action{
@@ -720,10 +581,7 @@ func TestSameSite(t *testing.T) {
 			},
 		),
 		gen(
-			"none",
-			[]string{},
-			[]string{},
-			&condition{
+			"none", &condition{
 				in: v1.SameSite_None,
 			},
 			&action{
@@ -732,13 +590,11 @@ func TestSameSite(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			val := sameSite(tt.C().in)
-			testutil.Diff(t, tt.A().val, val)
+		t.Run(tt.Name, func(t *testing.T) {
+			val := sameSite(tt.C.in)
+			testutil.Diff(t, tt.A.val, val)
 		})
 	}
 }

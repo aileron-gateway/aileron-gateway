@@ -32,20 +32,10 @@ func TestQuickConfig(t *testing.T) {
 		err    error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndInputNil := tb.Condition("input nil", "input nil")
-	cndInputZero := tb.Condition("input zero", "input zero value config")
-	cndInputValid := tb.Condition("input valid", "input valid valued config")
-	actCheckNoError := tb.Action("no error", "check that there is no error returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"input nil",
-			[]string{cndInputNil},
-			[]string{actCheckNoError},
 			&condition{
 				spec: nil,
 			},
@@ -56,8 +46,6 @@ func TestQuickConfig(t *testing.T) {
 		),
 		gen(
 			"input zero value spec",
-			[]string{cndInputZero},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &k.QuicConfig{},
 			},
@@ -70,8 +58,6 @@ func TestQuickConfig(t *testing.T) {
 		),
 		gen(
 			"valid values for spec",
-			[]string{cndInputValid},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &k.QuicConfig{
 					Versions:                       []k.QuicConfig_Version{k.QuicConfig_Version1, k.QuicConfig_Version2},
@@ -110,18 +96,16 @@ func TestQuickConfig(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			c, err := network.QuicConfig(tt.C().spec)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
+		t.Run(tt.Name, func(t *testing.T) {
+			c, err := network.QuicConfig(tt.C.spec)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
 			if err != nil {
 				return
 			}
 
-			testutil.Diff(t, tt.A().config, c)
+			testutil.Diff(t, tt.A.config, c)
 		})
 	}
 }
@@ -136,17 +120,6 @@ func TestHTTPTransport(t *testing.T) {
 		err error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndInputNil := tb.Condition("input nil", "input nil as config")
-	cndValidTLSConfig := tb.Condition("specify valid TLSConfig", "specify valid TLSConfig")
-	cndInvalidTLSConfig := tb.Condition("specify invalid TLSConfig", "specify invalid TLSConfig")
-	cndValidDialConfig := tb.Condition("specify valid DialConfig", "specify valid DialConfig")
-	cndInvalidDialConfig := tb.Condition("specify invalid DialConfig", "specify invalid DialConfig")
-	actCheckError := tb.Action("error", "check that the expected error was returned")
-	actCheckNoError := tb.Action("no error", "check that there is no error returned")
-	table := tb.Build()
-
 	newSystemPool := func() *x509.CertPool {
 		pool, err := x509.SystemCertPool()
 		if err != nil {
@@ -159,8 +132,6 @@ func TestHTTPTransport(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"input nil",
-			[]string{cndInputNil},
-			[]string{actCheckNoError},
 			&condition{
 				spec: nil,
 			},
@@ -182,8 +153,6 @@ func TestHTTPTransport(t *testing.T) {
 		),
 		gen(
 			"input zero value spec",
-			[]string{},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &k.HTTPTransportConfig{},
 			},
@@ -198,8 +167,6 @@ func TestHTTPTransport(t *testing.T) {
 		),
 		gen(
 			"specify valid TransportConfig values for spec",
-			[]string{},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &k.HTTPTransportConfig{
 					TLSHandshakeTimeout:    10,
@@ -239,8 +206,6 @@ func TestHTTPTransport(t *testing.T) {
 		),
 		gen(
 			"specify valid TLSConfig values",
-			[]string{cndValidTLSConfig},
-			[]string{actCheckError},
 			&condition{
 				spec: &k.HTTPTransportConfig{
 					TLSConfig: &k.TLSConfig{},
@@ -262,8 +227,6 @@ func TestHTTPTransport(t *testing.T) {
 		),
 		gen(
 			"specify invalid TLSConfig values",
-			[]string{cndInvalidTLSConfig},
-			[]string{actCheckError},
 			&condition{
 				spec: &k.HTTPTransportConfig{
 					TLSConfig: &k.TLSConfig{
@@ -282,8 +245,6 @@ func TestHTTPTransport(t *testing.T) {
 		),
 		gen(
 			"specify valid DialConfig values/disable http2",
-			[]string{cndValidDialConfig},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &k.HTTPTransportConfig{
 					DialConfig: &k.DialConfig{},
@@ -301,8 +262,6 @@ func TestHTTPTransport(t *testing.T) {
 		),
 		gen(
 			"specify valid DialConfig values/enable http2",
-			[]string{cndValidDialConfig},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &k.HTTPTransportConfig{
 					DialConfig: &k.DialConfig{},
@@ -320,8 +279,6 @@ func TestHTTPTransport(t *testing.T) {
 		),
 		gen(
 			"specify invalid DialConfig values",
-			[]string{cndInvalidDialConfig},
-			[]string{actCheckError},
 			&condition{
 				spec: &k.HTTPTransportConfig{
 					DialConfig: &k.DialConfig{
@@ -340,13 +297,11 @@ func TestHTTPTransport(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			tp, err := network.HTTPTransport(tt.C().spec)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
+		t.Run(tt.Name, func(t *testing.T) {
+			tp, err := network.HTTPTransport(tt.C.spec)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
 			if err != nil {
 				return
 			}
@@ -354,7 +309,7 @@ func TestHTTPTransport(t *testing.T) {
 				cmpopts.IgnoreUnexported(http.Transport{}, tls.Config{}),
 				cmpopts.IgnoreFields(http.Transport{}, "Proxy", "DialContext", "DialTLSContext"),
 			}
-			testutil.Diff(t, tt.A().tp, tp, opts...)
+			testutil.Diff(t, tt.A.tp, tp, opts...)
 		})
 	}
 }
@@ -369,17 +324,6 @@ func TestHTTP2Transport(t *testing.T) {
 		err error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndInputNil := tb.Condition("input nil", "input nil as config")
-	cndValidTLSConfig := tb.Condition("specify valid TLSConfig", "specify valid TLSConfig")
-	cndInvalidTLSConfig := tb.Condition("specify invalid TLSConfig", "specify invalid TLSConfig")
-	cndValidDialConfig := tb.Condition("specify valid DialConfig", "specify valid DialConfig")
-	cndInvalidDialConfig := tb.Condition("specify invalid DialConfig", "specify invalid DialConfig")
-	actCheckError := tb.Action("error", "check that the expected error was returned")
-	actCheckNoError := tb.Action("no error", "check that there is no error returned")
-	table := tb.Build()
-
 	newSystemPool := func() *x509.CertPool {
 		pool, err := x509.SystemCertPool()
 		if err != nil {
@@ -392,8 +336,6 @@ func TestHTTP2Transport(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"input nil",
-			[]string{cndInputNil},
-			[]string{actCheckNoError},
 			&condition{
 				spec: nil,
 			},
@@ -404,8 +346,6 @@ func TestHTTP2Transport(t *testing.T) {
 		),
 		gen(
 			"input zero value spec",
-			[]string{},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &k.HTTP2TransportConfig{},
 			},
@@ -416,8 +356,6 @@ func TestHTTP2Transport(t *testing.T) {
 		),
 		gen(
 			"specify valid TransportConfig values for spec",
-			[]string{},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &k.HTTP2TransportConfig{
 					DisableCompression:         true,
@@ -452,8 +390,6 @@ func TestHTTP2Transport(t *testing.T) {
 		),
 		gen(
 			"specify valid TLSConfig values",
-			[]string{cndValidTLSConfig},
-			[]string{actCheckError},
 			&condition{
 				spec: &k.HTTP2TransportConfig{
 					TLSConfig: &k.TLSConfig{},
@@ -473,8 +409,6 @@ func TestHTTP2Transport(t *testing.T) {
 		),
 		gen(
 			"specify invalid TLSConfig values",
-			[]string{cndInvalidTLSConfig},
-			[]string{actCheckError},
 			&condition{
 				spec: &k.HTTP2TransportConfig{
 					TLSConfig: &k.TLSConfig{
@@ -493,8 +427,6 @@ func TestHTTP2Transport(t *testing.T) {
 		),
 		gen(
 			"specify valid DialConfig values",
-			[]string{cndValidDialConfig},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &k.HTTP2TransportConfig{
 					DialConfig: &k.DialConfig{},
@@ -507,8 +439,6 @@ func TestHTTP2Transport(t *testing.T) {
 		),
 		gen(
 			"specify valid DialConfig values with TLS",
-			[]string{cndValidDialConfig},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &k.HTTP2TransportConfig{
 					DialConfig: &k.DialConfig{
@@ -523,8 +453,6 @@ func TestHTTP2Transport(t *testing.T) {
 		),
 		gen(
 			"specify invalid DialConfig values",
-			[]string{cndInvalidDialConfig},
-			[]string{actCheckError},
 			&condition{
 				spec: &k.HTTP2TransportConfig{
 					DialConfig: &k.DialConfig{
@@ -543,13 +471,11 @@ func TestHTTP2Transport(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			tp, err := network.HTTP2Transport(tt.C().spec)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
+		t.Run(tt.Name, func(t *testing.T) {
+			tp, err := network.HTTP2Transport(tt.C.spec)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
 			if err != nil {
 				return
 			}
@@ -558,7 +484,7 @@ func TestHTTP2Transport(t *testing.T) {
 				cmpopts.IgnoreUnexported(http2.Transport{}, tls.Config{}),
 				cmpopts.IgnoreFields(http2.Transport{}, "DialTLSContext"),
 			}
-			testutil.Diff(t, tt.A().tp, tp, opts...)
+			testutil.Diff(t, tt.A.tp, tp, opts...)
 
 			// Check that the dialer is applied.
 			// testutil.Diff(t, true, tp.DialContext != nil)
@@ -576,16 +502,6 @@ func TestHTTP3Transport(t *testing.T) {
 		err error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndInputNil := tb.Condition("input nil", "input nil as config")
-	cndValidConfig := tb.Condition("valid Config", "input valid config")
-	cndValidTLSConfig := tb.Condition("valid TLSConfig", "specify valid TLSConfig")
-	cndInvalidTLSConfig := tb.Condition("invalid TLSConfig", "specify invalid TLSConfig")
-	actCheckError := tb.Action("error", "check that the expected error was returned")
-	actCheckNoError := tb.Action("no error", "check that there is no error returned")
-	table := tb.Build()
-
 	newSystemPool := func() *x509.CertPool {
 		pool, err := x509.SystemCertPool()
 		if err != nil {
@@ -598,8 +514,6 @@ func TestHTTP3Transport(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"input nil",
-			[]string{cndInputNil},
-			[]string{actCheckNoError},
 			&condition{
 				spec: nil,
 			},
@@ -610,8 +524,6 @@ func TestHTTP3Transport(t *testing.T) {
 		),
 		gen(
 			"input zero value spec",
-			[]string{},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &k.HTTP3TransportConfig{},
 			},
@@ -622,8 +534,6 @@ func TestHTTP3Transport(t *testing.T) {
 		),
 		gen(
 			"valid config",
-			[]string{cndValidConfig},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &k.HTTP3TransportConfig{
 					QuicConfig: &k.QuicConfig{
@@ -672,8 +582,6 @@ func TestHTTP3Transport(t *testing.T) {
 		),
 		gen(
 			"valid TLSConfig",
-			[]string{cndValidTLSConfig},
-			[]string{actCheckError},
 			&condition{
 				spec: &k.HTTP3TransportConfig{
 					TLSConfig: &k.TLSConfig{},
@@ -692,8 +600,6 @@ func TestHTTP3Transport(t *testing.T) {
 		),
 		gen(
 			"invalid TLSConfig",
-			[]string{cndInvalidTLSConfig},
-			[]string{actCheckError},
 			&condition{
 				spec: &k.HTTP3TransportConfig{
 					TLSConfig: &k.TLSConfig{
@@ -712,13 +618,11 @@ func TestHTTP3Transport(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			rt, err := network.HTTP3Transport(tt.C().spec)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
+		t.Run(tt.Name, func(t *testing.T) {
+			rt, err := network.HTTP3Transport(tt.C.spec)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
 			if err != nil {
 				return
 			}
@@ -727,7 +631,7 @@ func TestHTTP3Transport(t *testing.T) {
 				cmpopts.IgnoreUnexported(tls.Config{}),
 				cmpopts.IgnoreUnexported(http3.Transport{}),
 			}
-			testutil.Diff(t, tt.A().rt, rt, opts...)
+			testutil.Diff(t, tt.A.rt, rt, opts...)
 		})
 	}
 }

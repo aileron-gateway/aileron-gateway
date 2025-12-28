@@ -30,17 +30,12 @@ func TestCreate(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	testServer := api.NewContainerAPI()
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"default manifest",
-			[]string{}, []string{},
 			&condition{
 				manifest: Resource.Default(),
 			},
@@ -51,17 +46,17 @@ func TestCreate(t *testing.T) {
 			},
 		),
 	}
-	testutil.Register(table, testCases...)
-	for _, tt := range table.Entries() {
+
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			got, err := Resource.Create(testServer, tt.C().manifest)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+		t.Run(tt.Name, func(t *testing.T) {
+			got, err := Resource.Create(testServer, tt.C.manifest)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 			opts := []cmp.Option{
 				cmp.Comparer(testutil.ComparePointer[log.Logger]),
 				cmp.AllowUnexported(utilhttp.DefaultErrorHandler{}),
 			}
-			testutil.Diff(t, tt.A().expect, got, opts...)
+			testutil.Diff(t, tt.A.expect, got, opts...)
 		})
 	}
 

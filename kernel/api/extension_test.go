@@ -126,43 +126,10 @@ func TestExtensionAPI_Serve(t *testing.T) {
 		err error
 	}
 
-	cndPost := "register"
-	cndDelete := "delete"
-	cndGet := "get"
-	cndInstanceExists := "instance exists"
-	cndErrorCreate := "error on create"
-	cndWrongType := "wrong content"
-	cndNilRequest := "nil request"
-	cndDuplicateKey := "duplicate key"
-	cndNoCreator := "creator not registered"
-	cndUnsupportedMethod := "unsupported method"
-	actCheckResponse := "check response"
-	actCheckNoError := "no error"
-	actCheckError := "non-nil error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndPost, "send Post request")
-	tb.Condition(cndDelete, "send Delete request")
-	tb.Condition(cndGet, "send Get request")
-	tb.Condition(cndInstanceExists, "an instance has already been created")
-	tb.Condition(cndErrorCreate, "create method returns an error")
-	tb.Condition(cndWrongType, "content in the request is invalid")
-	tb.Condition(cndNilRequest, "input nil request")
-	tb.Condition(cndDuplicateKey, "try to register with a duplicate key")
-	tb.Condition(cndNoCreator, "creator is not registered in the API")
-	tb.Condition(cndUnsupportedMethod, "request with an unsupported method")
-	tb.Action(actCheckResponse, "check the returned response")
-	tb.Action(actCheckNoError, "check that there is no error")
-	tb.Action(actCheckError, "check that a non-nil error was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"Post an object",
-			[]string{cndPost, cndGet},
-			[]string{actCheckResponse, actCheckNoError},
 			&condition{
 				creators: map[string]api.Creator{
 					"test1/test2": stringCreator("hello from test creator"),
@@ -190,8 +157,6 @@ func TestExtensionAPI_Serve(t *testing.T) {
 		),
 		gen(
 			"Delete an object",
-			[]string{cndPost, cndDelete, cndGet},
-			[]string{actCheckResponse, actCheckError},
 			&condition{
 				creators: map[string]api.Creator{
 					"test1/test2": stringCreator("hello from test creator"),
@@ -228,8 +193,6 @@ func TestExtensionAPI_Serve(t *testing.T) {
 		),
 		gen(
 			"Get already created object",
-			[]string{cndPost, cndGet, cndInstanceExists},
-			[]string{actCheckResponse, actCheckNoError},
 			&condition{
 				creators: map[string]api.Creator{
 					"test1/test2": stringCreator("hello from test creator"),
@@ -263,8 +226,6 @@ func TestExtensionAPI_Serve(t *testing.T) {
 		),
 		gen(
 			"Error on creation",
-			[]string{cndPost, cndGet, cndErrorCreate},
-			[]string{actCheckResponse, actCheckError},
 			&condition{
 				creators: map[string]api.Creator{
 					"test1/test2": errorCreator{err: io.ErrUnexpectedEOF}, // Use dummy error
@@ -291,8 +252,6 @@ func TestExtensionAPI_Serve(t *testing.T) {
 		),
 		gen(
 			"nil request",
-			[]string{cndNilRequest},
-			[]string{actCheckResponse, actCheckError},
 			&condition{
 				creators: map[string]api.Creator{},
 				reqs: []*api.Request{
@@ -310,8 +269,6 @@ func TestExtensionAPI_Serve(t *testing.T) {
 		),
 		gen(
 			"invalid content",
-			[]string{cndWrongType},
-			[]string{actCheckResponse, actCheckError},
 			&condition{
 				creators: map[string]api.Creator{
 					"test1/test2": stringCreator("hello from test creator"),
@@ -336,8 +293,6 @@ func TestExtensionAPI_Serve(t *testing.T) {
 		),
 		gen(
 			"register with duplicate key",
-			[]string{cndDuplicateKey},
-			[]string{actCheckResponse, actCheckError},
 			&condition{
 				creators: map[string]api.Creator{
 					"test1/test2": stringCreator("hello from test creator"),
@@ -368,8 +323,6 @@ func TestExtensionAPI_Serve(t *testing.T) {
 		),
 		gen(
 			"no creator",
-			[]string{cndNoCreator},
-			[]string{actCheckResponse, actCheckError},
 			&condition{
 				creators: map[string]api.Creator{},
 				reqs: []*api.Request{
@@ -390,8 +343,6 @@ func TestExtensionAPI_Serve(t *testing.T) {
 		),
 		gen(
 			"unsupported method",
-			[]string{cndUnsupportedMethod},
-			[]string{actCheckResponse, actCheckError},
 			&condition{
 				creators: map[string]api.Creator{
 					"test1/test2": stringCreator("hello from test creator"),
@@ -414,13 +365,11 @@ func TestExtensionAPI_Serve(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			a := api.NewExtensionAPI()
-			for k, v := range tt.C().creators {
+			for k, v := range tt.C.creators {
 				a.Register(k, v)
 			}
 
@@ -428,13 +377,13 @@ func TestExtensionAPI_Serve(t *testing.T) {
 			var err error
 
 			ctx := context.Background()
-			for _, r := range tt.C().reqs {
+			for _, r := range tt.C.reqs {
 				res, err = a.Serve(ctx, r)
 			}
 
 			// Check the response for the final request.
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
-			testutil.Diff(t, tt.A().res, res)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
+			testutil.Diff(t, tt.A.res, res)
 		})
 	}
 }

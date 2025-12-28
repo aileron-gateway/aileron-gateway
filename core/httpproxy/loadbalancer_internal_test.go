@@ -31,10 +31,6 @@ func TestLBMatcher(t *testing.T) {
 		matched bool
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	mustMatcher := func(typ txtutil.MatchType, patterns ...string) txtutil.MatchFunc[string] {
 		mf, err := txtutil.NewStringMatcher(typ, patterns...)
 		if err != nil {
@@ -47,8 +43,6 @@ func TestLBMatcher(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"minimum matchers/match",
-			[]string{},
-			[]string{},
 			&condition{
 				pattern: "/test/{pp}",
 				matcher: &lbMatcher{
@@ -65,8 +59,6 @@ func TestLBMatcher(t *testing.T) {
 		),
 		gen(
 			"all matchers/match",
-			[]string{},
-			[]string{},
 			&condition{
 				pattern: "/test/{pp}",
 				matcher: &lbMatcher{
@@ -90,8 +82,6 @@ func TestLBMatcher(t *testing.T) {
 		),
 		gen(
 			"all matchers/host mismatch",
-			[]string{},
-			[]string{},
 			&condition{
 				pattern: "/test/{pp}",
 				matcher: &lbMatcher{
@@ -115,8 +105,6 @@ func TestLBMatcher(t *testing.T) {
 		),
 		gen(
 			"all matchers/method mismatch",
-			[]string{},
-			[]string{},
 			&condition{
 				pattern: "/test/{pp}",
 				matcher: &lbMatcher{
@@ -140,8 +128,6 @@ func TestLBMatcher(t *testing.T) {
 		),
 		gen(
 			"all matchers/path param mismatch",
-			[]string{},
-			[]string{},
 			&condition{
 				pattern: "/test/{pp}",
 				matcher: &lbMatcher{
@@ -165,8 +151,6 @@ func TestLBMatcher(t *testing.T) {
 		),
 		gen(
 			"all matchers/query mismatch",
-			[]string{},
-			[]string{},
 			&condition{
 				pattern: "/test/{pp}",
 				matcher: &lbMatcher{
@@ -190,8 +174,6 @@ func TestLBMatcher(t *testing.T) {
 		),
 		gen(
 			"all matchers/header mismatch",
-			[]string{},
-			[]string{},
 			&condition{
 				pattern: "/test/{pp}",
 				matcher: &lbMatcher{
@@ -215,8 +197,6 @@ func TestLBMatcher(t *testing.T) {
 		),
 		gen(
 			"no hosts/match",
-			[]string{},
-			[]string{},
 			&condition{
 				pattern: "/test/{pp}",
 				matcher: &lbMatcher{
@@ -240,8 +220,6 @@ func TestLBMatcher(t *testing.T) {
 		),
 		gen(
 			"no methods/match",
-			[]string{},
-			[]string{},
 			&condition{
 				pattern: "/test/{pp}",
 				matcher: &lbMatcher{
@@ -265,8 +243,6 @@ func TestLBMatcher(t *testing.T) {
 		),
 		gen(
 			"no path param matcher/match",
-			[]string{},
-			[]string{},
 			&condition{
 				pattern: "/test/{pp}",
 				matcher: &lbMatcher{
@@ -289,8 +265,6 @@ func TestLBMatcher(t *testing.T) {
 		),
 		gen(
 			"no header matcher/match",
-			[]string{},
-			[]string{},
 			&condition{
 				pattern: "/test/{pp}",
 				matcher: &lbMatcher{
@@ -313,8 +287,6 @@ func TestLBMatcher(t *testing.T) {
 		),
 		gen(
 			"no query matcher/match",
-			[]string{},
-			[]string{},
 			&condition{
 				pattern: "/test/{pp}",
 				matcher: &lbMatcher{
@@ -337,8 +309,6 @@ func TestLBMatcher(t *testing.T) {
 		),
 		gen(
 			"multiple header",
-			[]string{},
-			[]string{},
 			&condition{
 				pattern: "/",
 				matcher: &lbMatcher{
@@ -358,8 +328,6 @@ func TestLBMatcher(t *testing.T) {
 		),
 		gen(
 			"multiple query",
-			[]string{},
-			[]string{},
 			&condition{
 				pattern: "/",
 				matcher: &lbMatcher{
@@ -379,20 +347,18 @@ func TestLBMatcher(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			mux := &http.ServeMux{}
-			mux.HandleFunc(tt.C().pattern, func(w http.ResponseWriter, r *http.Request) {
-				path, matched := tt.C().matcher.match(r)
-				testutil.Diff(t, tt.A().matched, matched)
-				testutil.Diff(t, tt.A().path, path)
+			mux.HandleFunc(tt.C.pattern, func(w http.ResponseWriter, r *http.Request) {
+				path, matched := tt.C.matcher.match(r)
+				testutil.Diff(t, tt.A.matched, matched)
+				testutil.Diff(t, tt.A.path, path)
 			})
 
-			r, _ := http.NewRequest(tt.C().method, tt.C().url, nil)
-			r.Header = tt.C().header
+			r, _ := http.NewRequest(tt.C.method, tt.C.url, nil)
+			r.Header = tt.C.header
 			w := httptest.NewRecorder()
 			mux.ServeHTTP(w, r)
 		})
@@ -411,10 +377,6 @@ func TestLoadbalancer_nonHash(t *testing.T) {
 		matched  []bool
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	ups1 := &noopUpstream{rawURL: "http://test1.com", weight: 1, parsedURL: &url.URL{Scheme: "http", Host: "test.com", RawQuery: "bar1=baz1"}}
 	ups2 := &noopUpstream{rawURL: "http://test2.com", weight: 1, parsedURL: &url.URL{Scheme: "http", Host: "test.com", RawQuery: "bar2=baz2"}}
 	url1 := &url.URL{Scheme: "http", Host: "test.com", Path: "/foo", RawPath: "/foo", RawQuery: "bar1=baz1"}
@@ -424,8 +386,6 @@ func TestLoadbalancer_nonHash(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"no upstream",
-			[]string{},
-			[]string{},
 			&condition{
 				upstreams: []upstream{},
 				matcher:   func(s string) (string, bool) { return s, true },
@@ -438,8 +398,6 @@ func TestLoadbalancer_nonHash(t *testing.T) {
 		),
 		gen(
 			"single upstream",
-			[]string{},
-			[]string{},
 			&condition{
 				upstreams: []upstream{ups1},
 				matcher:   func(s string) (string, bool) { return s, true },
@@ -452,8 +410,6 @@ func TestLoadbalancer_nonHash(t *testing.T) {
 		),
 		gen(
 			"multiple upstream",
-			[]string{},
-			[]string{},
 			&condition{
 				upstreams: []upstream{ups1, ups2},
 				matcher:   func(s string) (string, bool) { return s, true },
@@ -466,8 +422,6 @@ func TestLoadbalancer_nonHash(t *testing.T) {
 		),
 		gen(
 			"path not match",
-			[]string{},
-			[]string{},
 			&condition{
 				upstreams: []upstream{ups1, ups2},
 				matcher:   func(string) (string, bool) { return "", false },
@@ -480,25 +434,23 @@ func TestLoadbalancer_nonHash(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			lb := &loadbalancer{
 				lbMatcher: &lbMatcher{
-					pathMatchers: []matcherFunc{tt.C().matcher},
+					pathMatchers: []matcherFunc{tt.C.matcher},
 				},
-				LoadBalancer: zlb.NewBasicRoundRobin(tt.C().upstreams...),
+				LoadBalancer: zlb.NewBasicRoundRobin(tt.C.upstreams...),
 			}
 
 			r := httptest.NewRequest(http.MethodGet, "http://test.com/foo", nil)
 
-			for i := 0; i < len(tt.A().upstream); i++ {
+			for i := 0; i < len(tt.A.upstream); i++ {
 				upstream, url, matched := lb.upstream(r)
-				testutil.Diff(t, tt.A().upstream[i], upstream, cmp.AllowUnexported(lbUpstream{}, noopUpstream{}, atomic.Int32{}))
-				testutil.Diff(t, tt.A().url[i], url)
-				testutil.Diff(t, tt.A().matched[i], matched)
+				testutil.Diff(t, tt.A.upstream[i], upstream, cmp.AllowUnexported(lbUpstream{}, noopUpstream{}, atomic.Int32{}))
+				testutil.Diff(t, tt.A.url[i], url)
+				testutil.Diff(t, tt.A.matched[i], matched)
 			}
 		})
 	}
@@ -517,10 +469,6 @@ func TestLoadbalancer_hash(t *testing.T) {
 		matched  []bool
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	ups1 := &noopUpstream{rawURL: "http://test1.com", weight: 1, parsedURL: &url.URL{Scheme: "http", Host: "test.com", RawQuery: "bar1=baz1"}}
 	ups2 := &noopUpstream{rawURL: "http://test2.com", weight: 1, parsedURL: &url.URL{Scheme: "http", Host: "test.com", RawQuery: "bar2=baz2"}}
 	ups3 := &noopUpstream{rawURL: "http://test3.com", weight: 1, parsedURL: &url.URL{Scheme: "http", Host: "test.com", RawQuery: "bar3=baz3"}}
@@ -532,8 +480,6 @@ func TestLoadbalancer_hash(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"no upstream/no hasher",
-			[]string{},
-			[]string{},
 			&condition{
 				upstreams: []upstream{},
 				matcher:   func(s string) (string, bool) { return s, true },
@@ -546,8 +492,6 @@ func TestLoadbalancer_hash(t *testing.T) {
 		),
 		gen(
 			"single upstream/no hasher",
-			[]string{},
-			[]string{},
 			&condition{
 				upstreams: []upstream{ups1},
 				matcher:   func(s string) (string, bool) { return s, true },
@@ -560,8 +504,6 @@ func TestLoadbalancer_hash(t *testing.T) {
 		),
 		gen(
 			"multiple upstream/no hasher",
-			[]string{},
-			[]string{},
 			&condition{
 				upstreams: []upstream{ups1, ups2, ups3},
 				matcher:   func(s string) (string, bool) { return s, true },
@@ -574,8 +516,6 @@ func TestLoadbalancer_hash(t *testing.T) {
 		),
 		gen(
 			"no upstream",
-			[]string{},
-			[]string{},
 			&condition{
 				upstreams: []upstream{},
 				matcher:   func(s string) (string, bool) { return s, true },
@@ -589,8 +529,6 @@ func TestLoadbalancer_hash(t *testing.T) {
 		),
 		gen(
 			"single upstream",
-			[]string{},
-			[]string{},
 			&condition{
 				upstreams: []upstream{ups1},
 				matcher:   func(s string) (string, bool) { return s, true },
@@ -604,8 +542,6 @@ func TestLoadbalancer_hash(t *testing.T) {
 		),
 		gen(
 			"multiple upstream",
-			[]string{},
-			[]string{},
 			&condition{
 				upstreams: []upstream{ups1, ups2, ups3},
 				matcher:   func(s string) (string, bool) { return s, true },
@@ -619,8 +555,6 @@ func TestLoadbalancer_hash(t *testing.T) {
 		),
 		gen(
 			"path not match",
-			[]string{},
-			[]string{},
 			&condition{
 				upstreams: []upstream{ups1},
 				matcher:   func(string) (string, bool) { return "", false },
@@ -632,27 +566,26 @@ func TestLoadbalancer_hash(t *testing.T) {
 			},
 		),
 	}
-	testutil.Register(table, testCases...)
 
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			lb := &loadbalancer{
 				lbMatcher: &lbMatcher{
-					pathMatchers: []matcherFunc{tt.C().matcher},
+					pathMatchers: []matcherFunc{tt.C.matcher},
 				},
-				LoadBalancer: zlb.NewDirectHash(tt.C().upstreams...),
-				hasher:       tt.C().hasher,
+				LoadBalancer: zlb.NewDirectHash(tt.C.upstreams...),
+				hasher:       tt.C.hasher,
 			}
 
 			r := httptest.NewRequest(http.MethodGet, "http://test.com/foo", nil)
 			r.Header.Set("test", "hash input")
 
-			for i := 0; i < len(tt.A().upstream); i++ {
+			for i := 0; i < len(tt.A.upstream); i++ {
 				upstream, url, matched := lb.upstream(r)
-				testutil.Diff(t, tt.A().upstream[i], upstream, cmp.AllowUnexported(lbUpstream{}, noopUpstream{}, atomic.Int32{}))
-				testutil.Diff(t, tt.A().url[i], url)
-				testutil.Diff(t, tt.A().matched[i], matched)
+				testutil.Diff(t, tt.A.upstream[i], upstream, cmp.AllowUnexported(lbUpstream{}, noopUpstream{}, atomic.Int32{}))
+				testutil.Diff(t, tt.A.url[i], url)
+				testutil.Diff(t, tt.A.matched[i], matched)
 			}
 		})
 	}

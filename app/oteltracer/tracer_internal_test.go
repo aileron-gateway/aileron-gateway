@@ -38,16 +38,10 @@ func TestMiddleware(t *testing.T) {
 		name       string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"nil tracer",
-			[]string{},
-			[]string{},
 			&condition{},
 			&action{
 				statusCode: http.StatusOK,
@@ -68,8 +62,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"set mCtxKey",
-			[]string{},
-			[]string{},
 			&condition{
 				mCtxKey: 1,
 			},
@@ -84,8 +76,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"start ChildSpan",
-			[]string{},
-			[]string{},
 			&condition{
 				childSpan:  true,
 				parentSpan: false,
@@ -109,8 +99,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"start ParentSpan",
-			[]string{},
-			[]string{},
 			&condition{
 				childSpan:  false,
 				parentSpan: true,
@@ -134,8 +122,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"start Headers",
-			[]string{},
-			[]string{},
 			&condition{
 				headers: []string{"testHeader"},
 			},
@@ -159,8 +145,6 @@ func TestMiddleware(t *testing.T) {
 		),
 		gen(
 			"set HTTPS schema",
-			[]string{},
-			[]string{},
 			&condition{
 				httpsFlag: true,
 			},
@@ -183,11 +167,9 @@ func TestMiddleware(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			exporter := tracetest.NewInMemoryExporter()
 			tracerProvider := sdktrace.NewTracerProvider(
 				sdktrace.WithSyncer(exporter),
@@ -197,13 +179,13 @@ func TestMiddleware(t *testing.T) {
 
 			ctx := context.Background()
 
-			if tt.C().parentSpan {
+			if tt.C.parentSpan {
 				parentCtx, parentSpan := tracer.Start(ctx, "parentSpan")
 				defer parentSpan.End()
 
-				ctx = context.WithValue(parentCtx, mCtxKey, tt.C().mCtxKey)
+				ctx = context.WithValue(parentCtx, mCtxKey, tt.C.mCtxKey)
 			} else {
-				ctx = context.WithValue(ctx, mCtxKey, tt.C().mCtxKey)
+				ctx = context.WithValue(ctx, mCtxKey, tt.C.mCtxKey)
 			}
 
 			// In unit test, only set TraceContext and Baggage, and verify the behavior in subsequent tests.
@@ -217,21 +199,21 @@ func TestMiddleware(t *testing.T) {
 				tracer:  tracer,
 				tp:      tracerProvider,
 				pg:      pg,
-				headers: tt.C().headers,
+				headers: tt.C.headers,
 			}
 
 			exporter.ExportSpans(ctx, exporter.GetSpans().Snapshots())
 
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
 
-			if tt.C().childSpan {
+			if tt.C.childSpan {
 				childCtx, childSpan := tracer.Start(ctx, "childSpan")
 				defer childSpan.End()
 
 				ot.pg.Inject(childCtx, propagation.HeaderCarrier(req.Header))
 			}
 
-			if tt.C().httpsFlag {
+			if tt.C.httpsFlag {
 				req.TLS = &tls.ConnectionState{}
 			}
 
@@ -242,11 +224,11 @@ func TestMiddleware(t *testing.T) {
 			ot.Middleware(h).ServeHTTP(resp, req)
 
 			for _, span := range exporter.GetSpans() {
-				testutil.Diff(t, tt.A().attributes, span.Attributes, cmp.AllowUnexported(attribute.Value{}))
-				testutil.Diff(t, tt.A().name, span.Name)
+				testutil.Diff(t, tt.A.attributes, span.Attributes, cmp.AllowUnexported(attribute.Value{}))
+				testutil.Diff(t, tt.A.name, span.Name)
 			}
-			testutil.Diff(t, tt.A().statusCode, resp.Code)
-			testutil.Diff(t, tt.A().body, resp.Body.String())
+			testutil.Diff(t, tt.A.statusCode, resp.Code)
+			testutil.Diff(t, tt.A.body, resp.Body.String())
 		})
 	}
 }
@@ -268,16 +250,10 @@ func TestTripperware(t *testing.T) {
 		name       string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"nil tracer",
-			[]string{},
-			[]string{},
 			&condition{},
 			&action{
 				statusCode: http.StatusOK,
@@ -297,8 +273,6 @@ func TestTripperware(t *testing.T) {
 		),
 		gen(
 			"set tCtxKey",
-			[]string{},
-			[]string{},
 			&condition{
 				tCtxKey: 1,
 			},
@@ -313,8 +287,6 @@ func TestTripperware(t *testing.T) {
 		),
 		gen(
 			"set Headers",
-			[]string{},
-			[]string{},
 			&condition{
 				headers: []string{"testHeader"},
 			},
@@ -337,8 +309,6 @@ func TestTripperware(t *testing.T) {
 		),
 		gen(
 			"cause RoundTripError",
-			[]string{},
-			[]string{},
 			&condition{
 				roundTripErr: true,
 			},
@@ -361,11 +331,9 @@ func TestTripperware(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			exporter := tracetest.NewInMemoryExporter()
 			tracerProvider := sdktrace.NewTracerProvider(
 				sdktrace.WithSyncer(exporter),
@@ -373,7 +341,7 @@ func TestTripperware(t *testing.T) {
 			tracer := tracerProvider.Tracer("oteltracer")
 
 			ctx := context.Background()
-			ctx = context.WithValue(ctx, tCtxKey, tt.C().tCtxKey)
+			ctx = context.WithValue(ctx, tCtxKey, tt.C.tCtxKey)
 
 			// In unit test, only set TraceContext and Baggage, and verify the behavior in subsequent tests.
 			props := []propagation.TextMapPropagator{
@@ -387,7 +355,7 @@ func TestTripperware(t *testing.T) {
 				// TODO: Implement here so that the propagation settings can be modified.
 				pg:      pg,
 				tp:      tracerProvider,
-				headers: tt.C().headers,
+				headers: tt.C.headers,
 			}
 
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -402,7 +370,7 @@ func TestTripperware(t *testing.T) {
 					ProtoMinor: 0,
 					Body:       nil,
 				}
-				if tt.C().roundTripErr {
+				if tt.C.roundTripErr {
 					return resp, errRoundTrip
 				}
 				return resp, nil
@@ -413,13 +381,13 @@ func TestTripperware(t *testing.T) {
 			}
 
 			resp, err := ot.Tripperware(r).RoundTrip(req)
-			testutil.Diff(t, tt.A().err, err, opts...)
+			testutil.Diff(t, tt.A.err, err, opts...)
 
 			for _, span := range exporter.GetSpans() {
-				testutil.Diff(t, tt.A().attributes, span.Attributes, cmp.AllowUnexported(attribute.Value{}))
-				testutil.Diff(t, tt.A().name, span.Name)
+				testutil.Diff(t, tt.A.attributes, span.Attributes, cmp.AllowUnexported(attribute.Value{}))
+				testutil.Diff(t, tt.A.name, span.Name)
 			}
-			testutil.Diff(t, tt.A().statusCode, resp.StatusCode)
+			testutil.Diff(t, tt.A.statusCode, resp.StatusCode)
 		})
 	}
 }
@@ -436,16 +404,10 @@ func TestTrace(t *testing.T) {
 		attributes []attribute.KeyValue
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"empty name and attributes",
-			[]string{},
-			[]string{},
 			&condition{},
 			&action{
 				name:       "",
@@ -454,8 +416,6 @@ func TestTrace(t *testing.T) {
 		),
 		gen(
 			"set name",
-			[]string{},
-			[]string{},
 			&condition{
 				name: "testName",
 			},
@@ -466,8 +426,6 @@ func TestTrace(t *testing.T) {
 		),
 		gen(
 			"set single attribute",
-			[]string{},
-			[]string{},
 			&condition{
 				name: "testName",
 				tags: map[string]string{
@@ -483,8 +441,6 @@ func TestTrace(t *testing.T) {
 		),
 		gen(
 			"set multiple attributes",
-			[]string{},
-			[]string{},
 			&condition{
 				name: "testName",
 				tags: map[string]string{
@@ -502,8 +458,6 @@ func TestTrace(t *testing.T) {
 		),
 		gen(
 			"set parent span",
-			[]string{},
-			[]string{},
 			&condition{
 				parentSpan: true,
 			},
@@ -514,11 +468,9 @@ func TestTrace(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			exporter := tracetest.NewInMemoryExporter()
 			tracerProvider := sdktrace.NewTracerProvider(
 				sdktrace.WithSyncer(exporter),
@@ -535,14 +487,14 @@ func TestTrace(t *testing.T) {
 				pg: propagation.TraceContext{},
 			}
 
-			if tt.C().parentSpan {
+			if tt.C.parentSpan {
 				parentCtx, parentSpan := tracer.Start(ctx, "parentSpan")
 				defer parentSpan.End()
 
 				ctx = context.WithValue(parentCtx, mCtxKey, 0)
 			}
 
-			_, finish := ot.Trace(ctx, tt.C().name, tt.C().tags)
+			_, finish := ot.Trace(ctx, tt.C.name, tt.C.tags)
 			finish()
 
 			opts := []cmp.Option{
@@ -553,8 +505,8 @@ func TestTrace(t *testing.T) {
 			}
 
 			for _, span := range exporter.GetSpans() {
-				testutil.Diff(t, tt.A().attributes, span.Attributes, opts...)
-				testutil.Diff(t, tt.A().name, span.Name)
+				testutil.Diff(t, tt.A.attributes, span.Attributes, opts...)
+				testutil.Diff(t, tt.A.name, span.Name)
 			}
 		})
 	}
@@ -589,16 +541,10 @@ func TestFinalize(t *testing.T) {
 		err        error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"default TracerProvider",
-			[]string{},
-			[]string{},
 			&condition{
 				mockSpanProcessor: &mockSpanProcessor{},
 			},
@@ -609,13 +555,11 @@ func TestFinalize(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			exporter := tracetest.NewInMemoryExporter()
-			mockSpanProcessor := tt.C().mockSpanProcessor
+			mockSpanProcessor := tt.C.mockSpanProcessor
 
 			tracerProvider := sdktrace.NewTracerProvider(
 				sdktrace.WithSpanProcessor(mockSpanProcessor),
@@ -627,8 +571,8 @@ func TestFinalize(t *testing.T) {
 			}
 			err := ot.Finalize()
 
-			testutil.Diff(t, tt.A().isShutdown, mockSpanProcessor.isShutdown)
-			testutil.Diff(t, tt.A().err, err)
+			testutil.Diff(t, tt.A.isShutdown, mockSpanProcessor.isShutdown)
+			testutil.Diff(t, tt.A.err, err)
 		})
 	}
 }
