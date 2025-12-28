@@ -8,7 +8,6 @@ Visit [our website](https://aileron-gateway.github.io/) to get more information.
 [![GoDoc](https://godoc.org/github.com/aileron-gateway/aileron-gateway?status.svg)](http://godoc.org/github.com/aileron-gateway/aileron-gateway)
 [![Go Report Card](https://goreportcard.com/badge/github.com/aileron-gateway/aileron-gateway)](https://goreportcard.com/report/github.com/aileron-gateway/aileron-gateway)
 [![License](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](./LICENSE)
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Faileron-gateway%2Faileron-gateway.svg?type=shield&issueType=license)](https://app.fossa.com/projects/git%2Bgithub.com%2Faileron-gateway%2Faileron-gateway?ref=badge_shield&issueType=license)
 
 [![Codecov](https://codecov.io/gh/aileron-gateway/aileron-gateway/branch/main/graph/badge.svg?token=L62XLZNFLE)](https://codecov.io/gh/aileron-gateway/aileron-gateway)
 [![Test Suite](https://github.com/aileron-gateway/aileron-gateway/actions/workflows/test-suite.yaml/badge.svg?branch=main)](https://github.com/aileron-gateway/aileron-gateway/actions/workflows/test-suite.yaml?query=branch%3Amain)
@@ -41,8 +40,8 @@ We integrate and leverage the following products and specifications.
   <img src="docs/images/openid.png" height="100" hspace="30"/>
   <img src="docs/images/oauth_logo.svg" height="100" hspace="30"/>
   </br>
-  <img src="docs/images/opa.svg" height="100" hspace="30"/> 
-  <img src="docs/images/otel.svg" height="100" hspace="30"/> 
+  <img src="docs/images/opa.svg" height="100" hspace="30"/>
+  <img src="docs/images/otel.svg" height="100" hspace="30"/>
 </p>
 
 ## Install AILERON Gateway
