@@ -19,8 +19,8 @@ import (
 
 	"github.com/aileron-gateway/aileron-gateway/app"
 	"github.com/aileron-gateway/aileron-gateway/core"
+	"github.com/aileron-gateway/aileron-gateway/internal/encrypt"
 	"github.com/aileron-gateway/aileron-gateway/internal/kvs"
-	"github.com/aileron-gateway/aileron-gateway/kernel/encrypt"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 )
 

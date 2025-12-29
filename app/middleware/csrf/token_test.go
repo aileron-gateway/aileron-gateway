@@ -13,8 +13,8 @@ import (
 	"testing"
 
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
+	"github.com/aileron-gateway/aileron-gateway/internal/hash"
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
-	"github.com/aileron-gateway/aileron-gateway/kernel/hash"
 )
 
 type mockReader struct {
