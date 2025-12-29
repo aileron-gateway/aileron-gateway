@@ -16,9 +16,9 @@ import (
 	"sync"
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
+	"github.com/aileron-gateway/aileron-gateway/internal/txtutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
-	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
 	"github.com/aileron-projects/go/ztext"
 )
 

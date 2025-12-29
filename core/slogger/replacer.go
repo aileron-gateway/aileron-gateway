@@ -9,7 +9,7 @@ import (
 	"time"
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
-	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
+	"github.com/aileron-gateway/aileron-gateway/internal/txtutil"
 )
 
 // newReplaceFunc return a new instance of replacer.

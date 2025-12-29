@@ -12,7 +12,7 @@ import (
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
-	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
+	"github.com/aileron-gateway/aileron-gateway/internal/txtutil"
 	"github.com/aileron-projects/go/zx/zlb"
 	"github.com/google/go-cmp/cmp"
 )

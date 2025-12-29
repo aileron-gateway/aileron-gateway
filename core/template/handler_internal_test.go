@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
-	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
+	"github.com/aileron-gateway/aileron-gateway/internal/txtutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 )
 
