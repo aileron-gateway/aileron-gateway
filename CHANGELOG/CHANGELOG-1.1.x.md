@@ -43,12 +43,12 @@ _Nothing has changed._
 
 #### Other changes
 
-- [#105](https://github.com/aileron-gateway/aileron-gateway/pull/105): Move kernel/testutil package to internal/testutil ( @k7a-tomohiro )
-- [#108](https://github.com/aileron-gateway/aileron-gateway/pull/108): Move kernel/hash, kernel/encrypt packages to internal/hash, internal/encrypt ( @k7a-tomohiro )
-- [#109](https://github.com/aileron-gateway/aileron-gateway/pull/109): Move kernel/txtutil package to internal/txtutil ( @k7a-tomohiro )
-- [#110](https://github.com/aileron-gateway/aileron-gateway/pull/110): Move kernel/kvs package to internal/kvs ( @k7a-tomohiro )
-- [#111](https://github.com/aileron-gateway/aileron-gateway/pull/111): Move kernel/network package to internal/network ( @k7a-tomohiro )
-- [#112](https://github.com/aileron-gateway/aileron-gateway/pull/112): Move util/security package to internal/security ( @k7a-tomohiro )
+- [#105](https://github.com/aileron-gateway/aileron-gateway/pull/105): Move kernel/testutil package to internal/testutil (@k7a-tomohiro)
+- [#108](https://github.com/aileron-gateway/aileron-gateway/pull/108): Move kernel/hash, kernel/encrypt packages to internal/hash, internal/encrypt (@k7a-tomohiro)
+- [#109](https://github.com/aileron-gateway/aileron-gateway/pull/109): Move kernel/txtutil package to internal/txtutil (@k7a-tomohiro)
+- [#110](https://github.com/aileron-gateway/aileron-gateway/pull/110): Move kernel/kvs package to internal/kvs (@k7a-tomohiro)
+- [#111](https://github.com/aileron-gateway/aileron-gateway/pull/111): Move kernel/network package to internal/network (@k7a-tomohiro)
+- [#112](https://github.com/aileron-gateway/aileron-gateway/pull/112): Move util/security package to internal/security (@k7a-tomohiro)
 
 ### Dependencies
 
