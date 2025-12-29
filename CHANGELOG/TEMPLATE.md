@@ -4,7 +4,6 @@
 
 - [Versions](#versions)
 - [v1.1.0](#v110)
-  - [Breaking changes since v1.0.x ](#breaking-changes-since-v10x-)
   - [Changes since v1.0.4](#changes-since-v104)
     - [New features](#new-features)
     - [Bug fix, Security fix](#bug-fix-security-fix)
@@ -13,7 +12,8 @@
     - [Added](#added)
     - [Changed](#changed)
     - [Removed](#removed)
-  - [Migration guides](#migration-guides)
+  - [Breaking changes since v1.0.x ](#breaking-changes-since-v10x-)
+  - [Migration guides ](#migration-guides-)
 
 ## Versions
 
@@ -22,8 +22,6 @@
 | v1.0.0          | 1.24 | v29.0  | v1.36.4       |
 
 ## v1.1.0
-
-### Breaking changes since v1.0.x <!-- Only when major version updated. -->
 
 ### Changes since v1.0.4
 
@@ -41,7 +39,10 @@ _Nothing has changed._
 
 ### Dependencies
 
-<!-- Generated with `go-modiff --repository github.com/aileron-gateway/aileron-gateway --from v1.0.4 --to main`. -->
+<!--
+Changes are generated with go-modiff like this.
+`go-modiff --repository github.com/aileron-gateway/aileron-gateway --from v1.0.4 --to main`
+-->
 
 #### Added
 
@@ -55,6 +56,10 @@ _Nothing has changed._
 
 _Nothing has changed._
 
-### Migration guides
+### Breaking changes since v1.0.x <!-- Major version update only. -->
+
+_Nothing has changed._
+
+### Migration guides <!-- Major version update only. -->
 
 _Migration is not required._

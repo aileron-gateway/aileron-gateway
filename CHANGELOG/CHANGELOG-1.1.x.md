@@ -11,6 +11,7 @@
   - [Dependencies](#dependencies)
   - [Migration guides](#migration-guides)
 - [v1.1.0](#v110)
+  - [Breaking changes since v1.0.x ](#breaking-changes-since-v10x-)
   - [Changes since v1.0.4](#changes-since-v104)
     - [New features](#new-features-1)
     - [Breaking changes](#breaking-changes)
@@ -55,9 +56,13 @@ TODO: Fill
 
 ### Migration guides
 
-_Migration is not required._
+TODO: Fill
 
 ## v1.1.0
+
+### Breaking changes since v1.0.x <!-- Major version update only. -->
+
+_Nothing has changed._
 
 ### Changes since v1.0.4
 
