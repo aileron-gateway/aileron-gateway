@@ -8,7 +8,7 @@ import (
 	"fmt"
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
-	"github.com/aileron-gateway/aileron-gateway/util/security"
+	"github.com/aileron-gateway/aileron-gateway/internal/security"
 	"github.com/golang-jwt/jwt/v5"
 )
 
