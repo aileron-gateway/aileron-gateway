@@ -14,7 +14,7 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/internal/encoder"
 	"github.com/aileron-gateway/aileron-gateway/internal/encrypt"
 	"github.com/aileron-gateway/aileron-gateway/internal/hash"
-	"github.com/aileron-gateway/aileron-gateway/kernel/kvs"
+	"github.com/aileron-gateway/aileron-gateway/internal/kvs"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 )
 
