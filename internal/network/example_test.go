@@ -10,7 +10,7 @@ import (
 	"net"
 	"os"
 
-	"github.com/aileron-gateway/aileron-gateway/kernel/network"
+	"github.com/aileron-gateway/aileron-gateway/internal/network"
 )
 
 // ServerCert is a self-signed server certification.

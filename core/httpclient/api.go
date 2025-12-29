@@ -10,8 +10,8 @@ import (
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/core"
+	"github.com/aileron-gateway/aileron-gateway/internal/network"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/network"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
