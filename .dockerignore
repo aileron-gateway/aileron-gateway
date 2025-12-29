@@ -5,6 +5,7 @@
 !core/
 !kernel/
 !util/
+!internal/
 !examples/
 !go.mod
 !go.sum
