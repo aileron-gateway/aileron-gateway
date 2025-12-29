@@ -11,8 +11,8 @@ import (
 	"io"
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
-	"github.com/aileron-gateway/aileron-gateway/kernel/encrypt"
-	"github.com/aileron-gateway/aileron-gateway/kernel/hash"
+	"github.com/aileron-gateway/aileron-gateway/internal/encrypt"
+	"github.com/aileron-gateway/aileron-gateway/internal/hash"
 )
 
 func NewSecureEncoder(spec *v1.SecureEncoderSpec) (*SecureEncoder, error) {
