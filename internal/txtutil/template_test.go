@@ -6,7 +6,7 @@ package txtutil_test
 import (
 	"fmt"
 
-	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
+	"github.com/aileron-gateway/aileron-gateway/internal/txtutil"
 )
 
 func ExampleTemplate_Content_one() {

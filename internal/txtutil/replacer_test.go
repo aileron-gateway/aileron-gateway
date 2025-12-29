@@ -10,7 +10,7 @@ import (
 	"fmt"
 
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
-	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
+	"github.com/aileron-gateway/aileron-gateway/internal/txtutil"
 )
 
 func ExampleFixedReplacer() {

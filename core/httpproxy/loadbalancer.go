@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"slices"
 
-	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
+	"github.com/aileron-gateway/aileron-gateway/internal/txtutil"
 	"github.com/aileron-projects/go/zx/zlb"
 )
 
