@@ -12,9 +12,9 @@ import (
 
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/internal/encoder"
-	"github.com/aileron-gateway/aileron-gateway/kernel/encrypt"
+	"github.com/aileron-gateway/aileron-gateway/internal/encrypt"
+	"github.com/aileron-gateway/aileron-gateway/internal/hash"
 	"github.com/aileron-gateway/aileron-gateway/kernel/er"
-	"github.com/aileron-gateway/aileron-gateway/kernel/hash"
 )
 
 // ReplaceFunc is the function that

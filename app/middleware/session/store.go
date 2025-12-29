@@ -11,7 +11,7 @@ import (
 
 	"github.com/aileron-gateway/aileron-gateway/app"
 	"github.com/aileron-gateway/aileron-gateway/core"
-	"github.com/aileron-gateway/aileron-gateway/kernel/kvs"
+	"github.com/aileron-gateway/aileron-gateway/internal/kvs"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 	"github.com/aileron-gateway/aileron-gateway/util/security"
 	"github.com/aileron-gateway/aileron-gateway/util/session"

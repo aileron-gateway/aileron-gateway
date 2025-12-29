@@ -11,7 +11,7 @@ import (
 	"mime"
 	"net/http"
 
-	"github.com/aileron-gateway/aileron-gateway/kernel/hash"
+	"github.com/aileron-gateway/aileron-gateway/internal/hash"
 	"github.com/tidwall/gjson"
 )
 

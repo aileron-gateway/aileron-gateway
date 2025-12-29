@@ -16,7 +16,7 @@ import (
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
 	"github.com/aileron-gateway/aileron-gateway/app"
 	"github.com/aileron-gateway/aileron-gateway/core"
-	"github.com/aileron-gateway/aileron-gateway/kernel/hash"
+	"github.com/aileron-gateway/aileron-gateway/internal/hash"
 
 	"github.com/aileron-projects/go/zcrypto/zsha1"
 	"github.com/aileron-projects/go/zcrypto/zsha256"
