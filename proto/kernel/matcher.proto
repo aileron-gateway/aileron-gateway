@@ -52,6 +52,5 @@ enum MatchType {
     // RegexPOSIX is the POSIX regular expression matching method type.
     // See  https://pkg.go.dev/regexp#Match and https://pkg.go.dev/regexp/syntax
     // for string and bytes matching.
-    RegexPOSIX  = 7;
-    Regex_POSIX = 7;
+    RegexPOSIX = 7;
 }
