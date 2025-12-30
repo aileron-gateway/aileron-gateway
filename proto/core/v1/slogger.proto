@@ -104,8 +104,7 @@ message FieldReplacerSpec {
 }
 
 //+ LogOutputSpec
-ec is the specification for log output.;
-message   LogOutputSpec {
+message LogOutputSpec {
     // [OPTIONAL]
     // OutputTarget is the destination of log output.
     // Default is [Stdout].
