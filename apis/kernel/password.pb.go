@@ -22,6 +22,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// + PasswordCryptSpec
 type PasswordCryptSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to PasswordCrypts:
@@ -152,6 +153,7 @@ func (*PasswordCryptSpec_Argon2I) isPasswordCryptSpec_PasswordCrypts() {}
 
 func (*PasswordCryptSpec_Argon2Id) isPasswordCryptSpec_PasswordCrypts() {}
 
+// + BCryptSpec
 type BCryptSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -201,6 +203,7 @@ func (x *BCryptSpec) GetCost() int32 {
 	return 0
 }
 
+// + SCryptSpec
 type SCryptSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -300,6 +303,7 @@ func (x *SCryptSpec) GetKeyLen() int32 {
 	return 0
 }
 
+// + PBKDF2Spec
 type PBKDF2Spec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -386,6 +390,7 @@ func (x *PBKDF2Spec) GetHashAlg() HashAlg {
 	return HashAlg_HashAlgUnknown
 }
 
+// + Argon2Spec
 type Argon2Spec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]

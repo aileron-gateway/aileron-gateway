@@ -22,6 +22,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// + NetworkType
 // NetworkType is the type of network.
 // Types are basically based on the Go net.Dialer.
 // See https://pkg.go.dev/net#Dial.
@@ -104,6 +105,7 @@ func (NetworkType) EnumDescriptor() ([]byte, []int) {
 	return file_kernel_network_proto_rawDescGZIP(), []int{0}
 }
 
+// + ClientAuthType
 // ClientAuthType declares the policy the server will follow for TLS Client Authentication.
 // See https://pkg.go.dev/crypto/tls#ClientAuthType
 type ClientAuthType int32
@@ -161,6 +163,7 @@ func (ClientAuthType) EnumDescriptor() ([]byte, []int) {
 	return file_kernel_network_proto_rawDescGZIP(), []int{1}
 }
 
+// + RenegotiationSupport
 // RenegotiationSupport is the different levels of support for TLS renegotiation.
 // See https://pkg.go.dev/crypto/tls#RenegotiationSupport
 type RenegotiationSupport int32
@@ -212,6 +215,7 @@ func (RenegotiationSupport) EnumDescriptor() ([]byte, []int) {
 	return file_kernel_network_proto_rawDescGZIP(), []int{2}
 }
 
+// + CurveID
 // CurveID is the type of a TLS identifier for an elliptic curve.
 // See https://pkg.go.dev/crypto/tls#CurveID
 // and https://www.iana.org/assignments/tls-parameters/tls-parameters.xml#tls-parameters-8.
@@ -267,6 +271,7 @@ func (CurveID) EnumDescriptor() ([]byte, []int) {
 	return file_kernel_network_proto_rawDescGZIP(), []int{3}
 }
 
+// + TLSCipher
 // TLSCipher is the TLS cipher suite.
 // Refer TLS package at https://pkg.go.dev/crypto/tls#pkg-constants
 type TLSCipher int32
@@ -447,6 +452,7 @@ func (QuicConfig_Version) EnumDescriptor() ([]byte, []int) {
 	return file_kernel_network_proto_rawDescGZIP(), []int{8, 0}
 }
 
+// + HTTPTransportConfig
 // HTTPTransportConfig is the configuration for HTTP TransportConfig object.
 // This is the configuration for the trasportation layer of HTTP networking.
 // Proxy configurations are read from the environmental variable
@@ -693,6 +699,7 @@ func (x *HTTPTransportConfig) GetDialConfig() *DialConfig {
 	return nil
 }
 
+// + HTTP2TransportConfig
 // HTTPTransportConfig is the specifications for the HTTP TransportConfig object.
 // This is the configuration for the trasportation layer in networking.
 // Proxy configurations are read from the environmental variable
@@ -948,6 +955,7 @@ func (x *HTTP2TransportConfig) GetMinLookupInterval() uint32 {
 	return 0
 }
 
+// + DialConfig
 // DialConfig is the specifications for the DilConfig object.
 // DialControl controls dialing to the server to send requests to.
 // This message is bounded to the net.Dialer.
@@ -1082,9 +1090,9 @@ func (x *DialConfig) GetSockOption() *SockOption {
 	return nil
 }
 
+// + HTTP3TransportConfig
 // HTTP3TransportConfig is the specifications for the HTTP3 TransportConfig object.
 // This is the configuration for the transport layer of HTTP3.
-// http3.RoundTri
 // See https://pkg.go.dev/github.com/lucas-clemente/quic-go/http3#RoundTripper
 type HTTP3TransportConfig struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -1191,6 +1199,7 @@ func (x *HTTP3TransportConfig) GetMaxResponseHeaderBytes() int64 {
 	return 0
 }
 
+// + ListenConfig
 // ListenConfig is the configurations for stream listner.
 type ListenConfig struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -1343,6 +1352,7 @@ func (x *ListenConfig) GetSockOption() *SockOption {
 	return nil
 }
 
+// + KeepAliveConfig
 // KeepAliveConfig is the configuration for listener keep-alive.
 // This configuration is bounded to net.KeepAliveConfig.
 // See https://pkg.go.dev/net#KeepAliveConfig.
@@ -1437,6 +1447,7 @@ func (x *KeepAliveConfig) GetCount() int32 {
 	return 0
 }
 
+// + TLSConfig
 // TLSConfig is the configuration for TLS.
 type TLSConfig struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -1681,6 +1692,7 @@ func (x *TLSConfig) GetRenegotiation() RenegotiationSupport {
 	return RenegotiationSupport_RenegotiateNever
 }
 
+// + CertKeyPair
 // CertKeyPair is the pair of TLS cert file path
 // and kery file path.
 type CertKeyPair struct {
@@ -1741,6 +1753,7 @@ func (x *CertKeyPair) GetKeyFile() string {
 	return ""
 }
 
+// + QuicConfig
 // QuicConfig is the specifications for the QuicConfig object.
 // This is the configuration for the trasportation layer in networking of quic protocol.
 // QuicConfig is related to "https://pkg.go.dev/github.com/quic-go/quic-go" package

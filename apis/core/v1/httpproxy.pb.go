@@ -23,6 +23,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// + LBAlgorithm
 // LBAlgorithm is the load balance algorithm.
 type LBAlgorithm int32
 
@@ -135,12 +136,11 @@ func (HTTPHasherSpec_HashSourceType) EnumDescriptor() ([]byte, []int) {
 	return file_core_v1_httpproxy_proto_rawDescGZIP(), []int{6, 0}
 }
 
-// ReverseProxyHandler resource definition.
-// apiVersion="core/v1", kind="ReverseProxyHandler".
+// + ReverseProxyHandler
 type ReverseProxyHandler struct {
 	state         protoimpl.MessageState   `protogen:"open.v1"`
-	APIVersion    string                   `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"`
-	Kind          string                   `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`
+	APIVersion    string                   `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"` // "core/v1"
+	Kind          string                   `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`                   // "ReverseProxyHandler"
 	Metadata      *kernel.Metadata         `protobuf:"bytes,3,opt,name=Metadata,json=metadata,proto3" json:"Metadata,omitempty"`
 	Spec          *ReverseProxyHandlerSpec `protobuf:"bytes,4,opt,name=Spec,json=spec,proto3" json:"Spec,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -205,7 +205,7 @@ func (x *ReverseProxyHandler) GetSpec() *ReverseProxyHandlerSpec {
 	return nil
 }
 
-// ReverseProxyHandlerSpec is the specifications for the ReverseProxyHandler object.
+// + ReverseProxyHandlerSpec
 type ReverseProxyHandlerSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -305,6 +305,7 @@ func (x *ReverseProxyHandlerSpec) GetLoadBalancers() []*LoadBalancerSpec {
 	return nil
 }
 
+// + LoadBalancerSpec
 // LoadBalancerSpec is the specification of LoadBalancer objects.
 type LoadBalancerSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -490,6 +491,7 @@ func (x *LoadBalancerSpec) GetHasher() *HTTPHasherSpec {
 	return nil
 }
 
+// + PathMatcherSpec
 // PathMatcherSpec is the specification of PathMatcher object
 // used for path matching of incoming HTTP requests.
 type PathMatcherSpec struct {
@@ -599,6 +601,7 @@ func (x *PathMatcherSpec) GetAppendPrefix() string {
 	return ""
 }
 
+// + ParamMatcherSpec
 // ParamMatcherSpec is the specification of ParamMatcherParamMatcherSpec object
 // used for header or query value matching.
 type ParamMatcherSpec struct {
@@ -678,6 +681,7 @@ func (x *ParamMatcherSpec) GetMatchType() kernel.MatchType {
 	return kernel.MatchType(0)
 }
 
+// + UpstreamSpec
 // UpstreamSpec is the specification of Upstream object.
 type UpstreamSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -805,6 +809,7 @@ func (x *UpstreamSpec) GetHealthCheckAddr() string {
 	return ""
 }
 
+// + HTTPHasherSpec
 // HTTPHasherSpec is the specifications for hasher
 // that calculate hashes from http requests.
 type HTTPHasherSpec struct {

@@ -24,12 +24,11 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// ThrottleMiddleware resource definition.
-// apiVersion="app/v1", kind="ThrottleMiddleware".
+// + ThrottleMiddleware
 type ThrottleMiddleware struct {
 	state         protoimpl.MessageState  `protogen:"open.v1"`
-	APIVersion    string                  `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"`
-	Kind          string                  `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`
+	APIVersion    string                  `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"` // "app/v1"
+	Kind          string                  `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`                   // "ThrottleMiddleware"
 	Metadata      *kernel.Metadata        `protobuf:"bytes,3,opt,name=Metadata,json=metadata,proto3" json:"Metadata,omitempty"`
 	Spec          *ThrottleMiddlewareSpec `protobuf:"bytes,4,opt,name=Spec,json=spec,proto3" json:"Spec,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -94,7 +93,7 @@ func (x *ThrottleMiddleware) GetSpec() *ThrottleMiddlewareSpec {
 	return nil
 }
 
-// ThrottleMiddlewareSpec is the specifications for the ThrottleMiddleware object.
+// + ThrottleMiddlewareSpec
 type ThrottleMiddlewareSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -143,6 +142,7 @@ func (x *ThrottleMiddlewareSpec) GetAPIThrottlers() []*APIThrottlerSpec {
 	return nil
 }
 
+// + APIThrottlerSpec
 // APIThrottlerSpec creates a timeout which is applied to requests
 // with configured methods and a path.
 type APIThrottlerSpec struct {
@@ -303,6 +303,7 @@ func (*APIThrottlerSpec_FixedWindow) isAPIThrottlerSpec_Throttlers() {}
 
 func (*APIThrottlerSpec_LeakyBucket) isAPIThrottlerSpec_Throttlers() {}
 
+// + MaxConnectionsSpec
 // MaxConnectionsSpec is the specification for max connection algorithms of throttling.
 type MaxConnectionsSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -351,6 +352,7 @@ func (x *MaxConnectionsSpec) GetMaxConns() int32 {
 	return 0
 }
 
+// + FixedWindowSpec
 // FixedWindowSpec is the specification for token fixed window algorithms of throttling.
 type FixedWindowSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -410,6 +412,7 @@ func (x *FixedWindowSpec) GetLimit() int32 {
 	return 0
 }
 
+// + TokenBucketSpec
 // TokenBucketSpec is the specification for token bucket algorithms of throttling.
 type TokenBucketSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -480,6 +483,7 @@ func (x *TokenBucketSpec) GetFillRate() int32 {
 	return 0
 }
 
+// + LeakyBucketSpec
 // LeakyBucketSpec is the specification for leaky bucket algorithms of throttling.
 type LeakyBucketSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`

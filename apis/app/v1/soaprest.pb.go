@@ -22,12 +22,11 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// SOAPRESTMiddleware resource definition.
-// apiVersion="app/v1", kind="SOAPRESTMiddleware".
+// + SOAPRESTMiddleware
 type SOAPRESTMiddleware struct {
 	state         protoimpl.MessageState  `protogen:"open.v1"`
-	APIVersion    string                  `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"`
-	Kind          string                  `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`
+	APIVersion    string                  `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"` // "app/v1"
+	Kind          string                  `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`                   // "SOAPRESTMiddleware"
 	Metadata      *kernel.Metadata        `protobuf:"bytes,3,opt,name=Metadata,json=metadata,proto3" json:"Metadata,omitempty"`
 	Spec          *SOAPRESTMiddlewareSpec `protobuf:"bytes,4,opt,name=Spec,json=spec,proto3" json:"Spec,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -92,8 +91,7 @@ func (x *SOAPRESTMiddleware) GetSpec() *SOAPRESTMiddlewareSpec {
 	return nil
 }
 
-// SOAPRESTMiddlewareSpec is the status of the SOAPRESTMiddleware object.
-// Values are managed by the application and therefore should not be set by users.
+// + SOAPRESTMiddlewareSpec
 type SOAPRESTMiddlewareSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -196,6 +194,7 @@ func (*SOAPRESTMiddlewareSpec_Rayfish) isSOAPRESTMiddlewareSpec_Rules() {}
 
 func (*SOAPRESTMiddlewareSpec_Badgerfish) isSOAPRESTMiddlewareSpec_Rules() {}
 
+// + SimpleSpec
 type SimpleSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -301,6 +300,7 @@ func (x *SimpleSpec) GetPreferShort() bool {
 	return false
 }
 
+// + RayfishSpec
 type RayfishSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -415,6 +415,7 @@ func (x *RayfishSpec) GetTrimSpace() bool {
 	return false
 }
 
+// + BadgerfishSpec
 type BadgerfishSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]

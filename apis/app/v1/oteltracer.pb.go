@@ -23,6 +23,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// + PropagationType
 type PropagationType int32
 
 const (
@@ -84,12 +85,11 @@ func (PropagationType) EnumDescriptor() ([]byte, []int) {
 	return file_app_v1_o11y_oteltracer_proto_rawDescGZIP(), []int{0}
 }
 
-// OpenTelemetryTracer resource definition.
-// apiVersion="app/v1", kind="OpenTelemetryTracer".
+// + OpenTelemetryTracer
 type OpenTelemetryTracer struct {
 	state         protoimpl.MessageState   `protogen:"open.v1"`
-	APIVersion    string                   `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"`
-	Kind          string                   `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`
+	APIVersion    string                   `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"` // "app/v1"
+	Kind          string                   `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`                   // "OpenTelemetryTracer"
 	Metadata      *kernel.Metadata         `protobuf:"bytes,3,opt,name=Metadata,json=metadata,proto3" json:"Metadata,omitempty"`
 	Spec          *OpenTelemetryTracerSpec `protobuf:"bytes,4,opt,name=Spec,json=spec,proto3" json:"Spec,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -154,7 +154,7 @@ func (x *OpenTelemetryTracer) GetSpec() *OpenTelemetryTracerSpec {
 	return nil
 }
 
-// OpenTelemetryTracerSpec is the specifications for the OpenTelemetryTracer object.
+// + OpenTelemetryTracerSpec
 type OpenTelemetryTracerSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -350,6 +350,7 @@ func (*OpenTelemetryTracerSpec_StdoutExporterSpec) isOpenTelemetryTracerSpec_Exp
 
 func (*OpenTelemetryTracerSpec_ZipkinExporterSpec) isOpenTelemetryTracerSpec_Exporters() {}
 
+// + TracerProviderBatchSpec
 type TracerProviderBatchSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -444,6 +445,7 @@ func (x *TracerProviderBatchSpec) GetBlocking() bool {
 	return false
 }
 
+// + TracerProviderLimitSpec
 type TracerProviderLimitSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -565,6 +567,7 @@ func (x *TracerProviderLimitSpec) GetAttributePerLinkCountLimit() int32 {
 	return 0
 }
 
+// + HTTPTraceExporterSpec
 type HTTPTraceExporterSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -690,6 +693,7 @@ func (x *HTTPTraceExporterSpec) GetOTLPRetry() *OTLPTraceRetrySpec {
 	return nil
 }
 
+// + GRPCTraceExporterSpec
 type GRPCTraceExporterSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -846,6 +850,7 @@ func (x *GRPCTraceExporterSpec) GetServiceConfig() string {
 	return ""
 }
 
+// + StdoutTraceExporterSpec
 type StdoutTraceExporterSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -904,6 +909,7 @@ func (x *StdoutTraceExporterSpec) GetWithoutTimestamps() bool {
 	return false
 }
 
+// + ZipkinTraceExporterSpec
 type ZipkinTraceExporterSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -965,6 +971,7 @@ func (x *ZipkinTraceExporterSpec) GetEndpointURL() string {
 	return ""
 }
 
+// + OTLPTraceRetrySpec
 type OTLPTraceRetrySpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -1053,6 +1060,7 @@ func (x *OTLPTraceRetrySpec) GetMaxElapsedTime() int32 {
 	return 0
 }
 
+// + K8sAttributesSpec
 type K8SAttributesSpec struct {
 	state                 protoimpl.MessageState `protogen:"open.v1"`
 	ClusterName           string                 `protobuf:"bytes,1,opt,name=ClusterName,json=clusterName,proto3" json:"ClusterName,omitempty"`
@@ -1249,6 +1257,7 @@ func (x *K8SAttributesSpec) GetStatefulSetUID() string {
 	return ""
 }
 
+// + ContainerAttributesSpec
 type ContainerAttributesSpec struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ID            string                 `protobuf:"bytes,1,opt,name=ID,json=id,proto3" json:"ID,omitempty"`
@@ -1325,6 +1334,7 @@ func (x *ContainerAttributesSpec) GetRuntime() string {
 	return ""
 }
 
+// + HostAttributesSpec
 type HostAttributesSpec struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ID            string                 `protobuf:"bytes,1,opt,name=ID,json=id,proto3" json:"ID,omitempty"`

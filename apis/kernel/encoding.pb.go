@@ -21,20 +21,21 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// + EncodingType
 // EncodingType is the types of byte encoding.
 type EncodingType int32
 
 const (
-	EncodingType_EncodingTypeUnknown EncodingType = 0 // Unknown encoding type.
-	EncodingType_Base16              EncodingType = 1 // Base16 (Hex) encoding. Every 4 bits are encoded to 1 byte character.
-	EncodingType_Base32              EncodingType = 2 // Base32 encoding. Every 5 bits are encoded to 1 byte character.
-	EncodingType_Base32Hex           EncodingType = 3 // Base32 Hex encoding. Every 5 bits are encoded to 1 byte character.
-	EncodingType_Base32Escaped       EncodingType = 4 // Base32 escaped encoding. Every 5 bits are encoded to 1 byte character.
-	EncodingType_Base32HexEscaped    EncodingType = 5 // Base32 Hex escaped encoding. Every 5 bits are encoded to 1 byte character.
-	EncodingType_Base64              EncodingType = 6 // Base64 encoding. Every 6 bits are encoded to 1 byte character.
-	EncodingType_Base64Raw           EncodingType = 7 // Base64 Raw encoding. Every 6 bits are encoded to 1 byte character.
-	EncodingType_Base64URL           EncodingType = 8 // Base64 URL encoding. Every 6 bits are encoded to 1 byte character.
-	EncodingType_Base64RawURL        EncodingType = 9 // Base64 URL Raw encoding. Every 6 bits are encoded to 1 byte character.
+	EncodingType_EncodingTypeUnknown EncodingType = 0 // Unknown encoding type..
+	EncodingType_Base16              EncodingType = 1 // Base16 (Hex) encoding. Every 4 bits are encoded to 1 byte character..
+	EncodingType_Base32              EncodingType = 2 // Base32 encoding. Every 5 bits are encoded to 1 byte character..
+	EncodingType_Base32Hex           EncodingType = 3 // Base32 Hex encoding. Every 5 bits are encoded to 1 byte character..
+	EncodingType_Base32Escaped       EncodingType = 4 // Base32 escaped encoding. Every 5 bits are encoded to 1 byte character..
+	EncodingType_Base32HexEscaped    EncodingType = 5 // Base32 Hex escaped encoding. Every 5 bits are encoded to 1 byte character..
+	EncodingType_Base64              EncodingType = 6 // Base64 encoding. Every 6 bits are encoded to 1 byte character..
+	EncodingType_Base64Raw           EncodingType = 7 // Base64 Raw encoding. Every 6 bits are encoded to 1 byte character..
+	EncodingType_Base64URL           EncodingType = 8 // Base64 URL encoding. Every 6 bits are encoded to 1 byte character..
+	EncodingType_Base64RawURL        EncodingType = 9 // Base64 URL Raw encoding. Every 6 bits are encoded to 1 byte character..
 )
 
 // Enum value maps for EncodingType.

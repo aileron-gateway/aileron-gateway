@@ -7,16 +7,15 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
 
-// HealthCheckHandler resource definition.
-// apiVersion="app/v1", kind="HealthCheckHandler".
+//+ HealthCheckHandler
 message HealthCheckHandler {
-    string                 APIVersion = 1 [json_name = "apiVersion"];
-    string                 Kind       = 2 [json_name = "kind"];
+    string                 APIVersion = 1 [json_name = "apiVersion"];  // "app/v1"
+    string                 Kind       = 2 [json_name = "kind"];        // "HealthCheckHandler"
     kernel.Metadata        Metadata   = 3 [json_name = "metadata"];
     HealthCheckHandlerSpec Spec       = 4 [json_name = "spec"];
 }
 
-// HealthCheckHandlerSpec is the specifications for the HealthCheckHandler object.
+//+ HealthCheckHandlerSpec
 message HealthCheckHandlerSpec {
     // [OPTIONAL]
     // ErrorHandler is the reference to a ErrorHandler object.
@@ -30,7 +29,7 @@ message HealthCheckHandlerSpec {
     // Default is not set, or empty string ["/"].
     repeated string Patterns = 2 [json_name = "patterns"];
 
-    // [OPTIONA]
+    // [OPTIONAL]
     // Methods is the list of HTTP method this handler can handle.
     // Note that it depends on the multiplexer, or HTTP router,
     // that the server uses if this field is used or not.
@@ -42,7 +41,7 @@ message HealthCheckHandlerSpec {
     // Timeout is timeout duration in seconds.
     // Unhealthy status will be returned when health checking excceeded this duration.
     // Default is [30].
-    int32 Timeout = 4 [json_name = "timeout", (buf.validate.field).int32 = {gte : 0}];
+    int32 Timeout = 4 [json_name = "timeout", (buf.validate.field).int32 = { gte: 0 }];
 
     // [OPTIONAL]
     // ExternalProbes is the list of references to HealthChecker objects.

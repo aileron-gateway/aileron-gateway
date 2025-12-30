@@ -23,12 +23,11 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// EchoHandler resource definition.
-// apiVersion="app/v1", kind="EchoHandler".
+// + EchoHandler
 type EchoHandler struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	APIVersion    string                 `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"`
-	Kind          string                 `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`
+	APIVersion    string                 `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"` // "app/v1"
+	Kind          string                 `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`                   // "EchoHandler"
 	Metadata      *kernel.Metadata       `protobuf:"bytes,3,opt,name=Metadata,json=metadata,proto3" json:"Metadata,omitempty"`
 	Spec          *EchoHandlerSpec       `protobuf:"bytes,4,opt,name=Spec,json=spec,proto3" json:"Spec,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -93,7 +92,7 @@ func (x *EchoHandler) GetSpec() *EchoHandlerSpec {
 	return nil
 }
 
-// EchoHandlerSpec is the specifications for the EchoHandler object.
+// + EchoHandlerSpec
 type EchoHandlerSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -101,7 +100,7 @@ type EchoHandlerSpec struct {
 	// is registered to a server.
 	// Default is not set, or empty string ["/"].
 	Patterns []string `protobuf:"bytes,1,rep,name=Patterns,json=patterns,proto3" json:"Patterns,omitempty"`
-	// [OPTIONA]
+	// [OPTIONAL]
 	// Methods is the list of HTTP method this handler can handle.
 	// Note that it depends on the multiplexer, or HTTP router,
 	// that the server uses if this field is used or not.

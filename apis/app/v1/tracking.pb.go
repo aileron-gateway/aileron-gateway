@@ -23,12 +23,11 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// TrackingMiddleware resource definition.
-// apiVersion="app/v1", kind="TrackingMiddleware".
+// + TrackingMiddleware
 type TrackingMiddleware struct {
 	state         protoimpl.MessageState  `protogen:"open.v1"`
-	APIVersion    string                  `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"`
-	Kind          string                  `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`
+	APIVersion    string                  `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"` // "app/v1"
+	Kind          string                  `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`                   // "TrackingMiddleware"
 	Metadata      *kernel.Metadata        `protobuf:"bytes,3,opt,name=Metadata,json=metadata,proto3" json:"Metadata,omitempty"`
 	Spec          *TrackingMiddlewareSpec `protobuf:"bytes,4,opt,name=Spec,json=spec,proto3" json:"Spec,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -93,7 +92,7 @@ func (x *TrackingMiddleware) GetSpec() *TrackingMiddlewareSpec {
 	return nil
 }
 
-// TrackingMiddlewareSpec is the specifications of the TrackingMiddleware object.
+// + TrackingMiddlewareSpec
 type TrackingMiddlewareSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]

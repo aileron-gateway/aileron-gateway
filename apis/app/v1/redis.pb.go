@@ -22,25 +22,13 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// + RedisClient
 type RedisClient struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// [REQUIRED]
-	// APIVersion is the defined version of the midleware.
-	// This value must be "app/v1".
-	APIVersion string `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"`
-	// [REQUIRED]
-	// Kind is the kind of this object.
-	// This value must be "RedisClient".
-	Kind string `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`
-	// [OPTIONAL]
-	// Metadata is the metadata of the http logger object.
-	// If not set, both name and namespace in the metadata
-	// are treated as "default".
-	Metadata *kernel.Metadata `protobuf:"bytes,3,opt,name=Metadata,json=metadata,proto3" json:"Metadata,omitempty"`
-	// [OPTIONAL]
-	// Spec is the specification of the storage.
-	// Default values are used when nothing is set.
-	Spec          *RedisClientSpec `protobuf:"bytes,4,opt,name=Spec,json=spec,proto3" json:"Spec,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	APIVersion    string                 `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"` // "app/v1"
+	Kind          string                 `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`                   // "RedisClient"
+	Metadata      *kernel.Metadata       `protobuf:"bytes,3,opt,name=Metadata,json=metadata,proto3" json:"Metadata,omitempty"`
+	Spec          *RedisClientSpec       `protobuf:"bytes,4,opt,name=Spec,json=spec,proto3" json:"Spec,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -103,6 +91,7 @@ func (x *RedisClient) GetSpec() *RedisClientSpec {
 	return nil
 }
 
+// + RedisClientSpec
 // RedisClientSpec is the spec for redis universal client.
 // See https://pkg.go.dev/github.com/go-redis/redis#UniversalOptions for details.
 type RedisClientSpec struct {

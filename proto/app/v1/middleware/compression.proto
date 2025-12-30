@@ -6,27 +6,26 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
 
-// CompressionMiddleware resource definition.
-// apiVersion="app/v1", kind="CompressionMiddleware".
+//+ CompressionMiddleware
 message CompressionMiddleware {
-    string                    APIVersion = 1 [json_name = "apiVersion"];
-    string                    Kind       = 2 [json_name = "kind"];
+    string                    APIVersion = 1 [json_name = "apiVersion"];  // "app/v1"
+    string                    Kind       = 2 [json_name = "kind"];        // "CompressionMiddleware"
     kernel.Metadata           Metadata   = 3 [json_name = "metadata"];
     CompressionMiddlewareSpec Spec       = 4 [json_name = "spec"];
 }
 
-// CompressionMiddlewareSpec is the specifications for the CompressionMiddleware object.
+//+ CompressionMiddlewareSpec
 message CompressionMiddlewareSpec {
     // [OPTIONAL]
     // GzipLevel is the gzip compression level.
     // BestSpeed=1, BestCompression=9. Default level is 6.
-    int32 GzipLevel = 1 [json_name = "gzipLevel", (buf.validate.field).int32 = {gte : 1, lte : 9}];
+    int32 GzipLevel = 1 [json_name = "gzipLevel", (buf.validate.field).int32 = { gte: 1, lte: 9 }];
 
     // [OPTIONAL]
     // BrotliLevel is the brotli compression level.
     // BestSpeed=0, BestCompression=11. Default level is 4.
     // Note that set this field to -1 to use BestSpeed=0 level instead of setting 0 because of the technical issue.
-    int32 BrotliLevel = 2 [json_name = "brotliLevel", (buf.validate.field).int32 = {gte : -1, lte : 11}];
+    int32 BrotliLevel = 2 [json_name = "brotliLevel", (buf.validate.field).int32 = { gte: -1, lte: 11 }];
 
     // [OPTIONAL]
     // TargetMIMEs is the list of mime types to compress.

@@ -22,6 +22,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// + Resource
 // Resource is the template of a resource definition.
 // This messages is only used internally.
 type Resource struct {
@@ -102,6 +103,7 @@ func (x *Resource) GetSpec() *ResourceSpec {
 	return nil
 }
 
+// + ResourceSpec
 // ResourceSpec is the resource specification.
 type ResourceSpec struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -139,6 +141,7 @@ func (*ResourceSpec) Descriptor() ([]byte, []int) {
 	return file_kernel_resource_proto_rawDescGZIP(), []int{1}
 }
 
+// + Metadata
 // Metadata is the common metadata for all resources.
 type Metadata struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -237,6 +240,7 @@ func (x *Metadata) GetErrorHandler() string {
 	return ""
 }
 
+// + Reference
 // Reference is the reference to a resource.
 type Reference struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -320,6 +324,7 @@ func (x *Reference) GetNamespace() string {
 	return ""
 }
 
+// + Status
 // Status is the resource status.
 // DO NOT USE. This is left for compatibility.
 type Status struct {

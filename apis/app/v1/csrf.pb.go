@@ -24,6 +24,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// + TokenSource
 // TokenSource is the csrf token source type.
 // CSRF tokens are looked for from the specified source.
 type TokenSource int32
@@ -75,12 +76,11 @@ func (TokenSource) EnumDescriptor() ([]byte, []int) {
 	return file_app_v1_middleware_csrf_proto_rawDescGZIP(), []int{0}
 }
 
-// CSRFMiddleware resource definition.
-// apiVersion="app/v1", kind="CSRFMiddleware".
+// + CSRFMiddleware
 type CSRFMiddleware struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	APIVersion    string                 `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"`
-	Kind          string                 `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`
+	APIVersion    string                 `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"` // "app/v1"
+	Kind          string                 `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`                   // "CSRFMiddleware"
 	Metadata      *kernel.Metadata       `protobuf:"bytes,3,opt,name=Metadata,json=metadata,proto3" json:"Metadata,omitempty"`
 	Spec          *CSRFMiddlewareSpec    `protobuf:"bytes,4,opt,name=Spec,json=spec,proto3" json:"Spec,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -145,7 +145,7 @@ func (x *CSRFMiddleware) GetSpec() *CSRFMiddlewareSpec {
 	return nil
 }
 
-// CSRFMiddlewareSpec is the specifications for the CSRFMiddleware object.
+// + CSRFMiddlewareSpec
 type CSRFMiddlewareSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -358,6 +358,7 @@ func (*CSRFMiddlewareSpec_DoubleSubmitCookies) isCSRFMiddlewareSpec_CSRFPatterns
 
 func (*CSRFMiddlewareSpec_SynchronizerToken) isCSRFMiddlewareSpec_CSRFPatterns() {}
 
+// + CustomRequestHeaderSpec
 // CustomRequestHeadersSpec is the specification of CSRF protection using custom header pattern.
 type CustomRequestHeaderSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -423,6 +424,7 @@ func (x *CustomRequestHeaderSpec) GetAllowedPattern() string {
 	return ""
 }
 
+// + DoubleSubmitCookiesSpec
 // DoubleSubmitCookiesSpec is the specification of CSRF protection using double submit cookie pattern.
 type DoubleSubmitCookiesSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -506,7 +508,8 @@ func (x *DoubleSubmitCookiesSpec) GetSourceKey() string {
 	return ""
 }
 
-// DoubleSubmitCookiesSpec is the specification of CSRF protection using synchronizer token pattern.
+// + SynchronizerTokenSpec
+// SynchronizerTokenSpec is the specification of CSRF protection using synchronizer token pattern.
 type SynchronizerTokenSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]

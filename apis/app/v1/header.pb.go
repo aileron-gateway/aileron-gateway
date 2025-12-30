@@ -23,12 +23,11 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// HeaderPolicyMiddleware resource definition.
-// apiVersion="app/v1", kind="HeaderPolicyMiddleware".
+// + HeaderPolicyMiddleware
 type HeaderPolicyMiddleware struct {
 	state         protoimpl.MessageState      `protogen:"open.v1"`
-	APIVersion    string                      `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"`
-	Kind          string                      `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`
+	APIVersion    string                      `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"` // "app/v1"
+	Kind          string                      `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`                   // "HeaderPolicyMiddleware"
 	Metadata      *kernel.Metadata            `protobuf:"bytes,3,opt,name=Metadata,json=metadata,proto3" json:"Metadata,omitempty"`
 	Spec          *HeaderPolicyMiddlewareSpec `protobuf:"bytes,4,opt,name=Spec,json=spec,proto3" json:"Spec,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -93,7 +92,7 @@ func (x *HeaderPolicyMiddleware) GetSpec() *HeaderPolicyMiddlewareSpec {
 	return nil
 }
 
-// HeaderPolicyMiddlewareSpec is the specifications for the HeaderPolicyMiddleware object.
+// + HeaderPolicyMiddlewareSpec
 type HeaderPolicyMiddlewareSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -177,6 +176,7 @@ func (x *HeaderPolicyMiddlewareSpec) GetResponsePolicy() *HeaderPolicySpec {
 	return nil
 }
 
+// + HeaderPolicySpec
 // HeaderPolicySpec is the specifications of header policy.
 type HeaderPolicySpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -277,6 +277,7 @@ func (x *HeaderPolicySpec) GetRewrites() []*HeaderRewriteSpec {
 	return nil
 }
 
+// + HeaderRewriteSpec
 // HeaderRewriteSpec is the configuration for rewriting HTTP headers.
 type HeaderRewriteSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`

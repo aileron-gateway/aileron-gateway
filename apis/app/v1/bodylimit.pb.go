@@ -22,12 +22,11 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// BodyLimitMiddleware resource definition.
-// apiVersion="app/v1", kind="BodyLimitMiddleware".
+// + BodyLimitMiddleware
 type BodyLimitMiddleware struct {
 	state         protoimpl.MessageState   `protogen:"open.v1"`
-	APIVersion    string                   `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"`
-	Kind          string                   `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`
+	APIVersion    string                   `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"` // "app/v1"
+	Kind          string                   `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`                   // "BodyLimitMiddleware"
 	Metadata      *kernel.Metadata         `protobuf:"bytes,3,opt,name=Metadata,json=metadata,proto3" json:"Metadata,omitempty"`
 	Spec          *BodyLimitMiddlewareSpec `protobuf:"bytes,4,opt,name=Spec,json=spec,proto3" json:"Spec,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -92,7 +91,7 @@ func (x *BodyLimitMiddleware) GetSpec() *BodyLimitMiddlewareSpec {
 	return nil
 }
 
-// BodyLimitMiddlewareSpec is the specifications for the BodyLimitMiddleware object.
+// + BodyLimitMiddlewareSpec
 type BodyLimitMiddlewareSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]

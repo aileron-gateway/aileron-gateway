@@ -5,17 +5,15 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
 
-// SOAPRESTMiddleware resource definition.
-// apiVersion="app/v1", kind="SOAPRESTMiddleware".
+//+ SOAPRESTMiddleware
 message SOAPRESTMiddleware {
-    string                 APIVersion = 1 [json_name = "apiVersion"];
-    string                 Kind       = 2 [json_name = "kind"];
+    string                 APIVersion = 1 [json_name = "apiVersion"];  // "app/v1"
+    string                 Kind       = 2 [json_name = "kind"];        // "SOAPRESTMiddleware"
     kernel.Metadata        Metadata   = 3 [json_name = "metadata"];
     SOAPRESTMiddlewareSpec Spec       = 4 [json_name = "spec"];
 }
 
-// SOAPRESTMiddlewareSpec is the status of the SOAPRESTMiddleware object.
-// Values are managed by the application and therefore should not be set by users.
+//+ SOAPRESTMiddlewareSpec
 message SOAPRESTMiddlewareSpec {
     // [OPTIONAL]
     // Rules is the conversion ruleset.
@@ -27,6 +25,7 @@ message SOAPRESTMiddlewareSpec {
     }
 }
 
+//+ SimpleSpec
 message SimpleSpec {
     // [OPTIONAL]
     // TextKey is the json key name to store content of XML elements.
@@ -68,6 +67,7 @@ message SimpleSpec {
     bool PreferShort = 5 [json_name = "preferShort"];
 }
 
+//+ RayfishSpec
 message RayfishSpec {
     // [OPTIONAL]
     // NameKeys is the json key name to store XML element names.
@@ -112,6 +112,7 @@ message RayfishSpec {
     bool TrimSpace = 6 [json_name = "trimSpace"];
 }
 
+//+ BadgerfishSpec
 message BadgerfishSpec {
     // [OPTIONAL]
     // TextKey is the json key name to store content of XML elements.

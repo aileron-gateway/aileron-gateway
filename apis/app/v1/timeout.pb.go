@@ -24,26 +24,12 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// TimeoutMiddleware resource definition.
-// apiVersion="app/v1", kind="TimeoutMiddleware".
+// + TimeoutMiddleware
 type TimeoutMiddleware struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// [REQUIRED]
-	// APIVersion is the defined version of the midleware.
-	// This value must be "app/v1".
-	APIVersion string `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"`
-	// [REQUIRED]
-	// Kind is the kind of this object.
-	// This value must be "TimeoutMiddleware".
-	Kind string `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`
-	// [OPTIONAL]
-	// Metadata is the metadata of the http logger object.
-	// If not set, both name and namespace in the metadata
-	// are treated as "default".
-	Metadata *kernel.Metadata `protobuf:"bytes,3,opt,name=Metadata,json=metadata,proto3" json:"Metadata,omitempty"`
-	// [OPTIONAL]
-	// Spec is the specification of the middleware.
-	// Default values are used when nothing is set.
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	APIVersion    string                 `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"` // "app/v1"
+	Kind          string                 `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`                   // "TimeoutMiddleware"
+	Metadata      *kernel.Metadata       `protobuf:"bytes,3,opt,name=Metadata,json=metadata,proto3" json:"Metadata,omitempty"`
 	Spec          *TimeoutMiddlewareSpec `protobuf:"bytes,4,opt,name=Spec,json=spec,proto3" json:"Spec,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -107,7 +93,7 @@ func (x *TimeoutMiddleware) GetSpec() *TimeoutMiddlewareSpec {
 	return nil
 }
 
-// TimeoutMiddlewareSpec is the specifications for the TimeoutMiddleware object.
+// + TimeoutMiddlewareSpec
 type TimeoutMiddlewareSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -168,6 +154,7 @@ func (x *TimeoutMiddlewareSpec) GetAPITimeouts() []*APITimeoutSpec {
 	return nil
 }
 
+// + APITimeoutSpec
 // APITimeoutSpec creates a timeout which is applied to requests
 // with configured methods and a path.
 type APITimeoutSpec struct {

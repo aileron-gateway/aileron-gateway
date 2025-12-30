@@ -23,12 +23,11 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// OPAAuthzMiddleware resource definition.
-// apiVersion="app/v1", kind="OPAAuthzMiddleware".
+// + OPAAuthzMiddleware
 type OPAAuthzMiddleware struct {
 	state         protoimpl.MessageState  `protogen:"open.v1"`
-	APIVersion    string                  `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"`
-	Kind          string                  `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`
+	APIVersion    string                  `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"` // "app/v1"
+	Kind          string                  `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`                   // "OPAAuthzMiddleware"
 	Metadata      *kernel.Metadata        `protobuf:"bytes,3,opt,name=Metadata,json=metadata,proto3" json:"Metadata,omitempty"`
 	Spec          *OPAAuthzMiddlewareSpec `protobuf:"bytes,4,opt,name=Spec,json=spec,proto3" json:"Spec,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -93,7 +92,7 @@ func (x *OPAAuthzMiddleware) GetSpec() *OPAAuthzMiddlewareSpec {
 	return nil
 }
 
-// OPAAuthzMiddlewareSpec is the specifications of the OPAAuthzMiddleware object.
+// + OPAAuthzMiddlewareSpec
 type OPAAuthzMiddlewareSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -207,6 +206,7 @@ func (x *OPAAuthzMiddlewareSpec) GetEnableTrace() bool {
 	return false
 }
 
+// + RegoSpec
 // RegoSpec is the specification of a OPA rego.
 // See the OPA's official documents for details at https://www.openpolicyagent.org/docs/latest/
 type RegoSpec struct {
@@ -449,6 +449,7 @@ func (*RegoSpec_FileStore) isRegoSpec_Stores() {}
 
 func (*RegoSpec_HTTPStore) isRegoSpec_Stores() {}
 
+// + BundleVerificationSpec
 type BundleVerificationSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [REQUIRED]
@@ -539,6 +540,7 @@ func (x *BundleVerificationSpec) GetExcludes() []string {
 	return nil
 }
 
+// + VerificationKeySpec
 type VerificationKeySpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [REQUIRED]
@@ -632,6 +634,7 @@ func (x *VerificationKeySpec) GetKeyFile() string {
 	return ""
 }
 
+// + EnvDataSpec
 type EnvDataSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -730,6 +733,7 @@ func (x *EnvDataSpec) GetUID() bool {
 	return false
 }
 
+// + FileStore
 type FileStore struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [REQUIRED]
@@ -801,6 +805,7 @@ func (x *FileStore) GetDirectory() string {
 	return ""
 }
 
+// + HTTPStore
 type HTTPStore struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [REQUIRED]

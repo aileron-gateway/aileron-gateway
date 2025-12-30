@@ -8,16 +8,15 @@ import "kernel/matcher.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
 
-// Skipper resource definition.
-// apiVersion="app/v1", kind="Skipper".
+//+ Skipper
 message Skipper {
-    string          APIVersion = 1 [json_name = "apiVersion"];
-    string          Kind       = 2 [json_name = "kind"];
+    string          APIVersion = 1 [json_name = "apiVersion"];  // "app/v1"
+    string          Kind       = 2 [json_name = "kind"];        // "Skipper"
     kernel.Metadata Metadata   = 3 [json_name = "metadata"];
     SkipperSpec     Spec       = 4 [json_name = "spec"];
 }
 
-// SkipperSpec is the specifications for the Skipper object.
+//+ SkipperSpec
 message SkipperSpec {
     // [OPTIONAL]
     // SkipConditions is the list of conditions
@@ -40,6 +39,7 @@ message SkipperSpec {
     repeated kernel.Reference Tripperware = 3 [json_name = "tripperware"];
 }
 
+//+ SkipConditionSpec
 // SkipConditionSpec is the configuration spec for the matching conditions.
 message SkipConditionSpec {
     // [OPTIONAL]

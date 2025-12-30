@@ -9,17 +9,15 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
 
-// SessionMiddleware resource definition.
-// apiVersion="app/v1", kind="SessionMiddleware".
+//+ SessionMiddleware
 message SessionMiddleware {
-    string                APIVersion = 1 [json_name = "apiVersion"];
-    string                Kind       = 2 [json_name = "kind"];
+    string                APIVersion = 1 [json_name = "apiVersion"];  // "app/v1"
+    string                Kind       = 2 [json_name = "kind"];        // "SessionMiddleware"
     kernel.Metadata       Metadata   = 3 [json_name = "metadata"];
     SessionMiddlewareSpec Spec       = 4 [json_name = "spec"];
 }
 
-// SessionMiddlewareSpec is the status of the SessionMiddleware object.
-// Values are managed by the application and therefore should not be set by users.
+//+ SessionMiddlewareSpec
 message SessionMiddlewareSpec {
     // [OPTIONAL]
     // Storage is the reference to a key-value storage object to save session data.
@@ -58,6 +56,7 @@ message SessionMiddlewareSpec {
     kernel.Reference Tracer = 6 [json_name = "tracer"];
 }
 
+//+ SecureEncoderSpec
 // SecureEncoderSpec is the specification of a secure encoder.
 message SecureEncoderSpec {
     // [OPTIONAL]

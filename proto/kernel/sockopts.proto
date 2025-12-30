@@ -5,34 +5,36 @@ import "buf/validate/validate.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/kernel";
 
+//+ SockOption
 // SockOption is the options for networking sockets.
 message SockOption {
     // [OPTIONAL]
     // SOOption is the socket options.
     // See https://man7.org/linux/man-pages/man7/socket.7.html
-    SockSOOption SOOption = 1 [json_name = "soOption"];
+  SockSOOption SOOption = 1 [json_name = "soOption"];
 
     // [OPTIONAL]
     // IPOption is the ip socket options.
     // See https://man7.org/linux/man-pages/man7/ip.7.html
-    SockIPOption IPOption = 2 [json_name = "ipOption"];
+  SockIPOption IPOption = 2 [json_name = "ipOption"];
 
     // [OPTIONAL]
     // IPV6Option is the ipv6 socket options.
     // See https://man7.org/linux/man-pages/man7/ipv6.7.html
-    SockIPV6Option IPV6Option = 3 [json_name = "ipv6Option"];
+  SockIPV6Option IPV6Option = 3 [json_name = "ipv6Option"];
 
     // [OPTIONAL]
     // TCPOption is the TCP socket options.
     // See https://man7.org/linux/man-pages/man7/tcp.7.html
-    SockTCPOption TCPOption = 4 [json_name = "tcpOption"];
+  SockTCPOption TCPOption = 4 [json_name = "tcpOption"];
 
     // [OPTIONAL]
     // UDPOption is the UDP socket options.
     // See https://man7.org/linux/man-pages/man7/udp.7.html
-    SockUDPOption UDPOption = 5 [json_name = "udpOption"];
+  SockUDPOption UDPOption = 5 [json_name = "udpOption"];
 }
 
+//+ SockSOOption
 // SockSOOption is socket options for SOL_SOCKET level.
 // See https://man7.org/linux/man-pages/man7/socket.7.html
 message SockSOOption {
@@ -42,7 +44,7 @@ message SockSOOption {
     // This option works only for unix.
     // This field will be ignored if the value is not set or set to empty string.
     // Default is not set.
-    string BindToDevice = 1 [json_name = "bindToDevice"];
+  string BindToDevice = 1 [json_name = "bindToDevice"];
 
     // [OPTIONAL]
     // Debug is the value of SO_DEBUG.
@@ -50,21 +52,21 @@ message SockSOOption {
     // This socket option is defined in POSIX.
     // This field will be ignored if the value is not set or set to false.
     // Default is not set.
-    bool Debug = 2 [json_name = "debug"];
+  bool Debug = 2 [json_name = "debug"];
 
     // [OPTIONAL]
     // KeepAlive is the value of SO_KEEPALIVE.
     // See socket(7) of linux manual page for the details.
     // This field will be ignored if the value is not set or set to false.
     // Default is not set.
-    bool KeepAlive = 4 [json_name = "keepAlive"];
+  bool KeepAlive = 4 [json_name = "keepAlive"];
 
     // [OPTIONAL]
     // Linger is the value of SO_LINGER.
     // See socket(7) of linux manual page for the details.
     // This field will be ignored if the value is zero or negative.
     // Default is not set.
-    int32 Linger = 5 [json_name = "linger"];
+  int32 Linger = 5 [json_name = "linger"];
 
     // [OPTIONAL]
     // Mark is the value of SO_MARK.
@@ -72,14 +74,14 @@ message SockSOOption {
     // This option works only for unix.
     // This field will be ignored if the value is zero or negative.
     // Default is not set.
-    int32 Mark = 6 [json_name = "mark"];
+  int32 Mark = 6 [json_name = "mark"];
 
     // [OPTIONAL]
     // ReceiveBuffer is the value of SO_RCVBUF.
     // See socket(7) of linux manual page for the details.
     // This field will be ignored if the value is zero or negative.
     // Default is not set.
-    int32 ReceiveBuffer = 7 [json_name = "receiveBuffer"];
+  int32 ReceiveBuffer = 7 [json_name = "receiveBuffer"];
 
     // [OPTIONAL]
     // ReceiveBufferForce is the value of SO_RCVBUFFORCE.
@@ -87,7 +89,7 @@ message SockSOOption {
     // This option works only for unix.
     // This field will be ignored if the value is zero or negative.
     // Default is not set.
-    int32 ReceiveBufferForce = 8 [json_name = "receiveBufferForce"];
+  int32 ReceiveBufferForce = 8 [json_name = "receiveBufferForce"];
 
     // [OPTIONAL]
     // ReceiveTimeout is the value of SO_RCVTIMEO.
@@ -96,7 +98,7 @@ message SockSOOption {
     // This option works only for unix.
     // Operatin system's default will be used if the value is zero.
     // Default is not set.
-    int32 ReceiveTimeout = 9 [json_name = "receiveTimeout"];
+  int32 ReceiveTimeout = 9 [json_name = "receiveTimeout"];
 
     // [OPTIONAL]
     // SendTimeout is the value of SO_SNDTIMEO.
@@ -105,14 +107,14 @@ message SockSOOption {
     // This option works only for unix.
     // This field will be ignored if the value is zero or negative.
     // Default is not set.
-    int32 SendTimeout = 10 [json_name = "sendTimeout"];
+  int32 SendTimeout = 10 [json_name = "sendTimeout"];
 
     // [OPTIONAL]
     // ReuseAddr is the value of SO_REUSEADDR.
     // See socket(7) of linux manual page for the details.
     // This field will be ignored if the value is not set or set to false.
     // Default is not set.
-    bool ReuseAddr = 11 [json_name = "reuseAddr"];
+  bool ReuseAddr = 11 [json_name = "reuseAddr"];
 
     // [OPTIONAL]
     // ReusePort is the value of SO_REUSEPORT.
@@ -120,14 +122,14 @@ message SockSOOption {
     // This option works only for unix.
     // This field will be ignored if the value is not set or set to false.
     // Default is not set.
-    bool ReusePort = 12 [json_name = "reusePort"];
+  bool ReusePort = 12 [json_name = "reusePort"];
 
     // [OPTIONAL]
     // SendBuffer is the value of SO_SNDBUF.
     // See socket(7) of linux manual page for the details.
     // This field will be ignored if the value is zero or negative.
     // Default is not set.
-    int32 SendBuffer = 13 [json_name = "sendBuffer"];
+  int32 SendBuffer = 13 [json_name = "sendBuffer"];
 
     // [OPTIONAL]
     // SendBufferForce is the value of SO_SNDBUFFORCE.
@@ -135,9 +137,10 @@ message SockSOOption {
     // This option works only for unix.
     // This field will be ignored if the value is zero or negative.
     // Default is not set.
-    int32 SendBufferForce = 14 [json_name = "sendBufferForce"];
+  int32 SendBufferForce = 14 [json_name = "sendBufferForce"];
 }
 
+//+ SockIPOption
 // SockIPOption is socket options for IPPROTO_IP level.
 // See https://man7.org/linux/man-pages/man7/ip.7.html
 message SockIPOption {
@@ -147,7 +150,7 @@ message SockIPOption {
     // This option works only for unix.
     // This field will be ignored if the value is not set or set to false.
     // Default is not set.
-    bool BindAddressNoPort = 1 [json_name = "bindAddressNoPort"];
+  bool BindAddressNoPort = 1 [json_name = "bindAddressNoPort"];
 
     // [OPTIONAL]
     // FreeBind is the value of IP_FREEBIND.
@@ -155,7 +158,7 @@ message SockIPOption {
     // This option works only for unix.
     // This field will be ignored if the value is not set or set to false.
     // Default is not set.
-    bool FreeBind = 2 [json_name = "freeBind"];
+  bool FreeBind = 2 [json_name = "freeBind"];
 
     // [OPTIONAL]
     // LocalPortRangeUpper is the upper port of IP_LOCAL_PORT_RANGE.
@@ -163,7 +166,7 @@ message SockIPOption {
     // This option works only for unix.
     // Operatin system's default will be used if the value is zero or negative.
     // Default is not set.
-    int32 LocalPortRangeUpper = 3 [json_name = "localPortRangeUpper", (buf.validate.field).int32 = {gte : 0, lte : 65535}];
+  int32 LocalPortRangeUpper = 3 [json_name = "localPortRangeUpper", (buf.validate.field).int32 = { gte: 0, lte: 65535 }];
 
     // [OPTIONAL]
     // LocalPortRangeLower is the lower port of IP_LOCAL_PORT_RANGE.
@@ -171,7 +174,7 @@ message SockIPOption {
     // This option works only for unix.
     // This field will be ignored if the value is zero or negative.
     // Default is not set.
-    int32 LocalPortRangeLower = 4 [json_name = "localPortRangeLower", (buf.validate.field).int32 = {gte : 0, lte : 65535}];
+  int32 LocalPortRangeLower = 4 [json_name = "localPortRangeLower", (buf.validate.field).int32 = { gte: 0, lte: 65535 }];
 
     // [OPTIONAL]
     // Transparent is the value of IP_TRANSPARENT.
@@ -179,21 +182,23 @@ message SockIPOption {
     // This option works only for unix.
     // This field will be ignored if the value is not set or set to false.
     // Default is not set.
-    bool Transparent = 5 [json_name = "transparent"];
+  bool Transparent = 5 [json_name = "transparent"];
 
     // [OPTIONAL]
     // TTL is the value of IP_TTL.
     // See ip(7) of linux manual page for the details.
     // This field will be ignored if the value is zero or negative.
     // Default is not set.
-    int32 TTL = 6 [json_name = "ttl"];
+  int32 TTL = 6 [json_name = "ttl"];
 }
 
+//+ SockIPV6Option
 // SockIPV6Option is socket options for IPPROTO_IPV6 level.
 // See https://man7.org/linux/man-pages/man7/ipv6.7.html
 message SockIPV6Option {
 }
 
+//+ SockTCPOption
 // SockTCPOption is socket options for IPPROTO_TCP level.
 // See https://man7.org/linux/man-pages/man7/tcp.7.html
 message SockTCPOption {
@@ -203,14 +208,14 @@ message SockTCPOption {
     // This option works only for unix.
     // This field will be ignored if the value is not set or set to false.
     // Default is not set.
-    bool CORK = 1 [json_name = "cork"];
+  bool CORK = 1 [json_name = "cork"];
 
     // [OPTIONAL]
     // DeferAccept is the value of TCP_DEFER_ACCEPT.
     // See tcp(7) of linux manual page for the details.
     // This field will be ignored if the value is zero or negative.
     // Default is not set.
-    int32 DeferAccept = 2 [json_name = "deferAccept"];
+  int32 DeferAccept = 2 [json_name = "deferAccept"];
 
     // [OPTIONAL]
     // KeepCount is the value of TCP_KEEPCNT.
@@ -218,14 +223,14 @@ message SockTCPOption {
     // This option works only for unix.
     // This field will be ignored if the value is zero or negative.
     // Default is not set.
-    int32 KeepCount = 3 [json_name = "keepCount"];
+  int32 KeepCount = 3 [json_name = "keepCount"];
 
     // [OPTIONAL]
     // KeepIdle is the value of TCP_KEEPIDLE.
     // See tcp(7) of linux manual page for the details.
     // This field will be ignored if the value is zero or negative.
     // Default is not set.
-    int32 KeepIdle = 4 [json_name = "keepIdle"];
+  int32 KeepIdle = 4 [json_name = "keepIdle"];
 
     // [OPTIONAL]
     // KeepInterval is the value of TCP_KEEPINTVL.
@@ -233,14 +238,14 @@ message SockTCPOption {
     // This option works only for unix.
     // This field will be ignored if the value is zero or negative.
     // Default is not set.
-    int32 KeepInterval = 5 [json_name = "keepInterval"];
+  int32 KeepInterval = 5 [json_name = "keepInterval"];
 
     // [OPTIONAL]
     // Linger2 is the value of TCP_LINGER2.
     // See tcp(7) of linux manual page for the details.
     // This field will be ignored if the value is zero or negative.
     // Default is not set.
-    int32 Linger2 = 6 [json_name = "linger2"];
+  int32 Linger2 = 6 [json_name = "linger2"];
 
     // [OPTIONAL]
     // MaxSegment is the value of TCP_MAXSEG.
@@ -248,28 +253,28 @@ message SockTCPOption {
     // This option works only for unix.
     // This field will be ignored if the value is zero or negative.
     // Default is not set.
-    int32 MaxSegment = 7 [json_name = "maxSegment"];
+  int32 MaxSegment = 7 [json_name = "maxSegment"];
 
     // [OPTIONAL]
     // NoDelay is the value of TCP_NODELAY.
     // See tcp(7) of linux manual page for the details.
     // This field will be ignored if the value is not set or set to false.
     // Default is not set.
-    bool NoDelay = 8 [json_name = "noDelay"];
+  bool NoDelay = 8 [json_name = "noDelay"];
 
     // [OPTIONAL]
     // QuickAck is the value of TCP_QUICKACK.
     // See tcp(7) of linux manual page for the details.
     // This field will be ignored if the value is not set or set to false.
     // Default is not set.
-    bool QuickAck = 9 [json_name = "quickAck"];
+  bool QuickAck = 9 [json_name = "quickAck"];
 
     // [OPTIONAL]
     // SynCount is the value of TCP_SYNCNT.
     // See tcp(7) of linux manual page for the details.
     // This field will be ignored if the value is zero or negative.
     // Default is not set.
-    int32 SynCount = 10 [json_name = "synCount"];
+  int32 SynCount = 10 [json_name = "synCount"];
 
     // [OPTIONAL]
     // UserTimeout is the value of TCP_USER_TIMEOUT.
@@ -277,7 +282,7 @@ message SockTCPOption {
     // This option works only for unix.
     // This field will be ignored if the value is zero or negative.
     // Default is not set.
-    int32 UserTimeout = 11 [json_name = "userTimeout"];
+  int32 UserTimeout = 11 [json_name = "userTimeout"];
 
     // [OPTIONAL]
     // WindowClamp is the value of TCP_FASTOPEN.
@@ -285,7 +290,7 @@ message SockTCPOption {
     // This option works only for unix.
     // This field will be ignored if the value is zero or negative.
     // Default is not set.
-    int32 WindowClamp = 12 [json_name = "windowClamp"];
+  int32 WindowClamp = 12 [json_name = "windowClamp"];
 
     // [OPTIONAL]
     // FastOpen is the value of TCP_QUICKACK.
@@ -293,16 +298,17 @@ message SockTCPOption {
     // This option works only for unix.
     // This field will be ignored if the value is not set or set to false.
     // Default is not set.
-    bool FastOpen = 13 [json_name = "fastOpen"];
+  bool FastOpen = 13 [json_name = "fastOpen"];
 
     // [OPTIONAL]
     // FastOpenConnect is the value of TCP_FASTOPEN_CONNECT.
     // See tcp(7) of linux manual page for the details.
     // This field will be ignored if the value is not set or set to false.
     // Default is not set.
-    bool FastOpenConnect = 14 [json_name = "fastOpenConnect"];
+  bool FastOpenConnect = 14 [json_name = "fastOpenConnect"];
 }
 
+//+ SockUDPOption
 // SockUDPOption is socket options for IPPROTO_UDP level.
 // See https://man7.org/linux/man-pages/man7/udp.7.html
 message SockUDPOption {
@@ -312,7 +318,7 @@ message SockUDPOption {
     // This option works only for unix.
     // This field will be ignored if the value is not set or set to false.
     // Default is not set.
-    bool CORK = 1 [json_name = "cork"];
+  bool CORK = 1 [json_name = "cork"];
 
     // [OPTIONAL]
     // Sement is the upper port of UDP_SEGMENT.
@@ -320,7 +326,7 @@ message SockUDPOption {
     // This option works only for unix.
     // This field will be ignored if the value is zero or negative.
     // Default is not set.
-    int32 Segment = 2 [json_name = "segment"];
+  int32 Segment = 2 [json_name = "segment"];
 
     // [OPTIONAL]
     // GRO is the value of UDP_GRO.
@@ -328,5 +334,5 @@ message SockUDPOption {
     // This option works only for unix.
     // This field will be ignored if the value is not set or set to false.
     // Default is not set.
-    bool GRO = 3 [json_name = "gro"];
+  bool GRO = 3 [json_name = "gro"];
 }

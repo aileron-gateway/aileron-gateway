@@ -8,16 +8,15 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
 
-// ThrottleMiddleware resource definition.
-// apiVersion="app/v1", kind="ThrottleMiddleware".
+//+ ThrottleMiddleware
 message ThrottleMiddleware {
-    string                 APIVersion = 1 [json_name = "apiVersion"];
-    string                 Kind       = 2 [json_name = "kind"];
+    string                 APIVersion = 1 [json_name = "apiVersion"];  // "app/v1"
+    string                 Kind       = 2 [json_name = "kind"];        // "ThrottleMiddleware"
     kernel.Metadata        Metadata   = 3 [json_name = "metadata"];
     ThrottleMiddlewareSpec Spec       = 4 [json_name = "spec"];
 }
 
-// ThrottleMiddlewareSpec is the specifications for the ThrottleMiddleware object.
+//+ ThrottleMiddlewareSpec
 message ThrottleMiddlewareSpec {
     // [OPTIONAL]
     // APIThrottlers is the list of APIThrottler objects.
@@ -26,6 +25,7 @@ message ThrottleMiddlewareSpec {
     repeated APIThrottlerSpec APIThrottlers = 1 [json_name = "apiThrottlers"];
 }
 
+//+ APIThrottlerSpec
 // APIThrottlerSpec creates a timeout which is applied to requests
 // with configured methods and a path.
 message APIThrottlerSpec {
@@ -45,13 +45,13 @@ message APIThrottlerSpec {
     // maxRetry is the maximum retry count to accept the requests when throttled.
     // Errors are returned to the requests that are not accepted after retrying maxRetry times.
     // Default is [0] or no retry by default.
-    int32 MaxRetry = 3 [json_name = "maxRetry", (buf.validate.field).int32 = {gte : 0}];
+    int32 MaxRetry = 3 [json_name = "maxRetry", (buf.validate.field).int32 = { gte: 0 }];
 
     // [REQUIRED]
     // Throttlers is the list of the throttlers that are applied to the requests matched to the matcher.
     // No throttlers are applied when nothing has specified in this field.
     oneof Throttlers {
-        option(buf.validate.oneof).required = true;
+        option (buf.validate.oneof).required = true;
         // MaxConnections is the setting for throttler with max connection algorithm.
         MaxConnectionsSpec MaxConnections = 10 [json_name = "maxConnections"];
         // TokenBucket is the setting for throttler with token bucket algorithm.
@@ -63,6 +63,7 @@ message APIThrottlerSpec {
     }
 }
 
+//+ MaxConnectionsSpec
 // MaxConnectionsSpec is the specification for max connection algorithms of throttling.
 message MaxConnectionsSpec {
     // [OPTIONAL]
@@ -71,37 +72,40 @@ message MaxConnectionsSpec {
     int32 MaxConns = 1 [json_name = "maxConns"];
 }
 
+//+ FixedWindowSpec
 // FixedWindowSpec is the specification for token fixed window algorithms of throttling.
 message FixedWindowSpec {
     // [OPTIONAL]
     // WindowSize is the time span of the window in millisecond.
     // Default is [1000] or 1 second.
-    int64 WindowSize = 1 [json_name = "windowSize", (buf.validate.field).int64 = {gte : 1}];
+    int64 WindowSize = 1 [json_name = "windowSize", (buf.validate.field).int64 = { gte: 1 }];
 
     // [OPTIONAL]
     // Limit is the limit of requests in the windows.
     // Default is [1000].
-    int32 Limit = 2 [json_name = "limit", (buf.validate.field).int32 = {gte : 1}];
+    int32 Limit = 2 [json_name = "limit", (buf.validate.field).int32 = { gte: 1 }];
 }
 
+//+ TokenBucketSpec
 // TokenBucketSpec is the specification for token bucket algorithms of throttling.
 message TokenBucketSpec {
     // [OPTIONAL]
     // BucketSize is the number of tokens that the bucket can keep.
     // Default is [1000].
-    int32 BucketSize = 1 [json_name = "bucketSize", (buf.validate.field).int32 = {gte : 1}];
+    int32 BucketSize = 1 [json_name = "bucketSize", (buf.validate.field).int32 = { gte: 1 }];
 
     // [OPTIONAL]
     // FillInterval is the interval to fill tokens in the bucket in millisecond.
     // Default is [1000] or 1 second.
-    int64 FillInterval = 2 [json_name = "fillInterval", (buf.validate.field).int64 = {gte : 1}];
+    int64 FillInterval = 2 [json_name = "fillInterval", (buf.validate.field).int64 = { gte: 1 }];
 
     // [OPTIONAL]
     // FillRate is the number of tokens to fill in the bucket at every fill interval.
     // Default is [1000].
-    int32 FillRate = 3 [json_name = "fillRate", (buf.validate.field).int32 = {gte : 1}];
+    int32 FillRate = 3 [json_name = "fillRate", (buf.validate.field).int32 = { gte: 1 }];
 }
 
+//+ LeakyBucketSpec
 // LeakyBucketSpec is the specification for leaky bucket algorithms of throttling.
 message LeakyBucketSpec {
     // [OPTIONAL]
@@ -109,10 +113,10 @@ message LeakyBucketSpec {
     // Requests will be en-queued in the bucket and will be de-queued with
     // the interval of LeakInterval.
     // Default is [1000].
-    int32 BucketSize = 1 [json_name = "bucketSize", (buf.validate.field).int32 = {gte : 1}];
+    int32 BucketSize = 1 [json_name = "bucketSize", (buf.validate.field).int32 = { gte: 1 }];
 
     // [OPTIONAL]
     // LeakInterval is the accept interval in millisecond.
     // Default is [1] millisecond.
-    int64 LeakInterval = 2 [json_name = "leakInterval", (buf.validate.field).int64 = {gte : 1}];
+    int64 LeakInterval = 2 [json_name = "leakInterval", (buf.validate.field).int64 = { gte: 1 }];
 }

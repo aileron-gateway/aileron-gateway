@@ -23,6 +23,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// + OutputTarget
 // OutputTarget is the output destination.
 type OutputTarget int32
 
@@ -76,6 +77,7 @@ func (OutputTarget) EnumDescriptor() ([]byte, []int) {
 	return file_core_v1_slogger_proto_rawDescGZIP(), []int{0}
 }
 
+// + LogLevel
 // LogLevel is the defined log output level.
 type LogLevel int32
 
@@ -138,12 +140,11 @@ func (LogLevel) EnumDescriptor() ([]byte, []int) {
 	return file_core_v1_slogger_proto_rawDescGZIP(), []int{1}
 }
 
-// SLogger resource definition.
-// apiVersion="core/v1", kind="SLogger".
+// + SLogger
 type SLogger struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	APIVersion    string                 `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"`
-	Kind          string                 `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`
+	APIVersion    string                 `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"` // "core/v1"
+	Kind          string                 `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`                   // "SLogger"
 	Metadata      *kernel.Metadata       `protobuf:"bytes,3,opt,name=Metadata,json=metadata,proto3" json:"Metadata,omitempty"`
 	Spec          *SLoggerSpec           `protobuf:"bytes,4,opt,name=Spec,json=spec,proto3" json:"Spec,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -208,7 +209,7 @@ func (x *SLogger) GetSpec() *SLoggerSpec {
 	return nil
 }
 
-// SLoggerSpec is the specifications for the SLogger object.
+// + SLoggerSpec
 type SLoggerSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -367,6 +368,7 @@ func (x *SLoggerSpec) GetFieldReplacers() []*FieldReplacerSpec {
 	return nil
 }
 
+// + FieldReplacerSpec
 type FieldReplacerSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [REQUIRED]
@@ -429,7 +431,7 @@ func (x *FieldReplacerSpec) GetReplacer() *kernel.ReplacerSpec {
 	return nil
 }
 
-// LogOutputSpec is the specification for log output.
+// + LogOutputSpec
 type LogOutputSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]

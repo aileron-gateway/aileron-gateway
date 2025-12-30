@@ -22,6 +22,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// + MatchType
 // MatchType is the matching methods of string or bytes data.
 // See https://pkg.go.dev/strings for string matching, https://pkg.go.dev/bytes for bytes matching.
 // https://pkg.go.dev/regexp and https://pkg.go.dev/regexp/syntax for regular expression matching.
@@ -109,6 +110,7 @@ func (MatchType) EnumDescriptor() ([]byte, []int) {
 	return file_kernel_matcher_proto_rawDescGZIP(), []int{0}
 }
 
+// + MatcherSpec
 // MatcherSpec is the string or bytes matching specification.
 type MatcherSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`

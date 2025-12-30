@@ -23,6 +23,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// + CORSEmbedderPolicy
 // CORSEmbedderPolicy is the collection of cross origin embedder policy types.
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Embedder-Policy
 type CORSEmbedderPolicy int32
@@ -77,6 +78,7 @@ func (CORSEmbedderPolicy) EnumDescriptor() ([]byte, []int) {
 	return file_app_v1_middleware_cors_proto_rawDescGZIP(), []int{0}
 }
 
+// + CORSOpenerPolicy
 // CORSOpenerPolicy is the collection of cross origin opener policy types.
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Opener-Policy
 type CORSOpenerPolicy int32
@@ -131,6 +133,7 @@ func (CORSOpenerPolicy) EnumDescriptor() ([]byte, []int) {
 	return file_app_v1_middleware_cors_proto_rawDescGZIP(), []int{1}
 }
 
+// + CORSResourcePolicy
 // CORSResourcePolicy is the collection of cross origin resource policy types.
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Resource-Policy
 type CORSResourcePolicy int32
@@ -185,12 +188,11 @@ func (CORSResourcePolicy) EnumDescriptor() ([]byte, []int) {
 	return file_app_v1_middleware_cors_proto_rawDescGZIP(), []int{2}
 }
 
-// CORSMiddleware resource definition.
-// apiVersion="app/v1", kind="CORSMiddleware".
+// + CORSMiddleware
 type CORSMiddleware struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	APIVersion    string                 `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"`
-	Kind          string                 `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`
+	APIVersion    string                 `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"` // "app/v1"
+	Kind          string                 `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`                   // "CORSMiddleware"
 	Metadata      *kernel.Metadata       `protobuf:"bytes,3,opt,name=Metadata,json=metadata,proto3" json:"Metadata,omitempty"`
 	Spec          *CORSMiddlewareSpec    `protobuf:"bytes,4,opt,name=Spec,json=spec,proto3" json:"Spec,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -255,7 +257,7 @@ func (x *CORSMiddleware) GetSpec() *CORSMiddlewareSpec {
 	return nil
 }
 
-// CORSMiddlewareSpec is the specifications for the CORSMiddleware object.
+// + CORSMiddlewareSpec
 type CORSMiddlewareSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [REQUIRED]
@@ -302,7 +304,7 @@ func (x *CORSMiddlewareSpec) GetCORSPolicy() *CORSPolicySpec {
 	return nil
 }
 
-// CORSPolicySpec is the specifications for the CORSPolicy object.
+// + CORSPolicySpec
 type CORSPolicySpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -363,7 +365,7 @@ type CORSPolicySpec struct {
 	// Default is not set.
 	CORSResourcePolicy CORSResourcePolicy `protobuf:"varint,9,opt,name=CORSResourcePolicy,json=corsResourcePolicy,proto3,enum=app.v1.CORSResourcePolicy" json:"CORSResourcePolicy,omitempty"`
 	// [OPTIONAL]
-	// AllowPrivateNetwork is the flag to allow shareing resources with external networks..
+	// AllowPrivateNetwork is the flag to allow sharing resources with external networks..
 	// When this field is set to true, "Access-Control-Allow-Private-Network: true" header is returned.
 	// See https://wicg.github.io/private-network-access/.
 	// Default is [false].

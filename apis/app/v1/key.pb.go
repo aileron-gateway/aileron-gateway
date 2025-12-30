@@ -22,12 +22,11 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// KeyAuthnMiddleware resource definition.
-// apiVersion="app/v1", kind="KeyAuthnMiddleware".
+// + KeyAuthnMiddleware
 type KeyAuthnMiddleware struct {
 	state         protoimpl.MessageState  `protogen:"open.v1"`
-	APIVersion    string                  `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"`
-	Kind          string                  `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`
+	APIVersion    string                  `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"` // "app/v1"
+	Kind          string                  `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`                   // "KeyAuthnMiddleware"
 	Metadata      *kernel.Metadata        `protobuf:"bytes,3,opt,name=Metadata,json=metadata,proto3" json:"Metadata,omitempty"`
 	Spec          *KeyAuthnMiddlewareSpec `protobuf:"bytes,4,opt,name=Spec,json=spec,proto3" json:"Spec,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -92,7 +91,7 @@ func (x *KeyAuthnMiddleware) GetSpec() *KeyAuthnMiddlewareSpec {
 	return nil
 }
 
-// KeyAuthnMiddlewareSpec is the specifications for the KeyAuthnMiddleware object.
+// + KeyAuthnMiddlewareSpec
 type KeyAuthnMiddlewareSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -266,6 +265,7 @@ func (*KeyAuthnMiddlewareSpec_EnvProvider) isKeyAuthnMiddlewareSpec_Providers() 
 
 func (*KeyAuthnMiddlewareSpec_FileProvider) isKeyAuthnMiddlewareSpec_Providers() {}
 
+// + KeyAuthnEnvProvider
 type KeyAuthnEnvProvider struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -332,6 +332,7 @@ func (x *KeyAuthnEnvProvider) GetEncoding() kernel.EncodingType {
 	return kernel.EncodingType(0)
 }
 
+// + KeyAuthnFileProvider
 type KeyAuthnFileProvider struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]

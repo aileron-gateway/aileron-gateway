@@ -22,12 +22,11 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// BasicAuthnMiddleware resource definition.
-// apiVersion="app/v1", kind="BasicAuthnMiddleware".
+// + BasicAuthnMiddleware
 type BasicAuthnMiddleware struct {
 	state         protoimpl.MessageState    `protogen:"open.v1"`
-	APIVersion    string                    `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"`
-	Kind          string                    `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`
+	APIVersion    string                    `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"` // "app/v1"
+	Kind          string                    `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`                   // "BasicAuthnMiddleware"
 	Metadata      *kernel.Metadata          `protobuf:"bytes,3,opt,name=Metadata,json=metadata,proto3" json:"Metadata,omitempty"`
 	Spec          *BasicAuthnMiddlewareSpec `protobuf:"bytes,4,opt,name=Spec,json=spec,proto3" json:"Spec,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -92,7 +91,7 @@ func (x *BasicAuthnMiddleware) GetSpec() *BasicAuthnMiddlewareSpec {
 	return nil
 }
 
-// BasicAuthnMiddlewareSpec is the specifications for the BasicAuthnMiddleware object.
+// + BasicAuthnMiddlewareSpec
 type BasicAuthnMiddlewareSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -302,6 +301,7 @@ func (*BasicAuthnMiddlewareSpec_EnvProvider) isBasicAuthnMiddlewareSpec_Provider
 
 func (*BasicAuthnMiddlewareSpec_FileProvider) isBasicAuthnMiddlewareSpec_Providers() {}
 
+// + BasicAuthnEnvProvider
 type BasicAuthnEnvProvider struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -387,6 +387,7 @@ func (x *BasicAuthnEnvProvider) GetEncoding() kernel.EncodingType {
 	return kernel.EncodingType(0)
 }
 
+// + BasicAuthnFileProvider
 type BasicAuthnFileProvider struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]

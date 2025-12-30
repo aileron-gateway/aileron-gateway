@@ -23,12 +23,11 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// HTTPClient resource definition.
-// apiVersion="core/v1", kind="HTTPClient".
+// + HTTPClient
 type HTTPClient struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	APIVersion    string                 `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"`
-	Kind          string                 `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`
+	APIVersion    string                 `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"` // "core/v1"
+	Kind          string                 `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`                   // "HTTPClient"
 	Metadata      *kernel.Metadata       `protobuf:"bytes,3,opt,name=Metadata,json=metadata,proto3" json:"Metadata,omitempty"`
 	Spec          *HTTPClientSpec        `protobuf:"bytes,4,opt,name=Spec,json=spec,proto3" json:"Spec,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -93,7 +92,7 @@ func (x *HTTPClient) GetSpec() *HTTPClientSpec {
 	return nil
 }
 
-// HTTPClientSpec is the specifications for the HTTPClient object.
+// + HTTPClientSpec
 type HTTPClientSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -232,6 +231,7 @@ func (*HTTPClientSpec_HTTP2TransportConfig) isHTTPClientSpec_Transports() {}
 
 func (*HTTPClientSpec_HTTP3TransportConfig) isHTTPClientSpec_Transports() {}
 
+// + RetryConfig
 // RetryConfig is the configuration for retry.
 type RetryConfig struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
