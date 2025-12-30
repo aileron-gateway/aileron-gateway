@@ -22,6 +22,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// + SockOption
 // SockOption is the options for networking sockets.
 type SockOption struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -114,6 +115,7 @@ func (x *SockOption) GetUDPOption() *SockUDPOption {
 	return nil
 }
 
+// + SockSOOption
 // SockSOOption is socket options for SOL_SOCKET level.
 // See https://man7.org/linux/man-pages/man7/socket.7.html
 type SockSOOption struct {
@@ -331,6 +333,7 @@ func (x *SockSOOption) GetSendBufferForce() int32 {
 	return 0
 }
 
+// + SockIPOption
 // SockIPOption is socket options for IPPROTO_IP level.
 // See https://man7.org/linux/man-pages/man7/ip.7.html
 type SockIPOption struct {
@@ -452,6 +455,7 @@ func (x *SockIPOption) GetTTL() int32 {
 	return 0
 }
 
+// + SockIPV6Option
 // SockIPV6Option is socket options for IPPROTO_IPV6 level.
 // See https://man7.org/linux/man-pages/man7/ipv6.7.html
 type SockIPV6Option struct {
@@ -490,6 +494,7 @@ func (*SockIPV6Option) Descriptor() ([]byte, []int) {
 	return file_kernel_sockopts_proto_rawDescGZIP(), []int{3}
 }
 
+// + SockTCPOption
 // SockTCPOption is socket options for IPPROTO_TCP level.
 // See https://man7.org/linux/man-pages/man7/tcp.7.html
 type SockTCPOption struct {
@@ -717,6 +722,7 @@ func (x *SockTCPOption) GetFastOpenConnect() bool {
 	return false
 }
 
+// + SockUDPOption
 // SockUDPOption is socket options for IPPROTO_UDP level.
 // See https://man7.org/linux/man-pages/man7/udp.7.html
 type SockUDPOption struct {

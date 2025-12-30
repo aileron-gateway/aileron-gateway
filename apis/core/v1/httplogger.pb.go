@@ -22,12 +22,11 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// HTTPLogger resource definition.
-// apiVersion="core/v1", kind="HTTPLogger".
+// + HTTPLogger
 type HTTPLogger struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	APIVersion    string                 `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"`
-	Kind          string                 `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`
+	APIVersion    string                 `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"` // "core/v1"
+	Kind          string                 `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`                   // "HTTPLogger"
 	Metadata      *kernel.Metadata       `protobuf:"bytes,3,opt,name=Metadata,json=metadata,proto3" json:"Metadata,omitempty"`
 	Spec          *HTTPLoggerSpec        `protobuf:"bytes,4,opt,name=Spec,json=spec,proto3" json:"Spec,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -92,7 +91,7 @@ func (x *HTTPLogger) GetSpec() *HTTPLoggerSpec {
 	return nil
 }
 
-// HTTPLoggerSpec is the specifications of the HTTPLogger object.
+// + HTTPLoggerSpec
 type HTTPLoggerSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -215,6 +214,7 @@ func (x *HTTPLoggerSpec) GetResponse() *LoggingSpec {
 	return nil
 }
 
+// + LoggingSpec
 type LoggingSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -377,6 +377,7 @@ func (x *LoggingSpec) GetMIMEs() []string {
 	return nil
 }
 
+// + LogHeaderSpec
 // LogValueSpec is the status of the LoggingMiddleware object.
 // Values are managed by the application and therefore should not be set by users.
 type LogHeaderSpec struct {
@@ -438,6 +439,7 @@ func (x *LogHeaderSpec) GetReplacers() []*kernel.ReplacerSpec {
 	return nil
 }
 
+// + LogBodySpec
 // LogBodySpec is the HTTP body logging configuration.
 type LogBodySpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`

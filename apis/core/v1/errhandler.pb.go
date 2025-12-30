@@ -23,12 +23,11 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// ErrorHandler resource definition.
-// apiVersion="core/v1", kind="ErrorHandler".
+// + ErrorHandler
 type ErrorHandler struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	APIVersion    string                 `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"`
-	Kind          string                 `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`
+	APIVersion    string                 `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"` // "core/v1"
+	Kind          string                 `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`                   // "ErrorHandler"
 	Metadata      *kernel.Metadata       `protobuf:"bytes,3,opt,name=Metadata,json=metadata,proto3" json:"Metadata,omitempty"`
 	Spec          *ErrorHandlerSpec      `protobuf:"bytes,4,opt,name=Spec,json=spec,proto3" json:"Spec,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -93,7 +92,7 @@ func (x *ErrorHandler) GetSpec() *ErrorHandlerSpec {
 	return nil
 }
 
-// ErrorHandlerSpec is the specifications for the ErrorHandler object.
+// + ErrorHandlerSpec
 type ErrorHandlerSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -154,6 +153,7 @@ func (x *ErrorHandlerSpec) GetErrorMessages() []*ErrorMessageSpec {
 	return nil
 }
 
+// + ErrorMessageSpec
 // ErrorMessageSpec is the specification of HTTP error response.
 type ErrorMessageSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`

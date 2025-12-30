@@ -21,6 +21,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// + CommonKeyCryptType
 // CommonKeyCryptType is the algorithms of common key encryption.
 type CommonKeyCryptType int32
 

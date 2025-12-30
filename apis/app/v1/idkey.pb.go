@@ -22,12 +22,11 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// IDKeyAuthnMiddleware resource definition.
-// apiVersion="app/v1", kind="IDKeyAuthnMiddleware".
+// + DigestAuthnFileProvider
 type IDKeyAuthnMiddleware struct {
 	state         protoimpl.MessageState    `protogen:"open.v1"`
-	APIVersion    string                    `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"`
-	Kind          string                    `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`
+	APIVersion    string                    `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"` // "app/v1"
+	Kind          string                    `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`                   // "IDKeyAuthnMiddleware"
 	Metadata      *kernel.Metadata          `protobuf:"bytes,3,opt,name=Metadata,json=metadata,proto3" json:"Metadata,omitempty"`
 	Spec          *IDKeyAuthnMiddlewareSpec `protobuf:"bytes,4,opt,name=Spec,json=spec,proto3" json:"Spec,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -92,7 +91,7 @@ func (x *IDKeyAuthnMiddleware) GetSpec() *IDKeyAuthnMiddlewareSpec {
 	return nil
 }
 
-// IDKeyAuthnMiddlewareSpec is the specifications for the IDKeyAuthnMiddleware object.
+// + IDKeyAuthnMiddlewareSpec
 type IDKeyAuthnMiddlewareSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -316,6 +315,7 @@ func (*IDKeyAuthnMiddlewareSpec_EnvProvider) isIDKeyAuthnMiddlewareSpec_Provider
 
 func (*IDKeyAuthnMiddlewareSpec_FileProvider) isIDKeyAuthnMiddlewareSpec_Providers() {}
 
+// + IDKeyAuthnEnvProvider
 type IDKeyAuthnEnvProvider struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -400,6 +400,7 @@ func (x *IDKeyAuthnEnvProvider) GetEncoding() kernel.EncodingType {
 	return kernel.EncodingType(0)
 }
 
+// + IDKeyAuthnFileProvider
 type IDKeyAuthnFileProvider struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]

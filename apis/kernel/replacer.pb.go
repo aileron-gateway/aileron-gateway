@@ -22,6 +22,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// + ReplaceType
 // ReplaceType is the replacing methods of string or bytes data.
 type ReplaceType int32
 
@@ -108,6 +109,7 @@ func (ReplaceType) EnumDescriptor() ([]byte, []int) {
 	return file_kernel_replacer_proto_rawDescGZIP(), []int{0}
 }
 
+// + ReplacerSpec
 type ReplacerSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to Replacers:
@@ -435,6 +437,7 @@ func (*ReplacerSpec_Encrypt) isReplacerSpec_Replacers() {}
 
 func (*ReplacerSpec_HMAC) isReplacerSpec_Replacers() {}
 
+// + FixedReplacer
 type FixedReplacer struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -480,6 +483,7 @@ func (x *FixedReplacer) GetValue() string {
 	return ""
 }
 
+// + ValueReplacer
 type ValueReplacer struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -529,6 +533,7 @@ func (x *ValueReplacer) GetFromTo() map[string]string {
 	return nil
 }
 
+// + LeftReplacer
 type LeftReplacer struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -587,6 +592,7 @@ func (x *LeftReplacer) GetLength() uint32 {
 	return 0
 }
 
+// + RightReplacer
 type RightReplacer struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -645,6 +651,7 @@ func (x *RightReplacer) GetLength() uint32 {
 	return 0
 }
 
+// + TrimReplacer
 type TrimReplacer struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -693,6 +700,7 @@ func (x *TrimReplacer) GetCutSets() []string {
 	return nil
 }
 
+// + TrimLeftReplacer
 type TrimLeftReplacer struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -741,6 +749,7 @@ func (x *TrimLeftReplacer) GetCutSets() []string {
 	return nil
 }
 
+// + TrimRightReplacer
 type TrimRightReplacer struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -789,6 +798,7 @@ func (x *TrimRightReplacer) GetCutSets() []string {
 	return nil
 }
 
+// + TrimPrefixReplacer
 type TrimPrefixReplacer struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -837,6 +847,7 @@ func (x *TrimPrefixReplacer) GetPrefixes() []string {
 	return nil
 }
 
+// + TrimSuffixReplacer
 type TrimSuffixReplacer struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -885,6 +896,7 @@ func (x *TrimSuffixReplacer) GetSuffixes() []string {
 	return nil
 }
 
+// + EncodeReplacer
 type EncodeReplacer struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -955,6 +967,7 @@ func (x *EncodeReplacer) GetEncoding() EncodingType {
 	return EncodingType_EncodingTypeUnknown
 }
 
+// + HashReplacer
 type HashReplacer struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -1035,6 +1048,7 @@ func (x *HashReplacer) GetEncoding() EncodingType {
 	return EncodingType_EncodingTypeUnknown
 }
 
+// + RegexpReplacer
 type RegexpReplacer struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [REQUIRED]
@@ -1114,6 +1128,7 @@ func (x *RegexpReplacer) GetLiteral() bool {
 	return false
 }
 
+// + ExpandReplacer
 type ExpandReplacer struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [REQUIRED]
@@ -1182,6 +1197,7 @@ func (x *ExpandReplacer) GetPOSIX() bool {
 	return false
 }
 
+// + EncryptReplacer
 type EncryptReplacer struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -1276,6 +1292,7 @@ func (x *EncryptReplacer) GetPassword() string {
 	return ""
 }
 
+// + HMACReplacer
 type HMACReplacer struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]

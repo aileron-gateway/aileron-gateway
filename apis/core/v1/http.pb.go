@@ -21,6 +21,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// + HTTPMethod
 // HTTPMethod is the types of HTTP methods.
 // See https://pkg.go.dev/net/http#pkg-constants
 type HTTPMethod int32
@@ -93,6 +94,7 @@ func (HTTPMethod) EnumDescriptor() ([]byte, []int) {
 	return file_core_v1_http_proto_rawDescGZIP(), []int{0}
 }
 
+// + SameSite
 // SameSite is the values of cookie's SameSite attribute.
 // See https://pkg.go.dev/net/http#SameSite.
 type SameSite int32
@@ -150,6 +152,7 @@ func (SameSite) EnumDescriptor() ([]byte, []int) {
 	return file_core_v1_http_proto_rawDescGZIP(), []int{1}
 }
 
+// + CookieSpec
 // CookieSpec is the specification of cookie object.
 // Cookie objests will be created with the given specs.
 // See https://pkg.go.dev/net/http#Cookie

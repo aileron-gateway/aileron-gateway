@@ -23,12 +23,11 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// OpenTelemetryMeter resource definition.
-// apiVersion="app/v1", kind="OpenTelemetryMeter".
+// + OpenTelemetryMeter
 type OpenTelemetryMeter struct {
 	state         protoimpl.MessageState  `protogen:"open.v1"`
-	APIVersion    string                  `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"`
-	Kind          string                  `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`
+	APIVersion    string                  `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"` // "app/v1"
+	Kind          string                  `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`                   // "OpenTelemetryMeter"
 	Metadata      *kernel.Metadata        `protobuf:"bytes,3,opt,name=Metadata,json=metadata,proto3" json:"Metadata,omitempty"`
 	Spec          *OpenTelemetryMeterSpec `protobuf:"bytes,4,opt,name=Spec,json=spec,proto3" json:"Spec,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -93,7 +92,7 @@ func (x *OpenTelemetryMeter) GetSpec() *OpenTelemetryMeterSpec {
 	return nil
 }
 
-// OpenTelemetryMeterSpec is the specifications of the OpenTelemetryMeter object.
+// + OpenTelemetryMeterSpec
 type OpenTelemetryMeterSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -227,6 +226,7 @@ func (*OpenTelemetryMeterSpec_GRPCExporterSpec) isOpenTelemetryMeterSpec_Exporte
 
 func (*OpenTelemetryMeterSpec_StdoutExporterSpec) isOpenTelemetryMeterSpec_Exporters() {}
 
+// + HTTPMetricsExporterSpec
 type HTTPMetricsExporterSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -352,6 +352,7 @@ func (x *HTTPMetricsExporterSpec) GetOTLPRetry() *OTLPMetricsRetrySpec {
 	return nil
 }
 
+// + GRPCMetricsExporterSpec
 type GRPCMetricsExporterSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -508,6 +509,7 @@ func (x *GRPCMetricsExporterSpec) GetServiceConfig() string {
 	return ""
 }
 
+// + StdoutMetricsExporterSpec
 type StdoutMetricsExporterSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -566,6 +568,7 @@ func (x *StdoutMetricsExporterSpec) GetWithoutTimestamps() bool {
 	return false
 }
 
+// + OTLPMetricsRetrySpec
 type OTLPMetricsRetrySpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -654,6 +657,7 @@ func (x *OTLPMetricsRetrySpec) GetMaxElapsedTime() int32 {
 	return 0
 }
 
+// + PeriodicReaderSpec
 type PeriodicReaderSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]

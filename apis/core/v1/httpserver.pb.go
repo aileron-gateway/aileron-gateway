@@ -23,12 +23,11 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// HTTPServer resource definition.
-// apiVersion="core/v1", kind="HTTPServer".
+// + HTTPServer
 type HTTPServer struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	APIVersion    string                 `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"`
-	Kind          string                 `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`
+	APIVersion    string                 `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"` // "core/v1"
+	Kind          string                 `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`                   // "HTTPServer"
 	Metadata      *kernel.Metadata       `protobuf:"bytes,3,opt,name=Metadata,json=metadata,proto3" json:"Metadata,omitempty"`
 	Spec          *HTTPServerSpec        `protobuf:"bytes,4,opt,name=Spec,json=spec,proto3" json:"Spec,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -93,7 +92,7 @@ func (x *HTTPServer) GetSpec() *HTTPServerSpec {
 	return nil
 }
 
-// HTTPServerSpec is the specifications for the HTTPServer object.
+// + HTTPServerSpec
 type HTTPServerSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -255,6 +254,7 @@ func (x *HTTPServerSpec) GetEnableExpvar() bool {
 	return false
 }
 
+// + HTTPConfig
 // HTTPConfig is the configuration for a HTTP 1/2 server.
 type HTTPConfig struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -428,6 +428,7 @@ func (x *HTTPConfig) GetAllowHTTP2() bool {
 	return false
 }
 
+// + HTTP2Config
 // HTTP2Config is the configuration for HTTP2 servers.
 // Configuable fields are related to the HTTP2 server
 // found at https://pkg.go.dev/golang.org/x/net/http2#Server
@@ -605,6 +606,7 @@ func (x *HTTP2Config) GetAltSvc() string {
 	return ""
 }
 
+// + HTTP3Config
 // HTTP3Config is the configuration for HTTP3 servers.
 // Configuable fields are related to the HTTP3 server
 // found at https://pkg.go.dev/github.com/quic-go/quic-go/http3#Server
@@ -693,6 +695,7 @@ func (x *HTTP3Config) GetAltSvc() string {
 	return ""
 }
 
+// + VirtualHostSpec
 // VirtualHostSpec is the specification of each virtual hosts.
 type VirtualHostSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`

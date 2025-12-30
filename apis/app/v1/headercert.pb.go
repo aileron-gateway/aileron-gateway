@@ -22,12 +22,11 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// HeaderCertMiddleware resource definition.
-// apiVersion="app/v1", kind="HeaderCertMiddleware".
+// + HeaderCertMiddleware
 type HeaderCertMiddleware struct {
 	state         protoimpl.MessageState    `protogen:"open.v1"`
-	APIVersion    string                    `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"`
-	Kind          string                    `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`
+	APIVersion    string                    `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"` // "app/v1"
+	Kind          string                    `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`                   // "HeaderCertMiddleware"
 	Metadata      *kernel.Metadata          `protobuf:"bytes,3,opt,name=Metadata,json=metadata,proto3" json:"Metadata,omitempty"`
 	Spec          *HeaderCertMiddlewareSpec `protobuf:"bytes,4,opt,name=Spec,json=spec,proto3" json:"Spec,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -92,7 +91,7 @@ func (x *HeaderCertMiddleware) GetSpec() *HeaderCertMiddlewareSpec {
 	return nil
 }
 
-// HeaderCertMiddlewareSpec is the specification for the HeaderCertMiddleware object.
+// + HeaderCertMiddlewareSpec
 type HeaderCertMiddlewareSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [REQUIRED]

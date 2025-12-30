@@ -21,6 +21,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// + HashAlg
 // HashAlg is the hash algorithms.
 type HashAlg int32
 

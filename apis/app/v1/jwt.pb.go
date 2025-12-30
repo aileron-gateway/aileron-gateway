@@ -21,6 +21,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// + SigningKeyAlgorithm
 // SigningKeyAlgorithm is algorithm to sign JWTs.
 type SigningKeyAlgorithm int32
 
@@ -107,6 +108,7 @@ func (SigningKeyAlgorithm) EnumDescriptor() ([]byte, []int) {
 	return file_app_v1_jwt_proto_rawDescGZIP(), []int{0}
 }
 
+// + SigningKeyType
 // SigningKeyType is the type of key for encryption.
 type SigningKeyType int32
 
@@ -160,6 +162,7 @@ func (SigningKeyType) EnumDescriptor() ([]byte, []int) {
 	return file_app_v1_jwt_proto_rawDescGZIP(), []int{1}
 }
 
+// + SigningKeySpec
 // SigningKeySpec is the definition of the JWT signing key object.
 type SigningKeySpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -261,6 +264,7 @@ func (x *SigningKeySpec) GetJWTHeader() map[string]string {
 	return nil
 }
 
+// + JWTHandlerSpec
 // JWTHandlerSpec is the specification of JWTHandler object.
 type JWTHandlerSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`

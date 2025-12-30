@@ -23,6 +23,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// + PKCEMethod
 // PKCEMethod is the PKCE code challenge methods.
 // Method is defined in https://datatracker.ietf.org/doc/rfc7636/
 type PKCEMethod int32
@@ -71,6 +72,7 @@ func (PKCEMethod) EnumDescriptor() ([]byte, []int) {
 	return file_app_v1_authn_oauth_proto_rawDescGZIP(), []int{0}
 }
 
+// + ClientAuthMethod
 // ClientAuthMethod is the method of authentication
 // used for OAuth client authentication.
 type ClientAuthMethod int32
@@ -131,6 +133,7 @@ func (ClientAuthMethod) EnumDescriptor() ([]byte, []int) {
 	return file_app_v1_authn_oauth_proto_rawDescGZIP(), []int{1}
 }
 
+// + ResponseModeMethod
 // ResponseModeMethod is the method of response_mode parmeter
 // used for authorization responses.
 // Method is defined in https://openid.net/specs/openid-financial-api-jarm.html
@@ -186,12 +189,11 @@ func (ResponseModeMethod) EnumDescriptor() ([]byte, []int) {
 	return file_app_v1_authn_oauth_proto_rawDescGZIP(), []int{2}
 }
 
-// OAuthAuthenticationHandler resource definition.
-// apiVersion="app/v1", kind="OAuthAuthenticationHandler".
+// + OAuthAuthenticationHandler
 type OAuthAuthenticationHandler struct {
 	state         protoimpl.MessageState          `protogen:"open.v1"`
-	APIVersion    string                          `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"`
-	Kind          string                          `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`
+	APIVersion    string                          `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"` // "app/v1"
+	Kind          string                          `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`                   // "OAuthAuthenticationHandler"
 	Metadata      *kernel.Metadata                `protobuf:"bytes,3,opt,name=Metadata,json=metadata,proto3" json:"Metadata,omitempty"`
 	Spec          *OAuthAuthenticationHandlerSpec `protobuf:"bytes,4,opt,name=Spec,json=spec,proto3" json:"Spec,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -256,7 +258,7 @@ func (x *OAuthAuthenticationHandler) GetSpec() *OAuthAuthenticationHandlerSpec {
 	return nil
 }
 
-// OAuthAuthenticationHandlerSpec is the specifications for the OAuthAuthenticationHandler object.
+// + OAuthAuthenticationHandlerSpec
 type OAuthAuthenticationHandlerSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -438,6 +440,7 @@ func (*OAuthAuthenticationHandlerSpec_ResourceServerHandler) isOAuthAuthenticati
 
 func (*OAuthAuthenticationHandlerSpec_ROPCHandler) isOAuthAuthenticationHandlerSpec_Handlers() {}
 
+// + ProviderEndpoints
 // ProviderEndpoints is the endpoints of OAuth provider.
 type ProviderEndpoints struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -531,6 +534,7 @@ func (x *ProviderEndpoints) GetDiscovery() string {
 	return ""
 }
 
+// + OAuthProvider
 // OAuthProvider is the configuration of OAuth provider.
 type OAuthProvider struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -600,6 +604,7 @@ func (x *OAuthProvider) GetRoundTripper() *kernel.Reference {
 	return nil
 }
 
+// + OAuthClient
 // OAuthClient is the configuration of OAuth client.
 type OAuthClient struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -677,6 +682,7 @@ func (x *OAuthClient) GetJWTHandler() *JWTHandlerSpec {
 	return nil
 }
 
+// + ClientRequester
 type ClientRequester struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -761,6 +767,7 @@ func (x *ClientRequester) GetExtraQuery() map[string]string {
 	return nil
 }
 
+// + Context
 type Context struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [REQUIRED]
@@ -923,6 +930,7 @@ func (x *Context) GetIDTValidation() *TokenValidation {
 	return nil
 }
 
+// + AuthorizationRequestObject
 type AuthorizationRequestObject struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -1016,6 +1024,7 @@ func (x *AuthorizationRequestObject) GetDisableCache() bool {
 	return false
 }
 
+// + AuthorizationResponseJARM
 type AuthorizationResponseJARM struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -1074,6 +1083,7 @@ func (x *AuthorizationResponseJARM) GetJWTHandler() *JWTHandlerSpec {
 	return nil
 }
 
+// + AuthorizationCodeHandler
 type AuthorizationCodeHandler struct {
 	state               protoimpl.MessageState `protogen:"open.v1"`
 	DisableState        bool                   `protobuf:"varint,1,opt,name=DisableState,json=disableState,proto3" json:"DisableState,omitempty"`
@@ -1284,6 +1294,7 @@ func (x *AuthorizationCodeHandler) GetJARM() *AuthorizationResponseJARM {
 	return nil
 }
 
+// + ClientCredentialsHandler
 // ClientCredentialsHandler is the specification of ClientCredentialsHandler object.
 type ClientCredentialsHandler struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -1321,6 +1332,7 @@ func (*ClientCredentialsHandler) Descriptor() ([]byte, []int) {
 	return file_app_v1_authn_oauth_proto_rawDescGZIP(), []int{10}
 }
 
+// + ResourceServerHandler
 // ResourceServerHandler is the specification of ResourceServerHandler object.
 type ResourceServerHandler struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -1381,6 +1393,7 @@ func (x *ResourceServerHandler) GetEnabledFAPI() bool {
 	return false
 }
 
+// + ROPCHandler
 type ROPCHandler struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -1460,6 +1473,7 @@ func (x *ROPCHandler) GetPasswordKey() string {
 	return ""
 }
 
+// + TokenValidation
 type TokenValidation struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]

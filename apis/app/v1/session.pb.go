@@ -24,12 +24,11 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// SessionMiddleware resource definition.
-// apiVersion="app/v1", kind="SessionMiddleware".
+// + SessionMiddleware
 type SessionMiddleware struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	APIVersion    string                 `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"`
-	Kind          string                 `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`
+	APIVersion    string                 `protobuf:"bytes,1,opt,name=APIVersion,json=apiVersion,proto3" json:"APIVersion,omitempty"` // "app/v1"
+	Kind          string                 `protobuf:"bytes,2,opt,name=Kind,json=kind,proto3" json:"Kind,omitempty"`                   // "SessionMiddleware"
 	Metadata      *kernel.Metadata       `protobuf:"bytes,3,opt,name=Metadata,json=metadata,proto3" json:"Metadata,omitempty"`
 	Spec          *SessionMiddlewareSpec `protobuf:"bytes,4,opt,name=Spec,json=spec,proto3" json:"Spec,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -94,8 +93,7 @@ func (x *SessionMiddleware) GetSpec() *SessionMiddlewareSpec {
 	return nil
 }
 
-// SessionMiddlewareSpec is the status of the SessionMiddleware object.
-// Values are managed by the application and therefore should not be set by users.
+// + SessionMiddlewareSpec
 type SessionMiddlewareSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
@@ -204,6 +202,7 @@ func (x *SessionMiddlewareSpec) GetTracer() *kernel.Reference {
 	return nil
 }
 
+// + SecureEncoderSpec
 // SecureEncoderSpec is the specification of a secure encoder.
 type SecureEncoderSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
