@@ -8,16 +8,15 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/core/v1";
 
-// ReverseProxyHandler resource definition.
-// apiVersion="core/v1", kind="ReverseProxyHandler".
+//+ ReverseProxyHandler
 message ReverseProxyHandler {
-    string                  APIVersion = 1 [json_name = "apiVersion"];
-    string                  Kind       = 2 [json_name = "kind"];
+    string                  APIVersion = 1 [json_name = "apiVersion"];  // "core/v1"
+    string                  Kind       = 2 [json_name = "kind"];        // "ReverseProxyHandler"
     kernel.Metadata         Metadata   = 3 [json_name = "metadata"];
     ReverseProxyHandlerSpec Spec       = 4 [json_name = "spec"];
 }
 
-// ReverseProxyHandlerSpec is the specifications for the ReverseProxyHandler object.
+//+ ReverseProxyHandlerSpec
 message ReverseProxyHandlerSpec {
     // [OPTIONAL]
     // Patterns is path patterns that this handler is registered to a server.
@@ -53,6 +52,7 @@ message ReverseProxyHandlerSpec {
     repeated LoadBalancerSpec LoadBalancers = 5 [json_name = "loadBalancers"];
 }
 
+//+ LoadBalancerSpec
 // LoadBalancerSpec is the specification of LoadBalancer objects.
 message LoadBalancerSpec {
     // [OPTIONAL]
@@ -144,6 +144,7 @@ message LoadBalancerSpec {
     HTTPHasherSpec Hasher = 10 [json_name = "hasher"];
 }
 
+//+ PathMatcherSpec
 // PathMatcherSpec is the specification of PathMatcher object
 // used for path matching of incoming HTTP requests.
 message PathMatcherSpec {
@@ -189,6 +190,7 @@ message PathMatcherSpec {
     string AppendPrefix = 5 [json_name = "appendPrefix"];
 }
 
+//+ ParamMatcherSpec
 // ParamMatcherSpec is the specification of ParamMatcherParamMatcherSpec object
 // used for header or query value matching.
 message ParamMatcherSpec {
@@ -216,6 +218,7 @@ message ParamMatcherSpec {
     kernel.MatchType MatchType = 3 [json_name = "matchType"];
 }
 
+//+ UpstreamSpec
 // UpstreamSpec is the specification of Upstream object.
 message UpstreamSpec {
     // [REQUIRED]
@@ -230,7 +233,7 @@ message UpstreamSpec {
     // Set -1 to disable this upstream.
     // 0 is the same as default value 1.
     // Default is [1].
-    int32 Weight = 2 [json_name = "weight", (buf.validate.field).int32 = {gte : -1, lte : 65535}];
+    int32 Weight = 2 [json_name = "weight", (buf.validate.field).int32 = { gte: -1, lte: 65535 }];
 
     // [OPTIONAL]
     // EnablePassive enables passive health check.
@@ -267,6 +270,7 @@ message UpstreamSpec {
     string HealthCheckAddr = 9 [json_name = "healthCheckAddr"];
 }
 
+//+ LBAlgorithm
 // LBAlgorithm is the load balance algorithm.
 enum LBAlgorithm {
     RoundRobin = 0;  // Round-robin algorithm.
@@ -276,16 +280,17 @@ enum LBAlgorithm {
     DirectHash = 4;  // DirectHash algorithm.
 }
 
+//+ HTTPHasherSpec
 // HTTPHasherSpec is the specifications for hasher
 // that calculate hashes from http requests.
 message HTTPHasherSpec {
     // HashSource is the value source for calculating hash source.
     enum HashSourceType {
-        ClientAddr  = 0;  // ClientAddr uses client IP:Port.
-        Header      = 1;  // Header uses single HTTP header.
-        Cookie      = 2;  // Cookie uses cookie value.
-        Query       = 3;  // Query uses URL query parameter.
-        PathParam   = 4;  // PathParam uses path parameter.
+        ClientAddr = 0;  // ClientAddr uses client IP:Port.
+        Header     = 1;  // Header uses single HTTP header.
+        Cookie     = 2;  // Cookie uses cookie value.
+        Query      = 3;  // Query uses URL query parameter.
+        PathParam  = 4;  // PathParam uses path parameter.
     }
 
     // [OPTIONAL]

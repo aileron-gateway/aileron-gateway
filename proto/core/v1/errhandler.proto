@@ -7,16 +7,15 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/core/v1";
 
-// ErrorHandler resource definition.
-// apiVersion="core/v1", kind="ErrorHandler".
+//+ ErrorHandler
 message ErrorHandler {
-    string           APIVersion = 1 [json_name = "apiVersion"];
-    string           Kind       = 2 [json_name = "kind"];
+    string           APIVersion = 1 [json_name = "apiVersion"];  // "core/v1"
+    string           Kind       = 2 [json_name = "kind"];        // "ErrorHandler"
     kernel.Metadata  Metadata   = 3 [json_name = "metadata"];
     ErrorHandlerSpec Spec       = 4 [json_name = "spec"];
 }
 
-// ErrorHandlerSpec is the specifications for the ErrorHandler object.
+//+ ErrorHandlerSpec
 message ErrorHandlerSpec {
     // [OPTIONAL]
     // StackAlways is the flag to output stacktrace to the logger.
@@ -31,6 +30,7 @@ message ErrorHandlerSpec {
     repeated ErrorMessageSpec ErrorMessages = 2 [json_name = "errorMessages"];
 }
 
+//+ ErrorMessageSpec
 // ErrorMessageSpec is the specification of HTTP error response.
 message ErrorMessageSpec {
     // [OPTIONAL]

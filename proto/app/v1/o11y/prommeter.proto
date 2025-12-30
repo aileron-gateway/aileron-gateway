@@ -6,16 +6,15 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
 
-// PrometheusMeter resource definition.
-// apiVersion="app/v1", kind="PrometheusMeter".
+//+ PrometheusMeter
 message PrometheusMeter {
-    string              APIVersion = 1 [json_name = "apiVersion"];
-    string              Kind       = 2 [json_name = "kind"];
+    string              APIVersion = 1 [json_name = "apiVersion"];  // "app/v1"
+    string              Kind       = 2 [json_name = "kind"];        // "PrometheusMeter"
     kernel.Metadata     Metadata   = 3 [json_name = "metadata"];
     PrometheusMeterSpec Spec       = 4 [json_name = "spec"];
 }
 
-// PrometheusMeterSpec is the specifications for the PrometheusHandler object.
+//+ PrometheusMeterSpec
 message PrometheusMeterSpec {
     // [OPTIONAL]
     // Patterns is path patterns that this handler

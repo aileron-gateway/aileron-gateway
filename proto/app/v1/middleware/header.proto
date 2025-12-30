@@ -7,16 +7,15 @@ import "kernel/replacer.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
 
-// HeaderPolicyMiddleware resource definition.
-// apiVersion="app/v1", kind="HeaderPolicyMiddleware".
+//+ HeaderPolicyMiddleware
 message HeaderPolicyMiddleware {
-    string                     APIVersion = 1 [json_name = "apiVersion"];
-    string                     Kind       = 2 [json_name = "kind"];
+    string                     APIVersion = 1 [json_name = "apiVersion"];  // "app/v1"
+    string                     Kind       = 2 [json_name = "kind"];        // "HeaderPolicyMiddleware"
     kernel.Metadata            Metadata   = 3 [json_name = "metadata"];
     HeaderPolicyMiddlewareSpec Spec       = 4 [json_name = "spec"];
 }
 
-// HeaderPolicyMiddlewareSpec is the specifications for the HeaderPolicyMiddleware object.
+//+ HeaderPolicyMiddlewareSpec
 message HeaderPolicyMiddlewareSpec {
     // [OPTIONAL]
     // AllowMIMEs are the list of MIME types to allow.
@@ -42,6 +41,7 @@ message HeaderPolicyMiddlewareSpec {
     HeaderPolicySpec ResponsePolicy = 4 [json_name = "responsePolicy"];
 }
 
+//+ HeaderPolicySpec
 // HeaderPolicySpec is the specifications of header policy.
 message HeaderPolicySpec {
     // [OPTIONAL]
@@ -84,6 +84,7 @@ message HeaderPolicySpec {
     repeated HeaderRewriteSpec Rewrites = 5 [json_name = "rewrites"];
 }
 
+//+ HeaderRewriteSpec
 // HeaderRewriteSpec is the configuration for rewriting HTTP headers.
 message HeaderRewriteSpec {
     // [REQUIRED]

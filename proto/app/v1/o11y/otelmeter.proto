@@ -7,16 +7,15 @@ import "kernel/network.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
 
-// OpenTelemetryMeter resource definition.
-// apiVersion="app/v1", kind="OpenTelemetryMeter".
+//+ OpenTelemetryMeter
 message OpenTelemetryMeter {
-    string                 APIVersion = 1 [json_name = "apiVersion"];
-    string                 Kind       = 2 [json_name = "kind"];
+    string                 APIVersion = 1 [json_name = "apiVersion"];  // "app/v1"
+    string                 Kind       = 2 [json_name = "kind"];        // "OpenTelemetryMeter"
     kernel.Metadata        Metadata   = 3 [json_name = "metadata"];
     OpenTelemetryMeterSpec Spec       = 4 [json_name = "spec"];
 }
 
-// OpenTelemetryMeterSpec is the specifications of the OpenTelemetryMeter object.
+//+ OpenTelemetryMeterSpec
 message OpenTelemetryMeterSpec {
     // [OPTIONAL]
     // ServiceName is the value for "service.name" semantic conventions.
@@ -42,6 +41,7 @@ message OpenTelemetryMeterSpec {
     }
 }
 
+//+ HTTPMetricsExporterSpec
 message HTTPMetricsExporterSpec {
     // [OPTIONAL]
     // EndpointURL is the target endpoint URL (scheme, host, port, path)
@@ -91,6 +91,7 @@ message HTTPMetricsExporterSpec {
     OTLPMetricsRetrySpec OTLPRetry = 7 [json_name = "otlpRetry"];
 }
 
+//+ GRPCMetricsExporterSpec
 message GRPCMetricsExporterSpec {
     // [OPTIONAL]
     // EndpointURL is the target endpoint URL (scheme, host, port, path)
@@ -159,6 +160,7 @@ message GRPCMetricsExporterSpec {
     string ServiceConfig = 9 [json_name = "serviceConfig"];
 }
 
+//+ StdoutMetricsExporterSpec
 message StdoutMetricsExporterSpec {
     // [OPTIONAL]
     // PrettyPrint is the flag to prettifies the emitted output.
@@ -171,6 +173,7 @@ message StdoutMetricsExporterSpec {
     bool WithoutTimestamps = 2 [json_name = "timestamps"];
 }
 
+//+ OTLPMetricsRetrySpec
 message OTLPMetricsRetrySpec {
     // [OPTIONAL]
     // Enabled indicates whether to not retry sending batches in case of export failure.
@@ -182,7 +185,7 @@ message OTLPMetricsRetrySpec {
     // Value is in seconds.
     // If zero or not set, default value is used.
     // Default is not set.
-    int32 InitialInterval = 2 [json_name = "initialInterval", (buf.validate.field).int32 = {gte : 0, lte : 600}];
+    int32 InitialInterval = 2 [json_name = "initialInterval", (buf.validate.field).int32 = { gte: 0, lte: 600 }];
 
     // [OPTIONAL]
     // MaxInterval is the upper bound on backoff interval.
@@ -190,7 +193,7 @@ message OTLPMetricsRetrySpec {
     // Value is in seconds.
     // If zero or not set, default value is used.
     // Default is not set.
-    int32 MaxInterval = 3 [json_name = "maxInterval", (buf.validate.field).int32 = {gte : 0, lte : 600}];
+    int32 MaxInterval = 3 [json_name = "maxInterval", (buf.validate.field).int32 = { gte: 0, lte: 600 }];
 
     // [OPTIONAL]
     // MaxElapsedTime is the maximum amount of time (including retries) spent trying to send a request/batch.
@@ -198,9 +201,10 @@ message OTLPMetricsRetrySpec {
     // Value is in seconds.
     // If zero or not set, default value is used.
     // Default is not set.
-    int32 MaxElapsedTime = 4 [json_name = "maxElapsedTime", (buf.validate.field).int32 = {gte : 0, lte : 1800}];
+    int32 MaxElapsedTime = 4 [json_name = "maxElapsedTime", (buf.validate.field).int32 = { gte: 0, lte: 1800 }];
 }
 
+//+ PeriodicReaderSpec
 message PeriodicReaderSpec {
     // [OPTIONAL]
     // Interval is the time interval at which the PeriodicReader exports data.
@@ -208,12 +212,12 @@ message PeriodicReaderSpec {
     // Value is in seconds.
     // If zero or not set, default value is used.
     // Default is 5 seconds.
-    int32 Interval = 1 [json_name = "interval", (buf.validate.field).int32 = {gte : 0, lte : 600}];
+    int32 Interval = 1 [json_name = "interval", (buf.validate.field).int32 = { gte: 0, lte: 600 }];
 
     // [OPTIONAL]
     // Timeout is the duration that the PeriodicReader waits until the export completes.
     // Value is in seconds.
     // If zero or not set, default value is used.
     // Default is 30 seconds.
-    int32 Timeout = 2 [json_name = "timeout", (buf.validate.field).int32 = {gte : 0, lte : 300}];
+    int32 Timeout = 2 [json_name = "timeout", (buf.validate.field).int32 = { gte: 0, lte: 300 }];
 }

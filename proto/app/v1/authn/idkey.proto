@@ -8,16 +8,15 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
 
-// IDKeyAuthnMiddleware resource definition.
-// apiVersion="app/v1", kind="IDKeyAuthnMiddleware".
+//+ DigestAuthnFileProvider
 message IDKeyAuthnMiddleware {
-    string                   APIVersion = 1 [json_name = "apiVersion"];
-    string                   Kind       = 2 [json_name = "kind"];
+    string                   APIVersion = 1 [json_name = "apiVersion"];  // "app/v1"
+    string                   Kind       = 2 [json_name = "kind"];        // "IDKeyAuthnMiddleware"
     kernel.Metadata          Metadata   = 3 [json_name = "metadata"];
     IDKeyAuthnMiddlewareSpec Spec       = 4 [json_name = "spec"];
 }
 
-// IDKeyAuthnMiddlewareSpec is the specifications for the IDKeyAuthnMiddleware object.
+//+ IDKeyAuthnMiddlewareSpec
 message IDKeyAuthnMiddlewareSpec {
     // [OPTIONAL]
     // Logger is the reference to a Logger object.
@@ -105,6 +104,7 @@ message IDKeyAuthnMiddlewareSpec {
     }
 }
 
+//+ IDKeyAuthnEnvProvider
 message IDKeyAuthnEnvProvider {
     // [OPTIONAL]
     // KeyPrefix is the prefix of environmental variable
@@ -137,6 +137,7 @@ message IDKeyAuthnEnvProvider {
     kernel.EncodingType Encoding = 3 [json_name = "encoding"];
 }
 
+//+ IDKeyAuthnFileProvider
 message IDKeyAuthnFileProvider {
     // [OPTIONAL]
     // Paths are file paths that contains api keys.

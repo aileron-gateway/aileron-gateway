@@ -7,16 +7,15 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/core/v1";
 
-// SLogger resource definition.
-// apiVersion="core/v1", kind="SLogger".
+//+ SLogger
 message SLogger {
-    string          APIVersion = 1 [json_name = "apiVersion"];
-    string          Kind       = 2 [json_name = "kind"];
+    string          APIVersion = 1 [json_name = "apiVersion"];  // "core/v1"
+    string          Kind       = 2 [json_name = "kind"];        // "SLogger"
     kernel.Metadata Metadata   = 3 [json_name = "metadata"];
     SLoggerSpec     Spec       = 4 [json_name = "spec"];
 }
 
-// SLoggerSpec is the specifications for the SLogger object.
+//+ SLoggerSpec
 message SLoggerSpec {
     // [OPTIONAL]
     // LogLevel is the log output level.
@@ -87,6 +86,7 @@ message SLoggerSpec {
     repeated FieldReplacerSpec FieldReplacers = 9 [json_name = "fieldReplacers"];
 }
 
+//+ FieldReplacerSpec
 message FieldReplacerSpec {
     // [REQUIRED]
     // Field is the field name to replace value.
@@ -103,8 +103,9 @@ message FieldReplacerSpec {
     kernel.ReplacerSpec Replacer = 2 [json_name = "replacer"];
 }
 
-// LogOutputSpec is the specification for log output.
-message LogOutputSpec {
+//+ LogOutputSpec
+ec is the specification for log output.;
+message   LogOutputSpec {
     // [OPTIONAL]
     // OutputTarget is the destination of log output.
     // Default is [Stdout].
@@ -196,7 +197,7 @@ message LogOutputSpec {
     // See https://pkg.go.dev/compress/gzip#pkg-constants for more detail.
     // This field is used only for "File" output.
     // Default is [0], or no compression.
-    int32 CompressLevel = 10 [json_name = "compressLevel", (buf.validate.field).int32 = {gte : -2, lte : 9}];
+    int32 CompressLevel = 10 [json_name = "compressLevel", (buf.validate.field).int32 = { gte: -2, lte: 9 }];
 
     // [OPTIONAL]
     // MaxAge is maximum age of backup logs in seconds.
@@ -224,6 +225,7 @@ message LogOutputSpec {
     uint32 MaxTotalSize = 13 [json_name = "maxTotalSize"];
 }
 
+//+ OutputTarget
 // OutputTarget is the output destination.
 enum OutputTarget {
     Stdout  = 0;  // Output to standard output.
@@ -232,6 +234,7 @@ enum OutputTarget {
     File    = 3;  // Output to files.
 }
 
+//+ LogLevel
 // LogLevel is the defined log output level.
 enum LogLevel {
     LogLevelUnknown = 0;  // Log level Unknown.

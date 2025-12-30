@@ -7,16 +7,15 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
 
-// OAuthAuthenticationHandler resource definition.
-// apiVersion="app/v1", kind="OAuthAuthenticationHandler".
+//+ OAuthAuthenticationHandler
 message OAuthAuthenticationHandler {
-    string                         APIVersion = 1 [json_name = "apiVersion"];
-    string                         Kind       = 2 [json_name = "kind"];
+    string                         APIVersion = 1 [json_name = "apiVersion"];  // "app/v1"
+    string                         Kind       = 2 [json_name = "kind"];        // "OAuthAuthenticationHandler"
     kernel.Metadata                Metadata   = 3 [json_name = "metadata"];
     OAuthAuthenticationHandlerSpec Spec       = 4 [json_name = "spec"];
 }
 
-// OAuthAuthenticationHandlerSpec is the specifications for the OAuthAuthenticationHandler object.
+//+ OAuthAuthenticationHandlerSpec
 message OAuthAuthenticationHandlerSpec {
     // [OPTIONAL]
     // Logger is the reference to a Logger object.
@@ -52,7 +51,7 @@ message OAuthAuthenticationHandlerSpec {
     // [REQUIRED]
     // Handlers are the options of OAuth authentication handlers.
     oneof Handlers {
-        option(buf.validate.oneof).required               = true;
+        option (buf.validate.oneof).required              = true;
         AuthorizationCodeHandler AuthorizationCodeHandler = 10 [json_name = "authorizationCodeHandler"];
         ClientCredentialsHandler ClientCredentialsHandler = 11 [json_name = "clientCredentialsHandler"];
         ResourceServerHandler    ResourceServerHandler    = 12 [json_name = "resourceServerHandler"];
@@ -60,6 +59,7 @@ message OAuthAuthenticationHandlerSpec {
     }
 }
 
+//+ ProviderEndpoints
 // ProviderEndpoints is the endpoints of OAuth provider.
 message ProviderEndpoints {
     string Authorization = 1 [json_name = "authorization"];
@@ -71,6 +71,7 @@ message ProviderEndpoints {
     string Discovery     = 7 [json_name = "discovery"];
 }
 
+//+ OAuthProvider
 // OAuthProvider is the configuration of OAuth provider.
 message OAuthProvider {
     string            Issuer       = 1 [json_name = "issuer"];
@@ -79,6 +80,7 @@ message OAuthProvider {
     kernel.Reference  RoundTripper = 4 [json_name = "roundTripper"];
 }
 
+//+ OAuthClient
 // OAuthClient is the configuration of OAuth client.
 message OAuthClient {
     string          ID         = 1 [json_name = "id"];
@@ -88,6 +90,7 @@ message OAuthClient {
     JWTHandlerSpec  JWTHandler = 5 [json_name = "jwtHandler"];
 }
 
+//+ PKCEMethod
 // PKCEMethod is the PKCE code challenge methods.
 // Method is defined in https://datatracker.ietf.org/doc/rfc7636/
 enum PKCEMethod {
@@ -95,6 +98,7 @@ enum PKCEMethod {
     Plain = 1;  // "plain"
 }
 
+//+ ClientAuthMethod
 // ClientAuthMethod is the method of authentication
 // used for OAuth client authentication.
 enum ClientAuthMethod {
@@ -106,6 +110,7 @@ enum ClientAuthMethod {
     SelfSignedTLSClientAuth = 5;  // Authentication by self-signed X.509 certificates
 }
 
+//+ ClientRequester
 message ClientRequester {
     // [OPTIONAL]
     // RoundTripper is the reference to a HTTP round tripper object.
@@ -132,6 +137,7 @@ message ClientRequester {
     map<string, string> ExtraQuery = 4 [json_name = "extraQuery"];
 }
 
+//+ Context
 message Context {
     // [REQUIRED]
     // Provider is the configurations of OAuth provider.
@@ -187,6 +193,7 @@ message Context {
     TokenValidation IDTValidation = 12 [json_name = "idtValidation"];
 }
 
+//+ AuthorizationRequestObject
 message AuthorizationRequestObject {
     // [OPTIONAL]
     // RequestURIPath specifies the URI for the request object by reference
@@ -203,12 +210,12 @@ message AuthorizationRequestObject {
     // [OPTIONAL]
     // Exp specifies the remaining time in seconds before the request object expires.
     // Default is [0].
-    int64 Exp = 3 [json_name = "exp", (buf.validate.field).int64 = {gte : 0}];
+    int64 Exp = 3 [json_name = "exp", (buf.validate.field).int64 = { gte: 0 }];
 
     // [OPTIONAL]
     // NbfLeeway compensates for clock skew by adding a grace period in seconds to the nbf claim.
     // Default is [0].
-    int64 Nbf = 4 [json_name = "nbf", (buf.validate.field).int64 = {gte : 0}];
+    int64 Nbf = 4 [json_name = "nbf", (buf.validate.field).int64 = { gte: 0 }];
 
     // [OPTIONAL]
     // Disablecache set to true adds a Base64URL-encoded SHA-256 hash to request_uri to disable caching.
@@ -216,6 +223,7 @@ message AuthorizationRequestObject {
     bool DisableCache = 5 [json_name = "disableCache"];
 }
 
+//+ AuthorizationResponseJARM
 message AuthorizationResponseJARM {
     // [OPTIONAL]
     // ResponseModeMethod is the method of response_mode parmeter
@@ -228,6 +236,7 @@ message AuthorizationResponseJARM {
     JWTHandlerSpec JWTHandler = 2 [json_name = "jwtHandler"];
 }
 
+//+ ResponseModeMethod
 // ResponseModeMethod is the method of response_mode parmeter
 // used for authorization responses.
 // Method is defined in https://openid.net/specs/openid-financial-api-jarm.html
@@ -238,6 +247,7 @@ enum ResponseModeMethod {
     ResponseModeFormPostJWT = 3;
 }
 
+//+ AuthorizationCodeHandler
 message AuthorizationCodeHandler {
     bool       DisableState        = 1 [json_name = "disableState"];
     bool       DisableNonce        = 2 [json_name = "disableNonce"];
@@ -304,10 +314,12 @@ message AuthorizationCodeHandler {
     AuthorizationResponseJARM JARM = 17 [json_name = "jarm"];
 }
 
+//+ ClientCredentialsHandler
 // ClientCredentialsHandler is the specification of ClientCredentialsHandler object.
 message ClientCredentialsHandler {
 }
 
+//+ ResourceServerHandler
 // ResourceServerHandler is the specification of ResourceServerHandler object.
 message ResourceServerHandler {
     // [OPTIONAL]
@@ -322,6 +334,7 @@ message ResourceServerHandler {
     bool EnabledFAPI = 2 [json_name = "enabledFAPI"];
 }
 
+//+ ROPCHandler
 message ROPCHandler {
     // [OPTIONAL]
     // RedeemTokenPath is the url path to redeem access token
@@ -349,6 +362,7 @@ message ROPCHandler {
     string PasswordKey = 3 [json_name = "passwordKey"];
 }
 
+//+ TokenValidation
 message TokenValidation {
     // [OPTIONAL]
     // SkipUnexpired is the flag to skip token validation
