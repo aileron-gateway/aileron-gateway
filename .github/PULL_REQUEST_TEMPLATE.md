@@ -23,6 +23,7 @@ Closes `#<issue number>` or `(paste link of issue)`
   - [ ] Did you add [CHANGELOG](CHANGELOG/)?
   - [ ] Did you add migration guides in [CHANGELOG](CHANGELOG/)?
 - [ ] No
+  - [ ] Did you add [CHANGELOG](CHANGELOG/)? (if necessary)
 
 ## Description
 
