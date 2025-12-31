@@ -11,7 +11,7 @@
   - [Dependencies](#dependencies)
   - [Migration guides](#migration-guides)
 - [v1.1.0](#v110)
-  - [Breaking changes since v1.0.x ](#breaking-changes-since-v10x-)
+  - [Breaking changes since v1.0.x](#breaking-changes-since-v10x)
   - [Changes since v1.0.4](#changes-since-v104)
     - [New features](#new-features-1)
     - [Breaking changes](#breaking-changes)
@@ -49,6 +49,7 @@ _Nothing has changed._
 - [#110](https://github.com/aileron-gateway/aileron-gateway/pull/110): Move kernel/kvs package to internal/kvs (@k7a-tomohiro)
 - [#111](https://github.com/aileron-gateway/aileron-gateway/pull/111): Move kernel/network package to internal/network (@k7a-tomohiro)
 - [#112](https://github.com/aileron-gateway/aileron-gateway/pull/112): Move util/security package to internal/security (@k7a-tomohiro)
+- [#114](https://github.com/aileron-gateway/aileron-gateway/pull/114): Move util/session package to kernel/session (@k7a-tomohiro)
 
 ### Dependencies
 
@@ -60,7 +61,7 @@ TODO: Fill
 
 ## v1.1.0
 
-### Breaking changes since v1.0.x <!-- Major version update only. -->
+### Breaking changes since v1.0.x
 
 _Nothing has changed._
 

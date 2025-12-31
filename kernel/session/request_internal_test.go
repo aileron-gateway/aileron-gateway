@@ -168,7 +168,7 @@ func TestPersistRequest(t *testing.T) {
 	for _, tt := range testCases {
 		tt := tt
 		t.Run(tt.Name, func(t *testing.T) {
-			ss := NewDefaultSession(SerializeJSON)
+			ss := NewDefaultSession()
 			err := PersistRequest(ss, tt.C.req)
 			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
 
@@ -297,7 +297,7 @@ func TestExtractRequest(t *testing.T) {
 	for _, tt := range testCases {
 		tt := tt
 		t.Run(tt.Name, func(t *testing.T) {
-			ss := NewDefaultSession(SerializeJSON)
+			ss := NewDefaultSession()
 			if tt.C.info != nil {
 				err := ss.Persist(requestSessionKey, tt.C.info)
 				testutil.Diff(t, nil, err)

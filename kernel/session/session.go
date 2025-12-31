@@ -9,8 +9,6 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-
-	"github.com/vmihailenco/msgpack/v5"
 )
 
 // NoValue means no value in the session.
@@ -18,17 +16,6 @@ import (
 //nolint:staticcheck // ST1012: error var Nil should have name of the form ErrFoo
 //lint:ignore ST1012 // error var Nil should have name of the form ErrFoo
 var NoValue = errors.New("util/session: no value")
-
-// SerializeMethod is a session data serialization method.
-// Currently available:
-//   - SerializeMsgPack
-//   - SerializeJSON
-type SerializeMethod int
-
-const (
-	SerializeMsgPack SerializeMethod = iota
-	SerializeJSON
-)
 
 const (
 	Noop     uint = 1 << iota // No meaning.
@@ -55,11 +42,7 @@ type Store interface {
 
 // Session is the interface for session objects.
 type Session interface {
-	// BinaryMarshaler marshals session data.
-	// Attributes are not marshaled.
 	encoding.BinaryMarshaler
-	// BinaryUnmarshaler unmarshals given data
-	// into this session object.
 	encoding.BinaryUnmarshaler
 
 	// SetFlag sets a flag to this object
@@ -88,27 +71,23 @@ type Session interface {
 	Extract(key string, into any) error
 }
 
-func NewDefaultSession(sm SerializeMethod) *DefaultSession {
-	df := &DefaultSession{
-		flags: New,
-		attrs: map[string]any{},
-		data:  map[string][]byte{},
+func NewDefaultSession() *DefaultSession {
+	return &DefaultSession{
+		flags:     New,
+		attrs:     map[string]any{},
+		data:      map[string][]byte{},
+		marshal:   json.Marshal,
+		unmarshal: json.Unmarshal,
 	}
-	if sm == SerializeJSON {
-		df.marshal, df.unmarshal = json.Marshal, json.Unmarshal
-	} else {
-		df.marshal, df.unmarshal = msgpack.Marshal, msgpack.Unmarshal
-	}
-	return df
 }
 
 type DefaultSession struct {
-	raw       []byte
-	data      map[string][]byte
-	attrs     map[string]any
-	flags     uint
-	marshal   func(any) ([]byte, error)
-	unmarshal func([]byte, any) error
+	raw       []byte                    // raw is the raw session data.
+	data      map[string][]byte         // session data in binary.
+	attrs     map[string]any            // session data.
+	flags     uint                      // flags to keep states.
+	marshal   func(any) ([]byte, error) // session serializer.
+	unmarshal func([]byte, any) error   // session deserializer.
 }
 
 func (s *DefaultSession) SetFlag(flag uint) uint {

@@ -13,8 +13,8 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/internal/kvs"
 	"github.com/aileron-gateway/aileron-gateway/internal/security"
+	"github.com/aileron-gateway/aileron-gateway/kernel/session"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
-	"github.com/aileron-gateway/aileron-gateway/util/session"
 	"github.com/aileron-projects/go/zx/zuid"
 )
 
@@ -38,8 +38,6 @@ type cookieSessionStore struct {
 	enc *security.SecureEncoder
 
 	cookiePrefix string
-
-	sm session.SerializeMethod
 }
 
 // initialize initializes the cookie store.
@@ -51,7 +49,7 @@ type cookieSessionStore struct {
 //	3 Decode the session data. Use newly created session if decode failed.
 //	4 Unmarshal the decoded session data. Return an error if failed.
 func (h *cookieSessionStore) Get(r *http.Request) (session.Session, error) {
-	ss := session.NewDefaultSession(h.sm)
+	ss := session.NewDefaultSession()
 
 	// Get the session data from the cookie.
 	cks := r.Cookies()
@@ -131,7 +129,6 @@ type kvsSessionStore struct {
 	tracer     app.Tracer
 	cookieName string
 	prefix     string
-	sm         session.SerializeMethod
 }
 
 // initialize initializes the session store.
@@ -144,7 +141,7 @@ type kvsSessionStore struct {
 //	5 Unmarshal the decoded session data. Return an error if failed.
 //	6 Replace the session ID with the existing one.
 func (s *kvsSessionStore) Get(r *http.Request) (session.Session, error) {
-	ss := session.NewDefaultSession(s.sm)
+	ss := session.NewDefaultSession()
 
 	ck, err := r.Cookie(s.cookieName) // Session ID from cookie.
 	if err == http.ErrNoCookie {
