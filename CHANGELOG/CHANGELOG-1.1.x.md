@@ -11,7 +11,7 @@
   - [Dependencies](#dependencies)
   - [Migration guides](#migration-guides)
 - [v1.1.0](#v110)
-  - [Breaking changes since v1.0.x ](#breaking-changes-since-v10x-)
+  - [Breaking changes since v1.0.x](#breaking-changes-since-v10x)
   - [Changes since v1.0.4](#changes-since-v104)
     - [New features](#new-features-1)
     - [Breaking changes](#breaking-changes)
@@ -61,7 +61,7 @@ TODO: Fill
 
 ## v1.1.0
 
-### Breaking changes since v1.0.x <!-- Major version update only. -->
+### Breaking changes since v1.0.x
 
 _Nothing has changed._
 
