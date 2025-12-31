@@ -12,12 +12,10 @@ import (
 
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/google/go-cmp/cmp"
-	"github.com/vmihailenco/msgpack/v5"
 )
 
 func TestNewDefaultSession(t *testing.T) {
 	type condition struct {
-		sm SerializeMethod
 	}
 
 	type action struct {
@@ -27,35 +25,7 @@ func TestNewDefaultSession(t *testing.T) {
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"default", &condition{},
-			&action{
-				df: &DefaultSession{
-					flags:     New,
-					attrs:     map[string]any{},
-					data:      map[string][]byte{},
-					marshal:   msgpack.Marshal,
-					unmarshal: msgpack.Unmarshal,
-				},
-			},
-		),
-		gen(
-			"msgpack", &condition{
-				sm: SerializeMsgPack,
-			},
-			&action{
-				df: &DefaultSession{
-					flags:     New,
-					attrs:     map[string]any{},
-					data:      map[string][]byte{},
-					marshal:   msgpack.Marshal,
-					unmarshal: msgpack.Unmarshal,
-				},
-			},
-		),
-		gen(
-			"json", &condition{
-				sm: SerializeJSON,
-			},
+			"json", &condition{},
 			&action{
 				df: &DefaultSession{
 					flags:     New,
@@ -71,7 +41,7 @@ func TestNewDefaultSession(t *testing.T) {
 	for _, tt := range testCases {
 		tt := tt
 		t.Run(tt.Name, func(t *testing.T) {
-			df := NewDefaultSession(tt.C.sm)
+			df := NewDefaultSession()
 
 			opts := []cmp.Option{
 				cmp.AllowUnexported(DefaultSession{}),
@@ -251,36 +221,6 @@ func TestDefaultSession_Persist(t *testing.T) {
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"msgpack/persist nil", &condition{
-				df: &DefaultSession{
-					data:    map[string][]byte{},
-					marshal: msgpack.Marshal,
-				},
-				key: "foo",
-				val: nil,
-			},
-			&action{
-				data: map[string][]byte{
-					"foo": {0xc0},
-				},
-			},
-		),
-		gen(
-			"msgpack/persist value", &condition{
-				df: &DefaultSession{
-					data:    map[string][]byte{},
-					marshal: msgpack.Marshal,
-				},
-				key: "foo",
-				val: "bar",
-			},
-			&action{
-				data: map[string][]byte{
-					"foo": {0xa3, 0x62, 0x61, 0x72},
-				},
-			},
-		),
-		gen(
 			"json/persist nil", &condition{
 				df: &DefaultSession{
 					data:    map[string][]byte{},
@@ -376,42 +316,6 @@ func TestDefaultSession_Extract(t *testing.T) {
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
-		gen(
-			"msgpack/extract nil", &condition{
-				df: &DefaultSession{
-					data: map[string][]byte{
-						"foo": {0xc0},
-					},
-					unmarshal: msgpack.Unmarshal,
-				},
-				key: "foo",
-				val: strPtr(""),
-			},
-			&action{
-				val: strPtr(""),
-				data: map[string][]byte{
-					"foo": {0xc0},
-				},
-			},
-		),
-		gen(
-			"msgpack/extract value", &condition{
-				df: &DefaultSession{
-					data: map[string][]byte{
-						"foo": {0xa3, 0x62, 0x61, 0x72},
-					},
-					unmarshal: msgpack.Unmarshal,
-				},
-				key: "foo",
-				val: strPtr("bar"),
-			},
-			&action{
-				val: strPtr("bar"),
-				data: map[string][]byte{
-					"foo": {0xa3, 0x62, 0x61, 0x72},
-				},
-			},
-		),
 		gen(
 			"json/extract nil", &condition{
 				df: &DefaultSession{
@@ -514,42 +418,6 @@ func TestDefaultSession_UnmarshalBinary(t *testing.T) {
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"msgpack/unmarshal nil", &condition{
-				df: &DefaultSession{
-					data:      map[string][]byte{},
-					unmarshal: msgpack.Unmarshal,
-				},
-				b: []byte{0xc0},
-			},
-			&action{
-				m: nil,
-			},
-		),
-		gen(
-			"msgpack/unmarshal empty", &condition{
-				df: &DefaultSession{
-					data:      map[string][]byte{},
-					unmarshal: msgpack.Unmarshal,
-				},
-				b: []byte{0x80},
-			},
-			&action{
-				m: map[string][]byte{},
-			},
-		),
-		gen(
-			"msgpack/unmarshal", &condition{
-				df: &DefaultSession{
-					data:      map[string][]byte{},
-					unmarshal: msgpack.Unmarshal,
-				},
-				b: []byte{0x81, 0xa3, 0x66, 0x6f, 0x6f, 0xc4, 0x04, 0x74, 0x65, 0x73, 0x74},
-			},
-			&action{
-				m: map[string][]byte{"foo": []byte("test")},
-			},
-		),
-		gen(
 			"json/unmarshal nil", &condition{
 				df: &DefaultSession{
 					data:      map[string][]byte{},
@@ -619,42 +487,6 @@ func TestDefaultSession_MarshalBinary(t *testing.T) {
 			},
 			&action{
 				b: []byte("raw"),
-			},
-		),
-		gen(
-			"msgpack/marshal nil", &condition{
-				df: &DefaultSession{
-					flags:   Updated,
-					data:    nil,
-					marshal: msgpack.Marshal,
-				},
-			},
-			&action{
-				b: []byte{0xc0},
-			},
-		),
-		gen(
-			"msgpack/marshal empty", &condition{
-				df: &DefaultSession{
-					flags:   Updated,
-					data:    map[string][]byte{},
-					marshal: msgpack.Marshal,
-				},
-			},
-			&action{
-				b: []byte{0x80},
-			},
-		),
-		gen(
-			"msgpack/marshal", &condition{
-				df: &DefaultSession{
-					flags:   Updated,
-					data:    map[string][]byte{"foo": []byte("test")},
-					marshal: msgpack.Marshal,
-				},
-			},
-			&action{
-				b: []byte{0x81, 0xa3, 0x66, 0x6f, 0x6f, 0xc4, 0x04, 0x74, 0x65, 0x73, 0x74},
 			},
 		),
 		gen(
@@ -753,7 +585,7 @@ func TestMustPersist(t *testing.T) {
 				)
 			}()
 
-			ss := NewDefaultSession(SerializeJSON)
+			ss := NewDefaultSession()
 			MustPersist(ss, tt.C.key, tt.C.value)
 			if tt.A.err != nil {
 				ss.Extract(tt.C.key, tt.A.value)

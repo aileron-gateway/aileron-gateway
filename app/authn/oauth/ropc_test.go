@@ -24,8 +24,8 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
+	"github.com/aileron-gateway/aileron-gateway/kernel/session"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
-	"github.com/aileron-gateway/aileron-gateway/util/session"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -707,7 +707,7 @@ func TestROPCHandler_ServeAuthn(t *testing.T) {
 
 			r := tt.C.r
 			if tt.C.tokens != nil {
-				ss := session.NewDefaultSession(session.SerializeJSON)
+				ss := session.NewDefaultSession()
 				session.MustPersist(ss, ropcSessionKey, tt.C.tokens)
 				ctx := session.ContextWithSession(tt.C.r.Context(), ss)
 				r = r.WithContext(ctx)

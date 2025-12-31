@@ -20,14 +20,14 @@ func TestSessionFromContext(t *testing.T) {
 		ss Session
 	}
 
-	testSession := NewDefaultSession(SerializeJSON)
+	testSession := NewDefaultSession()
 	testSession.Persist("foo", nil)
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"session exists", &condition{
-				ctx: context.WithValue(context.Background(), sessionContextKey, testSession),
+				ctx: context.WithValue(context.Background(), sessionCtxKey, testSession),
 			},
 			&action{
 				ss: testSession,
@@ -68,9 +68,9 @@ func TestContextWithSession(t *testing.T) {
 		ss Session
 	}
 
-	testSession1 := NewDefaultSession(SerializeJSON)
+	testSession1 := NewDefaultSession()
 	testSession1.Persist("foo", nil)
-	testSession2 := NewDefaultSession(SerializeJSON)
+	testSession2 := NewDefaultSession()
 	testSession2.Persist("bar", nil)
 
 	gen := testutil.NewCase[*condition, *action]
@@ -86,7 +86,7 @@ func TestContextWithSession(t *testing.T) {
 		),
 		gen(
 			"session override", &condition{
-				ctx: context.WithValue(context.Background(), sessionContextKey, testSession1),
+				ctx: context.WithValue(context.Background(), sessionCtxKey, testSession1),
 				ss:  testSession2,
 			},
 			&action{

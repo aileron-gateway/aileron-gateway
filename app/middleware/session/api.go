@@ -17,8 +17,8 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/internal/security"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
+	"github.com/aileron-gateway/aileron-gateway/kernel/session"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
-	"github.com/aileron-gateway/aileron-gateway/util/session"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
