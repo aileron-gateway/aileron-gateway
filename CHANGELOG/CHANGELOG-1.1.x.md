@@ -49,6 +49,7 @@ _Nothing has changed._
 - [#110](https://github.com/aileron-gateway/aileron-gateway/pull/110): Move kernel/kvs package to internal/kvs (@k7a-tomohiro)
 - [#111](https://github.com/aileron-gateway/aileron-gateway/pull/111): Move kernel/network package to internal/network (@k7a-tomohiro)
 - [#112](https://github.com/aileron-gateway/aileron-gateway/pull/112): Move util/security package to internal/security (@k7a-tomohiro)
+- [#114](https://github.com/aileron-gateway/aileron-gateway/pull/114): Move util/session package to kernel/security (@k7a-tomohiro)
 
 ### Dependencies
 
