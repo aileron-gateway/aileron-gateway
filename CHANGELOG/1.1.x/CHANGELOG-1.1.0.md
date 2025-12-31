@@ -1,91 +1,47 @@
-# CHANGELOG v1.1.x <!-- omit in toc -->
+# CHANGELOG v1.1.0 <!-- omit in toc -->
 
 **Table of contents**
 
 - [Versions](#versions)
-- [v1.1.1](#v111)
-  - [Changes since v1.0.0](#changes-since-v100)
-    - [New features](#new-features)
-    - [Bug fix, Security fix](#bug-fix-security-fix)
-    - [Other changes](#other-changes)
-  - [Dependencies](#dependencies)
-  - [Migration guides](#migration-guides)
-- [v1.1.0](#v110)
-  - [Breaking changes since v1.0.x](#breaking-changes-since-v10x)
-  - [Changes since v1.0.4](#changes-since-v104)
-    - [New features](#new-features-1)
-    - [Breaking changes](#breaking-changes)
-    - [Bug fix, Security fix](#bug-fix-security-fix-1)
-    - [Other changes](#other-changes-1)
-  - [Dependencies](#dependencies-1)
-    - [Added](#added)
-    - [Changed](#changed)
-    - [Removed](#removed)
-  - [Migration guides](#migration-guides-1)
+- [Changes](#changes)
+  - [Breaking changes](#breaking-changes)
+  - [New features](#new-features)
+  - [Bug fix, Security fix](#bug-fix-security-fix)
+  - [Other changes](#other-changes)
+- [Dependencies](#dependencies)
+  - [Added](#added)
+  - [Changed](#changed)
+  - [Removed](#removed)
+- [Migration guides](#migration-guides)
 
 ## Versions
 
-| AILERON Versoin | Go   | protoc | protoc-gen-go |
-| --------------- | ---- | ------ | ------------- |
-| v1.1.0          | 1.25 | v29.0  | v1.36.4       |
+- AILERON Gateway: `v1.1.0`
+- Go: `v1.24`
+- protoc: `v29.0`
+- protoc-gen-go: `v1.36.4`
 
-## v1.1.1
+## Changes
 
-### Changes since v1.0.0
-
-#### New features
-
-_Nothing has changed._
-
-#### Bug fix, Security fix
+### Breaking changes
 
 _Nothing has changed._
 
-#### Other changes
-
-- [#105](https://github.com/aileron-gateway/aileron-gateway/pull/105): Move kernel/testutil package to internal/testutil (@k7a-tomohiro)
-- [#108](https://github.com/aileron-gateway/aileron-gateway/pull/108): Move kernel/hash, kernel/encrypt packages to internal/hash, internal/encrypt (@k7a-tomohiro)
-- [#109](https://github.com/aileron-gateway/aileron-gateway/pull/109): Move kernel/txtutil package to internal/txtutil (@k7a-tomohiro)
-- [#110](https://github.com/aileron-gateway/aileron-gateway/pull/110): Move kernel/kvs package to internal/kvs (@k7a-tomohiro)
-- [#111](https://github.com/aileron-gateway/aileron-gateway/pull/111): Move kernel/network package to internal/network (@k7a-tomohiro)
-- [#112](https://github.com/aileron-gateway/aileron-gateway/pull/112): Move util/security package to internal/security (@k7a-tomohiro)
-- [#114](https://github.com/aileron-gateway/aileron-gateway/pull/114): Move util/session package to kernel/session (@k7a-tomohiro)
-
-### Dependencies
-
-TODO: Fill
-
-### Migration guides
-
-TODO: Fill
-
-## v1.1.0
-
-### Breaking changes since v1.0.x
+### New features
 
 _Nothing has changed._
 
-### Changes since v1.0.4
-
-#### New features
+### Bug fix, Security fix
 
 _Nothing has changed._
 
-#### Breaking changes
+### Other changes
 
 _Nothing has changed._
 
-#### Bug fix, Security fix
+## Dependencies
 
-_Nothing has changed._
-
-#### Other changes
-
-_Nothing has changed._
-
-### Dependencies
-
-#### Added
+### Added
 
 - buf.build/go/hyperpb: v0.1.3
 - buf.build/go/protovalidate: v1.1.0
@@ -122,7 +78,7 @@ _Nothing has changed._
 - gonum.org/v1/gonum: v0.16.0
 - sigs.k8s.io/randfill: v1.0.0
 
-#### Changed
+### Changed
 
 - buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go: 8976f5b → 2a1774d
 - cel.dev/expr: v0.24.0 → v0.25.1
@@ -222,7 +178,7 @@ _Nothing has changed._
 - oras.land/oras-go/v2: v2.3.1 → v2.6.0
 - sigs.k8s.io/yaml: v1.4.0 → v1.6.0
 
-#### Removed
+### Removed
 
 - github.com/AdaLogics/go-fuzz-headers: ced1acd
 - github.com/OneOfOne/xxhash: v1.2.8
@@ -247,8 +203,6 @@ _Nothing has changed._
 - gopkg.in/ini.v1: v1.67.0
 - gopkg.in/yaml.v2: v2.4.0
 
-### Migration guides
+## Migration guides
 
-No migration required except for updating package versions.
-
-If you noticed something wrong with migration, please [create an issue](https://github.com/aileron-gateway/aileron-gateway/issues/new).
+_Migration is not required._
