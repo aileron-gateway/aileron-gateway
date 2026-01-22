@@ -1,5 +1,5 @@
 {
-  description = "A Go 1.24.0 development environment";
+  description = "A Go 1.25.0 development environment";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
