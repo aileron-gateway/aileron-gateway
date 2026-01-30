@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
+	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
@@ -60,11 +60,7 @@ func TestMarshalYaml(t *testing.T) {
 			},
 			&action{
 				out: "",
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeYaml,
-					Description: ErrDscMarshal,
-				},
+				err: &errorutil.SimpleError{Message: "internal/encoder: marshaling from any to yaml failed."},
 			},
 		),
 		gen(
@@ -77,11 +73,7 @@ func TestMarshalYaml(t *testing.T) {
 			},
 			&action{
 				out: "",
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeYaml,
-					Description: ErrDscMarshal,
-				},
+				err: &errorutil.SimpleError{Message: "internal/encoder: marshaling from any to yaml failed."},
 			},
 		),
 	}
@@ -155,11 +147,7 @@ func TestUnmarshalYaml(t *testing.T) {
 			},
 			&action{
 				result: &testStruct{},
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeYaml,
-					Description: ErrDscUnmarshal,
-				},
+				err:    &errorutil.SimpleError{Message: "internal/encoder: unmarshaling yaml failed."},
 			},
 		),
 	}

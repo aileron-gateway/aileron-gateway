@@ -7,7 +7,7 @@ import (
 	"bytes"
 	"encoding/json"
 
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
+	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
 )
 
 // MarshalJSON marshal struct into byte array of json format.
@@ -20,12 +20,7 @@ func MarshalJSON(in any) ([]byte, error) {
 	enc := json.NewEncoder(&b)
 	enc.SetIndent("", "  ")
 	if err := enc.Encode(in); err != nil {
-		return nil, (&er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeJSON,
-			Description: ErrDscMarshal,
-			Detail:      "from any to json",
-		}).Wrap(err)
+		return nil, errorutil.NewSimple(err, "internal/encoder: marshaling from any to json failed.", "")
 	}
 	return b.Bytes(), nil
 }
@@ -38,12 +33,7 @@ func UnmarshalJSON(in []byte, into any) error {
 	}
 	err := json.Unmarshal(in, into)
 	if err != nil {
-		return (&er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeJSON,
-			Description: ErrDscUnmarshal,
-			Detail:      string(addLineNumber(in)),
-		}).Wrap(err)
+		return errorutil.NewSimple(err, "internal/encoder: unmarshaling json failed.", "%s", string(addLineNumber(in)))
 	}
 	return nil
 }

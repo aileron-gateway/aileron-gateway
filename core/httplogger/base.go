@@ -17,7 +17,7 @@ import (
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
 	"github.com/aileron-gateway/aileron-gateway/internal/txtutil"
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
+	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
 	"github.com/aileron-projects/go/ztext"
 )
@@ -95,11 +95,7 @@ func newBaseLogger(spec *v1.LoggingSpec, lg log.Logger) (*baseLogger, error) {
 		bl.tpl = ztext.NewTemplate(spec.LogFormat+"\n", "%", "%")
 		writer, ok := lg.(io.Writer) // Format logging requires raw io.Writer.
 		if !ok {
-			return nil, &er.Error{
-				Package:     "httplogger",
-				Type:        "base logger",
-				Description: "formatted log requires logger with io.Writer interface",
-			}
+			return nil, errorutil.NewSimple(nil, "core/httplogger: formatted log requires logger with io.Writer interface", "")
 		}
 		bl.w = writer
 	}

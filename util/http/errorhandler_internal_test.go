@@ -20,7 +20,6 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/internal/txtutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
 	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
 	"github.com/aileron-projects/go/ztext"
@@ -250,12 +249,8 @@ func TestErrorHandler(t *testing.T) {
 				ref: testResourceRef("this is not exist"),
 			},
 			&action{
-				eh: nil,
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeUtil,
-					Description: api.ErrDscAssert,
-				},
+				eh:  nil,
+				err: &errorutil.SimpleError{Message: "kernel/api: type assertion failed."},
 			},
 		),
 	}
@@ -358,12 +353,8 @@ func TestNewErrorMessage(t *testing.T) {
 				},
 			},
 			&action{
-				em: nil,
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeErrHandler,
-					Description: ErrDscRegexp,
-				},
+				em:  nil,
+				err: &errorutil.SimpleError{Message: "util/http: invalid regular expression."},
 			},
 		),
 		gen(
@@ -378,12 +369,8 @@ func TestNewErrorMessage(t *testing.T) {
 				},
 			},
 			&action{
-				em: nil,
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeMime,
-					Description: ErrDscParseMime,
-				},
+				em:  nil,
+				err: &errorutil.SimpleError{Message: "util/http: failed to parse media type."},
 			},
 		),
 	}

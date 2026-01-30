@@ -12,7 +12,7 @@ import (
 
 	"buf.build/go/protovalidate"
 	"github.com/aileron-gateway/aileron-gateway/internal/encoder"
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
+	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -62,12 +62,7 @@ func (b *BaseResource) Validate(msg protoreflect.ProtoMessage) error {
 	v, _ := protovalidate.New()
 	if err := v.Validate(msg); err != nil {
 		json, _ := encoder.MarshalProtoToJSON(msg, &protojson.MarshalOptions{Multiline: true, Indent: "  ", AllowPartial: true})
-		return (&er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeFactory,
-			Description: ErrDscProtoValidate,
-			Detail:      reflect.TypeOf(msg).String() + string(addLineNumber(json)),
-		}).Wrap(err)
+		return errorutil.NewSimple(nil, "kernel/api: validating proto message failed.", "%s%s", reflect.TypeOf(msg).String(), string(addLineNumber(json)))
 	}
 	return nil
 }
@@ -123,12 +118,7 @@ func (a *FactoryAPI) Register(key string, r Resource) error {
 		return nil
 	}
 	if _, ok := a.resources[key]; ok {
-		return &er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeFactory,
-			Description: ErrDscDuplicateKey,
-			Detail:      "key=" + key,
-		}
+		return errorutil.NewSimple(nil, "kernel/api: key duplication error.", "key=%s", key)
 	}
 	printDebug(debugLv2, "FactoryAPI:", "Register:", "key="+key)
 	a.resources[key] = r
@@ -142,21 +132,12 @@ func (a *FactoryAPI) Serve(ctx context.Context, req *Request) (*Response, error)
 
 	if req == nil {
 		// Nil request is not allowed.
-		return nil, &er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeFactory,
-			Description: ErrDscNil,
-		}
+		return nil, errorutil.NewSimple(nil, "kernel/api: request is nil.", "")
 	}
 
 	r, ok := a.resources[req.Key]
 	if !ok {
-		return nil, &er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeFactory,
-			Description: ErrDscNoAPI,
-			Detail:      "key=" + req.Key,
-		}
+		return nil, errorutil.NewSimple(nil, "kernel/api: api is not registered.", "key=%s", req.Key)
 	}
 
 	var content any
@@ -183,12 +164,7 @@ func (a *FactoryAPI) Serve(ctx context.Context, req *Request) (*Response, error)
 
 	default:
 		printDebug(debugLv2, "FactoryAPI:", "UNDEFINED:", req.Method, "key="+req.Key)
-		return nil, &er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeFactory,
-			Description: ErrDscNoMethod,
-			Detail:      string(req.Method),
-		}
+		return nil, errorutil.NewSimple(nil, "kernel/api: method not implemented.", "%s", string(req.Method))
 	}
 
 	return &Response{
@@ -235,12 +211,7 @@ func (a *FactoryAPI) get(ctx context.Context, req *Request, r Resource) (any, er
 	} else {
 		p, ok := a.protoStore[id]
 		if !ok {
-			return nil, &er.Error{
-				Package:     ErrPkg,
-				Type:        ErrTypeFactory,
-				Description: ErrDscNoManifest,
-				Detail:      "key=" + id,
-			}
+			return nil, errorutil.NewSimple(nil, "kernel/api: manifest not found.", "key=%s", id)
 		}
 		msg = p
 	}
@@ -299,12 +270,7 @@ func (a *FactoryAPI) post(_ context.Context, req *Request, r Resource) error {
 	}
 
 	if _, ok := a.protoStore[id]; ok {
-		return &er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeFactory,
-			Description: ErrDscDuplicateKey,
-			Detail:      "key=" + req.Key,
-		}
+		return errorutil.NewSimple(nil, "kernel/api: key duplication error.", "key=%s", req.Key)
 	}
 
 	// Clone message so it will not be changed.

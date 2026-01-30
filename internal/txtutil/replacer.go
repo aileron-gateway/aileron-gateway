@@ -14,7 +14,7 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/internal/encoder"
 	"github.com/aileron-gateway/aileron-gateway/internal/encrypt"
 	"github.com/aileron-gateway/aileron-gateway/internal/hash"
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
+	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
 )
 
 // ReplaceFunc is the function that
@@ -50,7 +50,7 @@ func NewStringReplacers(specs ...*k.ReplacerSpec) ([]Replacer[string], error) {
 
 func NewStringReplacer(spec *k.ReplacerSpec) (Replacer[string], error) {
 	if spec == nil {
-		return nil, (&er.Error{Package: ErrPkg, Type: ErrTypeReplacer, Description: ErrDscNil, Detail: "NewStringReplacer"})
+		return nil, errorutil.NewSimple(nil, "internal/txtutil: nil replacer spec.", "")
 	}
 
 	var replacer Replacer[string]
@@ -158,11 +158,7 @@ func NewStringReplacer(spec *k.ReplacerSpec) (Replacer[string], error) {
 			key:        key,
 		}
 	default:
-		return nil, &er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeReplacer,
-			Description: ErrDscUnsupported,
-		}
+		return nil, errorutil.NewSimple(nil, "internal/txtutil: unsupported replacer type.", "")
 	}
 
 	return replacer, err
@@ -182,7 +178,7 @@ func NewBytesReplacers(specs ...*k.ReplacerSpec) ([]Replacer[[]byte], error) {
 
 func NewBytesReplacer(spec *k.ReplacerSpec) (Replacer[[]byte], error) {
 	if spec == nil {
-		return nil, (&er.Error{Package: ErrPkg, Type: ErrTypeReplacer, Description: ErrDscNil, Detail: "NewBytesReplacer"})
+		return nil, errorutil.NewSimple(nil, "internal/txtutil: nil replacer spec.", "")
 	}
 
 	var replacer Replacer[[]byte]
@@ -304,11 +300,7 @@ func NewBytesReplacer(spec *k.ReplacerSpec) (Replacer[[]byte], error) {
 			key:        key,
 		}
 	default:
-		return nil, &er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeReplacer,
-			Description: ErrDscUnsupported,
-		}
+		return nil, errorutil.NewSimple(nil, "internal/txtutil: unsupported replacer.", "")
 	}
 
 	return replacer, err
@@ -317,12 +309,7 @@ func NewBytesReplacer(spec *k.ReplacerSpec) (Replacer[[]byte], error) {
 func encodeFunc(enc k.EncodingType) (encoder.EncodeToStringFunc, error) {
 	_, ok := encoder.EncodeTypes[enc]
 	if !ok {
-		return nil, &er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeReplacer,
-			Description: ErrDscUnsupported,
-			Detail:      "encoding type " + enc.String(),
-		}
+		return nil, errorutil.NewSimple(nil, "internal/txtutil: unsupported encoding.", "encoder=%s", enc.String())
 	}
 	f, _ := encoder.EncoderDecoder(enc)
 	return f, nil
@@ -331,12 +318,7 @@ func encodeFunc(enc k.EncodingType) (encoder.EncodeToStringFunc, error) {
 func hashFunc(alg k.HashAlg) (hash.HashFunc, error) {
 	f := hash.FromHashAlg(alg)
 	if f == nil {
-		return nil, &er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeReplacer,
-			Description: ErrDscUnsupported,
-			Detail:      "hash algorithm" + alg.String(),
-		}
+		return nil, errorutil.NewSimple(nil, "internal/txtutil: unsupported hash algorithm.", "alg=%s", alg.String())
 	}
 	return f, nil
 }
@@ -344,21 +326,11 @@ func hashFunc(alg k.HashAlg) (hash.HashFunc, error) {
 func hmacFunc(alg k.HashAlg, key string) (hash.HMACFunc, []byte, error) {
 	f := hash.HMACFromHashAlg(alg)
 	if f == nil {
-		return nil, nil, &er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeReplacer,
-			Description: ErrDscUnsupported,
-			Detail:      "hmac with hash algorithm" + alg.String(),
-		}
+		return nil, nil, errorutil.NewSimple(nil, "internal/txtutil: unsupported hmac algorithm.", "alg=%s", alg.String())
 	}
 	rawKey, err := hex.DecodeString(key)
 	if err != nil {
-		return nil, nil, (&er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeReplacer,
-			Description: ErrDscPattern,
-			Detail:      "hmac key must be Hex encoded",
-		}).Wrap(err)
+		return nil, nil, errorutil.NewSimple(err, "internal/txtutil: hmac key is not hex encoded.", "")
 	}
 	return f, rawKey, nil
 }
@@ -366,21 +338,11 @@ func hmacFunc(alg k.HashAlg, key string) (hash.HMACFunc, []byte, error) {
 func encryptFunc(alg k.CommonKeyCryptType, pwd string) (encrypt.EncryptFunc, []byte, error) {
 	f := encrypt.EncrypterFromType(alg)
 	if f == nil {
-		return nil, nil, &er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeReplacer,
-			Description: ErrDscUnsupported,
-			Detail:      "encryption algorithm" + alg.String(),
-		}
+		return nil, nil, errorutil.NewSimple(nil, "internal/txtutil: unsupported encryption.", "alg=%s", alg.String())
 	}
 	password, err := hex.DecodeString(pwd)
 	if err != nil {
-		return nil, nil, (&er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeReplacer,
-			Description: ErrDscPattern,
-			Detail:      "encryption password must be Hex encoded",
-		}).Wrap(err)
+		return nil, nil, errorutil.NewSimple(err, "internal/txtutil: encryption password is not hex encoded.", "")
 	}
 	return f, password, nil
 }
@@ -798,33 +760,18 @@ func regexpPattern(pattern string, posix bool, allowEmpty bool) (*regexp.Regexp,
 		if allowEmpty {
 			return nil, nil
 		}
-		return nil, &er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeReplacer,
-			Description: ErrDscPattern,
-			Detail:      "empty regular expression",
-		}
+		return nil, errorutil.NewSimple(nil, "internal/txtutil: empty string for reqular expression.", "")
 	}
 	if posix {
 		exp, err := regexp.CompilePOSIX(pattern)
 		if err != nil {
-			return nil, &er.Error{
-				Package:     ErrPkg,
-				Type:        ErrTypeReplacer,
-				Description: ErrDscPattern,
-				Detail:      "regular expression POSIX `" + pattern + "`",
-			}
+			return nil, errorutil.NewSimple(err, "internal/txtutil: invalid pattern for RegexPOSIX.", "pattern=`%s`", pattern)
 		}
 		return exp, nil
 	} else {
 		exp, err := regexp.Compile(pattern)
 		if err != nil {
-			return nil, &er.Error{
-				Package:     ErrPkg,
-				Type:        ErrTypeReplacer,
-				Description: ErrDscPattern,
-				Detail:      "regular expression `" + pattern + "`",
-			}
+			return nil, errorutil.NewSimple(err, "internal/txtutil: invalid pattern for Regex.", "pattern=`%s`", pattern)
 		}
 		return exp, nil
 	}

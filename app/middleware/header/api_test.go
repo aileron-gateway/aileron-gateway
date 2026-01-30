@@ -14,7 +14,7 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/internal/txtutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
+	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
 	httputil "github.com/aileron-gateway/aileron-gateway/util/http"
 	"github.com/google/go-cmp/cmp"
@@ -324,11 +324,7 @@ func TestNewRewriters(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     txtutil.ErrPkg,
-					Type:        txtutil.ErrTypeReplacer,
-					Description: txtutil.ErrDscPattern,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for Regex."},
 			},
 		),
 	}

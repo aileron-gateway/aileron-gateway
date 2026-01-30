@@ -213,11 +213,11 @@ func TestKind_WithoutStack(t *testing.T) {
 			},
 			&action{
 				attrs: &ErrorAttrs{
-					kind: "test-kind",
-					code: "test-code",
-					name: "error",
-					msg:  "test-message [test-error]",
-					err:  errors.New("test-error"),
+					kind:  "test-kind",
+					code:  "test-code",
+					name:  "error",
+					msg:   "test-message [test-error]",
+					cause: errors.New("test-error"),
 				},
 			},
 		),
@@ -298,11 +298,11 @@ func TestKind_WithStack(t *testing.T) {
 			},
 			&action{
 				attrs: &ErrorAttrs{
-					kind: "test-kind",
-					code: "test-code",
-					name: "error",
-					msg:  "test-message [test-error]",
-					err:  errors.New("test-error"),
+					kind:  "test-kind",
+					code:  "test-code",
+					name:  "error",
+					msg:   "test-message [test-error]",
+					cause: errors.New("test-error"),
 				},
 			},
 		),
@@ -415,7 +415,7 @@ func TestKind_Is(t *testing.T) {
 				},
 				err: &ErrorAttrs{
 					code: "error-code",
-					err: &ErrorAttrs{
+					cause: &ErrorAttrs{
 						code: "test-code",
 					},
 				},
@@ -432,7 +432,7 @@ func TestKind_Is(t *testing.T) {
 				},
 				err: &ErrorAttrs{
 					code: "test-code",
-					err: &ErrorAttrs{
+					cause: &ErrorAttrs{
 						code: "error-code",
 					},
 				},
@@ -449,7 +449,7 @@ func TestKind_Is(t *testing.T) {
 				},
 				err: &ErrorAttrs{
 					code: "error-code",
-					err: &ErrorAttrs{
+					cause: &ErrorAttrs{
 						code: "error-code",
 					},
 				},
@@ -465,8 +465,8 @@ func TestKind_Is(t *testing.T) {
 					code: "test-code",
 				},
 				err: &ErrorAttrs{
-					code: "error-code",
-					err:  io.EOF,
+					code:  "error-code",
+					cause: io.EOF,
 				},
 			},
 			&action{
@@ -481,9 +481,9 @@ func TestKind_Is(t *testing.T) {
 					code: "test-code",
 				},
 				err: &ErrorAttrs{
-					kind: "error-kind",
-					code: "error-code",
-					err:  errors.New("test-error"),
+					kind:  "error-kind",
+					code:  "error-code",
+					cause: errors.New("test-error"),
 				},
 			},
 			&action{

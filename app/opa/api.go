@@ -9,7 +9,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
@@ -17,7 +16,7 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/internal/network"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
+	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 	"github.com/open-policy-agent/opa/ast"
@@ -214,22 +213,12 @@ func loadPolicy(path string, rt http.RoundTripper, loader loader.FileLoader) (*b
 	if strings.HasPrefix(path, "http://") || strings.HasPrefix(path, "https://") {
 		req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, path, nil)
 		if err != nil {
-			return nil, (&er.Error{
-				Package:     "authz/opa",
-				Type:        "load bundle",
-				Description: "failed create request.",
-				Detail:      path,
-			}).Wrap(err)
+			return nil, errorutil.NewSimple(err, "app/opa: failed to load bundle.", "path=%s", path)
 		}
 
 		resp, err := rt.RoundTrip(req)
 		if err != nil {
-			return nil, (&er.Error{
-				Package:     "authz/opa",
-				Type:        "load bundle",
-				Description: "failed to get bundle from endpoint.",
-				Detail:      path,
-			}).Wrap(err)
+			return nil, errorutil.NewSimple(err, "app/opa: failed to load bundle.", "path=%s", path)
 		}
 		defer func() {
 			io.Copy(io.Discard, resp.Body)
@@ -237,22 +226,12 @@ func loadPolicy(path string, rt http.RoundTripper, loader loader.FileLoader) (*b
 		}()
 
 		if resp.StatusCode != http.StatusOK {
-			return nil, (&er.Error{
-				Package:     "authz/opa",
-				Type:        "load bundle",
-				Description: "bundle endpoint returned non 200 OK status.",
-				Detail:      "got " + strconv.Itoa(resp.StatusCode),
-			}).Wrap(err)
+			return nil, errorutil.NewSimple(err, "app/opa: failed to load bundle.", "status=%d", resp.StatusCode)
 		}
 
 		f, err := os.CreateTemp(os.TempDir(), "*.tar.gz")
 		if err != nil {
-			return nil, (&er.Error{
-				Package:     "authz/opa",
-				Type:        "load bundle",
-				Description: "failed to read bundle from response body.",
-				Detail:      path,
-			}).Wrap(err)
+			return nil, errorutil.NewSimple(err, "app/opa: failed to load bundle.", "path=%s", path)
 		}
 
 		// Remove temp tarball.
@@ -262,25 +241,14 @@ func loadPolicy(path string, rt http.RoundTripper, loader loader.FileLoader) (*b
 		_, err = f.ReadFrom(resp.Body)
 		if err != nil {
 			f.Close()
-			return nil, (&er.Error{
-				Package:     "authz/opa",
-				Type:        "load bundle",
-				Description: "failed to read bundle from response body.",
-				Detail:      path,
-			}).Wrap(err)
+			return nil, errorutil.NewSimple(err, "app/opa: failed to load bundle.", "path=%s", path)
 		}
 		f.Close()
 	}
 
 	b, err := loader.AsBundle(path)
 	if err != nil {
-		return nil, (&er.Error{
-			Package:     "authz/opa",
-			Type:        "load bundle",
-			Description: "failed to load bundle.",
-			Detail:      path,
-		}).Wrap(err)
+		return nil, errorutil.NewSimple(err, "app/opa: failed to load bundle.", "path=%s", path)
 	}
-
 	return b, nil
 }

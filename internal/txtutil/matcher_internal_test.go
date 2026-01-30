@@ -9,7 +9,7 @@ import (
 
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
+	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
@@ -121,11 +121,7 @@ func TestNewStringMatcher(t *testing.T) {
 				patterns: []string{""},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeMatcher,
-					Description: ErrDscUnsupported,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported match type."},
 			},
 		),
 		gen(
@@ -135,11 +131,7 @@ func TestNewStringMatcher(t *testing.T) {
 				patterns: []string{"[0-9a-"},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeMatcher,
-					Description: ErrDscPattern,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for Path matcher."},
 			},
 		),
 		gen(
@@ -149,11 +141,7 @@ func TestNewStringMatcher(t *testing.T) {
 				patterns: []string{"[0-9a-"},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeMatcher,
-					Description: ErrDscPattern,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for FilePath matcher."},
 			},
 		),
 		gen(
@@ -163,11 +151,7 @@ func TestNewStringMatcher(t *testing.T) {
 				patterns: []string{"[0-9a-"},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeMatcher,
-					Description: ErrDscPattern,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for Regex matcher."},
 			},
 		),
 		gen(
@@ -177,11 +161,7 @@ func TestNewStringMatcher(t *testing.T) {
 				patterns: []string{"[0-9a-"},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeMatcher,
-					Description: ErrDscPattern,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for RegexPOSIX matcher."},
 			},
 		),
 	}
@@ -300,11 +280,7 @@ func TestNewStringMatchers(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeMatcher,
-					Description: ErrDscUnsupported,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported match type."},
 			},
 		),
 		gen(
@@ -318,11 +294,7 @@ func TestNewStringMatchers(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeMatcher,
-					Description: ErrDscPattern,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for Regex matcher."},
 			},
 		),
 	}
@@ -970,11 +942,7 @@ func TestNewBytesMatchers(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeMatcher,
-					Description: ErrDscUnsupported,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported match type."},
 			},
 		),
 		gen(
@@ -988,11 +956,7 @@ func TestNewBytesMatchers(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeMatcher,
-					Description: ErrDscPattern,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for Regex matcher."},
 			},
 		),
 	}
@@ -1137,11 +1101,7 @@ func TestNewBytesMatcher(t *testing.T) {
 				patterns: []string{""},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeMatcher,
-					Description: ErrDscUnsupported,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported match type."},
 			},
 		),
 		gen(
@@ -1151,11 +1111,7 @@ func TestNewBytesMatcher(t *testing.T) {
 				patterns: []string{"[0-9a-"},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeMatcher,
-					Description: ErrDscPattern,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for Path matcher."},
 			},
 		),
 		gen(
@@ -1165,11 +1121,7 @@ func TestNewBytesMatcher(t *testing.T) {
 				patterns: []string{"[0-9a-"},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeMatcher,
-					Description: ErrDscPattern,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for FilePath matcher."},
 			},
 		),
 		gen(
@@ -1179,11 +1131,7 @@ func TestNewBytesMatcher(t *testing.T) {
 				patterns: []string{"[0-9a-"},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeMatcher,
-					Description: ErrDscPattern,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for Regex matcher."},
 			},
 		),
 		gen(
@@ -1193,11 +1141,7 @@ func TestNewBytesMatcher(t *testing.T) {
 				patterns: []string{"[0-9a-"},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeMatcher,
-					Description: ErrDscPattern,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for RegexPOSIX matcher."},
 			},
 		),
 	}

@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
+	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
@@ -57,11 +57,7 @@ func TestMarshalJSON(t *testing.T) {
 			},
 			&action{
 				out: "",
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeJSON,
-					Description: ErrDscMarshal,
-				},
+				err: &errorutil.SimpleError{Message: "internal/encoder: marshaling from any to json failed."},
 			},
 		),
 	}
@@ -135,11 +131,7 @@ func TestUnmarshalJSON(t *testing.T) {
 			},
 			&action{
 				result: &testStruct{},
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeJSON,
-					Description: ErrDscUnmarshal,
-				},
+				err:    &errorutil.SimpleError{Message: "internal/encoder: unmarshaling json failed."},
 			},
 		),
 	}

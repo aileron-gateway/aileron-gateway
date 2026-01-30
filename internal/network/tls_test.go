@@ -10,7 +10,7 @@ import (
 
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
+	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
@@ -44,11 +44,7 @@ func TestTLSConfig(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeTLS,
-					Description: ErrDscTLS,
-				},
+				err: &errorutil.SimpleError{Message: "internal/network: failed to load root CAs"},
 			},
 		),
 		gen(
@@ -59,11 +55,7 @@ func TestTLSConfig(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeTLS,
-					Description: ErrDscTLS,
-				},
+				err: &errorutil.SimpleError{Message: "internal/network: failed to load root CAs"},
 			},
 		),
 		gen(
@@ -74,11 +66,7 @@ func TestTLSConfig(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeTLS,
-					Description: ErrDscTLS,
-				},
+				err: &errorutil.SimpleError{Message: "internal/network: ClientAuthType must be 0 to 4."},
 			},
 		),
 		gen(
@@ -89,11 +77,7 @@ func TestTLSConfig(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeTLS,
-					Description: ErrDscTLS,
-				},
+				err: &errorutil.SimpleError{Message: "internal/network: RenegotiationSupport must be 0 to 2."},
 			},
 		),
 		gen(
@@ -109,11 +93,7 @@ func TestTLSConfig(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeTLS,
-					Description: ErrDscTLS,
-				},
+				err: &errorutil.SimpleError{Message: "internal/network: failed to load cert file."},
 			},
 		),
 		gen(

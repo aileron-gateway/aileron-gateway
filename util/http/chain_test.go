@@ -14,7 +14,7 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
+	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
@@ -157,11 +157,7 @@ func TestHandler(t *testing.T) {
 			},
 			&action{
 				result: "",
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeUtil,
-					Description: api.ErrDscAssert,
-				},
+				err:    &errorutil.SimpleError{Message: "kernel/api: type assertion failed."},
 			},
 		),
 		gen(
@@ -176,11 +172,7 @@ func TestHandler(t *testing.T) {
 			},
 			&action{
 				result: "",
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeUtil,
-					Description: api.ErrDscNil,
-				},
+				err:    &errorutil.SimpleError{Message: "kernel/api: nil reference was given."},
 			},
 		),
 		gen(
@@ -193,11 +185,7 @@ func TestHandler(t *testing.T) {
 			},
 			&action{
 				result: "",
-				err: &er.Error{
-					Package:     utilhttp.ErrPkg,
-					Type:        utilhttp.ErrTypeChain,
-					Description: utilhttp.ErrDscAssert,
-				},
+				err:    &errorutil.SimpleError{Message: "util/http: type assertion failed."},
 			},
 		),
 		gen(
@@ -210,11 +198,7 @@ func TestHandler(t *testing.T) {
 			},
 			&action{
 				result: "",
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeUtil,
-					Description: api.ErrDscNil,
-				},
+				err:    &errorutil.SimpleError{Message: "kernel/api: nil reference was given."},
 			},
 		),
 	}

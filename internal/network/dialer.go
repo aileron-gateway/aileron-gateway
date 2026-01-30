@@ -14,7 +14,7 @@ import (
 	"time"
 
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
+	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
 	"github.com/aileron-projects/go/znet"
 	"github.com/aileron-projects/go/zsyscall"
 )
@@ -162,12 +162,7 @@ func NewDialerFromSpec(spec *k.DialConfig) (Dialer, error) {
 	}
 	tlsConfig, err := TLSConfig(spec.TLSConfig)
 	if err != nil {
-		return nil, (&er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeDialer,
-			Description: ErrDscDialer,
-			Detail:      "create new dialer.",
-		}).Wrap(err)
+		return nil, errorutil.NewSimple(err, "internal/network: failed to create new dialer", "")
 	}
 	config := &DialConfig{
 		TLSConfig:      tlsConfig,
@@ -186,12 +181,7 @@ func NewDialerFromSpec(spec *k.DialConfig) (Dialer, error) {
 // This function returns an error if nil config was given by an argument.
 func NewDialer(c *DialConfig) (Dialer, error) {
 	if c == nil {
-		return nil, &er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeDialer,
-			Description: ErrDscDialer,
-			Detail:      "nil spec was given to new dialer.",
-		}
+		return nil, errorutil.NewSimple(nil, "internal/network: nil dialer spec", "")
 	}
 
 	network, address := znet.ParseNetAddr(c.LocalAddress)
@@ -200,12 +190,7 @@ func NewDialer(c *DialConfig) (Dialer, error) {
 		addr, err := resolveAddr(network, address)
 		fmt.Println(network, address, addr, err)
 		if err != nil {
-			return nil, (&er.Error{
-				Package:     ErrPkg,
-				Type:        ErrTypeDialer,
-				Description: ErrDscDialer,
-				Detail:      "create new dialer.",
-			}).Wrap(err)
+			return nil, errorutil.NewSimple(err, "internal/network: failed to create new dialer", "")
 		}
 		localAddr = addr
 	}
@@ -228,12 +213,7 @@ func NewDialer(c *DialConfig) (Dialer, error) {
 	var err error
 	d, err = newReplaceTargetDialer(c.ReplaceTargets, d)
 	if err != nil {
-		return nil, (&er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeDialer,
-			Description: ErrDscDialer,
-			Detail:      "create new dialer.",
-		}).Wrap(err)
+		return nil, errorutil.NewSimple(err, "internal/network: failed to create new dialer", "")
 	}
 	return d, nil
 }
