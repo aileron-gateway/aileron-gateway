@@ -11,7 +11,7 @@ import (
 
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
+	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
@@ -47,11 +47,7 @@ func TestNewStringReplacers(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscUnsupported,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported replacer type."},
 			},
 		),
 		gen(
@@ -126,11 +122,7 @@ func TestNewStringReplacer(t *testing.T) {
 				spec: nil,
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscNil,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: nil replacer spec."},
 			},
 		),
 		gen(
@@ -140,11 +132,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscUnsupported,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported replacer type."},
 			},
 		),
 		gen(
@@ -592,11 +580,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscUnsupported,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported encoding."},
 			},
 		),
 		gen(
@@ -647,11 +631,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscUnsupported,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported hash algorithm."},
 			},
 		),
 		gen(
@@ -665,11 +645,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscUnsupported,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported hash algorithm."},
 			},
 		),
 		gen(
@@ -683,11 +659,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscUnsupported,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported encoding."},
 			},
 		),
 		gen(
@@ -740,11 +712,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscPattern,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: empty string for reqular expression."},
 			},
 		),
 		gen(
@@ -758,11 +726,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscPattern,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for Regex."},
 			},
 		),
 		gen(
@@ -777,11 +741,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscPattern,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for RegexPOSIX."},
 			},
 		),
 		gen(
@@ -859,11 +819,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscPattern,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: empty string for reqular expression."},
 			},
 		),
 		gen(
@@ -877,11 +833,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscPattern,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for Regex."},
 			},
 		),
 		gen(
@@ -896,11 +848,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscPattern,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for RegexPOSIX."},
 			},
 		),
 		gen(
@@ -954,11 +902,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscUnsupported,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported encryption."},
 			},
 		),
 		gen(
@@ -973,11 +917,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscUnsupported,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported encryption."},
 			},
 		),
 		gen(
@@ -992,11 +932,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscUnsupported,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported encoding."},
 			},
 		),
 		gen(
@@ -1055,11 +991,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscPattern,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: encryption password is not hex encoded."},
 			},
 		),
 		gen(
@@ -1114,11 +1046,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscUnsupported,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported hmac algorithm."},
 			},
 		),
 		gen(
@@ -1132,11 +1060,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscUnsupported,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported hmac algorithm."},
 			},
 		),
 		gen(
@@ -1150,11 +1074,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscUnsupported,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported encoding."},
 			},
 		),
 		gen(
@@ -1170,11 +1090,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscPattern,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: hmac key is not hex encoded."},
 			},
 		),
 		gen(
@@ -1280,11 +1196,7 @@ func TestNewBytesReplacers(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscUnsupported,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported replacer."},
 			},
 		),
 		gen(
@@ -1359,11 +1271,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				spec: nil,
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscNil,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: nil replacer spec."},
 			},
 		),
 		gen(
@@ -1373,11 +1281,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscUnsupported,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported replacer."},
 			},
 		),
 		gen(
@@ -1824,11 +1728,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscUnsupported,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported encoding."},
 			},
 		),
 		gen(
@@ -1882,11 +1782,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscUnsupported,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported hash algorithm."},
 			},
 		),
 		gen(
@@ -1901,11 +1797,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscUnsupported,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported hash algorithm."},
 			},
 		),
 		gen(
@@ -1920,11 +1812,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscUnsupported,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported encoding."},
 			},
 		),
 		gen(
@@ -1980,11 +1868,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscPattern,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: empty string for reqular expression."},
 			},
 		),
 		gen(
@@ -1999,11 +1883,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscPattern,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for Regex."},
 			},
 		),
 		gen(
@@ -2019,11 +1899,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscPattern,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for RegexPOSIX."},
 			},
 		),
 		gen(
@@ -2105,11 +1981,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscPattern,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: empty string for reqular expression."},
 			},
 		),
 		gen(
@@ -2124,11 +1996,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscPattern,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for Regex."},
 			},
 		),
 		gen(
@@ -2144,11 +2012,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscPattern,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for RegexPOSIX."},
 			},
 		),
 		gen(
@@ -2205,11 +2069,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscUnsupported,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported encryption."},
 			},
 		),
 		gen(
@@ -2225,11 +2085,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscUnsupported,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported encryption."},
 			},
 		),
 		gen(
@@ -2245,11 +2101,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscUnsupported,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported encoding."},
 			},
 		),
 		gen(
@@ -2311,11 +2163,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscPattern,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: encryption password is not hex encoded."},
 			},
 		),
 		gen(
@@ -2373,11 +2221,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscUnsupported,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported hmac algorithm."},
 			},
 		),
 		gen(
@@ -2392,11 +2236,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscUnsupported,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported hmac algorithm."},
 			},
 		),
 		gen(
@@ -2411,11 +2251,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscUnsupported,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported encoding."},
 			},
 		),
 		gen(
@@ -2432,11 +2268,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeReplacer,
-					Description: ErrDscPattern,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: hmac key is not hex encoded."},
 			},
 		),
 		gen(

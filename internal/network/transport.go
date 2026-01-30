@@ -13,7 +13,7 @@ import (
 	"time"
 
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
+	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
 	"github.com/quic-go/quic-go"
 	"github.com/quic-go/quic-go/http3"
 	"golang.org/x/net/http2"
@@ -48,12 +48,7 @@ func HTTPTransport(spec *k.HTTPTransportConfig) (*http.Transport, error) {
 
 	tlsConfig, err := TLSConfig(spec.TLSConfig)
 	if err != nil {
-		return nil, (&er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeTransport,
-			Description: ErrDscNewTransport,
-			Detail:      "target transport is HTTP.",
-		}).Wrap(err)
+		return nil, errorutil.NewSimple(err, "internal/network: failed to create a new HTTP transport.", "")
 	}
 
 	transport := &http.Transport{
@@ -87,12 +82,7 @@ func HTTPTransport(spec *k.HTTPTransportConfig) (*http.Transport, error) {
 		spec.DialConfig.TLSConfig = cmp.Or(spec.DialConfig.TLSConfig, spec.TLSConfig)
 		dialer, err := NewDialerFromSpec(spec.DialConfig)
 		if err != nil {
-			return nil, (&er.Error{
-				Package:     ErrPkg,
-				Type:        ErrTypeTransport,
-				Description: ErrDscNewTransport,
-				Detail:      "target transport is HTTP.",
-			}).Wrap(err)
+			return nil, errorutil.NewSimple(err, "internal/network: failed to create a new HTTP transport.", "")
 		}
 		transport.DialContext = dialer.DialContext
 		transport.DialTLSContext = dialer.DialContext
@@ -110,12 +100,7 @@ func HTTP2Transport(spec *k.HTTP2TransportConfig) (*http2.Transport, error) {
 
 	tlsConfig, err := TLSConfig(spec.TLSConfig)
 	if err != nil {
-		return nil, (&er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeTransport,
-			Description: ErrDscNewTransport,
-			Detail:      "target transport is HTTP2.",
-		}).Wrap(err)
+		return nil, errorutil.NewSimple(err, "internal/network: failed to create a new HTTP2 transport.", "")
 	}
 	if tlsConfig != nil && !slices.Contains(tlsConfig.NextProtos, http2.NextProtoTLS) {
 		tlsConfig.NextProtos = append([]string{http2.NextProtoTLS}, tlsConfig.NextProtos...)
@@ -157,12 +142,7 @@ func HTTP2Transport(spec *k.HTTP2TransportConfig) (*http2.Transport, error) {
 		}
 		dialer, err := NewDialerFromSpec(spec.DialConfig)
 		if err != nil {
-			return nil, (&er.Error{
-				Package:     ErrPkg,
-				Type:        ErrTypeTransport,
-				Description: ErrDscNewTransport,
-				Detail:      "target transport is HTTP2.",
-			}).Wrap(err)
+			return nil, errorutil.NewSimple(err, "internal/network: failed to create a new HTTP2 transport.", "")
 		}
 		transport.DialTLSContext = func(ctx context.Context, network, addr string, _ *tls.Config) (net.Conn, error) {
 			return dialer.DialContext(ctx, network, addr)
@@ -181,12 +161,7 @@ func HTTP3Transport(spec *k.HTTP3TransportConfig) (*http3.Transport, error) {
 
 	tlsConfig, err := TLSConfig(spec.TLSConfig)
 	if err != nil {
-		return nil, (&er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeTransport,
-			Description: ErrDscNewTransport,
-			Detail:      "target transport is HTTP3.",
-		}).Wrap(err)
+		return nil, errorutil.NewSimple(err, "internal/network: failed to create a new HTTP3 transport.", "")
 	}
 
 	// Function QuicConfig does not return any error for now.

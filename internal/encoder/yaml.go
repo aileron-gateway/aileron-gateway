@@ -7,7 +7,7 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
+	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
 	"gopkg.in/yaml.v3"
 )
 
@@ -20,12 +20,7 @@ func MarshalYAML(in any) (b []byte, err error) {
 	// Recover panic of enc.Encode if any.
 	defer func() {
 		if e := recover(); e != nil {
-			err = (&er.Error{
-				Package:     ErrPkg,
-				Type:        ErrTypeYaml,
-				Description: ErrDscMarshal,
-				Detail:      "from any to yaml",
-			}).Wrap(fmt.Errorf("%v", e))
+			err = errorutil.NewSimple(fmt.Errorf("%v", e), "internal/encoder: marshaling from any to yaml failed.", "")
 		}
 	}()
 	var buf bytes.Buffer
@@ -44,12 +39,7 @@ func UnmarshalYAML(in []byte, into any) error {
 	}
 	err := yaml.Unmarshal(in, into)
 	if err != nil {
-		return (&er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeYaml,
-			Description: ErrDscUnmarshal,
-			Detail:      string(addLineNumber(in)),
-		}).Wrap(err)
+		return errorutil.NewSimple(err, "internal/encoder: unmarshaling yaml failed.", "%s", string(addLineNumber(in)))
 	}
 	return nil
 }

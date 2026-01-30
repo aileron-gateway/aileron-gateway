@@ -12,14 +12,14 @@ const (
 )
 
 // New creates a new error attribute.
-func New(code, kind, msg string, stack []byte, err error) *ErrorAttrs {
+func New(code, kind, msg string, stack []byte, cause error) *ErrorAttrs {
 	return &ErrorAttrs{
 		code:  code,
 		kind:  kind,
 		stack: stack,
 		name:  keyError,
 		msg:   msg,
-		err:   err,
+		cause: cause,
 	}
 }
 
@@ -32,7 +32,7 @@ type ErrorAttrs struct {
 	stack []byte
 	name  string
 	msg   string
-	err   error
+	cause error
 }
 
 // Error returns an error string.
@@ -80,9 +80,9 @@ func (e *ErrorAttrs) KeyValues() []any {
 	}
 }
 
-// Unwrap returns an internal error.
+// Unwrap returns the internal error.
 func (e *ErrorAttrs) Unwrap() error {
-	return e.err
+	return e.cause
 }
 
 // Is checks if the given error is the same as this error.

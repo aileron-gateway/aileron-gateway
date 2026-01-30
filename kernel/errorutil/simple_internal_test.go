@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-FileCopyrightText: Copyright The AILERON Gateway Authors
 
-package er
+package errorutil
 
 import (
-	"errors"
 	"io"
 	"testing"
 
@@ -12,74 +11,19 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
-func TestError_Wrap(t *testing.T) {
-	type condition struct {
-		err  *Error
-		wrap error
+func TestNewSimple(t *testing.T) {
+	e := NewSimple(io.EOF, "message", "foo=%s", "bar")
+	want := &SimpleError{
+		Cause:   io.EOF,
+		Message: "message",
+		Detail:  "foo=bar",
 	}
-
-	type action struct {
-		err *Error
-	}
-
-	gen := testutil.NewCase[*condition, *action]
-	testCases := []*testutil.Case[*condition, *action]{
-		gen(
-			"wrap nil",
-			&condition{
-				err: &Error{
-					inner: nil,
-				},
-				wrap: nil,
-			},
-			&action{
-				err: &Error{
-					inner: nil,
-				},
-			},
-		),
-		gen(
-			"wrap non-nil",
-			&condition{
-				err: &Error{
-					inner: nil,
-				},
-				wrap: io.EOF,
-			},
-			&action{
-				err: &Error{
-					inner: io.EOF,
-				},
-			},
-		),
-		gen(
-			"wrap already existing non-nil",
-			&condition{
-				err: &Error{
-					inner: io.ErrUnexpectedEOF,
-				},
-				wrap: io.EOF,
-			},
-			&action{
-				err: &Error{
-					inner: errors.Join(io.EOF, io.ErrUnexpectedEOF),
-				},
-			},
-		),
-	}
-
-	for _, tt := range testCases {
-		tt := tt
-		t.Run(tt.Name, func(t *testing.T) {
-			err := tt.C.err.Wrap(tt.C.wrap)
-			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
-		})
-	}
+	testutil.Diff(t, want, e, cmpopts.EquateErrors())
 }
 
-func TestError_Unwrap(t *testing.T) {
+func TestSimpleError_Unwrap(t *testing.T) {
 	type condition struct {
-		err *Error
+		err *SimpleError
 	}
 
 	type action struct {
@@ -91,8 +35,8 @@ func TestError_Unwrap(t *testing.T) {
 		gen(
 			"nil error",
 			&condition{
-				err: &Error{
-					inner: nil,
+				err: &SimpleError{
+					Cause: nil,
 				},
 			},
 			&action{
@@ -102,8 +46,8 @@ func TestError_Unwrap(t *testing.T) {
 		gen(
 			"non nil error",
 			&condition{
-				err: &Error{
-					inner: io.EOF,
+				err: &SimpleError{
+					Cause: io.EOF,
 				},
 			},
 			&action{
@@ -129,9 +73,9 @@ func (e *testWrapErr) Unwrap() error {
 	return e.error
 }
 
-func TestError_Is(t *testing.T) {
+func TestSimpleError_Is(t *testing.T) {
 	type condition struct {
-		err    *Error
+		err    *SimpleError
 		target error
 	}
 
@@ -154,8 +98,8 @@ func TestError_Is(t *testing.T) {
 		gen(
 			"match empty",
 			&condition{
-				err:    &Error{},
-				target: &Error{},
+				err:    &SimpleError{},
+				target: &SimpleError{},
 			},
 			&action{
 				is: true,
@@ -164,17 +108,15 @@ func TestError_Is(t *testing.T) {
 		gen(
 			"match all",
 			&condition{
-				err: &Error{
-					Package:     "err",
-					Type:        "type",
-					Description: "desc",
-					inner:       io.EOF,
-					Detail:      "detail",
+				err: &SimpleError{
+					Cause:   io.EOF,
+					Message: "message",
+					Detail:  "detail",
 				},
-				target: &Error{
-					Package:     "err",
-					Type:        "type",
-					Description: "desc",
+				target: &SimpleError{
+					Cause:   io.EOF,
+					Message: "message",
+					Detail:  "detail",
 				},
 			},
 			&action{
@@ -182,41 +124,31 @@ func TestError_Is(t *testing.T) {
 			},
 		),
 		gen(
-			"package not match",
+			"message not match",
 			&condition{
-				err:    &Error{Package: "err"},
-				target: &Error{},
+				err:    &SimpleError{Message: "foo"},
+				target: &SimpleError{Message: "bar"},
 			},
 			&action{
 				is: false,
 			},
 		),
 		gen(
-			"Type not match",
+			"detail not match",
 			&condition{
-				err:    &Error{Type: "err"},
-				target: &Error{},
+				err:    &SimpleError{Detail: "foo"},
+				target: &SimpleError{Detail: "bar"},
 			},
 			&action{
-				is: false,
-			},
-		),
-		gen(
-			"description not match",
-			&condition{
-				err:    &Error{Description: "err"},
-				target: &Error{},
-			},
-			&action{
-				is: false,
+				is: true,
 			},
 		),
 		gen(
 			"match after unwrap",
 			&condition{
-				err: &Error{Package: "test"},
+				err: &SimpleError{Message: "test"},
 				target: &testWrapErr{
-					error: &Error{Package: "test"},
+					error: &SimpleError{Message: "test"},
 				},
 			},
 			&action{
@@ -226,7 +158,7 @@ func TestError_Is(t *testing.T) {
 		gen(
 			"not match after unwrap",
 			&condition{
-				err: &Error{Package: "test"},
+				err: &SimpleError{Message: "test"},
 				target: &testWrapErr{
 					error: io.EOF,
 				},
@@ -246,9 +178,9 @@ func TestError_Is(t *testing.T) {
 	}
 }
 
-func TestError_Error(t *testing.T) {
+func TestSimpleError_Error(t *testing.T) {
 	type condition struct {
-		err *Error
+		err *SimpleError
 	}
 
 	type action struct {
@@ -260,16 +192,14 @@ func TestError_Error(t *testing.T) {
 		gen(
 			"all",
 			&condition{
-				err: &Error{
-					inner:       io.EOF,
-					Package:     "pkg",
-					Type:        "type",
-					Description: "desc",
-					Detail:      "detail",
+				err: &SimpleError{
+					Cause:   io.EOF,
+					Message: "message",
+					Detail:  "detail",
 				},
 			},
 			&action{
-				err: "pkg: type: desc detail [ EOF ]",
+				err: "message detail [ EOF ]",
 			},
 		),
 	}

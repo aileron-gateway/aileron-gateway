@@ -14,7 +14,7 @@ import (
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/internal/network"
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
+	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/quic-go/quic-go"
@@ -235,12 +235,8 @@ func TestHTTPTransport(t *testing.T) {
 				},
 			},
 			&action{
-				tp: nil,
-				err: &er.Error{
-					Package:     network.ErrPkg,
-					Type:        network.ErrTypeTransport,
-					Description: network.ErrDscNewTransport,
-				},
+				tp:  nil,
+				err: &errorutil.SimpleError{Message: "internal/network: failed to create a new HTTP transport."},
 			},
 		),
 		gen(
@@ -287,12 +283,8 @@ func TestHTTPTransport(t *testing.T) {
 				},
 			},
 			&action{
-				tp: nil,
-				err: &er.Error{
-					Package:     network.ErrPkg,
-					Type:        network.ErrTypeTransport,
-					Description: network.ErrDscNewTransport,
-				},
+				tp:  nil,
+				err: &errorutil.SimpleError{Message: "internal/network: failed to create a new HTTP transport."},
 			},
 		),
 	}
@@ -417,12 +409,8 @@ func TestHTTP2Transport(t *testing.T) {
 				},
 			},
 			&action{
-				tp: nil,
-				err: &er.Error{
-					Package:     network.ErrPkg,
-					Type:        network.ErrTypeTransport,
-					Description: network.ErrDscNewTransport,
-				},
+				tp:  nil,
+				err: &errorutil.SimpleError{Message: "internal/network: failed to create a new HTTP2 transport."},
 			},
 		),
 		gen(
@@ -461,12 +449,8 @@ func TestHTTP2Transport(t *testing.T) {
 				},
 			},
 			&action{
-				tp: nil,
-				err: &er.Error{
-					Package:     network.ErrPkg,
-					Type:        network.ErrTypeTransport,
-					Description: network.ErrDscNewTransport,
-				},
+				tp:  nil,
+				err: &errorutil.SimpleError{Message: "internal/network: failed to create a new HTTP2 transport."},
 			},
 		),
 	}
@@ -608,12 +592,8 @@ func TestHTTP3Transport(t *testing.T) {
 				},
 			},
 			&action{
-				rt: nil,
-				err: &er.Error{
-					Package:     network.ErrPkg,
-					Type:        network.ErrTypeTransport,
-					Description: network.ErrDscNewTransport,
-				},
+				rt:  nil,
+				err: &errorutil.SimpleError{Message: "internal/network: failed to create a new HTTP3 transport."},
 			},
 		),
 	}

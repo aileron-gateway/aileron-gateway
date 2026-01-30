@@ -11,7 +11,7 @@ import (
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
+	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -150,11 +150,7 @@ func TestBaseResource(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeFactory,
-					Description: api.ErrDscProtoValidate,
-				},
+				err: &errorutil.SimpleError{Message: "kernel/api: validating proto message failed."},
 			},
 		),
 	}
@@ -239,11 +235,7 @@ func TestFactoryAPI_Serve(t *testing.T) {
 			},
 			&action{
 				res: nil,
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeFactory,
-					Description: api.ErrDscNoManifest,
-				},
+				err: &errorutil.SimpleError{Message: "kernel/api: manifest not found."},
 			},
 		),
 		gen(
@@ -263,11 +255,7 @@ func TestFactoryAPI_Serve(t *testing.T) {
 			},
 			&action{
 				res: nil,
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeUtil,
-					Description: api.ErrDscAssert,
-				},
+				err: &errorutil.SimpleError{Message: "kernel/api: type assertion failed."},
 			},
 		),
 		gen(
@@ -287,11 +275,7 @@ func TestFactoryAPI_Serve(t *testing.T) {
 			},
 			&action{
 				res: nil,
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeUtil,
-					Description: api.ErrDscAssert,
-				},
+				err: &errorutil.SimpleError{Message: "kernel/api: type assertion failed."},
 			},
 		),
 		gen(
@@ -311,11 +295,7 @@ func TestFactoryAPI_Serve(t *testing.T) {
 			},
 			&action{
 				res: nil,
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeUtil,
-					Description: api.ErrDscAssert,
-				},
+				err: &errorutil.SimpleError{Message: "kernel/api: type assertion failed."},
 			},
 		),
 		gen(
@@ -328,11 +308,7 @@ func TestFactoryAPI_Serve(t *testing.T) {
 			},
 			&action{
 				res: nil,
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeFactory,
-					Description: api.ErrDscNil,
-				},
+				err: &errorutil.SimpleError{Message: "kernel/api: request is nil."},
 			},
 		),
 		gen(
@@ -348,11 +324,7 @@ func TestFactoryAPI_Serve(t *testing.T) {
 			},
 			&action{
 				res: nil,
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeFactory,
-					Description: api.ErrDscNoAPI,
-				},
+				err: &errorutil.SimpleError{Message: "kernel/api: api is not registered."},
 			},
 		),
 		gen(
@@ -370,11 +342,7 @@ func TestFactoryAPI_Serve(t *testing.T) {
 			},
 			&action{
 				res: nil,
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeFactory,
-					Description: api.ErrDscNoMethod,
-				},
+				err: &errorutil.SimpleError{Message: "kernel/api: method not implemented."},
 			},
 		),
 	}

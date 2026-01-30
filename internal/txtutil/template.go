@@ -9,7 +9,7 @@ import (
 	"strconv"
 	ttpl "text/template"
 
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
+	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
 )
 
 // TemplateType is type of document template.
@@ -45,7 +45,7 @@ func NewTemplate(typ TemplateType, tpl string) (Template, error) {
 	case TplGoText:
 		template, err := ttpl.New("").Parse(tpl)
 		if err != nil {
-			return nil, (&er.Error{Package: ErrPkg, Type: ErrTypeTemplate, Description: ErrDscTemplate, Detail: "GoText `" + tpl + "`"}).Wrap(err)
+			return nil, errorutil.NewSimple(err, "internal/txtutil: failed to create GoText template", "")
 		}
 		return &goTextTemplate{
 			tpl:      template,
@@ -55,7 +55,7 @@ func NewTemplate(typ TemplateType, tpl string) (Template, error) {
 	case TplGoHTML:
 		template, err := htpl.New("").Parse(tpl)
 		if err != nil {
-			return nil, (&er.Error{Package: ErrPkg, Type: ErrTypeTemplate, Description: ErrDscTemplate, Detail: "GoHTML `" + tpl + "`"}).Wrap(err)
+			return nil, errorutil.NewSimple(err, "internal/txtutil: failed to create GoHTML template", "")
 		}
 		return &goHTMLTemplate{
 			tpl:      template,
@@ -63,7 +63,7 @@ func NewTemplate(typ TemplateType, tpl string) (Template, error) {
 		}, nil
 
 	default:
-		return nil, (&er.Error{Package: ErrPkg, Type: ErrTypeTemplate, Description: ErrDscUnsupported, Detail: strconv.Itoa(int(typ))})
+		return nil, errorutil.NewSimple(nil, "internal/txtutil: unsupported template type.", "type=%s", strconv.Itoa(int(typ)))
 	}
 }
 

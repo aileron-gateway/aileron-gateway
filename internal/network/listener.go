@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
+	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
 	"github.com/aileron-projects/go/znet"
 	"github.com/aileron-projects/go/zsyscall"
 )
@@ -102,12 +102,7 @@ func NewListenerFromSpec(spec *kernel.ListenConfig) (net.Listener, error) {
 
 	tlsConfig, err := TLSConfig(spec.TLSConfig)
 	if err != nil {
-		return nil, (&er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeListener,
-			Description: ErrDscListener,
-			Detail:      "create new listener.",
-		}).Wrap(err)
+		return nil, errorutil.NewSimple(err, "internal/network: failed to create new listener", "")
 	}
 
 	config := &ListenConfig{
@@ -147,12 +142,7 @@ func NewListenerFromSpec(spec *kernel.ListenConfig) (net.Listener, error) {
 //   - "unix", "/var/run/example.sock"
 func NewListener(c *ListenConfig) (net.Listener, error) {
 	if c == nil {
-		return nil, &er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeListener,
-			Description: ErrDscListener,
-			Detail:      "nil spec was given to new listener.",
-		}
+		return nil, errorutil.NewSimple(nil, "internal/network: nil listener spec", "")
 	}
 
 	lc := &net.ListenConfig{
@@ -181,12 +171,7 @@ func NewListener(c *ListenConfig) (net.Listener, error) {
 		err = errors.New("kernel/network: unknown address `" + c.Address + "`")
 	}
 	if err != nil {
-		return nil, (&er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeListener,
-			Description: ErrDscListener,
-			Detail:      "create new listener.",
-		}).Wrap(err)
+		return nil, errorutil.NewSimple(err, "internal/network: failed to create new listener", "")
 	}
 
 	if c.ReadDeadline != 0 || c.WriteDeadline != 0 {
@@ -200,12 +185,7 @@ func NewListener(c *ListenConfig) (net.Listener, error) {
 		wln, err := znet.NewWhiteListListener(ln, c.Networks...)
 		if err != nil {
 			ln.Close() // Make sure to close internal listener.
-			return nil, (&er.Error{
-				Package:     ErrPkg,
-				Type:        ErrTypeListener,
-				Description: ErrDscListener,
-				Detail:      "create new listener.",
-			}).Wrap(err)
+			return nil, errorutil.NewSimple(err, "internal/network: failed to create new listener", "")
 		}
 		ln = wln
 	}

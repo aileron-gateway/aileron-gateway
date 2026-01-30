@@ -4,7 +4,7 @@
 package encoder
 
 import (
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
+	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -29,12 +29,7 @@ func MarshalProto(in protoreflect.ProtoMessage, opt *proto.MarshalOptions) ([]by
 	}
 	b, err := opt.Marshal(in)
 	if err != nil {
-		return nil, (&er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeProto,
-			Description: ErrDscMarshal,
-			Detail:      "from ProtoMessage to proto",
-		}).Wrap(err)
+		return nil, errorutil.NewSimple(err, "internal/encoder: unmarshaling from ProtoMessage to proto failed.", "")
 	}
 	return b, nil
 }
@@ -61,12 +56,7 @@ func UnmarshalProto(in []byte, into protoreflect.ProtoMessage, opt *proto.Unmars
 		}
 	}
 	if err := opt.Unmarshal(in, into); err != nil {
-		return (&er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeProto,
-			Description: ErrDscUnmarshal,
-			Detail:      "from proto to ProtoMessage",
-		}).Wrap(err)
+		return errorutil.NewSimple(err, "internal/encoder: unmarshaling from proto to ProtoMessage failed.", "")
 	}
 	return nil
 }
@@ -91,12 +81,7 @@ func UnmarshalProtoFromJSON(in []byte, into protoreflect.ProtoMessage, opt *prot
 		}
 	}
 	if err := opt.Unmarshal(in, into); err != nil {
-		return (&er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeProto,
-			Description: ErrDscUnmarshal,
-			Detail:      string(addLineNumber(in)),
-		}).Wrap(err)
+		return errorutil.NewSimple(err, "internal/encoder: unmarshaling from json to proto failed.", "%s", string(addLineNumber(in)))
 	}
 	return nil
 }
@@ -129,11 +114,7 @@ func MarshalProtoToJSON(in protoreflect.ProtoMessage, opt *protojson.MarshalOpti
 	}
 	b, err := opt.Marshal(in)
 	if err != nil {
-		return nil, (&er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeProto,
-			Description: ErrDscMarshal,
-		}).Wrap(err)
+		return nil, errorutil.NewSimple(err, "internal/encoder: marshaling from proto to json failed.", "")
 	}
 	return b, nil
 }

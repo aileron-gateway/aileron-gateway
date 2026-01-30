@@ -9,10 +9,9 @@ import (
 	"testing"
 
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
-	"github.com/aileron-gateway/aileron-gateway/internal/encoder"
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
+	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -71,11 +70,7 @@ func TestFormat_Unmarshal(t *testing.T) {
 			},
 			&action{
 				result: &testStruct{},
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeUtil,
-					Description: api.ErrDscFormatSupport,
-				},
+				err:    &errorutil.SimpleError{Message: "kernel/api: unsupported format."},
 			},
 		),
 	}
@@ -280,11 +275,7 @@ func TestProtoMessage(t *testing.T) {
 			},
 			&action{
 				msg: nil,
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeUtil,
-					Description: api.ErrDscAssert,
-				},
+				err: &errorutil.SimpleError{Message: "kernel/api: type assertion failed."},
 			},
 		),
 		gen(
@@ -331,11 +322,7 @@ func TestProtoMessage(t *testing.T) {
 			},
 			&action{
 				msg: nil,
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeUtil,
-					Description: api.ErrDscAssert,
-				},
+				err: &errorutil.SimpleError{Message: "kernel/api: type assertion failed."},
 			},
 		),
 		gen(
@@ -391,11 +378,7 @@ func TestProtoMessage(t *testing.T) {
 			},
 			&action{
 				msg: nil,
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeUtil,
-					Description: api.ErrDscAssert,
-				},
+				err: &errorutil.SimpleError{Message: "kernel/api: type assertion failed."},
 			},
 		),
 		gen(
@@ -451,11 +434,7 @@ func TestProtoMessage(t *testing.T) {
 			},
 			&action{
 				msg: nil,
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeUtil,
-					Description: api.ErrDscAssert,
-				},
+				err: &errorutil.SimpleError{Message: "kernel/api: type assertion failed."},
 			},
 		),
 		gen(
@@ -528,12 +507,8 @@ func TestParseID(t *testing.T) {
 				msg: nil,
 			},
 			&action{
-				id: "",
-				err: &er.Error{
-					Package:     encoder.ErrPkg,
-					Type:        encoder.ErrTypeJSON,
-					Description: encoder.ErrDscUnmarshal,
-				},
+				id:  "",
+				err: &errorutil.SimpleError{Message: "internal/encoder: unmarshaling json failed."},
 			},
 		),
 		gen(
@@ -541,12 +516,8 @@ func TestParseID(t *testing.T) {
 				msg: *new(protoreflect.ProtoMessage),
 			},
 			&action{
-				id: "",
-				err: &er.Error{
-					Package:     encoder.ErrPkg,
-					Type:        encoder.ErrTypeJSON,
-					Description: encoder.ErrDscUnmarshal,
-				},
+				id:  "",
+				err: &errorutil.SimpleError{Message: "internal/encoder: unmarshaling json failed."},
 			},
 		),
 	}
@@ -617,11 +588,7 @@ func TestReferObject(t *testing.T) {
 				ref: nil,
 			},
 			&action{
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeUtil,
-					Description: api.ErrDscNil,
-				},
+				err: &errorutil.SimpleError{Message: "kernel/api: nil reference was given."},
 			},
 		),
 	}
@@ -675,11 +642,7 @@ func TestReferTypedObject(t *testing.T) {
 			},
 			&action{
 				obj: "", // Zero value of string is returned when error.
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeUtil,
-					Description: api.ErrDscAssert,
-				},
+				err: &errorutil.SimpleError{Message: "kernel/api: type assertion failed."},
 			},
 		),
 		gen(
@@ -704,11 +667,7 @@ func TestReferTypedObject(t *testing.T) {
 			},
 			&action{
 				obj: "", // Zero value of string is returned when error.
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeUtil,
-					Description: api.ErrDscNil,
-				},
+				err: &errorutil.SimpleError{Message: "kernel/api: nil reference was given."},
 			},
 		),
 	}
@@ -786,11 +745,7 @@ func TestReferTypedObjects(t *testing.T) {
 			},
 			&action{
 				obj: []string(nil), // Typed nil slice is returned when error.
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeUtil,
-					Description: api.ErrDscAssert,
-				},
+				err: &errorutil.SimpleError{Message: "kernel/api: type assertion failed."},
 			},
 		),
 		gen(

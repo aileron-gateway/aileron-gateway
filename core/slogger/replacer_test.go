@@ -11,8 +11,7 @@ import (
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
-	"github.com/aileron-gateway/aileron-gateway/internal/txtutil"
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
+	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
@@ -139,11 +138,7 @@ func TestNewReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     txtutil.ErrPkg,
-					Type:        txtutil.ErrTypeReplacer,
-					Description: txtutil.ErrDscPattern,
-				},
+				err: &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for Regex."},
 			},
 		),
 	}

@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"github.com/aileron-gateway/aileron-gateway/core"
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
+	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
 	"github.com/aileron-projects/go/ztime/zbackoff"
 )
 
@@ -69,11 +69,7 @@ func (t *retry) Tripperware(next http.RoundTripper) http.RoundTripper {
 		// i.e. Make it possible to read the request body multiple times.
 		newReq, err := setupRewindBody(r)
 		if err != nil {
-			return nil, (&er.Error{
-				Package:     ErrPkg,
-				Type:        ErrTypeRetry,
-				Description: ErrDescRetryFail,
-			}).Wrap(err)
+			return nil, errorutil.NewSimple(err, "core/httpclient: sending request failed after retry.", "")
 		}
 		r = newReq
 
@@ -118,12 +114,7 @@ func (t *retry) Tripperware(next http.RoundTripper) http.RoundTripper {
 
 		// Request was not completed successfully.
 		// Return all the accumulated errors.
-		return nil, (&er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeRetry,
-			Description: ErrDescRetryFail,
-			Detail:      strings.Join(errs, "; "),
-		}).Wrap(err)
+		return nil, errorutil.NewSimple(err, "core/httpclient: sending request failed after retry.", "%s", strings.Join(errs, "; "))
 	})
 }
 

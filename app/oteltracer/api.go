@@ -244,7 +244,7 @@ func newStdoutExporter(spec *v1.StdoutTraceExporterSpec) *stdouttrace.Exporter {
 }
 
 func newZipkinExporter(spec *v1.ZipkinTraceExporterSpec) (*zipkin.Exporter, error) {
-	var opts []zipkin.Option
+	opts := make([]zipkin.Option, 0, 1)
 	opts = append(opts, zipkin.WithHeaders(spec.Headers))
 	// If EndpointURL is empty, default "http://localhost:9411/api/v2/spans" is used.
 	return zipkin.New(spec.EndpointURL, opts...)

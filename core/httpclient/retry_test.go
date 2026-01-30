@@ -15,7 +15,7 @@ import (
 
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
+	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
@@ -173,11 +173,7 @@ func TestRetry_Tripperware(t *testing.T) {
 			},
 			&action{
 				called: 2,
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeRetry,
-					Description: ErrDescRetryFail,
-				},
+				err:    &errorutil.SimpleError{Message: "core/httpclient: sending request failed after retry."},
 			},
 		),
 		gen(
@@ -207,11 +203,7 @@ func TestRetry_Tripperware(t *testing.T) {
 			},
 			&action{
 				called: 3,
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeRetry,
-					Description: ErrDescRetryFail,
-				},
+				err:    &errorutil.SimpleError{Message: "core/httpclient: sending request failed after retry."},
 			},
 		),
 		gen(
@@ -243,11 +235,7 @@ func TestRetry_Tripperware(t *testing.T) {
 			},
 			&action{
 				called: 4,
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeRetry,
-					Description: ErrDescRetryFail,
-				},
+				err:    &errorutil.SimpleError{Message: "core/httpclient: sending request failed after retry."},
 			},
 		),
 		gen(
@@ -262,11 +250,7 @@ func TestRetry_Tripperware(t *testing.T) {
 			},
 			&action{
 				called: 0,
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeRetry,
-					Description: ErrDescRetryFail,
-				},
+				err:    &errorutil.SimpleError{Message: "core/httpclient: sending request failed after retry."},
 			},
 		),
 		gen(
@@ -284,11 +268,7 @@ func TestRetry_Tripperware(t *testing.T) {
 			},
 			&action{
 				called: 1,
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeRetry,
-					Description: ErrDescRetryFail,
-				},
+				err:    &errorutil.SimpleError{Message: "core/httpclient: sending request failed after retry."},
 			},
 		),
 		gen(
@@ -320,11 +300,7 @@ func TestRetry_Tripperware(t *testing.T) {
 			},
 			&action{
 				called: 1,
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeRetry,
-					Description: ErrDescRetryFail,
-				},
+				err:    &errorutil.SimpleError{Message: "core/httpclient: sending request failed after retry."},
 			},
 		),
 	}

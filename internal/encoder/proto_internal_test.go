@@ -8,7 +8,7 @@ import (
 
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
+	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -105,11 +105,7 @@ func TestUnmarshalProto(t *testing.T) {
 			},
 			&action{
 				result: &k.Metadata{},
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeProto,
-					Description: ErrDscUnmarshal,
-				},
+				err:    &errorutil.SimpleError{Message: "internal/encoder: unmarshaling from proto to ProtoMessage failed."},
 			},
 		),
 	}
@@ -169,11 +165,7 @@ func TestUnmarshalProtoFromJSON(t *testing.T) {
 			},
 			&action{
 				result: &k.Metadata{},
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeProto,
-					Description: ErrDscUnmarshal,
-				},
+				err:    &errorutil.SimpleError{Message: "internal/encoder: unmarshaling from json to proto failed."},
 			},
 		),
 	}
@@ -231,11 +223,7 @@ func TestMarshalProtoToJSON(t *testing.T) {
 			},
 			&action{
 				out: "",
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeProto,
-					Description: ErrDscMarshal,
-				},
+				err: &errorutil.SimpleError{Message: "internal/encoder: marshaling from proto to json failed."},
 			},
 		),
 	}
@@ -295,11 +283,7 @@ func TestUnmarshalProtoFromYAML(t *testing.T) {
 			},
 			&action{
 				result: &k.Metadata{},
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeYaml,
-					Description: ErrDscUnmarshal,
-				},
+				err:    &errorutil.SimpleError{Message: "internal/encoder: unmarshaling yaml failed."},
 			},
 		),
 	}
@@ -357,11 +341,7 @@ func TestMarshalProtoToYAML(t *testing.T) {
 			},
 			&action{
 				out: "",
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeProto,
-					Description: ErrDscMarshal,
-				},
+				err: &errorutil.SimpleError{Message: "internal/encoder: marshaling from proto to json failed."},
 			},
 		),
 	}

@@ -30,7 +30,7 @@ func TestError(t *testing.T) {
 					stack: []byte("dummy"),
 					name:  "dummy",
 					msg:   "",
-					err:   errors.New("dummy"),
+					cause: errors.New("dummy"),
 				},
 			},
 			&action{
@@ -46,7 +46,7 @@ func TestError(t *testing.T) {
 					stack: []byte("dummy"),
 					name:  "dummy",
 					msg:   "test",
-					err:   errors.New("dummy"),
+					cause: errors.New("dummy"),
 				},
 			},
 			&action{
@@ -83,7 +83,7 @@ func TestCode(t *testing.T) {
 					stack: []byte("dummy"),
 					name:  "dummy",
 					msg:   "dummy",
-					err:   errors.New("dummy"),
+					cause: errors.New("dummy"),
 				},
 			},
 			&action{
@@ -99,7 +99,7 @@ func TestCode(t *testing.T) {
 					stack: []byte("dummy"),
 					name:  "dummy",
 					msg:   "dummy",
-					err:   errors.New("dummy"),
+					cause: errors.New("dummy"),
 				},
 			},
 			&action{
@@ -136,7 +136,7 @@ func TestKind(t *testing.T) {
 					stack: []byte("dummy"),
 					name:  "dummy",
 					msg:   "dummy",
-					err:   errors.New("dummy"),
+					cause: errors.New("dummy"),
 				},
 			},
 			&action{
@@ -152,7 +152,7 @@ func TestKind(t *testing.T) {
 					stack: []byte("dummy"),
 					name:  "dummy",
 					msg:   "dummy",
-					err:   errors.New("dummy"),
+					cause: errors.New("dummy"),
 				},
 			},
 			&action{
@@ -189,7 +189,7 @@ func TestStackTrace(t *testing.T) {
 					stack: []byte(""),
 					name:  "dummy",
 					msg:   "dummy",
-					err:   errors.New("dummy"),
+					cause: errors.New("dummy"),
 				},
 			},
 			&action{
@@ -205,7 +205,7 @@ func TestStackTrace(t *testing.T) {
 					stack: []byte("test"),
 					name:  "dummy",
 					msg:   "dummy",
-					err:   errors.New("dummy"),
+					cause: errors.New("dummy"),
 				},
 			},
 			&action{
@@ -242,7 +242,7 @@ func TestName(t *testing.T) {
 					stack: []byte("dummy"),
 					name:  "",
 					msg:   "dummy",
-					err:   errors.New("dummy"),
+					cause: errors.New("dummy"),
 				},
 			},
 			&action{
@@ -258,7 +258,7 @@ func TestName(t *testing.T) {
 					stack: []byte("dummy"),
 					name:  "test",
 					msg:   "dummy",
-					err:   errors.New("dummy"),
+					cause: errors.New("dummy"),
 				},
 			},
 			&action{
@@ -295,7 +295,7 @@ func TestMap(t *testing.T) {
 					stack: []byte(""),
 					name:  "dummy",
 					msg:   "",
-					err:   errors.New("dummy"),
+					cause: errors.New("dummy"),
 				},
 			},
 			&action{
@@ -316,7 +316,7 @@ func TestMap(t *testing.T) {
 					stack: []byte("stack"),
 					name:  "dummy",
 					msg:   "msg",
-					err:   errors.New("dummy"),
+					cause: errors.New("dummy"),
 				},
 			},
 			&action{
@@ -358,7 +358,7 @@ func TestKeyValues(t *testing.T) {
 					stack: []byte(""),
 					name:  "dummy",
 					msg:   "",
-					err:   errors.New("dummy"),
+					cause: errors.New("dummy"),
 				},
 			},
 			&action{
@@ -379,7 +379,7 @@ func TestKeyValues(t *testing.T) {
 					stack: []byte("stack"),
 					name:  "dummy",
 					msg:   "msg",
-					err:   errors.New("dummy"),
+					cause: errors.New("dummy"),
 				},
 			},
 			&action{
@@ -421,7 +421,7 @@ func TestUnwrap(t *testing.T) {
 					stack: []byte("dummy"),
 					name:  "dummy",
 					msg:   "dummy",
-					err:   errors.New(""),
+					cause: errors.New(""),
 				},
 			},
 			&action{
@@ -437,7 +437,7 @@ func TestUnwrap(t *testing.T) {
 					stack: []byte("dummy"),
 					name:  "dummy",
 					msg:   "dummy",
-					err:   errors.New("test"),
+					cause: errors.New("test"),
 				},
 			},
 			&action{
@@ -500,7 +500,7 @@ func TestIs(t *testing.T) {
 				},
 				is: &ErrorAttrs{
 					code: "test test",
-					err: &ErrorAttrs{
+					cause: &ErrorAttrs{
 						code: "test test test",
 					},
 				},
@@ -528,8 +528,8 @@ func TestIs(t *testing.T) {
 					code: "test test",
 				},
 				is: &ErrorAttrs{
-					code: "test",
-					err:  errors.New("test"),
+					code:  "test",
+					cause: errors.New("test"),
 				},
 			},
 			&action{
@@ -558,7 +558,7 @@ func TestIs(t *testing.T) {
 				},
 				is: &ErrorAttrs{
 					code: "test test",
-					err: &ErrorAttrs{
+					cause: &ErrorAttrs{
 						code: "test",
 					},
 				},

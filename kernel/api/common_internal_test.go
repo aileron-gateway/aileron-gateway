@@ -12,7 +12,7 @@ import (
 	"testing"
 
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
+	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
@@ -229,11 +229,7 @@ func TestDefaultServeMux_Serve(t *testing.T) {
 			},
 			&action{
 				res: nil,
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeUtil,
-					Description: ErrDscNil,
-				},
+				err: &errorutil.SimpleError{Message: "kernel/api: request is nil"},
 			},
 		),
 		gen(
@@ -244,11 +240,7 @@ func TestDefaultServeMux_Serve(t *testing.T) {
 			},
 			&action{
 				res: nil,
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeUtil,
-					Description: ErrDscNoAPI,
-				},
+				err: &errorutil.SimpleError{Message: "kernel/api: api is not registered."},
 			},
 		),
 	}
@@ -342,11 +334,7 @@ func TestDefaultServeMux_Handle(t *testing.T) {
 			},
 			&action{
 				keys: []string{"test"},
-				err: &er.Error{
-					Package:     ErrPkg,
-					Type:        ErrTypeUtil,
-					Description: ErrDscDuplicateKey,
-				},
+				err:  &errorutil.SimpleError{Message: "kernel/api: key duplication error."},
 			},
 		),
 	}
