@@ -14,7 +14,7 @@ import (
 
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/internal/encoder"
-	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
+	"github.com/aileron-projects/go/zerrors"
 	"github.com/aileron-projects/go/zos"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -81,7 +81,7 @@ func (f Format) Unmarshal(in any, into any) error {
 		in := in.([]byte)
 		return encoder.UnmarshalYAML(in, into)
 	}
-	return errorutil.NewSimple(nil, "kernel/api: unsupported format.", "%s", string(f))
+	return zerrors.NewErr(nil, "kernel/api: unsupported format.", "%s", string(f))
 }
 
 // Request is the default API request.
@@ -125,7 +125,7 @@ func (m *DefaultServeMux) Serve(ctx context.Context, req *Request) (*Response, e
 
 	if req == nil {
 		// Nil request is not allowed.
-		return nil, errorutil.NewSimple(nil, "kernel/api: request is nil", "")
+		return nil, zerrors.NewErr(nil, "kernel/api: request is nil", "")
 	}
 
 	// Find API route with prefix matching.
@@ -136,7 +136,7 @@ func (m *DefaultServeMux) Serve(ctx context.Context, req *Request) (*Response, e
 		}
 	}
 
-	return nil, errorutil.NewSimple(nil, "kernel/api: api is not registered.", "key=%s", req.Key)
+	return nil, zerrors.NewErr(nil, "kernel/api: api is not registered.", "key=%s", req.Key)
 }
 
 func (m *DefaultServeMux) Handle(key string, a API[*Request, *Response]) error {
@@ -144,7 +144,7 @@ func (m *DefaultServeMux) Handle(key string, a API[*Request, *Response]) error {
 		return nil // Ignore nil API.
 	}
 	if _, ok := m.apis[key]; ok {
-		return errorutil.NewSimple(nil, "kernel/api: key duplication error.", "key=%s", key)
+		return zerrors.NewErr(nil, "kernel/api: key duplication error.", "key=%s", key)
 	}
 	m.apis[key] = a
 	m.keys = append(m.keys, key)
@@ -206,7 +206,7 @@ func ProtoMessage(format Format, content any, defaultMsg protoreflect.ProtoMessa
 		src := proto.Clone(defaultMsg)
 		b, ok := content.([]byte)
 		if !ok {
-			return nil, errorutil.NewSimple(nil, "kernel/api: type assertion failed.", "convert from %T to []byte", content)
+			return nil, zerrors.NewErr(nil, "kernel/api: type assertion failed.", "convert from %T to []byte", content)
 		}
 		b, err = zos.EnvSubst2(b)
 		if err != nil {
@@ -218,7 +218,7 @@ func ProtoMessage(format Format, content any, defaultMsg protoreflect.ProtoMessa
 		src := proto.Clone(defaultMsg)
 		b, ok := content.([]byte)
 		if !ok {
-			return nil, errorutil.NewSimple(nil, "kernel/api: type assertion failed.", "convert from %T to []byte", content)
+			return nil, zerrors.NewErr(nil, "kernel/api: type assertion failed.", "convert from %T to []byte", content)
 		}
 		b, err = zos.EnvSubst2(b)
 		if err != nil {
@@ -229,13 +229,13 @@ func ProtoMessage(format Format, content any, defaultMsg protoreflect.ProtoMessa
 	case FormatProtoMessage:
 		src, ok := content.(protoreflect.ProtoMessage)
 		if !ok {
-			return nil, errorutil.NewSimple(nil, "kernel/api: type assertion failed.", "convert from %T to ProtoMessage", content)
+			return nil, zerrors.NewErr(nil, "kernel/api: type assertion failed.", "convert from %T to ProtoMessage", content)
 		}
 		proto.Merge(msg, src)
 	case FormatProtoReference:
 		src, ok := content.(protoreflect.ProtoMessage)
 		if !ok {
-			return nil, errorutil.NewSimple(nil, "kernel/api: type assertion failed.", "convert from %T to ProtoMessage", content)
+			return nil, zerrors.NewErr(nil, "kernel/api: type assertion failed.", "convert from %T to ProtoMessage", content)
 		}
 		msg = src
 	default:
@@ -296,7 +296,7 @@ func ParseID(msg protoreflect.ProtoMessage) (string, error) {
 // This function panics when nil API is given by the first argument.
 func ReferObject(a API[*Request, *Response], ref *k.Reference) (any, error) {
 	if ref == nil {
-		return nil, errorutil.NewSimple(nil, "kernel/api: nil reference was given.", "")
+		return nil, zerrors.NewErr(nil, "kernel/api: nil reference was given.", "")
 	}
 	req := &Request{
 		Method:  MethodGet,
@@ -324,7 +324,7 @@ func ReferTypedObject[T any](a API[*Request, *Response], ref *k.Reference) (T, e
 	if !ok {
 		key := strings.Join([]string{ref.APIVersion, ref.Kind, ref.Namespace, ref.Name}, "/")
 		typ := strings.TrimPrefix(reflect.TypeOf(new(T)).String(), "*")
-		return t, errorutil.NewSimple(nil, "kernel/api: type assertion failed.", "from %T to %s. %s defined?", obj, typ, key)
+		return t, zerrors.NewErr(nil, "kernel/api: type assertion failed.", "from %T to %s. %s defined?", obj, typ, key)
 	}
 	return typed, nil
 }

@@ -11,7 +11,7 @@ import (
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
+	"github.com/aileron-projects/go/zerrors"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
@@ -206,7 +206,7 @@ func TestContainerAPI_Serve(t *testing.T) {
 			},
 			&action{
 				res: nil,
-				err: &errorutil.SimpleError{Message: "kernel/api: request is nil."},
+				err: &zerrors.Err{Message: "kernel/api: request is nil."},
 			},
 		),
 		gen(
@@ -224,7 +224,7 @@ func TestContainerAPI_Serve(t *testing.T) {
 			},
 			&action{
 				res: nil,
-				err: &errorutil.SimpleError{Message: "kernel/api: type assertion failed."},
+				err: &zerrors.Err{Message: "kernel/api: type assertion failed."},
 			},
 		),
 		gen(
@@ -246,7 +246,7 @@ func TestContainerAPI_Serve(t *testing.T) {
 			},
 			&action{
 				res: nil,
-				err: &errorutil.SimpleError{Message: "kernel/api: key duplication error."},
+				err: &zerrors.Err{Message: "kernel/api: key duplication error."},
 			},
 		),
 		gen(
@@ -263,7 +263,7 @@ func TestContainerAPI_Serve(t *testing.T) {
 			},
 			&action{
 				res: nil,
-				err: &errorutil.SimpleError{Message: "kernel/api: method not implemented."},
+				err: &zerrors.Err{Message: "kernel/api: method not implemented."},
 			},
 		),
 	}

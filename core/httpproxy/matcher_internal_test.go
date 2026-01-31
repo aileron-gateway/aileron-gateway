@@ -14,7 +14,7 @@ import (
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
-	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
+	"github.com/aileron-projects/go/zerrors"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
@@ -1135,7 +1135,7 @@ func TestPathParamMatchers(t *testing.T) {
 			&action{
 				numMatcher: 0,
 				matchIndex: -1,
-				err:        &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for Regex matcher."},
+				err:        &zerrors.Err{Message: "internal/txtutil: invalid pattern for Regex matcher."},
 			},
 		),
 	}
@@ -1343,7 +1343,7 @@ func TestQueryMatchers(t *testing.T) {
 			&action{
 				numMatcher: 0,
 				matchIndex: -1,
-				err:        &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for Regex matcher."},
+				err:        &zerrors.Err{Message: "internal/txtutil: invalid pattern for Regex matcher."},
 			},
 		),
 	}
@@ -1543,7 +1543,7 @@ func TestHeaderMatchers(t *testing.T) {
 			&action{
 				numMatcher: 0,
 				matchIndex: -1,
-				err:        &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for Regex matcher."},
+				err:        &zerrors.Err{Message: "internal/txtutil: invalid pattern for Regex matcher."},
 			},
 		),
 	}

@@ -12,7 +12,7 @@ import (
 
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
-	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
+	"github.com/aileron-projects/go/zerrors"
 	"github.com/aileron-projects/go/zsyscall"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -223,7 +223,7 @@ func TestNewListenerFromSpec(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/network: failed to create new listener"},
+				err: &zerrors.Err{Message: "internal/network: failed to create new listener"},
 			},
 		),
 		gen(
@@ -306,7 +306,7 @@ func TestNewListener(t *testing.T) {
 				c: nil,
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/network: nil listener spec"},
+				err: &zerrors.Err{Message: "internal/network: nil listener spec"},
 			},
 		),
 		gen(
@@ -358,7 +358,7 @@ func TestNewListener(t *testing.T) {
 			},
 			&action{
 				address: "",
-				err:     &errorutil.SimpleError{Message: "internal/network: failed to create new listener"},
+				err:     &zerrors.Err{Message: "internal/network: failed to create new listener"},
 			},
 		),
 		gen(
@@ -374,7 +374,7 @@ func TestNewListener(t *testing.T) {
 			},
 			&action{
 				address: "",
-				err:     &errorutil.SimpleError{Message: "internal/network: failed to create new listener"},
+				err:     &zerrors.Err{Message: "internal/network: failed to create new listener"},
 			},
 		),
 		gen(
@@ -420,7 +420,7 @@ func TestNewListener(t *testing.T) {
 			},
 			&action{
 				address: "",
-				err:     &errorutil.SimpleError{Message: "internal/network: failed to create new listener"},
+				err:     &zerrors.Err{Message: "internal/network: failed to create new listener"},
 			},
 		),
 		gen(
@@ -432,7 +432,7 @@ func TestNewListener(t *testing.T) {
 			},
 			&action{
 				address: "",
-				err:     &errorutil.SimpleError{Message: "internal/network: failed to create new listener"},
+				err:     &zerrors.Err{Message: "internal/network: failed to create new listener"},
 			},
 		),
 		gen(
@@ -445,7 +445,7 @@ func TestNewListener(t *testing.T) {
 			},
 			&action{
 				address: "",
-				err:     &errorutil.SimpleError{Message: "internal/network: failed to create new listener"},
+				err:     &zerrors.Err{Message: "internal/network: failed to create new listener"},
 			},
 		),
 		gen(
@@ -461,7 +461,7 @@ func TestNewListener(t *testing.T) {
 			},
 			&action{
 				address: "",
-				err:     &errorutil.SimpleError{Message: "internal/network: failed to create new listener"},
+				err:     &zerrors.Err{Message: "internal/network: failed to create new listener"},
 			},
 		),
 	}

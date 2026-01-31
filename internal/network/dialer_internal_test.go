@@ -16,7 +16,7 @@ import (
 
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
-	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
+	"github.com/aileron-projects/go/zerrors"
 	"github.com/aileron-projects/go/zsyscall"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -670,7 +670,7 @@ func TestNewDialerFromSpec(t *testing.T) {
 			},
 			&action{
 				dialer: nil,
-				err:    &errorutil.SimpleError{Message: "internal/network: failed to create new dialer"},
+				err:    &zerrors.Err{Message: "internal/network: failed to create new dialer"},
 			},
 		),
 		gen(
@@ -717,7 +717,7 @@ func TestNewDialerFromSpec(t *testing.T) {
 			},
 			&action{
 				dialer: nil,
-				err:    &errorutil.SimpleError{Message: "internal/network: failed to create new dialer"},
+				err:    &zerrors.Err{Message: "internal/network: failed to create new dialer"},
 			},
 		),
 	}
@@ -758,7 +758,7 @@ func TestNewDialer(t *testing.T) {
 			},
 			&action{
 				dialer: nil,
-				err:    &errorutil.SimpleError{Message: "internal/network: nil dialer spec"},
+				err:    &zerrors.Err{Message: "internal/network: nil dialer spec"},
 			},
 		),
 		gen(
@@ -823,7 +823,7 @@ func TestNewDialer(t *testing.T) {
 			},
 			&action{
 				dialer: nil,
-				err:    &errorutil.SimpleError{Message: "internal/network: failed to create new dialer"},
+				err:    &zerrors.Err{Message: "internal/network: failed to create new dialer"},
 			},
 		),
 		gen(

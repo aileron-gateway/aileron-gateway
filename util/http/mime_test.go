@@ -9,8 +9,8 @@ import (
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
-	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
+	"github.com/aileron-projects/go/zerrors"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
@@ -130,7 +130,7 @@ func TestNewTemplate(t *testing.T) {
 				info: map[string]any{"tag": "template"},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: failed to create GoText template"},
+				err: &zerrors.Err{Message: "internal/txtutil: failed to create GoText template"},
 			},
 		),
 		gen(
@@ -144,7 +144,7 @@ func TestNewTemplate(t *testing.T) {
 				info: map[string]any{"tag": "template"},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: failed to create GoHTML template"},
+				err: &zerrors.Err{Message: "internal/txtutil: failed to create GoHTML template"},
 			},
 		),
 		gen(
@@ -158,7 +158,7 @@ func TestNewTemplate(t *testing.T) {
 				info: map[string]any{"tag": "template"},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "util/http: failed to parse media type."},
+				err: &zerrors.Err{Message: "util/http: failed to parse media type."},
 			},
 		),
 		gen(
@@ -172,7 +172,7 @@ func TestNewTemplate(t *testing.T) {
 				info: map[string]any{"tag": "template"},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "util/http: failed to parse media type."},
+				err: &zerrors.Err{Message: "util/http: failed to parse media type."},
 			},
 		),
 		gen(
@@ -203,7 +203,7 @@ func TestNewTemplate(t *testing.T) {
 				info: map[string]any{"tag": "template"},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "util/http: failed to read template file."},
+				err: &zerrors.Err{Message: "util/http: failed to read template file."},
 			},
 		),
 	}

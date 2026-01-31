@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
-	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
+	"github.com/aileron-projects/go/zerrors"
 	"github.com/open-policy-agent/opa/bundle"
 	"github.com/open-policy-agent/opa/loader"
 )
@@ -22,12 +22,12 @@ func loadBundle(path string, rt http.RoundTripper, loader loader.FileLoader) (*b
 	if strings.HasPrefix(path, "http://") || strings.HasPrefix(path, "https://") {
 		req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, path, nil)
 		if err != nil {
-			return nil, errorutil.NewSimple(err, "app/opa: failed to load bundle.", "path=`%s`", path)
+			return nil, zerrors.NewErr(err, "app/opa: failed to load bundle.", "path=`%s`", path)
 		}
 
 		resp, err := rt.RoundTrip(req)
 		if err != nil {
-			return nil, errorutil.NewSimple(err, "app/opa: failed to load bundle.", "path=%s", path)
+			return nil, zerrors.NewErr(err, "app/opa: failed to load bundle.", "path=%s", path)
 		}
 		defer func() {
 			io.Copy(io.Discard, resp.Body)
@@ -35,12 +35,12 @@ func loadBundle(path string, rt http.RoundTripper, loader loader.FileLoader) (*b
 		}()
 
 		if resp.StatusCode != http.StatusOK {
-			return nil, errorutil.NewSimple(err, "app/opa: failed to load bundle.", "status=%d", resp.StatusCode)
+			return nil, zerrors.NewErr(err, "app/opa: failed to load bundle.", "status=%d", resp.StatusCode)
 		}
 
 		f, err := os.CreateTemp(os.TempDir(), "*.tar.gz")
 		if err != nil {
-			return nil, errorutil.NewSimple(err, "app/opa: failed to load bundle.", "path=%s", path)
+			return nil, zerrors.NewErr(err, "app/opa: failed to load bundle.", "path=%s", path)
 		}
 
 		// Remove temp tarball.
@@ -50,14 +50,14 @@ func loadBundle(path string, rt http.RoundTripper, loader loader.FileLoader) (*b
 		_, err = f.ReadFrom(resp.Body)
 		if err != nil {
 			f.Close()
-			return nil, errorutil.NewSimple(err, "app/opa: failed to load bundle.", "path=%s", path)
+			return nil, zerrors.NewErr(err, "app/opa: failed to load bundle.", "path=%s", path)
 		}
 		f.Close()
 	}
 
 	b, err := loader.AsBundle(path)
 	if err != nil {
-		return nil, errorutil.NewSimple(err, "app/opa: failed to load bundle.", "path=%s", path)
+		return nil, zerrors.NewErr(err, "app/opa: failed to load bundle.", "path=%s", path)
 	}
 	return b, nil
 }

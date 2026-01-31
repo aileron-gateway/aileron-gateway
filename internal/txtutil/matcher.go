@@ -13,7 +13,7 @@ import (
 	"strings"
 
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
-	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
+	"github.com/aileron-projects/go/zerrors"
 )
 
 // MatchType is the definition of match types.
@@ -93,7 +93,7 @@ func NewStringMatchers(specs ...*k.MatcherSpec) ([]Matcher[string], error) {
 		}
 		typ, ok := MatchTypes[s.MatchType]
 		if !ok {
-			return nil, errorutil.NewSimple(nil, "internal/txtutil: unsupported match type.", "")
+			return nil, zerrors.NewErr(nil, "internal/txtutil: unsupported match type.", "")
 		}
 		m, err := NewStringMatcher(typ, s.Patterns...)
 		if err != nil {
@@ -125,7 +125,7 @@ func NewStringMatcher(typ MatchType, patterns ...string) (Matcher[string], error
 		MatchTypeRegexPOSIX: m.regex,
 	}[typ]
 	if !ok {
-		return nil, errorutil.NewSimple(nil, "internal/txtutil: unsupported match type.", "given=%s", strconv.Itoa(int(typ)))
+		return nil, zerrors.NewErr(nil, "internal/txtutil: unsupported match type.", "given=%s", strconv.Itoa(int(typ)))
 	}
 	m.match = f
 
@@ -134,14 +134,14 @@ func NewStringMatcher(typ MatchType, patterns ...string) (Matcher[string], error
 		for _, p := range pats {
 			_, err := path.Match(p, "")
 			if err != nil {
-				return nil, errorutil.NewSimple(err, "internal/txtutil: invalid pattern for Path matcher.", "pattern=`%s`", p)
+				return nil, zerrors.NewErr(err, "internal/txtutil: invalid pattern for Path matcher.", "pattern=`%s`", p)
 			}
 		}
 	case MatchTypeFilePath: // Format check.
 		for _, p := range pats {
 			_, err := filepath.Match(p, "")
 			if err != nil {
-				return nil, errorutil.NewSimple(err, "internal/txtutil: invalid pattern for FilePath matcher.", "pattern=`%s`", p)
+				return nil, zerrors.NewErr(err, "internal/txtutil: invalid pattern for FilePath matcher.", "pattern=`%s`", p)
 			}
 		}
 	case MatchTypeRegex:
@@ -149,7 +149,7 @@ func NewStringMatcher(typ MatchType, patterns ...string) (Matcher[string], error
 		for i, p := range pats {
 			exp, err := regexp.Compile(p)
 			if err != nil {
-				return nil, errorutil.NewSimple(err, "internal/txtutil: invalid pattern for Regex matcher.", "pattern=`%s`", p)
+				return nil, zerrors.NewErr(err, "internal/txtutil: invalid pattern for Regex matcher.", "pattern=`%s`", p)
 			}
 			m.regexps[i] = exp
 		}
@@ -158,7 +158,7 @@ func NewStringMatcher(typ MatchType, patterns ...string) (Matcher[string], error
 		for i, p := range pats {
 			exp, err := regexp.CompilePOSIX(p)
 			if err != nil {
-				return nil, errorutil.NewSimple(err, "internal/txtutil: invalid pattern for RegexPOSIX matcher.", "pattern=`%s`", p)
+				return nil, zerrors.NewErr(err, "internal/txtutil: invalid pattern for RegexPOSIX matcher.", "pattern=`%s`", p)
 			}
 			m.regexps[i] = exp
 		}
@@ -224,7 +224,7 @@ func NewBytesMatchers(specs ...*k.MatcherSpec) ([]Matcher[[]byte], error) {
 		}
 		typ, ok := MatchTypes[s.MatchType]
 		if !ok {
-			return nil, errorutil.NewSimple(nil, "internal/txtutil: unsupported match type.", "")
+			return nil, zerrors.NewErr(nil, "internal/txtutil: unsupported match type.", "")
 		}
 		m, err := NewBytesMatcher(typ, s.Patterns...)
 		if err != nil {
@@ -257,7 +257,7 @@ func NewBytesMatcher(typ MatchType, patterns ...string) (Matcher[[]byte], error)
 		MatchTypeRegexPOSIX: m.regex,
 	}[typ]
 	if !ok {
-		return nil, errorutil.NewSimple(nil, "internal/txtutil: unsupported match type.", "given=%s", strconv.Itoa(int(typ)))
+		return nil, zerrors.NewErr(nil, "internal/txtutil: unsupported match type.", "given=%s", strconv.Itoa(int(typ)))
 	}
 	m.match = f
 
@@ -266,14 +266,14 @@ func NewBytesMatcher(typ MatchType, patterns ...string) (Matcher[[]byte], error)
 		for _, p := range patterns {
 			_, err := path.Match(p, "")
 			if err != nil {
-				return nil, errorutil.NewSimple(err, "internal/txtutil: invalid pattern for Path matcher.", "pattern=`%s`", p)
+				return nil, zerrors.NewErr(err, "internal/txtutil: invalid pattern for Path matcher.", "pattern=`%s`", p)
 			}
 		}
 	case MatchTypeFilePath: // Format check.
 		for _, p := range patterns {
 			_, err := filepath.Match(p, "")
 			if err != nil {
-				return nil, errorutil.NewSimple(err, "internal/txtutil: invalid pattern for FilePath matcher.", "pattern=`%s`", p)
+				return nil, zerrors.NewErr(err, "internal/txtutil: invalid pattern for FilePath matcher.", "pattern=`%s`", p)
 			}
 		}
 	case MatchTypeRegex:
@@ -281,7 +281,7 @@ func NewBytesMatcher(typ MatchType, patterns ...string) (Matcher[[]byte], error)
 		for i, p := range patterns {
 			exp, err := regexp.Compile(p)
 			if err != nil {
-				return nil, errorutil.NewSimple(err, "internal/txtutil: invalid pattern for Regex matcher.", "pattern=`%s`", p)
+				return nil, zerrors.NewErr(err, "internal/txtutil: invalid pattern for Regex matcher.", "pattern=`%s`", p)
 			}
 			m.regexps[i] = exp
 		}
@@ -290,7 +290,7 @@ func NewBytesMatcher(typ MatchType, patterns ...string) (Matcher[[]byte], error)
 		for i, p := range patterns {
 			exp, err := regexp.CompilePOSIX(p)
 			if err != nil {
-				return nil, errorutil.NewSimple(err, "internal/txtutil: invalid pattern for RegexPOSIX matcher.", "pattern=`%s`", p)
+				return nil, zerrors.NewErr(err, "internal/txtutil: invalid pattern for RegexPOSIX matcher.", "pattern=`%s`", p)
 			}
 			m.regexps[i] = exp
 		}

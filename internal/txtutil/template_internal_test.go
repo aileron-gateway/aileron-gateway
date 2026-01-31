@@ -10,7 +10,7 @@ import (
 	ttpl "text/template"
 
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
-	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
+	"github.com/aileron-projects/go/zerrors"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
@@ -65,7 +65,7 @@ func TestNewTemplate(t *testing.T) {
 				info: map[string]any{"tag": "template"},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: failed to create GoText template"},
+				err: &zerrors.Err{Message: "internal/txtutil: failed to create GoText template"},
 			},
 		),
 		gen(
@@ -75,7 +75,7 @@ func TestNewTemplate(t *testing.T) {
 				info: map[string]any{"tag": "template"},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: failed to create GoHTML template"},
+				err: &zerrors.Err{Message: "internal/txtutil: failed to create GoHTML template"},
 			},
 		),
 		gen(
@@ -85,7 +85,7 @@ func TestNewTemplate(t *testing.T) {
 				info: map[string]any{"tag": "template"},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported template type."},
+				err: &zerrors.Err{Message: "internal/txtutil: unsupported template type."},
 			},
 		),
 	}

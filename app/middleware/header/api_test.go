@@ -14,9 +14,9 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/internal/txtutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
 	httputil "github.com/aileron-gateway/aileron-gateway/util/http"
+	"github.com/aileron-projects/go/zerrors"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -324,7 +324,7 @@ func TestNewRewriters(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for Regex."},
+				err: &zerrors.Err{Message: "internal/txtutil: invalid pattern for Regex."},
 			},
 		),
 	}

@@ -15,7 +15,7 @@ import (
 
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
-	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
+	"github.com/aileron-projects/go/zerrors"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
@@ -173,7 +173,7 @@ func TestRetry_Tripperware(t *testing.T) {
 			},
 			&action{
 				called: 2,
-				err:    &errorutil.SimpleError{Message: "core/httpclient: sending request failed after retry."},
+				err:    &zerrors.Err{Message: "core/httpclient: sending request failed after retry."},
 			},
 		),
 		gen(
@@ -203,7 +203,7 @@ func TestRetry_Tripperware(t *testing.T) {
 			},
 			&action{
 				called: 3,
-				err:    &errorutil.SimpleError{Message: "core/httpclient: sending request failed after retry."},
+				err:    &zerrors.Err{Message: "core/httpclient: sending request failed after retry."},
 			},
 		),
 		gen(
@@ -235,7 +235,7 @@ func TestRetry_Tripperware(t *testing.T) {
 			},
 			&action{
 				called: 4,
-				err:    &errorutil.SimpleError{Message: "core/httpclient: sending request failed after retry."},
+				err:    &zerrors.Err{Message: "core/httpclient: sending request failed after retry."},
 			},
 		),
 		gen(
@@ -250,7 +250,7 @@ func TestRetry_Tripperware(t *testing.T) {
 			},
 			&action{
 				called: 0,
-				err:    &errorutil.SimpleError{Message: "core/httpclient: sending request failed after retry."},
+				err:    &zerrors.Err{Message: "core/httpclient: sending request failed after retry."},
 			},
 		),
 		gen(
@@ -268,7 +268,7 @@ func TestRetry_Tripperware(t *testing.T) {
 			},
 			&action{
 				called: 1,
-				err:    &errorutil.SimpleError{Message: "core/httpclient: sending request failed after retry."},
+				err:    &zerrors.Err{Message: "core/httpclient: sending request failed after retry."},
 			},
 		),
 		gen(
@@ -300,7 +300,7 @@ func TestRetry_Tripperware(t *testing.T) {
 			},
 			&action{
 				called: 1,
-				err:    &errorutil.SimpleError{Message: "core/httpclient: sending request failed after retry."},
+				err:    &zerrors.Err{Message: "core/httpclient: sending request failed after retry."},
 			},
 		),
 	}

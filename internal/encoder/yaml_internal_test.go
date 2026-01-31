@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
-	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
+	"github.com/aileron-projects/go/zerrors"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
@@ -60,7 +60,7 @@ func TestMarshalYaml(t *testing.T) {
 			},
 			&action{
 				out: "",
-				err: &errorutil.SimpleError{Message: "internal/encoder: marshaling from any to yaml failed."},
+				err: &zerrors.Err{Message: "internal/encoder: marshaling from any to yaml failed."},
 			},
 		),
 		gen(
@@ -73,7 +73,7 @@ func TestMarshalYaml(t *testing.T) {
 			},
 			&action{
 				out: "",
-				err: &errorutil.SimpleError{Message: "internal/encoder: marshaling from any to yaml failed."},
+				err: &zerrors.Err{Message: "internal/encoder: marshaling from any to yaml failed."},
 			},
 		),
 	}
@@ -147,7 +147,7 @@ func TestUnmarshalYaml(t *testing.T) {
 			},
 			&action{
 				result: &testStruct{},
-				err:    &errorutil.SimpleError{Message: "internal/encoder: unmarshaling yaml failed."},
+				err:    &zerrors.Err{Message: "internal/encoder: unmarshaling yaml failed."},
 			},
 		),
 	}

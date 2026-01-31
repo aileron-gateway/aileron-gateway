@@ -11,7 +11,7 @@ import (
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
+	"github.com/aileron-projects/go/zerrors"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -150,7 +150,7 @@ func TestBaseResource(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "kernel/api: validating proto message failed."},
+				err: &zerrors.Err{Message: "kernel/api: validating proto message failed."},
 			},
 		),
 	}
@@ -235,7 +235,7 @@ func TestFactoryAPI_Serve(t *testing.T) {
 			},
 			&action{
 				res: nil,
-				err: &errorutil.SimpleError{Message: "kernel/api: manifest not found."},
+				err: &zerrors.Err{Message: "kernel/api: manifest not found."},
 			},
 		),
 		gen(
@@ -255,7 +255,7 @@ func TestFactoryAPI_Serve(t *testing.T) {
 			},
 			&action{
 				res: nil,
-				err: &errorutil.SimpleError{Message: "kernel/api: type assertion failed."},
+				err: &zerrors.Err{Message: "kernel/api: type assertion failed."},
 			},
 		),
 		gen(
@@ -275,7 +275,7 @@ func TestFactoryAPI_Serve(t *testing.T) {
 			},
 			&action{
 				res: nil,
-				err: &errorutil.SimpleError{Message: "kernel/api: type assertion failed."},
+				err: &zerrors.Err{Message: "kernel/api: type assertion failed."},
 			},
 		),
 		gen(
@@ -295,7 +295,7 @@ func TestFactoryAPI_Serve(t *testing.T) {
 			},
 			&action{
 				res: nil,
-				err: &errorutil.SimpleError{Message: "kernel/api: type assertion failed."},
+				err: &zerrors.Err{Message: "kernel/api: type assertion failed."},
 			},
 		),
 		gen(
@@ -308,7 +308,7 @@ func TestFactoryAPI_Serve(t *testing.T) {
 			},
 			&action{
 				res: nil,
-				err: &errorutil.SimpleError{Message: "kernel/api: request is nil."},
+				err: &zerrors.Err{Message: "kernel/api: request is nil."},
 			},
 		),
 		gen(
@@ -324,7 +324,7 @@ func TestFactoryAPI_Serve(t *testing.T) {
 			},
 			&action{
 				res: nil,
-				err: &errorutil.SimpleError{Message: "kernel/api: api is not registered."},
+				err: &zerrors.Err{Message: "kernel/api: api is not registered."},
 			},
 		),
 		gen(
@@ -342,7 +342,7 @@ func TestFactoryAPI_Serve(t *testing.T) {
 			},
 			&action{
 				res: nil,
-				err: &errorutil.SimpleError{Message: "kernel/api: method not implemented."},
+				err: &zerrors.Err{Message: "kernel/api: method not implemented."},
 			},
 		),
 	}
