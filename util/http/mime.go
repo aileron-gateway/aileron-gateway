@@ -10,7 +10,7 @@ import (
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
 	"github.com/aileron-gateway/aileron-gateway/internal/txtutil"
-	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
+	"github.com/aileron-projects/go/zerrors"
 )
 
 // MIMEContent provides HTTP content corresponding to a MIMEType.
@@ -26,14 +26,14 @@ type MIMEContent struct {
 func NewMIMEContent(spec *v1.MIMEContentSpec) (*MIMEContent, error) {
 	mt, _, err := mime.ParseMediaType(spec.MIMEType)
 	if err != nil {
-		return nil, errorutil.NewSimple(err, "util/http: failed to parse media type.", "")
+		return nil, zerrors.NewErr(err, "util/http: failed to parse media type.", "")
 	}
 
 	body := spec.Template
 	if spec.TemplateFile != "" {
 		b, err := os.ReadFile(spec.TemplateFile)
 		if err != nil {
-			return nil, errorutil.NewSimple(err, "util/http: failed to read template file.", "")
+			return nil, zerrors.NewErr(err, "util/http: failed to read template file.", "")
 		}
 		body = string(b)
 	}

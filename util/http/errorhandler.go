@@ -22,6 +22,7 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
+	"github.com/aileron-projects/go/zerrors"
 	"github.com/aileron-projects/go/ztext"
 )
 
@@ -161,7 +162,7 @@ func NewErrorMessage(spec *v1.ErrorMessageSpec) (*ErrorMessage, error) {
 	for _, msg := range spec.Messages {
 		tpl, err := regexp.Compile(msg)
 		if err != nil {
-			return nil, errorutil.NewSimple(err, "util/http: invalid regular expression.", "")
+			return nil, zerrors.NewErr(err, "util/http: invalid regular expression.", "")
 		}
 		m.messages = append(m.messages, tpl)
 	}

@@ -11,7 +11,7 @@ import (
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
+	"github.com/aileron-projects/go/zerrors"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -70,7 +70,7 @@ func TestFormat_Unmarshal(t *testing.T) {
 			},
 			&action{
 				result: &testStruct{},
-				err:    &errorutil.SimpleError{Message: "kernel/api: unsupported format."},
+				err:    &zerrors.Err{Message: "kernel/api: unsupported format."},
 			},
 		),
 	}
@@ -275,7 +275,7 @@ func TestProtoMessage(t *testing.T) {
 			},
 			&action{
 				msg: nil,
-				err: &errorutil.SimpleError{Message: "kernel/api: type assertion failed."},
+				err: &zerrors.Err{Message: "kernel/api: type assertion failed."},
 			},
 		),
 		gen(
@@ -322,7 +322,7 @@ func TestProtoMessage(t *testing.T) {
 			},
 			&action{
 				msg: nil,
-				err: &errorutil.SimpleError{Message: "kernel/api: type assertion failed."},
+				err: &zerrors.Err{Message: "kernel/api: type assertion failed."},
 			},
 		),
 		gen(
@@ -378,7 +378,7 @@ func TestProtoMessage(t *testing.T) {
 			},
 			&action{
 				msg: nil,
-				err: &errorutil.SimpleError{Message: "kernel/api: type assertion failed."},
+				err: &zerrors.Err{Message: "kernel/api: type assertion failed."},
 			},
 		),
 		gen(
@@ -434,7 +434,7 @@ func TestProtoMessage(t *testing.T) {
 			},
 			&action{
 				msg: nil,
-				err: &errorutil.SimpleError{Message: "kernel/api: type assertion failed."},
+				err: &zerrors.Err{Message: "kernel/api: type assertion failed."},
 			},
 		),
 		gen(
@@ -508,7 +508,7 @@ func TestParseID(t *testing.T) {
 			},
 			&action{
 				id:  "",
-				err: &errorutil.SimpleError{Message: "internal/encoder: unmarshaling json failed."},
+				err: &zerrors.Err{Message: "internal/encoder: unmarshaling json failed."},
 			},
 		),
 		gen(
@@ -517,7 +517,7 @@ func TestParseID(t *testing.T) {
 			},
 			&action{
 				id:  "",
-				err: &errorutil.SimpleError{Message: "internal/encoder: unmarshaling json failed."},
+				err: &zerrors.Err{Message: "internal/encoder: unmarshaling json failed."},
 			},
 		),
 	}
@@ -588,7 +588,7 @@ func TestReferObject(t *testing.T) {
 				ref: nil,
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "kernel/api: nil reference was given."},
+				err: &zerrors.Err{Message: "kernel/api: nil reference was given."},
 			},
 		),
 	}
@@ -642,7 +642,7 @@ func TestReferTypedObject(t *testing.T) {
 			},
 			&action{
 				obj: "", // Zero value of string is returned when error.
-				err: &errorutil.SimpleError{Message: "kernel/api: type assertion failed."},
+				err: &zerrors.Err{Message: "kernel/api: type assertion failed."},
 			},
 		),
 		gen(
@@ -667,7 +667,7 @@ func TestReferTypedObject(t *testing.T) {
 			},
 			&action{
 				obj: "", // Zero value of string is returned when error.
-				err: &errorutil.SimpleError{Message: "kernel/api: nil reference was given."},
+				err: &zerrors.Err{Message: "kernel/api: nil reference was given."},
 			},
 		),
 	}
@@ -745,7 +745,7 @@ func TestReferTypedObjects(t *testing.T) {
 			},
 			&action{
 				obj: []string(nil), // Typed nil slice is returned when error.
-				err: &errorutil.SimpleError{Message: "kernel/api: type assertion failed."},
+				err: &zerrors.Err{Message: "kernel/api: type assertion failed."},
 			},
 		),
 		gen(

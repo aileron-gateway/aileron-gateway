@@ -21,8 +21,8 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
 	"github.com/aileron-gateway/aileron-gateway/test/integration/common"
+	"github.com/aileron-projects/go/zerrors"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/quic-go/quic-go/http3"
 	"golang.org/x/net/http2"
@@ -70,7 +70,7 @@ func TestRetry1(t *testing.T) {
 	count = 0 // Reset count.
 	r1 := httptest.NewRequest(http.MethodGet, svr.URL+"/test", nil)
 	w1, err := rt.RoundTrip(r1)
-	retryErr := &errorutil.SimpleError{Message: "core/httpclient: sending request failed after retry."}
+	retryErr := &zerrors.Err{Message: "core/httpclient: sending request failed after retry."}
 	testutil.Diff(t, retryErr, err, cmpopts.EquateErrors())
 	testutil.Diff(t, (*http.Response)(nil), w1)
 	testutil.Diff(t, 2, count)
@@ -115,7 +115,7 @@ func TestRetry3(t *testing.T) {
 	count = 0 // Reset count.
 	r1 := httptest.NewRequest(http.MethodGet, svr.URL+"/test", nil)
 	w1, err := rt.RoundTrip(r1)
-	retryErr := &errorutil.SimpleError{Message: "core/httpclient: sending request failed after retry."}
+	retryErr := &zerrors.Err{Message: "core/httpclient: sending request failed after retry."}
 	testutil.Diff(t, retryErr, err, cmpopts.EquateErrors())
 	testutil.Diff(t, (*http.Response)(nil), w1)
 	testutil.Diff(t, 4, count)
@@ -157,7 +157,7 @@ func TestRetryStatus(t *testing.T) {
 	))
 	defer svr.Close()
 
-	retryErr := &errorutil.SimpleError{Message: "core/httpclient: sending request failed after retry."}
+	retryErr := &zerrors.Err{Message: "core/httpclient: sending request failed after retry."}
 
 	count = 0                               // Reset count.
 	status = http.StatusInternalServerError // Use 500 error.

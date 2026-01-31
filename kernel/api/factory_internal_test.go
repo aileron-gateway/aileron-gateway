@@ -9,7 +9,7 @@ import (
 
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
-	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
+	"github.com/aileron-projects/go/zerrors"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -118,7 +118,7 @@ func TestFactoryAPI_Register(t *testing.T) {
 				resources: map[string]Resource{
 					"test": &noopResource{ID: "foo"},
 				},
-				err: &errorutil.SimpleError{Message: "kernel/api: key duplication error."},
+				err: &zerrors.Err{Message: "kernel/api: key duplication error."},
 			},
 		),
 	}
@@ -222,7 +222,7 @@ func TestFactoryAPI_delete(t *testing.T) {
 			"Delete fails",
 			&condition{
 				a:        NewFactoryAPI(),
-				resource: &testResource{err: &errorutil.SimpleError{Message: "kernel/api: type assertion failed."}}, // Use APIError for dummy.
+				resource: &testResource{err: &zerrors.Err{Message: "kernel/api: type assertion failed."}}, // Use APIError for dummy.
 				req: &Request{
 					Method:  MethodDelete,
 					Key:     "test1/test2",
@@ -233,7 +233,7 @@ func TestFactoryAPI_delete(t *testing.T) {
 			&action{
 				protoStore: map[string]protoreflect.ProtoMessage{},
 				objStore:   map[string]any{},
-				err:        &errorutil.SimpleError{Message: "kernel/api: type assertion failed."},
+				err:        &zerrors.Err{Message: "kernel/api: type assertion failed."},
 			},
 		),
 		gen(
@@ -251,7 +251,7 @@ func TestFactoryAPI_delete(t *testing.T) {
 			&action{
 				protoStore: map[string]protoreflect.ProtoMessage{},
 				objStore:   map[string]any{},
-				err:        &errorutil.SimpleError{Message: "kernel/api: type assertion failed."},
+				err:        &zerrors.Err{Message: "kernel/api: type assertion failed."},
 			},
 		),
 		gen(
@@ -268,7 +268,7 @@ func TestFactoryAPI_delete(t *testing.T) {
 			&action{
 				protoStore: map[string]protoreflect.ProtoMessage{},
 				objStore:   map[string]any{},
-				err:        &errorutil.SimpleError{Message: "internal/encoder: unmarshaling json failed."},
+				err:        &zerrors.Err{Message: "internal/encoder: unmarshaling json failed."},
 			},
 		),
 	}
@@ -343,14 +343,14 @@ func TestFactoryAPI_post(t *testing.T) {
 			},
 			&action{
 				protoStore: map[string]protoreflect.ProtoMessage{"test1/test2/test3/test4": nil},
-				err:        &errorutil.SimpleError{Message: "kernel/api: key duplication error."},
+				err:        &zerrors.Err{Message: "kernel/api: key duplication error."},
 			},
 		),
 		gen(
 			"Post fails",
 			&condition{
 				a:        NewFactoryAPI(),
-				resource: &testResource{err: &errorutil.SimpleError{Message: "kernel/api: type assertion failed."}}, // Use APIError for dummy.
+				resource: &testResource{err: &zerrors.Err{Message: "kernel/api: type assertion failed."}}, // Use APIError for dummy.
 				req: &Request{
 					Method:  MethodPost,
 					Key:     "test1/test2",
@@ -361,7 +361,7 @@ func TestFactoryAPI_post(t *testing.T) {
 			&action{
 				protoStore: map[string]protoreflect.ProtoMessage{},
 				objStore:   map[string]any{},
-				err:        &errorutil.SimpleError{Message: "kernel/api: type assertion failed."},
+				err:        &zerrors.Err{Message: "kernel/api: type assertion failed."},
 			},
 		),
 		gen(
@@ -379,7 +379,7 @@ func TestFactoryAPI_post(t *testing.T) {
 			&action{
 				protoStore: map[string]protoreflect.ProtoMessage{},
 				objStore:   map[string]any{},
-				err:        &errorutil.SimpleError{Message: "kernel/api: type assertion failed."},
+				err:        &zerrors.Err{Message: "kernel/api: type assertion failed."},
 			},
 		),
 		gen(
@@ -396,7 +396,7 @@ func TestFactoryAPI_post(t *testing.T) {
 			&action{
 				protoStore: map[string]protoreflect.ProtoMessage{},
 				objStore:   map[string]any{},
-				err:        &errorutil.SimpleError{Message: "internal/encoder: unmarshaling json failed."},
+				err:        &zerrors.Err{Message: "internal/encoder: unmarshaling json failed."},
 			},
 		),
 	}
@@ -653,7 +653,7 @@ func TestFactoryAPI_get(t *testing.T) {
 				a: &FactoryAPI{
 					protoStore: map[string]protoreflect.ProtoMessage{"test1/test2/test3/test4": nil},
 				},
-				resource: &testResource{err: &errorutil.SimpleError{Message: ""}}, // Use APIError for dummy.
+				resource: &testResource{err: &zerrors.Err{Message: ""}}, // Use APIError for dummy.
 				req: &Request{
 					Method:  MethodGet,
 					Key:     "test1/test2",
@@ -664,7 +664,7 @@ func TestFactoryAPI_get(t *testing.T) {
 			&action{
 				objStore:   nil,
 				protoStore: map[string]protoreflect.ProtoMessage{"test1/test2/test3/test4": nil},
-				err:        &errorutil.SimpleError{Message: ""},
+				err:        &zerrors.Err{Message: ""},
 			},
 		),
 		gen(
@@ -682,7 +682,7 @@ func TestFactoryAPI_get(t *testing.T) {
 			&action{
 				objStore:   map[string]any{},
 				protoStore: map[string]protoreflect.ProtoMessage{},
-				err:        &errorutil.SimpleError{Message: "kernel/api: type assertion failed."},
+				err:        &zerrors.Err{Message: "kernel/api: type assertion failed."},
 			},
 		),
 		gen(
@@ -699,7 +699,7 @@ func TestFactoryAPI_get(t *testing.T) {
 			&action{
 				objStore:   map[string]any{},
 				protoStore: map[string]protoreflect.ProtoMessage{},
-				err:        &errorutil.SimpleError{Message: "internal/encoder: unmarshaling json failed."},
+				err:        &zerrors.Err{Message: "internal/encoder: unmarshaling json failed."},
 			},
 		),
 	}

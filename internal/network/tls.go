@@ -9,7 +9,7 @@ import (
 	"os"
 
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
-	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
+	"github.com/aileron-projects/go/zerrors"
 )
 
 // tlsCipher is the list of TLS cipher suites.
@@ -54,26 +54,26 @@ func TLSConfig(spec *k.TLSConfig) (*tls.Config, error) {
 
 	rootCAs, err := certPool(spec.RootCAs)
 	if err != nil {
-		return nil, errorutil.NewSimple(err, "internal/network: failed to load root CAs", "")
+		return nil, zerrors.NewErr(err, "internal/network: failed to load root CAs", "")
 	}
 
 	clientCAs, err := certPool(spec.ClientCAs)
 	if err != nil {
-		return nil, errorutil.NewSimple(err, "internal/network: failed to load root CAs", "")
+		return nil, zerrors.NewErr(err, "internal/network: failed to load root CAs", "")
 	}
 
 	if spec.ClientAuth > 4 {
-		return nil, errorutil.NewSimple(nil, "internal/network: ClientAuthType must be 0 to 4.", "given=%s", spec.ClientAuth.String())
+		return nil, zerrors.NewErr(nil, "internal/network: ClientAuthType must be 0 to 4.", "given=%s", spec.ClientAuth.String())
 	}
 
 	if spec.Renegotiation > 2 {
-		return nil, errorutil.NewSimple(nil, "internal/network: RenegotiationSupport must be 0 to 2.", "given=%s", spec.Renegotiation.String())
+		return nil, zerrors.NewErr(nil, "internal/network: RenegotiationSupport must be 0 to 2.", "given=%s", spec.Renegotiation.String())
 	}
 	certs := make([]tls.Certificate, 0, len(spec.CertKeyPairs))
 	for _, pair := range spec.CertKeyPairs {
 		cert, err := tls.LoadX509KeyPair(pair.CertFile, pair.KeyFile)
 		if err != nil {
-			return nil, errorutil.NewSimple(err, "internal/network: failed to load cert file.", "")
+			return nil, zerrors.NewErr(err, "internal/network: failed to load cert file.", "")
 		}
 		certs = append(certs, cert)
 	}
@@ -145,10 +145,10 @@ func certPool(files []string) (*x509.CertPool, error) {
 	for _, file := range files {
 		pem, err := os.ReadFile(file)
 		if err != nil {
-			return nil, errorutil.NewSimple(err, "internal/network: TLS certification error", "")
+			return nil, zerrors.NewErr(err, "internal/network: TLS certification error", "")
 		}
 		if !pool.AppendCertsFromPEM(pem) {
-			return nil, errorutil.NewSimple(nil, "internal/network: invalid pem file", "file=%s", file)
+			return nil, zerrors.NewErr(nil, "internal/network: invalid pem file", "file=%s", file)
 		}
 	}
 	return pool, nil

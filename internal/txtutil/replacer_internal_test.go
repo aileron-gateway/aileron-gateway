@@ -11,7 +11,7 @@ import (
 
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
-	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
+	"github.com/aileron-projects/go/zerrors"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
@@ -47,7 +47,7 @@ func TestNewStringReplacers(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported replacer type."},
+				err: &zerrors.Err{Message: "internal/txtutil: unsupported replacer type."},
 			},
 		),
 		gen(
@@ -122,7 +122,7 @@ func TestNewStringReplacer(t *testing.T) {
 				spec: nil,
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: nil replacer spec."},
+				err: &zerrors.Err{Message: "internal/txtutil: nil replacer spec."},
 			},
 		),
 		gen(
@@ -132,7 +132,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported replacer type."},
+				err: &zerrors.Err{Message: "internal/txtutil: unsupported replacer type."},
 			},
 		),
 		gen(
@@ -580,7 +580,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported encoding."},
+				err: &zerrors.Err{Message: "internal/txtutil: unsupported encoding."},
 			},
 		),
 		gen(
@@ -631,7 +631,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported hash algorithm."},
+				err: &zerrors.Err{Message: "internal/txtutil: unsupported hash algorithm."},
 			},
 		),
 		gen(
@@ -645,7 +645,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported hash algorithm."},
+				err: &zerrors.Err{Message: "internal/txtutil: unsupported hash algorithm."},
 			},
 		),
 		gen(
@@ -659,7 +659,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported encoding."},
+				err: &zerrors.Err{Message: "internal/txtutil: unsupported encoding."},
 			},
 		),
 		gen(
@@ -712,7 +712,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: empty string for reqular expression."},
+				err: &zerrors.Err{Message: "internal/txtutil: empty string for reqular expression."},
 			},
 		),
 		gen(
@@ -726,7 +726,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for Regex."},
+				err: &zerrors.Err{Message: "internal/txtutil: invalid pattern for Regex."},
 			},
 		),
 		gen(
@@ -741,7 +741,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for RegexPOSIX."},
+				err: &zerrors.Err{Message: "internal/txtutil: invalid pattern for RegexPOSIX."},
 			},
 		),
 		gen(
@@ -819,7 +819,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: empty string for reqular expression."},
+				err: &zerrors.Err{Message: "internal/txtutil: empty string for reqular expression."},
 			},
 		),
 		gen(
@@ -833,7 +833,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for Regex."},
+				err: &zerrors.Err{Message: "internal/txtutil: invalid pattern for Regex."},
 			},
 		),
 		gen(
@@ -848,7 +848,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for RegexPOSIX."},
+				err: &zerrors.Err{Message: "internal/txtutil: invalid pattern for RegexPOSIX."},
 			},
 		),
 		gen(
@@ -902,7 +902,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported encryption."},
+				err: &zerrors.Err{Message: "internal/txtutil: unsupported encryption."},
 			},
 		),
 		gen(
@@ -917,7 +917,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported encryption."},
+				err: &zerrors.Err{Message: "internal/txtutil: unsupported encryption."},
 			},
 		),
 		gen(
@@ -932,7 +932,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported encoding."},
+				err: &zerrors.Err{Message: "internal/txtutil: unsupported encoding."},
 			},
 		),
 		gen(
@@ -991,7 +991,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: encryption password is not hex encoded."},
+				err: &zerrors.Err{Message: "internal/txtutil: encryption password is not hex encoded."},
 			},
 		),
 		gen(
@@ -1046,7 +1046,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported hmac algorithm."},
+				err: &zerrors.Err{Message: "internal/txtutil: unsupported hmac algorithm."},
 			},
 		),
 		gen(
@@ -1060,7 +1060,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported hmac algorithm."},
+				err: &zerrors.Err{Message: "internal/txtutil: unsupported hmac algorithm."},
 			},
 		),
 		gen(
@@ -1074,7 +1074,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported encoding."},
+				err: &zerrors.Err{Message: "internal/txtutil: unsupported encoding."},
 			},
 		),
 		gen(
@@ -1090,7 +1090,7 @@ func TestNewStringReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: hmac key is not hex encoded."},
+				err: &zerrors.Err{Message: "internal/txtutil: hmac key is not hex encoded."},
 			},
 		),
 		gen(
@@ -1196,7 +1196,7 @@ func TestNewBytesReplacers(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported replacer."},
+				err: &zerrors.Err{Message: "internal/txtutil: unsupported replacer."},
 			},
 		),
 		gen(
@@ -1271,7 +1271,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				spec: nil,
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: nil replacer spec."},
+				err: &zerrors.Err{Message: "internal/txtutil: nil replacer spec."},
 			},
 		),
 		gen(
@@ -1281,7 +1281,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported replacer."},
+				err: &zerrors.Err{Message: "internal/txtutil: unsupported replacer."},
 			},
 		),
 		gen(
@@ -1728,7 +1728,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported encoding."},
+				err: &zerrors.Err{Message: "internal/txtutil: unsupported encoding."},
 			},
 		),
 		gen(
@@ -1782,7 +1782,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported hash algorithm."},
+				err: &zerrors.Err{Message: "internal/txtutil: unsupported hash algorithm."},
 			},
 		),
 		gen(
@@ -1797,7 +1797,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported hash algorithm."},
+				err: &zerrors.Err{Message: "internal/txtutil: unsupported hash algorithm."},
 			},
 		),
 		gen(
@@ -1812,7 +1812,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported encoding."},
+				err: &zerrors.Err{Message: "internal/txtutil: unsupported encoding."},
 			},
 		),
 		gen(
@@ -1868,7 +1868,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: empty string for reqular expression."},
+				err: &zerrors.Err{Message: "internal/txtutil: empty string for reqular expression."},
 			},
 		),
 		gen(
@@ -1883,7 +1883,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for Regex."},
+				err: &zerrors.Err{Message: "internal/txtutil: invalid pattern for Regex."},
 			},
 		),
 		gen(
@@ -1899,7 +1899,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for RegexPOSIX."},
+				err: &zerrors.Err{Message: "internal/txtutil: invalid pattern for RegexPOSIX."},
 			},
 		),
 		gen(
@@ -1981,7 +1981,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: empty string for reqular expression."},
+				err: &zerrors.Err{Message: "internal/txtutil: empty string for reqular expression."},
 			},
 		),
 		gen(
@@ -1996,7 +1996,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for Regex."},
+				err: &zerrors.Err{Message: "internal/txtutil: invalid pattern for Regex."},
 			},
 		),
 		gen(
@@ -2012,7 +2012,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for RegexPOSIX."},
+				err: &zerrors.Err{Message: "internal/txtutil: invalid pattern for RegexPOSIX."},
 			},
 		),
 		gen(
@@ -2069,7 +2069,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported encryption."},
+				err: &zerrors.Err{Message: "internal/txtutil: unsupported encryption."},
 			},
 		),
 		gen(
@@ -2085,7 +2085,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported encryption."},
+				err: &zerrors.Err{Message: "internal/txtutil: unsupported encryption."},
 			},
 		),
 		gen(
@@ -2101,7 +2101,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported encoding."},
+				err: &zerrors.Err{Message: "internal/txtutil: unsupported encoding."},
 			},
 		),
 		gen(
@@ -2163,7 +2163,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: encryption password is not hex encoded."},
+				err: &zerrors.Err{Message: "internal/txtutil: encryption password is not hex encoded."},
 			},
 		),
 		gen(
@@ -2221,7 +2221,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported hmac algorithm."},
+				err: &zerrors.Err{Message: "internal/txtutil: unsupported hmac algorithm."},
 			},
 		),
 		gen(
@@ -2236,7 +2236,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported hmac algorithm."},
+				err: &zerrors.Err{Message: "internal/txtutil: unsupported hmac algorithm."},
 			},
 		),
 		gen(
@@ -2251,7 +2251,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: unsupported encoding."},
+				err: &zerrors.Err{Message: "internal/txtutil: unsupported encoding."},
 			},
 		),
 		gen(
@@ -2268,7 +2268,7 @@ func TestNewBytesReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: hmac key is not hex encoded."},
+				err: &zerrors.Err{Message: "internal/txtutil: hmac key is not hex encoded."},
 			},
 		),
 		gen(

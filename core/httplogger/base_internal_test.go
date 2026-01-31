@@ -19,8 +19,8 @@ import (
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/internal/txtutil"
-	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
+	"github.com/aileron-projects/go/zerrors"
 	"github.com/aileron-projects/go/ztext"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -127,7 +127,7 @@ func TestNewBaseLogger(t *testing.T) {
 			},
 			&action{
 				bl:  nil,
-				err: &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for Regex."},
+				err: &zerrors.Err{Message: "internal/txtutil: invalid pattern for Regex."},
 			},
 		),
 		gen(
@@ -183,7 +183,7 @@ func TestNewBaseLogger(t *testing.T) {
 			},
 			&action{
 				bl:  nil,
-				err: &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for Regex."},
+				err: &zerrors.Err{Message: "internal/txtutil: invalid pattern for Regex."},
 			},
 		),
 		gen(
@@ -216,7 +216,7 @@ func TestNewBaseLogger(t *testing.T) {
 			},
 			&action{
 				bl:  nil,
-				err: &errorutil.SimpleError{Message: "core/httplogger: formatted log requires logger with io.Writer interface"},
+				err: &zerrors.Err{Message: "core/httplogger: formatted log requires logger with io.Writer interface"},
 			},
 		),
 		gen(

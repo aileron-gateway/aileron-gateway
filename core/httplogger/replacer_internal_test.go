@@ -10,7 +10,7 @@ import (
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
-	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
+	"github.com/aileron-projects/go/zerrors"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
@@ -197,7 +197,7 @@ func TestHeaderReplacers(t *testing.T) {
 			},
 			&action{
 				data: map[string]string{"Alice": "bob", "Foo": "bar"},
-				err:  &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for Regex."},
+				err:  &zerrors.Err{Message: "internal/txtutil: invalid pattern for Regex."},
 			},
 		),
 	}
@@ -495,7 +495,7 @@ func TestBodyReplacers(t *testing.T) {
 				},
 			},
 			&action{
-				err: &errorutil.SimpleError{Message: "internal/txtutil: invalid pattern for Regex."},
+				err: &zerrors.Err{Message: "internal/txtutil: invalid pattern for Regex."},
 			},
 		),
 	}

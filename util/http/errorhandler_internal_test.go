@@ -22,6 +22,7 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
+	"github.com/aileron-projects/go/zerrors"
 	"github.com/aileron-projects/go/ztext"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -250,7 +251,7 @@ func TestErrorHandler(t *testing.T) {
 			},
 			&action{
 				eh:  nil,
-				err: &errorutil.SimpleError{Message: "kernel/api: type assertion failed."},
+				err: &zerrors.Err{Message: "kernel/api: type assertion failed."},
 			},
 		),
 	}
@@ -354,7 +355,7 @@ func TestNewErrorMessage(t *testing.T) {
 			},
 			&action{
 				em:  nil,
-				err: &errorutil.SimpleError{Message: "util/http: invalid regular expression."},
+				err: &zerrors.Err{Message: "util/http: invalid regular expression."},
 			},
 		),
 		gen(
@@ -370,7 +371,7 @@ func TestNewErrorMessage(t *testing.T) {
 			},
 			&action{
 				em:  nil,
-				err: &errorutil.SimpleError{Message: "util/http: failed to parse media type."},
+				err: &zerrors.Err{Message: "util/http: failed to parse media type."},
 			},
 		),
 	}
