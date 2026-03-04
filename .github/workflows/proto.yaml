@@ -19,7 +19,7 @@ jobs:
       - uses: arduino/setup-protoc@v3
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          version: "29.0"
+          version: "34.0"
       - run: make proto-clean
       - run: make proto
       - run: go mod tidy

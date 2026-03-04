@@ -38,7 +38,7 @@ proto-lint: protolint
 .PHONY: protoc-gen-go
 protoc-gen-go:
 ifeq (, $(shell which protoc-gen-go 2>/dev/null))
-	go install "google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.4"
+	go install "google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.11"
 endif
 
 .PHONY: protolint
