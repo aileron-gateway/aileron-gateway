@@ -205,12 +205,12 @@ func TestWrappedWriter_Write(t *testing.T) {
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"status code 100", &condition{
-				statusCode: 100,
+			"status code 200", &condition{
+				statusCode: 200,
 				body:       "test",
 			},
 			&action{
-				statusCode: 100,
+				statusCode: 200,
 				body:       "test",
 			},
 		),
