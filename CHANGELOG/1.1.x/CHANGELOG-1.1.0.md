@@ -17,7 +17,7 @@ Table of contents.
 ## Versions
 
 - AILERON Gateway: `v1.1.0`
-- Go: `v1.24`
+- Go: `v1.2`
 - protoc: `v29.0`
 - protoc-gen-go: `v1.36.4`
 
