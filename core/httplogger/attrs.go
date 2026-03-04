@@ -216,6 +216,8 @@ var (
 //   - 4 bytes (32 bits) hostname FNV1a hash
 //   - 4 bytes (32 bits) unix seconds which cycle every 4,294,967,295 seconds or 136 years.
 //   - 7 bytes (56 bits) counter which cycles every 7,2057,594,037,927,935 or 0xFFFFFFFFFFFFFF.
+//
+//nolint:gosec // G115: integer overflow conversion uint64 -> byte (gosec)
 func newLogID() string {
 	x := [15]byte{}
 	copy(x[:], hostname)

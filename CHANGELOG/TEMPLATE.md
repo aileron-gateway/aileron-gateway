@@ -1,6 +1,6 @@
 # CHANGELOG v1.0.x <!-- omit in toc -->
 
-**Table of contents**
+Table of contents.
 
 - [Versions](#versions)
 - [Changes](#changes)
