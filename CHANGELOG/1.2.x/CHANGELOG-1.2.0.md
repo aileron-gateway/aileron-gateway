@@ -1,4 +1,4 @@
-# CHANGELOG v1.0.x <!-- omit in toc -->
+# CHANGELOG v1.2.0 <!-- omit in toc -->
 
 Table of contents.
 
@@ -16,8 +16,8 @@ Table of contents.
 
 ## Versions
 
-- AILERON Gateway: `v1.0.0`
-- Go: `v1.24`
+- AILERON Gateway: `v1.2.0`
+- Go: `v1.26`
 - protoc: `v29.0`
 - protoc-gen-go: `v1.36.4`
 
