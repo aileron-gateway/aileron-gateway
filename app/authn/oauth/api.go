@@ -20,7 +20,6 @@ import (
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 	"github.com/golang-jwt/jwt/v5"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 const (
@@ -57,7 +56,7 @@ type API struct {
 // Changes for the fields of msg in this function make the final values which will be the input for validate and create function.
 // Default values for "repeated" or "oneof" fields can also be applied in this function if necessary.
 // Please check msg!=nil and asserting the mgs does not panic even they won't from the view of overall architecture of the gateway.
-func (*API) Mutate(msg protoreflect.ProtoMessage) protoreflect.ProtoMessage {
+func (*API) Mutate(msg proto.Message) proto.Message {
 	c := msg.(*v1.OAuthAuthenticationHandler)
 
 	for name, spec := range c.Spec.Contexts {
@@ -91,7 +90,7 @@ func (*API) Mutate(msg protoreflect.ProtoMessage) protoreflect.ProtoMessage {
 	return c
 }
 
-func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.ProtoMessage) (any, error) {
+func (*API) Create(a api.API[*api.Request, *api.Response], msg proto.Message) (any, error) {
 	var err error
 
 	skipATValidation, err = getEnvAsBool("AILERON_SKIP_AT_VALIDATION", false)

@@ -7,7 +7,6 @@ import (
 	"github.com/aileron-projects/go/zerrors"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 // MarshalProto marshal proto message into byte array.
@@ -18,7 +17,7 @@ import (
 //	opt := proto.MarshalOptions{
 //		AllowPartial: true,
 //	}
-func MarshalProto(in protoreflect.ProtoMessage, opt *proto.MarshalOptions) ([]byte, error) {
+func MarshalProto(in proto.Message, opt *proto.MarshalOptions) ([]byte, error) {
 	if in == nil {
 		return nil, nil
 	}
@@ -44,7 +43,7 @@ func MarshalProto(in protoreflect.ProtoMessage, opt *proto.MarshalOptions) ([]by
 //		AllowPartial:   true,
 //		DiscardUnknown: false,
 //	}
-func UnmarshalProto(in []byte, into protoreflect.ProtoMessage, opt *proto.UnmarshalOptions) error {
+func UnmarshalProto(in []byte, into proto.Message, opt *proto.UnmarshalOptions) error {
 	if into == nil {
 		return nil
 	}
@@ -70,7 +69,7 @@ func UnmarshalProto(in []byte, into protoreflect.ProtoMessage, opt *proto.Unmars
 //		AllowPartial:   true,
 //		DiscardUnknown: false,
 //	}
-func UnmarshalProtoFromJSON(in []byte, into protoreflect.ProtoMessage, opt *protojson.UnmarshalOptions) error {
+func UnmarshalProtoFromJSON(in []byte, into proto.Message, opt *protojson.UnmarshalOptions) error {
 	if into == nil {
 		return nil
 	}
@@ -98,7 +97,7 @@ func UnmarshalProtoFromJSON(in []byte, into protoreflect.ProtoMessage, opt *prot
 //		UseEnumNumbers:  false,
 //		EmitUnpopulated: false,
 //	}
-func MarshalProtoToJSON(in protoreflect.ProtoMessage, opt *protojson.MarshalOptions) ([]byte, error) {
+func MarshalProtoToJSON(in proto.Message, opt *protojson.MarshalOptions) ([]byte, error) {
 	if in == nil {
 		return nil, nil
 	}
@@ -128,7 +127,7 @@ func MarshalProtoToJSON(in protoreflect.ProtoMessage, opt *protojson.MarshalOpti
 //		AllowPartial:   true,
 //		DiscardUnknown: false,
 //	}
-func UnmarshalProtoFromYAML(in []byte, into protoreflect.ProtoMessage, opt *protojson.UnmarshalOptions) error {
+func UnmarshalProtoFromYAML(in []byte, into proto.Message, opt *protojson.UnmarshalOptions) error {
 	if into == nil {
 		return nil
 	}
@@ -159,7 +158,7 @@ func UnmarshalProtoFromYAML(in []byte, into protoreflect.ProtoMessage, opt *prot
 //		UseEnumNumbers:  false,
 //		EmitUnpopulated: false,
 //	}
-func MarshalProtoToYAML(in protoreflect.ProtoMessage, opt *protojson.MarshalOptions) ([]byte, error) {
+func MarshalProtoToYAML(in proto.Message, opt *protojson.MarshalOptions) ([]byte, error) {
 	if in == nil {
 		return nil, nil
 	}

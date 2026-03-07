@@ -22,16 +22,16 @@ import (
 	"github.com/aileron-projects/go/ztext"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/proto"
 )
 
 func TestMutate(t *testing.T) {
 	type condition struct {
-		manifest protoreflect.ProtoMessage
+		manifest proto.Message
 	}
 
 	type action struct {
-		manifest protoreflect.ProtoMessage
+		manifest proto.Message
 	}
 
 	gen := testutil.NewCase[*condition, *action]
@@ -101,7 +101,7 @@ func TestMutate(t *testing.T) {
 
 func TestCreate(t *testing.T) {
 	type condition struct {
-		manifest protoreflect.ProtoMessage
+		manifest proto.Message
 		server   api.API[*api.Request, *api.Response]
 	}
 

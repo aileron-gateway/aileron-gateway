@@ -12,7 +12,7 @@ import (
 	"github.com/aileron-projects/go/zerrors"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/proto"
 )
 
 func TestNewFactoryAPI(t *testing.T) {
@@ -30,7 +30,7 @@ func TestNewFactoryAPI(t *testing.T) {
 			&condition{},
 			&action{
 				a: &FactoryAPI{
-					protoStore: map[string]protoreflect.ProtoMessage{},
+					protoStore: map[string]proto.Message{},
 					objStore:   map[string]any{},
 					resources:  map[string]Resource{},
 				},
@@ -52,11 +52,11 @@ type noopResource struct {
 	ID string // To make this struct comparative in the test.
 }
 
-func (r *noopResource) Default() protoreflect.ProtoMessage {
+func (r *noopResource) Default() proto.Message {
 	return nil
 }
 
-func (r *noopResource) Create(a API[*Request, *Response], msg protoreflect.ProtoMessage) (any, error) {
+func (r *noopResource) Create(a API[*Request, *Response], msg proto.Message) (any, error) {
 	return nil, nil
 }
 
@@ -142,11 +142,11 @@ type testResource struct {
 	err error
 }
 
-func (r *testResource) Default() protoreflect.ProtoMessage {
+func (r *testResource) Default() proto.Message {
 	return &k.Resource{}
 }
 
-func (r *testResource) Create(a API[*Request, *Response], msg protoreflect.ProtoMessage) (any, error) {
+func (r *testResource) Create(a API[*Request, *Response], msg proto.Message) (any, error) {
 	if msg == nil {
 		return nil, r.err
 	}
@@ -154,15 +154,15 @@ func (r *testResource) Create(a API[*Request, *Response], msg protoreflect.Proto
 	return c.Metadata.Namespace + " " + c.Metadata.Name, r.err
 }
 
-func (r *testResource) Validate(msg protoreflect.ProtoMessage) error {
+func (r *testResource) Validate(msg proto.Message) error {
 	return r.err
 }
 
-func (r *testResource) Mutate(msg protoreflect.ProtoMessage) protoreflect.ProtoMessage {
+func (r *testResource) Mutate(msg proto.Message) proto.Message {
 	return msg
 }
 
-func (r *testResource) Delete(a API[*Request, *Response], msg protoreflect.ProtoMessage, obj any) error {
+func (r *testResource) Delete(a API[*Request, *Response], msg proto.Message, obj any) error {
 	return r.err
 }
 
@@ -174,7 +174,7 @@ func TestFactoryAPI_delete(t *testing.T) {
 	}
 
 	type action struct {
-		protoStore map[string]protoreflect.ProtoMessage
+		protoStore map[string]proto.Message
 		objStore   map[string]any
 		err        error
 	}
@@ -194,7 +194,7 @@ func TestFactoryAPI_delete(t *testing.T) {
 				},
 			},
 			&action{
-				protoStore: map[string]protoreflect.ProtoMessage{},
+				protoStore: map[string]proto.Message{},
 				objStore:   map[string]any{},
 			},
 		),
@@ -202,7 +202,7 @@ func TestFactoryAPI_delete(t *testing.T) {
 			"Delete object",
 			&condition{
 				a: &FactoryAPI{
-					protoStore: map[string]protoreflect.ProtoMessage{"test1/test2/test3/test4": &k.Reference{}},
+					protoStore: map[string]proto.Message{"test1/test2/test3/test4": &k.Reference{}},
 					objStore:   map[string]any{"test1/test2/test3/test4": "test3 test4"},
 				},
 				resource: &testResource{},
@@ -214,7 +214,7 @@ func TestFactoryAPI_delete(t *testing.T) {
 				},
 			},
 			&action{
-				protoStore: map[string]protoreflect.ProtoMessage{},
+				protoStore: map[string]proto.Message{},
 				objStore:   map[string]any{},
 			},
 		),
@@ -231,7 +231,7 @@ func TestFactoryAPI_delete(t *testing.T) {
 				},
 			},
 			&action{
-				protoStore: map[string]protoreflect.ProtoMessage{},
+				protoStore: map[string]proto.Message{},
 				objStore:   map[string]any{},
 				err:        &zerrors.Err{Message: "kernel/api: type assertion failed."},
 			},
@@ -249,7 +249,7 @@ func TestFactoryAPI_delete(t *testing.T) {
 				},
 			},
 			&action{
-				protoStore: map[string]protoreflect.ProtoMessage{},
+				protoStore: map[string]proto.Message{},
 				objStore:   map[string]any{},
 				err:        &zerrors.Err{Message: "kernel/api: type assertion failed."},
 			},
@@ -266,7 +266,7 @@ func TestFactoryAPI_delete(t *testing.T) {
 				},
 			},
 			&action{
-				protoStore: map[string]protoreflect.ProtoMessage{},
+				protoStore: map[string]proto.Message{},
 				objStore:   map[string]any{},
 				err:        &zerrors.Err{Message: "internal/encoder: unmarshaling json failed."},
 			},
@@ -294,7 +294,7 @@ func TestFactoryAPI_post(t *testing.T) {
 	}
 
 	type action struct {
-		protoStore map[string]protoreflect.ProtoMessage
+		protoStore map[string]proto.Message
 		objStore   map[string]any
 		err        error
 	}
@@ -314,7 +314,7 @@ func TestFactoryAPI_post(t *testing.T) {
 				},
 			},
 			&action{
-				protoStore: map[string]protoreflect.ProtoMessage{
+				protoStore: map[string]proto.Message{
 					"test1/test2/test3/test4": &k.Resource{
 						APIVersion: "test1",
 						Kind:       "test2",
@@ -331,7 +331,7 @@ func TestFactoryAPI_post(t *testing.T) {
 			"duplicate key",
 			&condition{
 				a: &FactoryAPI{
-					protoStore: map[string]protoreflect.ProtoMessage{"test1/test2/test3/test4": nil},
+					protoStore: map[string]proto.Message{"test1/test2/test3/test4": nil},
 				},
 				resource: &testResource{},
 				req: &Request{
@@ -342,7 +342,7 @@ func TestFactoryAPI_post(t *testing.T) {
 				},
 			},
 			&action{
-				protoStore: map[string]protoreflect.ProtoMessage{"test1/test2/test3/test4": nil},
+				protoStore: map[string]proto.Message{"test1/test2/test3/test4": nil},
 				err:        &zerrors.Err{Message: "kernel/api: key duplication error."},
 			},
 		),
@@ -359,7 +359,7 @@ func TestFactoryAPI_post(t *testing.T) {
 				},
 			},
 			&action{
-				protoStore: map[string]protoreflect.ProtoMessage{},
+				protoStore: map[string]proto.Message{},
 				objStore:   map[string]any{},
 				err:        &zerrors.Err{Message: "kernel/api: type assertion failed."},
 			},
@@ -377,7 +377,7 @@ func TestFactoryAPI_post(t *testing.T) {
 				},
 			},
 			&action{
-				protoStore: map[string]protoreflect.ProtoMessage{},
+				protoStore: map[string]proto.Message{},
 				objStore:   map[string]any{},
 				err:        &zerrors.Err{Message: "kernel/api: type assertion failed."},
 			},
@@ -394,7 +394,7 @@ func TestFactoryAPI_post(t *testing.T) {
 				},
 			},
 			&action{
-				protoStore: map[string]protoreflect.ProtoMessage{},
+				protoStore: map[string]proto.Message{},
 				objStore:   map[string]any{},
 				err:        &zerrors.Err{Message: "internal/encoder: unmarshaling json failed."},
 			},
@@ -423,7 +423,7 @@ func TestFactoryAPI_get(t *testing.T) {
 
 	type action struct {
 		obj        any
-		protoStore map[string]protoreflect.ProtoMessage
+		protoStore map[string]proto.Message
 		objStore   map[string]any
 		err        error
 	}
@@ -434,7 +434,7 @@ func TestFactoryAPI_get(t *testing.T) {
 			"Get new instance",
 			&condition{
 				a: &FactoryAPI{
-					protoStore: map[string]protoreflect.ProtoMessage{
+					protoStore: map[string]proto.Message{
 						"test1/test2/test3/test4": &k.Resource{
 							APIVersion: "test1",
 							Kind:       "test2",
@@ -456,7 +456,7 @@ func TestFactoryAPI_get(t *testing.T) {
 			},
 			&action{
 				obj: "test3 test4",
-				protoStore: map[string]protoreflect.ProtoMessage{
+				protoStore: map[string]proto.Message{
 					"test1/test2/test3/test4": &k.Resource{
 						APIVersion: "test1",
 						Kind:       "test2",
@@ -473,7 +473,7 @@ func TestFactoryAPI_get(t *testing.T) {
 			"Get existing instance",
 			&condition{
 				a: &FactoryAPI{
-					protoStore: map[string]protoreflect.ProtoMessage{
+					protoStore: map[string]proto.Message{
 						"test1/test2/test3/test4": &k.Resource{
 							APIVersion: "test1",
 							Kind:       "test2",
@@ -495,7 +495,7 @@ func TestFactoryAPI_get(t *testing.T) {
 			},
 			&action{
 				obj: "test3 test4",
-				protoStore: map[string]protoreflect.ProtoMessage{
+				protoStore: map[string]proto.Message{
 					"test1/test2/test3/test4": &k.Resource{
 						APIVersion: "test1",
 						Kind:       "test2",
@@ -512,7 +512,7 @@ func TestFactoryAPI_get(t *testing.T) {
 			"accept as json",
 			&condition{
 				a: &FactoryAPI{
-					protoStore: map[string]protoreflect.ProtoMessage{
+					protoStore: map[string]proto.Message{
 						"test1/test2/test3/test4": &k.Resource{
 							APIVersion: "test1",
 							Kind:       "test2",
@@ -534,7 +534,7 @@ func TestFactoryAPI_get(t *testing.T) {
 			},
 			&action{
 				obj: "<<< Do not check this value because single space and double spaces are randomly used for marshalling ProtoMessage to JSON >>>",
-				protoStore: map[string]protoreflect.ProtoMessage{
+				protoStore: map[string]proto.Message{
 					"test1/test2/test3/test4": &k.Resource{
 						APIVersion: "test1",
 						Kind:       "test2",
@@ -550,7 +550,7 @@ func TestFactoryAPI_get(t *testing.T) {
 			"accept as yaml",
 			&condition{
 				a: &FactoryAPI{
-					protoStore: map[string]protoreflect.ProtoMessage{
+					protoStore: map[string]proto.Message{
 						"test1/test2/test3/test4": &k.Resource{
 							APIVersion: "test1",
 							Kind:       "test2",
@@ -572,7 +572,7 @@ func TestFactoryAPI_get(t *testing.T) {
 			},
 			&action{
 				obj: []byte("apiVersion: test1\nkind: test2\nmetadata:\n  errorHandler: \"\"\n  logger: \"\"\n  name: test4\n  namespace: test3\nspec: null\n"),
-				protoStore: map[string]protoreflect.ProtoMessage{
+				protoStore: map[string]proto.Message{
 					"test1/test2/test3/test4": &k.Resource{
 						APIVersion: "test1",
 						Kind:       "test2",
@@ -589,7 +589,7 @@ func TestFactoryAPI_get(t *testing.T) {
 			"accept as proto message",
 			&condition{
 				a: &FactoryAPI{
-					protoStore: map[string]protoreflect.ProtoMessage{
+					protoStore: map[string]proto.Message{
 						"test1/test2/test3/test4": &k.Resource{
 							APIVersion: "test1",
 							Kind:       "test2",
@@ -618,7 +618,7 @@ func TestFactoryAPI_get(t *testing.T) {
 						Name:      "test4",
 					},
 				},
-				protoStore: map[string]protoreflect.ProtoMessage{
+				protoStore: map[string]proto.Message{
 					"test1/test2/test3/test4": &k.Resource{
 						APIVersion: "test1",
 						Kind:       "test2",
@@ -651,7 +651,7 @@ func TestFactoryAPI_get(t *testing.T) {
 			"Get fails",
 			&condition{
 				a: &FactoryAPI{
-					protoStore: map[string]protoreflect.ProtoMessage{"test1/test2/test3/test4": nil},
+					protoStore: map[string]proto.Message{"test1/test2/test3/test4": nil},
 				},
 				resource: &testResource{err: &zerrors.Err{Message: ""}}, // Use APIError for dummy.
 				req: &Request{
@@ -663,7 +663,7 @@ func TestFactoryAPI_get(t *testing.T) {
 			},
 			&action{
 				objStore:   nil,
-				protoStore: map[string]protoreflect.ProtoMessage{"test1/test2/test3/test4": nil},
+				protoStore: map[string]proto.Message{"test1/test2/test3/test4": nil},
 				err:        &zerrors.Err{Message: ""},
 			},
 		),
@@ -681,7 +681,7 @@ func TestFactoryAPI_get(t *testing.T) {
 			},
 			&action{
 				objStore:   map[string]any{},
-				protoStore: map[string]protoreflect.ProtoMessage{},
+				protoStore: map[string]proto.Message{},
 				err:        &zerrors.Err{Message: "kernel/api: type assertion failed."},
 			},
 		),
@@ -698,7 +698,7 @@ func TestFactoryAPI_get(t *testing.T) {
 			},
 			&action{
 				objStore:   map[string]any{},
-				protoStore: map[string]protoreflect.ProtoMessage{},
+				protoStore: map[string]proto.Message{},
 				err:        &zerrors.Err{Message: "internal/encoder: unmarshaling json failed."},
 			},
 		),

@@ -11,12 +11,12 @@ import (
 	"github.com/aileron-projects/go/zerrors"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/encoding/protojson"
-	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/proto"
 )
 
 func TestMarshalProto(t *testing.T) {
 	type condition struct {
-		in protoreflect.ProtoMessage
+		in proto.Message
 	}
 
 	type action struct {
@@ -63,11 +63,11 @@ func TestMarshalProto(t *testing.T) {
 func TestUnmarshalProto(t *testing.T) {
 	type condition struct {
 		in   string
-		into protoreflect.ProtoMessage
+		into proto.Message
 	}
 
 	type action struct {
-		result protoreflect.ProtoMessage
+		result proto.Message
 		err    error
 	}
 
@@ -123,11 +123,11 @@ func TestUnmarshalProto(t *testing.T) {
 func TestUnmarshalProtoFromJSON(t *testing.T) {
 	type condition struct {
 		in   string
-		into protoreflect.ProtoMessage
+		into proto.Message
 	}
 
 	type action struct {
-		result protoreflect.ProtoMessage
+		result proto.Message
 		err    error
 	}
 
@@ -182,7 +182,7 @@ func TestUnmarshalProtoFromJSON(t *testing.T) {
 
 func TestMarshalProtoToJSON(t *testing.T) {
 	type condition struct {
-		in  protoreflect.ProtoMessage
+		in  proto.Message
 		opt *protojson.MarshalOptions
 	}
 
@@ -241,11 +241,11 @@ func TestMarshalProtoToJSON(t *testing.T) {
 func TestUnmarshalProtoFromYAML(t *testing.T) {
 	type condition struct {
 		in   string
-		into protoreflect.ProtoMessage
+		into proto.Message
 	}
 
 	type action struct {
-		result protoreflect.ProtoMessage
+		result proto.Message
 		err    error
 	}
 
@@ -300,7 +300,7 @@ func TestUnmarshalProtoFromYAML(t *testing.T) {
 
 func TestMarshalProtoToYAML(t *testing.T) {
 	type condition struct {
-		in  protoreflect.ProtoMessage
+		in  proto.Message
 		opt *protojson.MarshalOptions
 	}
 

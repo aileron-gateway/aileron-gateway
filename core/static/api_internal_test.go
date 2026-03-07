@@ -18,7 +18,7 @@ import (
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/proto"
 )
 
 // testDir is the path to the test data.
@@ -26,7 +26,7 @@ var testDir = "../../test/"
 
 func TestCreate(t *testing.T) {
 	type condition struct {
-		manifest protoreflect.ProtoMessage
+		manifest proto.Message
 		server   api.API[*api.Request, *api.Response]
 		path     string
 	}

@@ -19,7 +19,7 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
 	"github.com/aileron-projects/go/zlog"
 	"github.com/aileron-projects/go/ztime/zcron"
-	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/proto"
 )
 
 const (
@@ -57,7 +57,7 @@ type API struct {
 	*api.BaseResource
 }
 
-func (*API) Create(_ api.API[*api.Request, *api.Response], msg protoreflect.ProtoMessage) (any, error) {
+func (*API) Create(_ api.API[*api.Request, *api.Response], msg proto.Message) (any, error) {
 	c := msg.(*v1.SLogger)
 
 	timeZone, err := time.LoadLocation(c.Spec.LogOutput.TimeZone)

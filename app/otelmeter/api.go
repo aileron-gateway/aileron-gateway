@@ -24,7 +24,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"google.golang.org/grpc/credentials"
-	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/proto"
 )
 
 const (
@@ -49,7 +49,7 @@ type API struct {
 // Returned configuration does not contain all default values.
 // For example, default values for "repeated" or "oneof" fields in proto are set in mutate function.
 // Use "--template" command option to show configuration with all default values.
-func (o *API) Default() protoreflect.ProtoMessage {
+func (o *API) Default() proto.Message {
 	return &v1.OpenTelemetryMeter{
 		APIVersion: apiVersion,
 		Kind:       kind,
@@ -71,7 +71,7 @@ func (o *API) Default() protoreflect.ProtoMessage {
 	}
 }
 
-func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.ProtoMessage) (any, error) {
+func (*API) Create(a api.API[*api.Request, *api.Response], msg proto.Message) (any, error) {
 	c := msg.(*v1.OpenTelemetryMeter)
 
 	var exporter sdkmetric.Exporter
