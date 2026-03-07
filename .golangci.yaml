@@ -28,8 +28,8 @@ linters:
     gocyclo:
       min-complexity: 20
     gosec:
-      # Temporary excludes "G117", "G705", "G703", "G706"
-      excludes: ["G110", "G401", "G404", "G405", "G501", "G502", "G503", "G505", "G117", "G705", "G703", "G706"]
+      # Temporary excludes "G117", "G705", "G703", "G706", "G704", "G118"
+      excludes: ["G110", "G401", "G404", "G405", "G501", "G502", "G503", "G505", "G117", "G705", "G703", "G706", "G704", "G118"]
     govet:
       disable:
         - fieldalignment

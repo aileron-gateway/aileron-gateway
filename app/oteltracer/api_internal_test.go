@@ -21,12 +21,12 @@ import (
 	"go.opentelemetry.io/contrib/propagators/opencensus"
 	"go.opentelemetry.io/contrib/propagators/ot"
 	"go.opentelemetry.io/otel/propagation"
-	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/proto"
 )
 
 func TestCreate(t *testing.T) {
 	type condition struct {
-		manifest protoreflect.ProtoMessage
+		manifest proto.Message
 	}
 
 	type action struct {

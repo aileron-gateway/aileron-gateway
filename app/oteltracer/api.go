@@ -30,7 +30,7 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"google.golang.org/grpc/credentials"
-	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/proto"
 )
 
 const (
@@ -47,7 +47,7 @@ type API struct {
 	*api.BaseResource
 }
 
-func (o *API) Default() protoreflect.ProtoMessage {
+func (o *API) Default() proto.Message {
 	return &v1.OpenTelemetryTracer{
 		APIVersion: apiVersion,
 		Kind:       kind,
@@ -81,7 +81,7 @@ func (o *API) Default() protoreflect.ProtoMessage {
 	}
 }
 
-func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.ProtoMessage) (any, error) {
+func (*API) Create(a api.API[*api.Request, *api.Response], msg proto.Message) (any, error) {
 	c := msg.(*v1.OpenTelemetryTracer)
 
 	var exporter sdktrace.SpanExporter

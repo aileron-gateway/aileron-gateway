@@ -22,7 +22,7 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/quic-go/quic-go/http3"
 	"golang.org/x/net/http2"
-	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/proto"
 )
 
 // testDir is the path to the test data.
@@ -30,7 +30,7 @@ var testDir = "../../test/"
 
 func TestCreate(t *testing.T) {
 	type condition struct {
-		manifest protoreflect.ProtoMessage
+		manifest proto.Message
 	}
 
 	type action struct {

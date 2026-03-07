@@ -14,7 +14,7 @@ import (
 	"github.com/aileron-projects/go/zerrors"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/encoding/protojson"
-	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/proto"
 )
 
 func TestFormat_Unmarshal(t *testing.T) {
@@ -220,12 +220,12 @@ func TestProtoMessage(t *testing.T) {
 	type condition struct {
 		format  api.Format
 		content any
-		msg     protoreflect.ProtoMessage
+		msg     proto.Message
 		opt     *protojson.UnmarshalOptions
 	}
 
 	type action struct {
-		msg protoreflect.ProtoMessage
+		msg proto.Message
 		err error
 	}
 
@@ -464,7 +464,7 @@ func TestProtoMessage(t *testing.T) {
 
 func TestParseID(t *testing.T) {
 	type condition struct {
-		msg protoreflect.ProtoMessage
+		msg proto.Message
 	}
 
 	type action struct {
@@ -513,7 +513,7 @@ func TestParseID(t *testing.T) {
 		),
 		gen(
 			"nil pointer message", &condition{
-				msg: *new(protoreflect.ProtoMessage),
+				msg: *new(proto.Message),
 			},
 			&action{
 				id:  "",

@@ -13,14 +13,14 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-projects/go/zerrors"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/proto"
 )
 
 type MyResource struct {
 	*api.BaseResource
 }
 
-func (r *MyResource) Default() protoreflect.ProtoMessage {
+func (r *MyResource) Default() proto.Message {
 	// Use template message for this example.
 	return &k.Resource{
 		APIVersion: "factory/v1",
@@ -32,7 +32,7 @@ func (r *MyResource) Default() protoreflect.ProtoMessage {
 	}
 }
 
-func (r *MyResource) Create(a api.API[*api.Request, *api.Response], msg protoreflect.ProtoMessage) (any, error) {
+func (r *MyResource) Create(a api.API[*api.Request, *api.Response], msg proto.Message) (any, error) {
 	c := msg.(*k.Resource)
 	// Just return the namespace and name values in the manifest
 	// because the kernel.Template message does not contain any meaningful fields

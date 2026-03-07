@@ -21,7 +21,6 @@ import (
 	"github.com/aileron-projects/go/zx/zlb"
 	"github.com/cespare/xxhash/v2"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 const (
@@ -48,7 +47,7 @@ type API struct {
 	*api.BaseResource
 }
 
-func (*API) Mutate(msg protoreflect.ProtoMessage) protoreflect.ProtoMessage {
+func (*API) Mutate(msg proto.Message) proto.Message {
 	c := msg.(*v1.ReverseProxyHandler)
 	for _, spec := range c.Spec.LoadBalancers {
 		for j, t := range spec.Upstreams {
@@ -64,7 +63,7 @@ func (*API) Mutate(msg protoreflect.ProtoMessage) protoreflect.ProtoMessage {
 	return c
 }
 
-func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.ProtoMessage) (any, error) {
+func (*API) Create(a api.API[*api.Request, *api.Response], msg proto.Message) (any, error) {
 	c := msg.(*v1.ReverseProxyHandler)
 	eh := utilhttp.GlobalErrorHandler(cmp.Or(c.Metadata.ErrorHandler, utilhttp.DefaultErrorHandlerName))
 

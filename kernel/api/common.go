@@ -18,7 +18,6 @@ import (
 	"github.com/aileron-projects/go/zos"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 const (
@@ -66,8 +65,8 @@ type Format string
 const (
 	FormatJSON           Format = "JSON"           // JSON []byte
 	FormatYAML           Format = "YAML"           // YAML []byte
-	FormatProtoMessage   Format = "ProtoMessage"   // protoreflect.ProtoMessage
-	FormatProtoReference Format = "ProtoReference" // protoreflect.ProtoMessage only for kernel.Reference
+	FormatProtoMessage   Format = "ProtoMessage"   // proto.Message
+	FormatProtoReference Format = "ProtoReference" // proto.Message only for kernel.Reference
 )
 
 // Unmarshal un-marshals the in to into with this format.
@@ -194,11 +193,11 @@ func RootAPIFromContext(ctx context.Context) API[*Request, *Response] {
 	return routes[0]
 }
 
-// ProtoMessage returns protoreflect.ProtoMessage by parsing the given content.
+// ProtoMessage returns proto.Message by parsing the given content.
 // Typically, the defaultMsg is the configuration for API resources with default value
 // in protobuf message type.
 // defaultMsg will be ignored when the format is api.FormatProtoReference.
-func ProtoMessage(format Format, content any, defaultMsg protoreflect.ProtoMessage, opt *protojson.UnmarshalOptions) (protoreflect.ProtoMessage, error) {
+func ProtoMessage(format Format, content any, defaultMsg proto.Message, opt *protojson.UnmarshalOptions) (proto.Message, error) {
 	msg := defaultMsg
 	var err error
 	switch format {
@@ -227,13 +226,13 @@ func ProtoMessage(format Format, content any, defaultMsg protoreflect.ProtoMessa
 		err = encoder.UnmarshalProtoFromYAML(b, src, opt)
 		proto.Merge(msg, src)
 	case FormatProtoMessage:
-		src, ok := content.(protoreflect.ProtoMessage)
+		src, ok := content.(proto.Message)
 		if !ok {
 			return nil, zerrors.NewErr(nil, "kernel/api: type assertion failed.", "convert from %T to ProtoMessage", content)
 		}
 		proto.Merge(msg, src)
 	case FormatProtoReference:
-		src, ok := content.(protoreflect.ProtoMessage)
+		src, ok := content.(proto.Message)
 		if !ok {
 			return nil, zerrors.NewErr(nil, "kernel/api: type assertion failed.", "convert from %T to ProtoMessage", content)
 		}
@@ -258,7 +257,7 @@ func ProtoMessage(format Format, content any, defaultMsg protoreflect.ProtoMessa
 //			Namespace string `json:"namespace"`
 //		} `json:"metadata"`
 //	}
-func ParseID(msg protoreflect.ProtoMessage) (string, error) {
+func ParseID(msg proto.Message) (string, error) {
 	into := &struct {
 		Metadata *struct {
 			Name      string `json:"name"`

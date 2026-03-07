@@ -9,7 +9,7 @@ import (
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/proto"
 )
 
 const (
@@ -45,7 +45,7 @@ type API struct {
 // Changes for the fields of msg in this function make the final values which will be the input for validate and create function.
 // Default values for "repeated" or "oneof" fields can also be applied in this function if necessary.
 // Please check msg!=nil and asserting the mgs does not panic even they won't from the view of overall architecture of the gateway.
-func (*API) Mutate(msg protoreflect.ProtoMessage) protoreflect.ProtoMessage {
+func (*API) Mutate(msg proto.Message) proto.Message {
 	c := msg.(*v1.CompressionMiddleware)
 
 	if len(c.Spec.TargetMIMEs) == 0 {
@@ -64,7 +64,7 @@ func (*API) Mutate(msg protoreflect.ProtoMessage) protoreflect.ProtoMessage {
 	return c
 }
 
-func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.ProtoMessage) (any, error) {
+func (*API) Create(a api.API[*api.Request, *api.Response], msg proto.Message) (any, error) {
 	c := msg.(*v1.CompressionMiddleware)
 
 	gzipLevel := restrictBetween(int(c.Spec.GzipLevel), 1, 9)      // BestSpeed=1, BestCompression=9.

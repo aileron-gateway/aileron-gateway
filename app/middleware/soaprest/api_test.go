@@ -15,12 +15,12 @@ import (
 	"github.com/aileron-projects/go/zencoding/zxml"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/proto"
 )
 
 func TestCreate(t *testing.T) {
 	type condition struct {
-		manifest protoreflect.ProtoMessage
+		manifest proto.Message
 	}
 
 	type action struct {
