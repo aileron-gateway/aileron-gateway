@@ -5,7 +5,6 @@ Table of contents.
 - [Versions](#versions)
 - [Changes](#changes)
   - [Breaking changes](#breaking-changes)
-  - [New features](#new-features)
   - [Bug fix, Security fix](#bug-fix-security-fix)
   - [Other changes](#other-changes)
 - [Dependencies](#dependencies)
@@ -13,6 +12,7 @@ Table of contents.
   - [Changed](#changed)
   - [Removed](#removed)
 - [Migration guides](#migration-guides)
+  - [#121](#121)
 
 ## Versions
 
@@ -32,8 +32,7 @@ Table of contents.
 - [#111](https://github.com/aileron-gateway/aileron-gateway/pull/111): Move kernel/network package to internal/network (@k7a-tomohiro)
 - [#112](https://github.com/aileron-gateway/aileron-gateway/pull/112): Move util/security package to internal/security (@k7a-tomohiro)
 - [#114](https://github.com/aileron-gateway/aileron-gateway/pull/114): Move util/session package to kernel/session (@k7a-tomohiro)
-
-### New features
+- [#121](https://github.com/aileron-gateway/aileron-gateway/pull/121): Replace protoreflect.ProtoMessage to proto.Message (@k7a-tomohiro)
 
 _Nothing has changed._
 
@@ -66,4 +65,6 @@ _Nothing has changed._
 
 ## Migration guides
 
-_Migration is not required._
+### [#121](https://github.com/aileron-gateway/aileron-gateway/pull/121)
+
+Replace all [protoreflect.ProtoMessage](https://pkg.go.dev/google.golang.org/protobuf/reflect/protoreflect#ProtoMessage) by [proto.Message](https://pkg.go.dev/google.golang.org/protobuf/proto#Message).
