@@ -84,20 +84,19 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg proto.Message) (a
 	registerProfile(mux, c.Spec.EnableProfile)
 	registerExpvar(mux, c.Spec.EnableExpvar)
 
-	nfh := notFoundHandler(eh)
-	handlers, err := registerHandlers(a, mux, c.Spec.VirtualHosts, nfh)
-	if err != nil {
+	if err := registerHandlers(a, mux, c.Spec.VirtualHosts); err != nil {
 		return nil, core.ErrCoreGenCreateObject.WithStack(err, map[string]any{"kind": kind})
 	}
 
-	// Register not found handler if possible.
-	skipNotFound := false
-	for k := range handlers {
-		skipNotFound = skipNotFound || wildcardPath.MatchString(k)
-	}
-	if !skipNotFound {
-		mux.Handle("/", notFoundHandler(eh))
-	}
+	registerNotFound(mux, "GET /", notFoundHandler(eh))
+	registerNotFound(mux, "HEAD /", notFoundHandler(eh))
+	registerNotFound(mux, "POST /", notFoundHandler(eh))
+	registerNotFound(mux, "PUT /", notFoundHandler(eh))
+	registerNotFound(mux, "PATCH /", notFoundHandler(eh))
+	registerNotFound(mux, "DELETE /", notFoundHandler(eh))
+	registerNotFound(mux, "CONNECT /", notFoundHandler(eh))
+	registerNotFound(mux, "OPTIONS /", notFoundHandler(eh))
+	registerNotFound(mux, "TRACE /", notFoundHandler(eh))
 
 	middleware, err := api.ReferTypedObjects[core.Middleware](a, c.Spec.Middleware...)
 	if err != nil {
@@ -257,4 +256,11 @@ func registerExpvar(mux Mux, enabled bool) {
 	if enabled {
 		mux.Handle("GET /debug/vars", expvar.Handler())
 	}
+}
+
+func registerNotFound(mux Mux, pattern string, h http.Handler) {
+	defer func() {
+		recover()
+	}()
+	mux.Handle(pattern, h)
 }
