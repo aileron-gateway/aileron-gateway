@@ -873,10 +873,10 @@ type testMux struct {
 }
 
 func (m *testMux) Handle(path string, h http.Handler) {
-	m.hs[path] = h
 	if m.Mux != nil {
 		m.Mux.Handle(path, h)
 	}
+	m.hs[path] = h
 }
 
 func (m *testMux) Method(string, string, http.Handler) {}

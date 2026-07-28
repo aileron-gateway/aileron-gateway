@@ -85,18 +85,8 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg proto.Message) (a
 	registerExpvar(mux, c.Spec.EnableExpvar)
 
 	nfh := notFoundHandler(eh)
-	handlers, err := registerHandlers(a, mux, c.Spec.VirtualHosts, nfh)
-	if err != nil {
+	if err := registerHandlers(a, mux, c.Spec.VirtualHosts, nfh); err != nil {
 		return nil, core.ErrCoreGenCreateObject.WithStack(err, map[string]any{"kind": kind})
-	}
-
-	// Register not found handler if possible.
-	skipNotFound := false
-	for k := range handlers {
-		skipNotFound = skipNotFound || wildcardPath.MatchString(k)
-	}
-	if !skipNotFound {
-		mux.Handle("/", notFoundHandler(eh))
 	}
 
 	middleware, err := api.ReferTypedObjects[core.Middleware](a, c.Spec.Middleware...)
