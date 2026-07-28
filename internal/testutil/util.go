@@ -87,7 +87,7 @@ func structTypes(v reflect.Value, m map[reflect.Type]struct{}) {
 		return
 	}
 	switch v.Kind() {
-	case reflect.Ptr:
+	case reflect.Pointer:
 		if !v.IsNil() {
 			structTypes(v.Elem(), m)
 		}
@@ -105,7 +105,7 @@ func structTypes(v reflect.Value, m map[reflect.Type]struct{}) {
 		}
 	case reflect.Struct:
 		m[v.Type()] = struct{}{}
-		for i := 0; i < v.NumField(); i++ {
+		for i := range v.NumField() {
 			structTypes(v.Field(i), m)
 		}
 	}
