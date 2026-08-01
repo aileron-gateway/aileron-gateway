@@ -6,7 +6,6 @@ package httpserver
 import (
 	"net/http"
 	"path"
-	"regexp"
 	"slices"
 	"strings"
 
@@ -15,23 +14,6 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 )
-
-// wildcardPath is the pattern matched to the
-// path pattern that will be matched to all path.
-//
-//	fmt.Println(wildcardPath.MatchString(""))                   // true
-//	fmt.Println(wildcardPath.MatchString("/"))                  // true
-//	fmt.Println(wildcardPath.MatchString("/{foo...}"))          // true
-//	fmt.Println(wildcardPath.MatchString("/{foo...}/"))         // true
-//	fmt.Println(wildcardPath.MatchString("/bar"))               // false
-//	fmt.Println(wildcardPath.MatchString("/bar/"))              // false
-//	fmt.Println(wildcardPath.MatchString("/bar/{foo...}"))      // false
-//	fmt.Println(wildcardPath.MatchString("/bar/{foo...}/"))     // false
-//	fmt.Println(wildcardPath.MatchString("/bar/baz"))           // false
-//	fmt.Println(wildcardPath.MatchString("/bar/baz/"))          // false
-//	fmt.Println(wildcardPath.MatchString("/bar/{foo...}/baz"))  // false
-//	fmt.Println(wildcardPath.MatchString("/bar/{foo...}/baz/")) // false
-var wildcardPath = regexp.MustCompile(`^/?({[^/]*\.\.\.}|$)`)
 
 // notFoundHandler returns a not found handler.
 // The returned handler will panic if the nil error handler was given.
@@ -50,7 +32,7 @@ type Mux interface {
 
 // registerHandlers register virtual host handlers to the given mux..
 // The function panics if the mux is nil.
-func registerHandlers(a api.API[*api.Request, *api.Response], mux Mux, specs []*v1.VirtualHostSpec, notFound http.Handler) (handlers map[string]http.Handler, err error) {
+func registerHandlers(a api.API[*api.Request, *api.Response], mux Mux, specs []*v1.VirtualHostSpec, notFound http.Handler) (err error) {
 	defer func() {
 		if err != nil {
 			return
@@ -62,17 +44,16 @@ func registerHandlers(a api.API[*api.Request, *api.Response], mux Mux, specs []*
 		}
 	}()
 
-	handlers = map[string]http.Handler{}
 	for _, vhSpec := range specs {
 		middleware, err := api.ReferTypedObjects[core.Middleware](a, vhSpec.Middleware...)
 		if err != nil {
-			return nil, core.ErrCoreGenCreateComponent.WithStack(err, map[string]any{"reason": "failed to get middleware"})
+			return core.ErrCoreGenCreateComponent.WithStack(err, map[string]any{"reason": "failed to get middleware"})
 		}
 
 		for _, hSpec := range vhSpec.Handlers {
 			methods, paths, handler, err := utilhttp.Handler(a, hSpec)
 			if err != nil {
-				return nil, core.ErrCoreGenCreateComponent.WithStack(err, map[string]any{"reason": "failed to create handler"})
+				return core.ErrCoreGenCreateComponent.WithStack(err, map[string]any{"reason": "failed to create handler"})
 			}
 			if len(paths) == 0 {
 				paths = append(paths, hSpec.Pattern)
@@ -90,23 +71,28 @@ func registerHandlers(a api.API[*api.Request, *api.Response], mux Mux, specs []*
 					methods = intersectionString(methods, utilhttp.Methods(vhSpec.Methods))
 				}
 			}
-			for _, pattern := range generatePatterns(methods, vhSpec.Hosts, paths) {
+			for _, pattern := range generatePatterns(vhSpec.Hosts, paths) {
 				h := utilhttp.MiddlewareChain(middleware, handler)
-				mux.Handle(pattern, h)
-				handlers[pattern] = h
+				mux.Handle(pattern, &methodCheckHandler{
+					handler:          h,
+					methodNotAllowed: notFound,
+					allowMethods:     methods,
+					allowAll:         len(methods) == 0,
+				})
 			}
-
-			// Do not allow HEAD automatically routed to GET.  https://github.com/aileron-gateway/aileron-gateway/issues/33
-			if slices.Contains(methods, http.MethodGet) && !slices.Contains(methods, http.MethodHead) {
-				for _, pattern := range generatePatterns([]string{http.MethodHead}, vhSpec.Hosts, paths) {
-					mux.Handle(pattern, notFound)
-					handlers[pattern] = notFound
-				}
-			}
+		}
+		for _, pattern := range generatePatterns(vhSpec.Hosts, nil) {
+			registerNotFound(mux, pattern, notFound)
 		}
 	}
 
-	return handlers, nil
+	registerNotFound(mux, "/", notFound)
+	return nil
+}
+
+func registerNotFound(mux Mux, pattern string, h http.Handler) {
+	defer func() { recover() }()
+	mux.Handle(pattern, h)
 }
 
 // IntersectionString returns intersection of the two given set.
@@ -133,30 +119,35 @@ func intersectionString(set1, set2 []string) []string {
 }
 
 // generatePatterns returns pattern for serve mux.
-// Returned patterns contains the all available combinations
-// of the given methods, hosts,paths.
-func generatePatterns(methods, hosts []string, paths []string) []string {
-	if len(methods) == 0 {
-		methods = []string{""}
-	}
+func generatePatterns(hosts []string, paths []string) []string {
 	if len(hosts) == 0 {
 		hosts = []string{""}
 	}
 	if len(paths) == 0 {
 		paths = []string{"/"}
 	}
-
-	patterns := make([]string, 0, len(methods)*len(hosts)*len(paths))
-	for _, m := range methods {
-		for _, h := range hosts {
-			for _, p := range paths {
-				p = "/" + strings.TrimPrefix(p, "/")
-				pattern := m + " " + h + p // "[METHOD ][HOST]/[PATH]" https://pkg.go.dev/net/http#ServeMux
-				patterns = append(patterns, strings.Trim(pattern, " "))
-			}
+	patterns := make([]string, 0, len(hosts)*len(paths))
+	for _, h := range hosts {
+		for _, p := range paths {
+			p = "/" + strings.TrimPrefix(p, "/")
+			patterns = append(patterns, h+p) // "[HOST]/[PATH]" https://pkg.go.dev/net/http#ServeMux
 		}
 	}
+	slices.Sort(patterns)           // slices.Compact require sorts.
+	return slices.Compact(patterns) // Remove duplicates.
+}
 
-	slices.Sort(patterns)                        // slices.Compact require sorts.
-	return slices.Clip(slices.Compact(patterns)) // Remove duplicates.
+type methodCheckHandler struct {
+	handler          http.Handler
+	methodNotAllowed http.Handler
+	allowMethods     []string // Allowed methods list.
+	allowAll         bool     // Allow all HTTP methods.
+}
+
+func (h methodCheckHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if h.allowAll || slices.Contains(h.allowMethods, r.Method) {
+		h.handler.ServeHTTP(w, r)
+		return
+	}
+	h.methodNotAllowed.ServeHTTP(w, r)
 }
