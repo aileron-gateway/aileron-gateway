@@ -73,6 +73,7 @@ func (*API) Create(_ api.API[*api.Request, *api.Response], msg proto.Message) (a
 	repl.timeZone = timeZone
 
 	var w io.Writer
+	var closer io.Closer
 	outSpec := c.Spec.LogOutput
 	switch outSpec.OutputTarget {
 	case v1.OutputTarget_Discard:
@@ -85,6 +86,15 @@ func (*API) Create(_ api.API[*api.Request, *api.Response], msg proto.Message) (a
 		w, err = newFileWriter(c.Spec.LogOutput)
 		if err != nil {
 			return nil, core.ErrCoreGenCreateObject.WithStack(err, map[string]any{"kind": kind})
+		}
+		closer, _ = w.(io.Closer)
+		switch outSpec.OutputRedirectTarget {
+		case v1.OutputTarget_Discard:
+			w = io.MultiWriter(io.Discard, w)
+		case v1.OutputTarget_Stdout:
+			w = io.MultiWriter(os.Stdout, w)
+		case v1.OutputTarget_Stderr:
+			w = io.MultiWriter(os.Stderr, w)
 		}
 	default:
 		w = os.Stdout
@@ -107,7 +117,6 @@ func (*API) Create(_ api.API[*api.Request, *api.Response], msg proto.Message) (a
 	slg.NoDatetime = c.Spec.NoDatetime
 	slg.Location = timeZone
 
-	closer, _ := w.(io.Closer)
 	return &finalizableLogger{
 		Writer: w,
 		Logger: slg,
