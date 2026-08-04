@@ -150,6 +150,7 @@ func NewErrorMessage(spec *v1.ErrorMessageSpec) (*ErrorMessage, error) {
 	}
 
 	m := &ErrorMessage{
+		paths:     spec.Paths,
 		codes:     spec.Codes,
 		kinds:     spec.Kinds,
 		headerTpl: make(map[string]*ztext.Template, len(spec.HeaderTemplate)),
@@ -179,6 +180,7 @@ func NewErrorMessage(spec *v1.ErrorMessageSpec) (*ErrorMessage, error) {
 }
 
 type ErrorMessage struct {
+	paths     []string
 	codes     []string
 	kinds     []string
 	messages  []*regexp.Regexp
@@ -187,8 +189,16 @@ type ErrorMessage struct {
 }
 
 // Match returns if the given error matched to this message.
-// Codes, kinds and messages are evaluated by AND condition.
-func (m *ErrorMessage) Match(code, kind string, msg []byte) bool {
+// Codes, kinds and messages are evaluated by OR condition.
+func (m *ErrorMessage) Match(urlpath, code, kind string, msg []byte) bool {
+	if len(m.paths) > 0 {
+		for _, p := range m.paths {
+			if matched, _ := path.Match(p, urlpath); matched {
+				return true
+			}
+		}
+		return false
+	}
 	for _, c := range m.codes {
 		if matched, _ := path.Match(c, code); matched {
 			return true
@@ -265,7 +275,7 @@ func (h *DefaultErrorHandler) ServeHTTPError(w http.ResponseWriter, r *http.Requ
 			errCode, errKind = ek.Code(), ek.Kind()
 		}
 		for _, m := range h.Msgs {
-			if m.Match(errCode, errKind, errMsg) {
+			if m.Match(r.URL.Path, errCode, errKind, errMsg) {
 				mc := m.Content(r.Header.Get("Accept"))
 				if mc == nil {
 					continue

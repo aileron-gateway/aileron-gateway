@@ -396,10 +396,11 @@ func TestNewErrorMessage(t *testing.T) {
 
 func TestErrorMessage_Match(t *testing.T) {
 	type condition struct {
-		em   *ErrorMessage
-		code string
-		kind string
-		msg  string
+		em    *ErrorMessage
+		paths string
+		code  string
+		kind  string
+		msg   string
 	}
 
 	type action struct {
@@ -408,6 +409,39 @@ func TestErrorMessage_Match(t *testing.T) {
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
+		gen(
+			"path match", &condition{
+				em: &ErrorMessage{
+					paths: []string{"/test"},
+				},
+				paths: "/test",
+			},
+			&action{
+				matched: true,
+			},
+		),
+		gen(
+			"path match", &condition{
+				em: &ErrorMessage{
+					paths: []string{"/test/*"},
+				},
+				paths: "/test/foo",
+			},
+			&action{
+				matched: true,
+			},
+		),
+		gen(
+			"path not match", &condition{
+				em: &ErrorMessage{
+					paths: []string{"/test/*"},
+				},
+				paths: "/foo",
+			},
+			&action{
+				matched: false,
+			},
+		),
 		gen(
 			"code exact match", &condition{
 				em: &ErrorMessage{
@@ -554,9 +588,8 @@ func TestErrorMessage_Match(t *testing.T) {
 	}
 
 	for _, tt := range testCases {
-		tt := tt
 		t.Run(tt.Name, func(t *testing.T) {
-			matched := tt.C.em.Match(tt.C.code, tt.C.kind, []byte(tt.C.msg))
+			matched := tt.C.em.Match(tt.C.paths, tt.C.code, tt.C.kind, []byte(tt.C.msg))
 			testutil.Diff(t, tt.A.matched, matched)
 		})
 	}

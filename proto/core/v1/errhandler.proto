@@ -34,6 +34,15 @@ message ErrorHandlerSpec {
 // ErrorMessageSpec is the specification of HTTP error response.
 message ErrorMessageSpec {
     // [OPTIONAL]
+    // Paths is the list of path patterns that code patterns to match this message.
+    // String is evaluated by the path match.
+    // For example, "/foo" or "/foo/*".
+    // See https://pkg.go.dev/path#Match for for available expressions.
+    // If not set, it matches all paths.
+    // Default is not set.
+    repeated string Paths = 1  [json_name = "paths", (buf.validate.field).repeated.unique = true];
+
+    // [OPTIONAL]
     // Codes are the list of error code patterns to match this message.
     // String is evaluated by the path match.
     // For example, "E123*" or "E12*".

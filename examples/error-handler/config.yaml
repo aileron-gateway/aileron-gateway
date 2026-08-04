@@ -37,7 +37,7 @@ spec:
       kinds: []
       messages: []
       headerTemplate:
-        "Location": "https://www.google.co.jp/?status={{status}}"
+        "X-Example": "status={{status}}"
       mimeContents:
         - mimeType: text/html
           statusCode: 302
