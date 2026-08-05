@@ -150,7 +150,6 @@ func NewErrorMessage(spec *v1.ErrorMessageSpec) (*ErrorMessage, error) {
 	}
 
 	m := &ErrorMessage{
-		paths:     spec.Paths,
 		codes:     spec.Codes,
 		kinds:     spec.Kinds,
 		headerTpl: make(map[string]*ztext.Template, len(spec.HeaderTemplate)),
@@ -160,12 +159,20 @@ func NewErrorMessage(spec *v1.ErrorMessageSpec) (*ErrorMessage, error) {
 		m.headerTpl[textproto.CanonicalMIMEHeaderKey(k)] = ztext.NewTemplate(tpl, "{{", "}}")
 	}
 
-	for _, msg := range spec.Messages {
-		tpl, err := regexp.Compile(msg)
+	for _, path := range spec.Paths {
+		re, err := regexp.Compile(path)
 		if err != nil {
 			return nil, zerrors.NewErr(err, "util/http: invalid regular expression.", "")
 		}
-		m.messages = append(m.messages, tpl)
+		m.paths = append(m.paths, re)
+	}
+
+	for _, msg := range spec.Messages {
+		re, err := regexp.Compile(msg)
+		if err != nil {
+			return nil, zerrors.NewErr(err, "util/http: invalid regular expression.", "")
+		}
+		m.messages = append(m.messages, re)
 	}
 
 	for _, cs := range spec.MIMEContents {
@@ -180,7 +187,7 @@ func NewErrorMessage(spec *v1.ErrorMessageSpec) (*ErrorMessage, error) {
 }
 
 type ErrorMessage struct {
-	paths     []string
+	paths     []*regexp.Regexp
 	codes     []string
 	kinds     []string
 	messages  []*regexp.Regexp
@@ -192,12 +199,15 @@ type ErrorMessage struct {
 // Codes, kinds and messages are evaluated by OR condition.
 func (m *ErrorMessage) Match(urlpath, code, kind string, msg []byte) bool {
 	if len(m.paths) > 0 {
+		matched := false
 		for _, p := range m.paths {
-			if matched, _ := path.Match(p, urlpath); matched {
-				return true
+			if matched = p.MatchString(urlpath); matched {
+				break
 			}
 		}
-		return false
+		if !matched {
+			return false
+		}
 	}
 	for _, c := range m.codes {
 		if matched, _ := path.Match(c, code); matched {

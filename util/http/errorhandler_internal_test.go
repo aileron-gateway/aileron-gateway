@@ -410,9 +410,10 @@ func TestErrorMessage_Match(t *testing.T) {
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"path match", &condition{
+			"path match 1", &condition{
 				em: &ErrorMessage{
-					paths: []string{"/test"},
+					paths: []*regexp.Regexp{regexp.MustCompile("^/test")},
+					codes: []string{"*"},
 				},
 				paths: "/test",
 			},
@@ -421,9 +422,10 @@ func TestErrorMessage_Match(t *testing.T) {
 			},
 		),
 		gen(
-			"path match", &condition{
+			"path match 2", &condition{
 				em: &ErrorMessage{
-					paths: []string{"/test/*"},
+					paths: []*regexp.Regexp{regexp.MustCompile("^/test/.*")},
+					codes: []string{"*"},
 				},
 				paths: "/test/foo",
 			},
@@ -434,7 +436,8 @@ func TestErrorMessage_Match(t *testing.T) {
 		gen(
 			"path not match", &condition{
 				em: &ErrorMessage{
-					paths: []string{"/test/*"},
+					paths: []*regexp.Regexp{regexp.MustCompile("^/test/.*")},
+					codes: []string{"*"},
 				},
 				paths: "/foo",
 			},
