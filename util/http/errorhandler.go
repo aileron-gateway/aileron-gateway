@@ -158,7 +158,6 @@ func NewErrorMessage(spec *v1.ErrorMessageSpec) (*ErrorMessage, error) {
 	for k, tpl := range spec.HeaderTemplate {
 		m.headerTpl[textproto.CanonicalMIMEHeaderKey(k)] = ztext.NewTemplate(tpl, "{{", "}}")
 	}
-
 	for _, path := range spec.Paths {
 		re, err := regexp.Compile(path)
 		if err != nil {
@@ -166,7 +165,6 @@ func NewErrorMessage(spec *v1.ErrorMessageSpec) (*ErrorMessage, error) {
 		}
 		m.paths = append(m.paths, re)
 	}
-
 	for _, msg := range spec.Messages {
 		re, err := regexp.Compile(msg)
 		if err != nil {
@@ -174,7 +172,6 @@ func NewErrorMessage(spec *v1.ErrorMessageSpec) (*ErrorMessage, error) {
 		}
 		m.messages = append(m.messages, re)
 	}
-
 	for _, cs := range spec.MIMEContents {
 		c, err := NewMIMEContent(cs)
 		if err != nil {
@@ -182,7 +179,6 @@ func NewErrorMessage(spec *v1.ErrorMessageSpec) (*ErrorMessage, error) {
 		}
 		m.contents = append(m.contents, c)
 	}
-
 	return m, nil
 }
 
