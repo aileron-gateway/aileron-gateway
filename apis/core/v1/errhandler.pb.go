@@ -158,6 +158,13 @@ func (x *ErrorHandlerSpec) GetErrorMessages() []*ErrorMessageSpec {
 type ErrorMessageSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
+	// Paths is the path pattern list.
+	// Allowed syntaxs are https://pkg.go.dev/regexp/syntax.
+	// For example, "^/foo$" or "^/foo/.*".
+	// If not set, it matches all paths.
+	// Default is not set.
+	Paths []string `protobuf:"bytes,1,rep,name=Paths,json=paths,proto3" json:"Paths,omitempty"`
+	// [OPTIONAL]
 	// Codes are the list of error code patterns to match this message.
 	// String is evaluated by the path match.
 	// For example, "E123*" or "E12*".
@@ -236,6 +243,13 @@ func (*ErrorMessageSpec) Descriptor() ([]byte, []int) {
 	return file_core_v1_errhandler_proto_rawDescGZIP(), []int{2}
 }
 
+func (x *ErrorMessageSpec) GetPaths() []string {
+	if x != nil {
+		return x.Paths
+	}
+	return nil
+}
+
 func (x *ErrorMessageSpec) GetCodes() []string {
 	if x != nil {
 		return x.Codes
@@ -285,8 +299,9 @@ const file_core_v1_errhandler_proto_rawDesc = "" +
 	"\x04Spec\x18\x04 \x01(\v2\x19.core.v1.ErrorHandlerSpecR\x04spec\"u\n" +
 	"\x10ErrorHandlerSpec\x12 \n" +
 	"\vStackAlways\x18\x01 \x01(\bR\vstackAlways\x12?\n" +
-	"\rErrorMessages\x18\x02 \x03(\v2\x19.core.v1.ErrorMessageSpecR\rerrorMessages\"\xe2\x02\n" +
-	"\x10ErrorMessageSpec\x12$\n" +
+	"\rErrorMessages\x18\x02 \x03(\v2\x19.core.v1.ErrorMessageSpecR\rerrorMessages\"\x82\x03\n" +
+	"\x10ErrorMessageSpec\x12\x1e\n" +
+	"\x05Paths\x18\x01 \x03(\tB\b\xbaH\x05\x92\x01\x02\x18\x01R\x05paths\x12$\n" +
 	"\x05Codes\x18\x02 \x03(\tB\x0e\xbaH\v\x92\x01\b\x18\x01\"\x04r\x02\x10\x01R\x05codes\x12$\n" +
 	"\x05Kinds\x18\x03 \x03(\tB\x0e\xbaH\v\x92\x01\b\x18\x01\"\x04r\x02\x10\x01R\x05kinds\x12*\n" +
 	"\bMessages\x18\x04 \x03(\tB\x0e\xbaH\v\x92\x01\b\x18\x01\"\x04r\x02\x10\x01R\bmessages\x12U\n" +
