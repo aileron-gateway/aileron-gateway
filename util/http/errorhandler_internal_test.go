@@ -311,6 +311,7 @@ func TestNewErrorMessage(t *testing.T) {
 		gen(
 			"successful", &condition{
 				spec: &v1.ErrorMessageSpec{
+					Paths:          []string{"^/foo"},
 					Codes:          []string{"E0001"},
 					Kinds:          []string{"ErrTest"},
 					Messages:       []string{".*"},
@@ -326,6 +327,7 @@ func TestNewErrorMessage(t *testing.T) {
 			},
 			&action{
 				em: &ErrorMessage{
+					paths: []*regexp.Regexp{regexp.MustCompile("^/foo")},
 					codes: []string{"E0001"},
 					kinds: []string{"ErrTest"},
 					messages: []*regexp.Regexp{
@@ -344,6 +346,18 @@ func TestNewErrorMessage(t *testing.T) {
 					},
 				},
 				err: nil,
+			},
+		),
+		gen(
+			"path compile error", &condition{
+				spec: &v1.ErrorMessageSpec{
+					Paths:        []string{"^/foo/[0-9a-"},
+					MIMEContents: []*v1.MIMEContentSpec{nil},
+				},
+			},
+			&action{
+				em:  nil,
+				err: &zerrors.Err{Message: "util/http: invalid regular expression."},
 			},
 		),
 		gen(
@@ -377,7 +391,6 @@ func TestNewErrorMessage(t *testing.T) {
 	}
 
 	for _, tt := range testCases {
-		tt := tt
 		t.Run(tt.Name, func(t *testing.T) {
 			em, err := NewErrorMessage(tt.C.spec)
 			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
@@ -396,10 +409,11 @@ func TestNewErrorMessage(t *testing.T) {
 
 func TestErrorMessage_Match(t *testing.T) {
 	type condition struct {
-		em   *ErrorMessage
-		code string
-		kind string
-		msg  string
+		em    *ErrorMessage
+		paths string
+		code  string
+		kind  string
+		msg   string
 	}
 
 	type action struct {
@@ -408,6 +422,54 @@ func TestErrorMessage_Match(t *testing.T) {
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
+		gen(
+			"path match 1", &condition{
+				em: &ErrorMessage{
+					paths: []*regexp.Regexp{regexp.MustCompile("^/test")},
+					codes: []string{"*"},
+				},
+				paths: "/test",
+			},
+			&action{
+				matched: true,
+			},
+		),
+		gen(
+			"path match 2", &condition{
+				em: &ErrorMessage{
+					paths: []*regexp.Regexp{regexp.MustCompile("^/test/.*")},
+					codes: []string{"*"},
+				},
+				paths: "/test/foo",
+			},
+			&action{
+				matched: true,
+			},
+		),
+		gen(
+			"path match 3", &condition{
+				em: &ErrorMessage{
+					paths: []*regexp.Regexp{regexp.MustCompile("^/foo/.*"), regexp.MustCompile("^/bar/.*")},
+					codes: []string{"*"},
+				},
+				paths: "/bar/test",
+			},
+			&action{
+				matched: true,
+			},
+		),
+		gen(
+			"path not match", &condition{
+				em: &ErrorMessage{
+					paths: []*regexp.Regexp{regexp.MustCompile("^/test/.*")},
+					codes: []string{"*"},
+				},
+				paths: "/test",
+			},
+			&action{
+				matched: false,
+			},
+		),
 		gen(
 			"code exact match", &condition{
 				em: &ErrorMessage{
@@ -554,9 +616,8 @@ func TestErrorMessage_Match(t *testing.T) {
 	}
 
 	for _, tt := range testCases {
-		tt := tt
 		t.Run(tt.Name, func(t *testing.T) {
-			matched := tt.C.em.Match(tt.C.code, tt.C.kind, []byte(tt.C.msg))
+			matched := tt.C.em.Match(tt.C.paths, tt.C.code, tt.C.kind, []byte(tt.C.msg))
 			testutil.Diff(t, tt.A.matched, matched)
 		})
 	}
