@@ -28,25 +28,28 @@ const (
 type OutputTarget int32
 
 const (
-	OutputTarget_Stdout  OutputTarget = 0 // Output to standard output.
-	OutputTarget_Stderr  OutputTarget = 1 // Output to standard error output.
-	OutputTarget_Discard OutputTarget = 2 // Discard outputs.
-	OutputTarget_File    OutputTarget = 3 // Output to files.
+	OutputTarget_OutputTargetUnknown OutputTarget = 0 // Output to standard output.
+	OutputTarget_Stdout              OutputTarget = 1 // Output to standard output.
+	OutputTarget_Stderr              OutputTarget = 2 // Output to standard error output.
+	OutputTarget_Discard             OutputTarget = 3 // Discard outputs.
+	OutputTarget_File                OutputTarget = 4 // Output to files.
 )
 
 // Enum value maps for OutputTarget.
 var (
 	OutputTarget_name = map[int32]string{
-		0: "Stdout",
-		1: "Stderr",
-		2: "Discard",
-		3: "File",
+		0: "OutputTargetUnknown",
+		1: "Stdout",
+		2: "Stderr",
+		3: "Discard",
+		4: "File",
 	}
 	OutputTarget_value = map[string]int32{
-		"Stdout":  0,
-		"Stderr":  1,
-		"Discard": 2,
-		"File":    3,
+		"OutputTargetUnknown": 0,
+		"Stdout":              1,
+		"Stderr":              2,
+		"Discard":             3,
+		"File":                4,
 	}
 )
 
@@ -542,9 +545,15 @@ type LogOutputSpec struct {
 	// This field is used only for "File" output.
 	// This field will be ignored when not set.
 	// Default is not set.
-	MaxTotalSize  uint32 `protobuf:"varint,13,opt,name=MaxTotalSize,json=maxTotalSize,proto3" json:"MaxTotalSize,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	MaxTotalSize uint32 `protobuf:"varint,13,opt,name=MaxTotalSize,json=maxTotalSize,proto3" json:"MaxTotalSize,omitempty"`
+	// [OPTIONAL]
+	// OutputRedirectTarget is the destination to redirect file output to other.
+	// Stdout, Stderr and Discard are allowed for this field.
+	// This field is used only for "File" output.
+	// Default is not set (No redirection.).
+	OutputRedirectTarget OutputTarget `protobuf:"varint,14,opt,name=OutputRedirectTarget,json=outputRedirectTarget,proto3,enum=core.v1.OutputTarget" json:"OutputRedirectTarget,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *LogOutputSpec) Reset() {
@@ -581,7 +590,7 @@ func (x *LogOutputSpec) GetOutputTarget() OutputTarget {
 	if x != nil {
 		return x.OutputTarget
 	}
-	return OutputTarget_Stdout
+	return OutputTarget_OutputTargetUnknown
 }
 
 func (x *LogOutputSpec) GetLogDir() string {
@@ -669,6 +678,13 @@ func (x *LogOutputSpec) GetMaxTotalSize() uint32 {
 	return 0
 }
 
+func (x *LogOutputSpec) GetOutputRedirectTarget() OutputTarget {
+	if x != nil {
+		return x.OutputRedirectTarget
+	}
+	return OutputTarget_OutputTargetUnknown
+}
+
 var File_core_v1_slogger_proto protoreflect.FileDescriptor
 
 const file_core_v1_slogger_proto_rawDesc = "" +
@@ -701,7 +717,7 @@ const file_core_v1_slogger_proto_rawDesc = "" +
 	"\x0eFieldReplacers\x18\t \x03(\v2\x1a.core.v1.FieldReplacerSpecR\x0efieldReplacers\"[\n" +
 	"\x11FieldReplacerSpec\x12\x14\n" +
 	"\x05Field\x18\x01 \x01(\tR\x05field\x120\n" +
-	"\bReplacer\x18\x02 \x01(\v2\x14.kernel.ReplacerSpecR\breplacer\"\xdc\x03\n" +
+	"\bReplacer\x18\x02 \x01(\v2\x14.kernel.ReplacerSpecR\breplacer\"\xb1\x04\n" +
 	"\rLogOutputSpec\x129\n" +
 	"\fOutputTarget\x18\x01 \x01(\x0e2\x15.core.v1.OutputTargetR\foutputTarget\x12\x16\n" +
 	"\x06LogDir\x18\x02 \x01(\tR\x06logDir\x12\x1c\n" +
@@ -720,14 +736,16 @@ const file_core_v1_slogger_proto_rawDesc = "" +
 	" \x01(\x05B\x12\xbaH\x0f\x1a\r\x18\t(\xfe\xff\xff\xff\xff\xff\xff\xff\xff\x01R\rcompressLevel\x12\x16\n" +
 	"\x06MaxAge\x18\v \x01(\x05R\x06maxAge\x12\x1c\n" +
 	"\tMaxBackup\x18\f \x01(\x05R\tmaxBackup\x12\"\n" +
-	"\fMaxTotalSize\x18\r \x01(\rR\fmaxTotalSize*=\n" +
-	"\fOutputTarget\x12\n" +
+	"\fMaxTotalSize\x18\r \x01(\rR\fmaxTotalSize\x12S\n" +
+	"\x14OutputRedirectTarget\x18\x0e \x01(\x0e2\x15.core.v1.OutputTargetB\b\xbaH\x05\x82\x01\x02 \x04R\x14outputRedirectTarget*V\n" +
+	"\fOutputTarget\x12\x17\n" +
+	"\x13OutputTargetUnknown\x10\x00\x12\n" +
 	"\n" +
-	"\x06Stdout\x10\x00\x12\n" +
+	"\x06Stdout\x10\x01\x12\n" +
 	"\n" +
-	"\x06Stderr\x10\x01\x12\v\n" +
-	"\aDiscard\x10\x02\x12\b\n" +
-	"\x04File\x10\x03*_\n" +
+	"\x06Stderr\x10\x02\x12\v\n" +
+	"\aDiscard\x10\x03\x12\b\n" +
+	"\x04File\x10\x04*_\n" +
 	"\bLogLevel\x12\x13\n" +
 	"\x0fLogLevelUnknown\x10\x00\x12\t\n" +
 	"\x05Trace\x10\x01\x12\t\n" +
@@ -769,11 +787,12 @@ var file_core_v1_slogger_proto_depIdxs = []int32{
 	4, // 4: core.v1.SLoggerSpec.FieldReplacers:type_name -> core.v1.FieldReplacerSpec
 	7, // 5: core.v1.FieldReplacerSpec.Replacer:type_name -> kernel.ReplacerSpec
 	0, // 6: core.v1.LogOutputSpec.OutputTarget:type_name -> core.v1.OutputTarget
-	7, // [7:7] is the sub-list for method output_type
-	7, // [7:7] is the sub-list for method input_type
-	7, // [7:7] is the sub-list for extension type_name
-	7, // [7:7] is the sub-list for extension extendee
-	0, // [0:7] is the sub-list for field type_name
+	0, // 7: core.v1.LogOutputSpec.OutputRedirectTarget:type_name -> core.v1.OutputTarget
+	8, // [8:8] is the sub-list for method output_type
+	8, // [8:8] is the sub-list for method input_type
+	8, // [8:8] is the sub-list for extension type_name
+	8, // [8:8] is the sub-list for extension extendee
+	0, // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_core_v1_slogger_proto_init() }

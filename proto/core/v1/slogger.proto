@@ -222,15 +222,23 @@ message LogOutputSpec {
     // This field will be ignored when not set.
     // Default is not set.
     uint32 MaxTotalSize = 13 [json_name = "maxTotalSize"];
+
+    // [OPTIONAL]
+    // OutputRedirectTarget is the destination to redirect file output to other.
+    // Stdout, Stderr and Discard are allowed for this field.
+    // This field is used only for "File" output.
+    // Default is not set (No redirection.).
+    OutputTarget OutputRedirectTarget = 14 [json_name = "outputRedirectTarget", (buf.validate.field).enum = { not_in: [ 4 ] }];
 }
 
 //+ OutputTarget
 // OutputTarget is the output destination.
 enum OutputTarget {
-    Stdout  = 0;  // Output to standard output.
-    Stderr  = 1;  // Output to standard error output.
-    Discard = 2;  // Discard outputs.
-    File    = 3;  // Output to files.
+    OutputTargetUnknown = 0;  // Output to standard output.
+    Stdout              = 1;  // Output to standard output.
+    Stderr              = 2;  // Output to standard error output.
+    Discard             = 3;  // Discard outputs.
+    File                = 4;  // Output to files.
 }
 
 //+ LogLevel

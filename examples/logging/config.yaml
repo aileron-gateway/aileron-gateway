@@ -28,6 +28,7 @@ spec:
   logOutput:
     # outputTarget: Stdout
     outputTarget: File
+    outputRedirectTarget: Stdout
     rotateSize: 10
     maxBackup: 3
     compressLevel: 0
