@@ -8,7 +8,7 @@ import (
 
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/internal/hash"
-	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
+	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/aileron-projects/go/zcrypto/zblake2b"
 	"github.com/aileron-projects/go/zcrypto/zblake2s"
 	"github.com/aileron-projects/go/zcrypto/zsha1"

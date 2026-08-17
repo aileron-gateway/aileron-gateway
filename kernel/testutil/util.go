@@ -14,7 +14,33 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
+// Case keeps conditions and actions.
+//
+// Deprecated: Do not use this.
+// This feature will be removed in the future.
+type Case[C, A any] struct {
+	Name string // Name is the case name.
+	C    C      // C is the conditions.
+	A    A      // A is the actions.
+}
+
+// NewCase returns new test case.
+//
+// Deprecated: Do not use this.
+// This feature will be removed in the future.
+func NewCase[C, A any](name string, c C, a A) *Case[C, A] {
+	return &Case[C, A]{
+		Name: name,
+		C:    c,
+		A:    a,
+	}
+}
+
 // Diff compares two value using go-comp.
+//
+// Deprecated: Do not use this.
+// This feature will be removed in the future.
+// Use https://github.com/aileron-projects/go-tester.
 func Diff(t *testing.T, want, got any, opts ...cmp.Option) {
 	t.Helper()
 	// opts = append(opts, cmpopts.EquateEmpty())
@@ -25,6 +51,10 @@ func Diff(t *testing.T, want, got any, opts ...cmp.Option) {
 }
 
 // DiffError compares two error.
+//
+// Deprecated: Do not use this.
+// This feature will be removed in the future.
+// Use https://github.com/aileron-projects/go-tester.
 func DiffError(t *testing.T, want any, pattern *regexp.Regexp, got error, opts ...cmp.Option) {
 	t.Helper()
 	if want == nil || got == nil {
@@ -53,60 +83,24 @@ func DiffError(t *testing.T, want any, pattern *regexp.Regexp, got error, opts .
 // For example, use this option
 //
 //	cmp.Comparer(testutil.ComparePointer[foo.Bar])
+//
+// Deprecated: Do not use this.
+// This feature will be removed in the future.
+// Use https://github.com/aileron-projects/go-tester.
 func ComparePointer[T any](x, y T) bool {
 	return reflect.ValueOf(x).Pointer() == reflect.ValueOf(y).Pointer()
 }
 
 // ErrorReader is an io.Reader which returns an error.
 // This implements io.Reader interface.
+//
+// Deprecated: Do not use this.
+// This feature will be removed in the future.
+// Use https://github.com/aileron-projects/go-tester.
 type ErrorReader struct {
 	io.Reader
 }
 
 func (r *ErrorReader) Read(p []byte) (n int, err error) {
 	return 0, errors.New("rand read error")
-}
-
-// DeepAllowUnexported returns compare options
-// like reflect.DeepEqual.
-// See https://github.com/google/go-cmp/issues/40
-func DeepAllowUnexported(vs ...any) cmp.Option {
-	m := make(map[reflect.Type]struct{})
-	for _, v := range vs {
-		structTypes(reflect.ValueOf(v), m)
-	}
-	typs := make([]any, 0, len(m))
-	for t := range m {
-		typs = append(typs, reflect.New(t).Elem().Interface())
-	}
-	return cmp.AllowUnexported(typs...)
-}
-
-func structTypes(v reflect.Value, m map[reflect.Type]struct{}) {
-	if !v.IsValid() {
-		return
-	}
-	switch v.Kind() {
-	case reflect.Pointer:
-		if !v.IsNil() {
-			structTypes(v.Elem(), m)
-		}
-	case reflect.Interface:
-		if !v.IsNil() {
-			structTypes(v.Elem(), m)
-		}
-	case reflect.Slice, reflect.Array:
-		for i := 0; i < v.Len(); i++ {
-			structTypes(v.Index(i), m)
-		}
-	case reflect.Map:
-		for _, k := range v.MapKeys() {
-			structTypes(v.MapIndex(k), m)
-		}
-	case reflect.Struct:
-		m[v.Type()] = struct{}{}
-		for i := range v.NumField() {
-			structTypes(v.Field(i), m)
-		}
-	}
 }

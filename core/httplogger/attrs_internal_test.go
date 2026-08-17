@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
+	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 )
 
 func TestRequestAttrs_accessKeyValues(t *testing.T) {

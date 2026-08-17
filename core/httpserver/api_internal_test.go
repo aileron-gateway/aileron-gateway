@@ -11,6 +11,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/pprof"
+	"reflect"
 	"regexp"
 	"strconv"
 	"sync/atomic"
@@ -20,9 +21,9 @@ import (
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/core"
-	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
+	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/quic-go/quic-go"
@@ -685,10 +686,57 @@ func TestNewHTTP2Server(t *testing.T) {
 				cmpopts.IgnoreUnexported(net.TCPListener{}, tls.Config{}),
 				cmpopts.IgnoreTypes(http.HandlerFunc(nil)), // Skip alt-svc middlewarte.
 				cmpopts.IgnoreFields(http.Server{}, "TLSNextProto"),
-				testutil.DeepAllowUnexported(h2c.NewHandler(nil, nil)),
+				deepAllowUnexported(h2c.NewHandler(nil, nil)),
 			}
 			testutil.Diff(t, tt.A.svr, srv, opts...)
 		})
+	}
+}
+
+// deepAllowUnexported returns compare options
+// like reflect.DeepEqual.
+// See https://github.com/google/go-cmp/issues/40
+//
+// Deprecated: Do not use this.
+// This feature will be removed in the future.
+func deepAllowUnexported(vs ...any) cmp.Option {
+	m := make(map[reflect.Type]struct{})
+	for _, v := range vs {
+		structTypes(reflect.ValueOf(v), m)
+	}
+	typs := make([]any, 0, len(m))
+	for t := range m {
+		typs = append(typs, reflect.New(t).Elem().Interface())
+	}
+	return cmp.AllowUnexported(typs...)
+}
+
+func structTypes(v reflect.Value, m map[reflect.Type]struct{}) {
+	if !v.IsValid() {
+		return
+	}
+	switch v.Kind() {
+	case reflect.Pointer:
+		if !v.IsNil() {
+			structTypes(v.Elem(), m)
+		}
+	case reflect.Interface:
+		if !v.IsNil() {
+			structTypes(v.Elem(), m)
+		}
+	case reflect.Slice, reflect.Array:
+		for i := 0; i < v.Len(); i++ {
+			structTypes(v.Index(i), m)
+		}
+	case reflect.Map:
+		for _, k := range v.MapKeys() {
+			structTypes(v.MapIndex(k), m)
+		}
+	case reflect.Struct:
+		m[v.Type()] = struct{}{}
+		for i := range v.NumField() {
+			structTypes(v.Field(i), m)
+		}
 	}
 }
 

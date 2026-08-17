@@ -9,8 +9,8 @@ import (
 	"testing"
 
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
-	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
 	"github.com/aileron-gateway/aileron-gateway/internal/txtutil"
+	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	httputil "github.com/aileron-gateway/aileron-gateway/util/http"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"

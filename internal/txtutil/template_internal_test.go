@@ -9,7 +9,7 @@ import (
 	"testing"
 	ttpl "text/template"
 
-	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
+	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/aileron-projects/go/zerrors"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )

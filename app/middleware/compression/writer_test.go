@@ -11,7 +11,7 @@ import (
 
 	"io"
 
-	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
+	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 )
 
 // mockResettableWriter is a mock resettableWriter for testing.
