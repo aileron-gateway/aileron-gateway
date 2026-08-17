@@ -15,7 +15,7 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 	"github.com/aileron-projects/go/zplugin"
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 const (
