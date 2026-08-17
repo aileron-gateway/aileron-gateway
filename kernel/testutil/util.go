@@ -19,9 +19,21 @@ import (
 // Deprecated: Do not use this.
 // This feature will be removed in the future.
 type Case[C, A any] struct {
-	Name string // Name is the case name.
-	C    C      // C is the conditions.
-	A    A      // A is the actions.
+	name       string // Name is the case name.
+	conditions C      // C is the conditions.
+	actions    A      // A is the actions.
+}
+
+func (c *Case[C, A]) Name() string {
+	return c.name
+}
+
+func (c *Case[C, A]) C() C {
+	return c.conditions
+}
+
+func (c *Case[C, A]) A() A {
+	return c.actions
 }
 
 // NewCase returns new test case.
@@ -30,9 +42,9 @@ type Case[C, A any] struct {
 // This feature will be removed in the future.
 func NewCase[C, A any](name string, c C, a A) *Case[C, A] {
 	return &Case[C, A]{
-		Name: name,
-		C:    c,
-		A:    a,
+		name:       name,
+		conditions: c,
+		actions:    a,
 	}
 }
 
