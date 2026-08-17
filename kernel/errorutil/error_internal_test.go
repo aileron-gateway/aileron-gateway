@@ -7,7 +7,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/aileron-gateway/aileron-gateway/internal/testutil"
+	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 )
 
 func TestError(t *testing.T) {
