@@ -57,7 +57,6 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg proto.Message) (a
 	c := msg.(*v1.PrometheusMeter)
 
 	reg := prometheus.NewRegistry()
-	collectors.NewProcessCollector(collectors.ProcessCollectorOpts{})
 	reg.MustRegister(collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))
 	reg.MustRegister(collectors.NewGoCollector())
 
