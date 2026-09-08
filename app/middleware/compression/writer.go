@@ -93,10 +93,12 @@ func (w *compressionWriter) initialize() {
 	w.initialized = true
 	wh := w.Header()
 
-	length := wh.Get("Content-Length")
-	if size, _ := strconv.ParseInt(length, 10, 64); size < w.minimumSize {
-		w.shouldSkip = true // Response body too small.
-		return
+	// Minimum size checks are only applied for responses with non-zero content length.
+	if length := wh.Get("Content-Length"); length != "" {
+		if size, _ := strconv.ParseInt(length, 10, 64); size < w.minimumSize {
+			w.shouldSkip = true // Response body too small.
+			return
+		}
 	}
 
 	m, _, _ := mime.ParseMediaType(wh.Get("Content-Type"))
