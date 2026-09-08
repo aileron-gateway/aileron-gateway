@@ -236,8 +236,7 @@ type SecureEncoderSpec struct {
 	// from the stand point of security.
 	// Never disable HMAC when using the encoder for cookie values or something exposed to clients.
 	DisableHMAC bool `protobuf:"varint,7,opt,name=DisableHMAC,json=disableHMAC,proto3" json:"DisableHMAC,omitempty"`
-	//	[OPTIONAL] DisableEncryption is the flag to disable common key encryption.
-	//
+	//  [OPTIONAL] DisableEncryption is the flag to disable common key encryption.
 	// Disabling encryption slightly increase the performance but it is not recommended
 	// from the stand point of security.
 	// Never disable encryption when using the encoder for cookie values or something exposed to clients.
