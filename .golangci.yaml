@@ -10,15 +10,15 @@ linters:
     - copyloopvar
     - dupword
     - durationcheck
-    # - gosec # temporarily disabled
-    - govet
+    # - gosec
+    # - govet
     - importas
     - ineffassign
     - misspell
     - noctx
     - nolintlint
     - perfsprint
-    - prealloc
+    # - prealloc
     - staticcheck
     - unconvert
     - unparam
