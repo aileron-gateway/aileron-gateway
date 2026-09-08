@@ -171,13 +171,13 @@ func TestCompressionMiddleware(t *testing.T) {
 			[]string{},
 			&condition{
 				acceptEncoding: "gzip, br",
-				encoding:       "",
+				encoding:       "gzip",
 				contentType:    "text/plain",
-				body:           []byte(nil),
+				body:           gzipBody.Bytes(),
 			},
 			&action{
-				encoding: "",
-				body:     "",
+				encoding: "gzip",
+				body:     "test response body",
 			},
 		),
 	}

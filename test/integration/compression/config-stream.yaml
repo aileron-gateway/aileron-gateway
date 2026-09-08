@@ -1,0 +1,19 @@
+apiVersion: core/v1
+kind: ReverseProxyHandler
+spec:
+  loadBalancers:
+    - pathMatcher:
+        match: "/"
+        matchType: Prefix
+      upstreams:
+        - url: http://localhost:12301
+
+---
+apiVersion: app/v1
+kind: CompressionMiddleware
+spec:
+  minimumSize: -1 # bytes
+  targetMIMEs:
+    - "text/plain"
+    - "text/event-stream"
+    - "application/octet-stream"
