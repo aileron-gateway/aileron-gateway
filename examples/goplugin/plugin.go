@@ -19,7 +19,7 @@ type plugin struct {
 
 // Init is the implements of goplugin.Initializer interface.
 // Init is called only when it is implemented.
-func (p *plugin) Init(lg log.Logger, eh core.ErrorHandler) error {
+func (p *plugin) Init(lg log.Logger, eh core.ErrorHandler) (_ error) { //nolint:unparam // result 0 (error) is always nil
 	p.lg = lg
 	p.eh = eh
 	return nil
