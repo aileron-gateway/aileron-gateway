@@ -152,6 +152,8 @@ func (w *compressionWriter) Write(data []byte) (int, error) {
 	return w.writer.Write(data)
 }
 
+// Flush flushes the internal compression writer.
+// [net/http.ResponseController].Flush supports this signature.
 func (w *compressionWriter) Flush() {
 	if !w.shouldSkip {
 		_ = w.writer.Flush()
@@ -161,6 +163,8 @@ func (w *compressionWriter) Flush() {
 	}
 }
 
+// FlushError flushes the internal compression writer.
+// [net/http.ResponseController].Flush supports this signature.
 func (w *compressionWriter) FlushError() error {
 	if !w.shouldSkip {
 		if err := w.writer.Flush(); err != nil {

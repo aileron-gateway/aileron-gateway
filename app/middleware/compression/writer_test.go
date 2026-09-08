@@ -4,6 +4,8 @@
 package compression
 
 import (
+	"bytes"
+	"compress/gzip"
 	"maps"
 	"net/http"
 	"net/http/httptest"
@@ -12,12 +14,15 @@ import (
 	"io"
 
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 // mockResettableWriter is a mock resettableWriter for testing.
 type mockResettableWriter struct {
-	writer io.Writer
-	data   []byte
+	writer   io.Writer
+	data     []byte
+	flushed  bool
+	flushErr error
 }
 
 func (m *mockResettableWriter) Write(p []byte) (n int, err error) {
@@ -34,6 +39,11 @@ func (m *mockResettableWriter) Close() error {
 
 func (m *mockResettableWriter) Reset(w io.Writer) {
 	m.writer = w
+}
+
+func (m *mockResettableWriter) Flush() error {
+	m.flushed = true
+	return m.flushErr
 }
 
 func TestCompressionWriter(t *testing.T) {
@@ -216,6 +226,7 @@ func TestCompressionWriter(t *testing.T) {
 			maps.Copy(rec.Header(), tt.C.header)
 			cw := &compressionWriter{
 				ResponseWriter: rec,
+				flush:          flushFunc(rec),
 				writer:         &mockResettableWriter{},
 				encoding:       tt.C.encoding,
 				mimes:          tt.C.mimes,
@@ -236,4 +247,180 @@ func TestCompressionWriter(t *testing.T) {
 			testutil.Diff(t, tt.A.encoding, rec.Header().Get("Content-Encoding"))
 		})
 	}
+}
+
+func TestCompressionWriter_FlushError(t *testing.T) {
+	t.Parallel()
+	t.Run("non-nil flush", func(t *testing.T) {
+		var buf bytes.Buffer
+		gw := gzip.NewWriter(&buf)
+		flushed := 0
+		cw := &compressionWriter{
+			ResponseWriter: httptest.NewRecorder(),
+			flush:          func() error { flushed += 1; return nil },
+			writer:         gw,
+			initialized:    true,
+		}
+		cw.Write([]byte("foo"))
+		err := cw.FlushError()
+		testutil.Diff(t, nil, err)
+		testutil.Diff(t, 1, flushed)
+		cw.Write([]byte("bar"))
+		err = cw.FlushError()
+		testutil.Diff(t, nil, err)
+		testutil.Diff(t, 2, flushed)
+		gw.Close()
+		r, _ := gzip.NewReader(&buf)
+		b, _ := io.ReadAll(r)
+		testutil.Diff(t, "foobar", string(b))
+	})
+	t.Run("nil flush", func(t *testing.T) {
+		var buf bytes.Buffer
+		gw := gzip.NewWriter(&buf)
+		cw := &compressionWriter{
+			ResponseWriter: httptest.NewRecorder(),
+			flush:          nil,
+			writer:         gw,
+			initialized:    true,
+		}
+		cw.Write([]byte("foo"))
+		err := cw.FlushError()
+		testutil.Diff(t, nil, err)
+		cw.Write([]byte("bar"))
+		err = cw.FlushError()
+		testutil.Diff(t, nil, err)
+		gw.Close()
+		r, _ := gzip.NewReader(&buf)
+		b, _ := io.ReadAll(r)
+		testutil.Diff(t, "foobar", string(b))
+	})
+	t.Run("flush error", func(t *testing.T) {
+		var buf bytes.Buffer
+		gw := gzip.NewWriter(&buf)
+		cw := &compressionWriter{
+			ResponseWriter: httptest.NewRecorder(),
+			flush:          nil,
+			writer:         &mockResettableWriter{flushErr: io.EOF},
+			initialized:    true,
+		}
+		cw.Write([]byte("foo"))
+		gw.Close()
+		err := cw.FlushError()
+		testutil.Diff(t, io.EOF, err, cmpopts.EquateErrors())
+	})
+}
+
+func TestCompressionWriter_Flush(t *testing.T) {
+	t.Parallel()
+	t.Run("non-nil flush", func(t *testing.T) {
+		var buf bytes.Buffer
+		gw := gzip.NewWriter(&buf)
+		flushed := 0
+		cw := &compressionWriter{
+			ResponseWriter: httptest.NewRecorder(),
+			flush:          func() error { flushed += 1; return nil },
+			writer:         gw,
+			initialized:    true,
+		}
+		cw.Write([]byte("foo"))
+		cw.Flush()
+		testutil.Diff(t, 1, flushed)
+		cw.Write([]byte("bar"))
+		cw.Flush()
+		testutil.Diff(t, 2, flushed)
+		gw.Close()
+		r, _ := gzip.NewReader(&buf)
+		b, _ := io.ReadAll(r)
+		testutil.Diff(t, "foobar", string(b))
+	})
+	t.Run("nil flush", func(t *testing.T) {
+		var buf bytes.Buffer
+		gw := gzip.NewWriter(&buf)
+		cw := &compressionWriter{
+			ResponseWriter: httptest.NewRecorder(),
+			flush:          nil,
+			writer:         gw,
+			initialized:    true,
+		}
+		cw.Write([]byte("foo"))
+		cw.Flush()
+		cw.Write([]byte("bar"))
+		cw.Flush()
+		gw.Close()
+		r, _ := gzip.NewReader(&buf)
+		b, _ := io.ReadAll(r)
+		testutil.Diff(t, "foobar", string(b))
+	})
+}
+
+type mockFlushError struct {
+	http.ResponseWriter
+	flushed  bool
+	flushErr error
+}
+
+func (m *mockFlushError) FlushError() error {
+	m.flushed = true
+	return m.flushErr
+}
+
+type mockFlush struct {
+	http.ResponseWriter
+	flushed  bool
+	flushErr error
+}
+
+func (m *mockFlush) Flush() error {
+	m.flushed = true
+	return m.flushErr
+}
+
+type mockHTTPFlush struct {
+	http.ResponseWriter
+	flushed bool
+}
+
+func (m *mockHTTPFlush) Flush() {
+	m.flushed = true
+}
+
+type mockUnwrapWriter struct {
+	http.ResponseWriter
+}
+
+func (m *mockUnwrapWriter) Unwrap() http.ResponseWriter {
+	return m.ResponseWriter
+}
+
+func TestFlushFunc(t *testing.T) {
+	t.Parallel()
+	t.Run("FlushError", func(t *testing.T) {
+		rw := &mockFlushError{}
+		f := flushFunc(rw)
+		f()
+		testutil.Diff(t, true, rw.flushed)
+	})
+	t.Run("Flush", func(t *testing.T) {
+		rw := &mockFlush{}
+		f := flushFunc(rw)
+		f()
+		testutil.Diff(t, true, rw.flushed)
+	})
+	t.Run("HTTPFlush", func(t *testing.T) {
+		rw := &mockHTTPFlush{}
+		f := flushFunc(rw)
+		f()
+		testutil.Diff(t, true, rw.flushed)
+	})
+	t.Run("unwrap", func(t *testing.T) {
+		rw := &mockHTTPFlush{}
+		f := flushFunc(&mockUnwrapWriter{rw})
+		f()
+		testutil.Diff(t, true, rw.flushed)
+	})
+	t.Run("unwrap nil", func(t *testing.T) {
+		rw := &mockUnwrapWriter{&mockUnwrapWriter{}}
+		f := flushFunc(rw)
+		testutil.Diff(t, true, f == nil)
+	})
 }
