@@ -203,6 +203,8 @@ func TestCompressionWriter(t *testing.T) {
 		),
 		gen(
 			"status code with no body",
+			[]string{},
+			[]string{},
 			&condition{
 				minimumSize: 1024,
 				status:      204,
