@@ -159,7 +159,6 @@ func (w *compressionWriter) Flush() {
 	if w.flush != nil {
 		_ = w.flush()
 	}
-	return
 }
 
 func (w *compressionWriter) FlushError() error {
@@ -181,7 +180,7 @@ func flushFunc(rw http.ResponseWriter) func() error {
 			return t.FlushError
 		case interface{ Flush() error }:
 			return t.Flush
-		case interface{ Flush() }:
+		case http.Flusher:
 			return func() error {
 				t.Flush()
 				return nil
