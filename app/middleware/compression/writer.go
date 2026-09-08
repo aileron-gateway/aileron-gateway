@@ -89,13 +89,19 @@ type compressionWriter struct {
 }
 
 // initialize initializes this writer and wrapped HTTP response.
-func (w *compressionWriter) initialize() {
+func (w *compressionWriter) initialize(statsuCode int) {
 	w.initialized = true
 	wh := w.Header()
 
+	if statsuCode < 200 || statsuCode == 204 || statsuCode == 304 {
+		w.shouldSkip = true        // Body is not allowed for these status code.
+		wh.Del("Content-Encoding") // Delete just in case.
+		return
+	}
+
 	// Minimum size checks are only applied for responses with non-zero content length.
 	if length := wh.Get("Content-Length"); length != "" {
-		if size, _ := strconv.ParseInt(length, 10, 64); size < w.minimumSize {
+		if size, _ := strconv.ParseInt(length, 10, 64); size == 0 || size < w.minimumSize {
 			w.shouldSkip = true // Response body too small.
 			return
 		}
@@ -130,7 +136,7 @@ func (w *compressionWriter) initialize() {
 // before writing the status code into the internal response writer.
 func (w *compressionWriter) WriteHeader(statusCode int) {
 	if !w.initialized {
-		w.initialize() // Initialize writer and response headers.
+		w.initialize(statusCode) // Initialize writer and response headers.
 	}
 	w.ResponseWriter.WriteHeader(statusCode)
 }
@@ -146,7 +152,7 @@ func (w *compressionWriter) Write(data []byte) (int, error) {
 	}
 
 	if !w.initialized {
-		w.initialize() // Initialize writer and response headers.
+		w.initialize(http.StatusOK) // Initialize writer and response headers.
 	}
 	if w.shouldSkip {
 		return w.ResponseWriter.Write(data)

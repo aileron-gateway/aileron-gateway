@@ -184,6 +184,26 @@ func TestCompressionWriter(t *testing.T) {
 			},
 		),
 		gen(
+			"status code with no body",
+			&condition{
+				minimumSize: 1024,
+				status:      204,
+				mimes:       []string{"text/html"},
+				header: http.Header{
+					"Content-Type":     {},
+					"Content-Length":   {},
+					"Content-Encoding": {"dummy"},
+				},
+				encoding: "gzip",
+				data:     nil,
+			},
+			&action{
+				initialized: true,
+				shouldSkip:  true,
+				encoding:    "", // should be deleted
+			},
+		),
+		gen(
 			"compress response body",
 			&condition{
 				minimumSize: 1024,
