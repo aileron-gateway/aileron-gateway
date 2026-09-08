@@ -146,7 +146,6 @@ type HTTPServerSpec struct {
 	//   - pprof.Profile at "GET /debug/pprof/profile"
 	//   - pprof.Symbol at "GET /debug/pprof/symbol"
 	//   - pprof.Trace at "GET /debug/pprof/trace"
-	//
 	// See https://pkg.go.dev/net/http/pprof.
 	// DO NOT enable this on production environment.
 	// Default is [false].
