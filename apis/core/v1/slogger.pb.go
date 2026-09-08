@@ -460,21 +460,19 @@ type LogOutputSpec struct {
 	// ArchivedFilePattern is the pattern of archived log files.
 	// This field is used only for "File" output.
 	// Valid format specifiers are as follows.
-	//
-	//	%Y : YYYY 4 digits year. 0 <= YYYY
-	//	%M : MM 2 digits month. 1 <= MM <= 12
-	//	%D : DD 2 digits day of month. 1 <= DD <= 31
-	//	%h : hh 2 digits hour. 0 <= hh <= 23
-	//	%m : mm 2 digits minute. 0 <= mm <= 59
-	//	%s : ss 2 digits second. 0 <= ss <= 59
-	//	%u : unix second with free digits. 0 <= unix
-	//	%i : index with free digits. 0 <= index
-	//	%H : hostname
-	//	%U : user id. "-1" on windows.
-	//	%G : user group id. "-1" on windows.
-	//	%p : pid (process id)
-	//	%P : ppid (parent process id)
-	//
+	//   %Y : YYYY 4 digits year. 0 <= YYYY
+	//   %M : MM 2 digits month. 1 <= MM <= 12
+	//   %D : DD 2 digits day of month. 1 <= DD <= 31
+	//   %h : hh 2 digits hour. 0 <= hh <= 23
+	//   %m : mm 2 digits minute. 0 <= mm <= 59
+	//   %s : ss 2 digits second. 0 <= ss <= 59
+	//   %u : unix second with free digits. 0 <= unix
+	//   %i : index with free digits. 0 <= index
+	//   %H : hostname
+	//   %U : user id. "-1" on windows.
+	//   %G : user group id. "-1" on windows.
+	//   %p : pid (process id)
+	//   %P : ppid (parent process id)
 	// Default is ["application.%i.log"].
 	ArchivedFilePattern string `protobuf:"bytes,5,opt,name=ArchivedFilePattern,json=archivedFilePattern,proto3" json:"ArchivedFilePattern,omitempty"`
 	// [OPTIONAL]

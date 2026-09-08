@@ -78,6 +78,7 @@ func (c *compression) Middleware(next http.Handler) http.Handler {
 			}()
 			w = &compressionWriter{
 				ResponseWriter: w,
+				flush:          flushFunc(w),
 				writer:         bw,
 				mimes:          c.mimes,
 				encoding:       brotliEncoding,
@@ -92,6 +93,7 @@ func (c *compression) Middleware(next http.Handler) http.Handler {
 			}()
 			w = &compressionWriter{
 				ResponseWriter: w,
+				flush:          flushFunc(w),
 				writer:         gw,
 				mimes:          c.mimes,
 				encoding:       gzipEncoding,

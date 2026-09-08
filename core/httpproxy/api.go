@@ -198,7 +198,7 @@ func newUpstreams(_ http.RoundTripper, specs []*v1.UpstreamSpec) ([]upstream, er
 		}
 		up := &noopUpstream{
 			id:        xxhash.Sum64String(rawURL),
-			weight:    max(1, uint16(min(65535, spec.Weight))), //nolint:gosec // G115: integer overflow conversion int32 -> uint16
+			weight:    max(1, uint16(min(65535, spec.Weight))),
 			rawURL:    rawURL,
 			parsedURL: parsedURL,
 		}
