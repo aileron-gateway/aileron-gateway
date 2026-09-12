@@ -73,12 +73,6 @@ type ListenConfig struct {
 	// they dis-connect the connections or
 	// until they are accepted.
 	ConnectionLimit int
-	// ReadDeadline apply read deadline for connection.
-	// If zero, the deadline is not explicitly applied.
-	ReadDeadline time.Duration
-	// WriteDeadline apply read deadline for connection.
-	// If zero, the deadline is not explicitly applied.
-	WriteDeadline time.Duration
 	// Networks is the blacklist/whitelist of
 	// networks that can be connected.
 	// By default, Networks works as a whitelist.
@@ -111,8 +105,6 @@ func NewListenerFromSpec(spec *kernel.ListenConfig) (net.Listener, error) {
 		Address:         spec.Addr,
 		ConnectionLimit: int(spec.ConnectionLimit),
 		Networks:        spec.Networks,
-		ReadDeadline:    time.Duration(spec.ReadDeadline) * time.Millisecond,
-		WriteDeadline:   time.Duration(spec.WriteDeadline) * time.Millisecond,
 		SockOption:      SockOptionFromSpec(spec.SockOption),
 	}
 	if spec.KeepAliveConfig != nil {
@@ -175,13 +167,6 @@ func NewListener(c *ListenConfig) (net.Listener, error) {
 		return nil, zerrors.NewErr(err, "internal/network: failed to create new listener", "")
 	}
 
-	if c.ReadDeadline != 0 || c.WriteDeadline != 0 {
-		ln = &deadlineListener{
-			Listener: ln,
-			read:     c.ReadDeadline,
-			write:    c.WriteDeadline,
-		}
-	}
 	if len(c.Networks) > 0 {
 		wln, err := znet.NewWhiteListListener(ln, c.Networks...)
 		if err != nil {
@@ -194,33 +179,6 @@ func NewListener(c *ListenConfig) (net.Listener, error) {
 		ln = netutil.LimitListener(ln, c.ConnectionLimit)
 	}
 	return ln, nil
-}
-
-// deadlineListener applies deadline to connections.
-type deadlineListener struct {
-	net.Listener
-	read  time.Duration // read deadline duration.
-	write time.Duration // write deadline duration.
-}
-
-func (l *deadlineListener) Accept() (net.Conn, error) {
-	c, err := l.Listener.Accept()
-	if err != nil {
-		return nil, err
-	}
-	switch {
-	case l.read > 0:
-		_ = c.SetReadDeadline(time.Now().Add(l.read))
-	case l.read < 0:
-		_ = c.SetReadDeadline(time.Time{}) // No timeouts.
-	}
-	switch {
-	case l.write > 0:
-		_ = c.SetWriteDeadline(time.Now().Add(l.write))
-	case l.write < 0:
-		_ = c.SetWriteDeadline(time.Time{}) // No timeouts.
-	}
-	return c, nil
 }
 
 func SockOptionFromSpec(spec *kernel.SockOption) *zsyscall.SockOption {
