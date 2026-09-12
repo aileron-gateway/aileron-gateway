@@ -18,6 +18,7 @@ import (
 	"github.com/aileron-projects/go/zerrors"
 	"github.com/aileron-projects/go/znet"
 	"github.com/aileron-projects/go/zsyscall"
+	"golang.org/x/net/netutil"
 )
 
 // removeSocketListener wraps net.Listener
@@ -190,7 +191,7 @@ func NewListener(c *ListenConfig) (net.Listener, error) {
 		ln = wln
 	}
 	if c.ConnectionLimit > 0 { // Connection limit if >0.
-		ln = znet.NewLimitListener(ln, c.ConnectionLimit)
+		ln = netutil.LimitListener(ln, c.ConnectionLimit)
 	}
 	return ln, nil
 }
