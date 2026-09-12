@@ -42,7 +42,8 @@ func (s *runner) Run(sigCtx context.Context) error {
 		<-ctx.Done()
 
 		// Apply graceful shutdown timeout.
-		shutdownCtx, cancel := context.WithTimeout(ctx, s.timeout)
+		shutdownCtx := context.WithoutCancel(ctx) // The ctx is already canceled.
+		shutdownCtx, cancel := context.WithTimeout(shutdownCtx, s.timeout)
 		defer cancel()
 
 		// Graceful shutdown.
