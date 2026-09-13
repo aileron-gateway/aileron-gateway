@@ -4,8 +4,6 @@ spec:
   addr: ":12345"
   httpConfig:
     listenConfig:
-      readDeadline: 100
-      writeDeadline: 100
       sockOption:
         soOption:
           keepAlive: true

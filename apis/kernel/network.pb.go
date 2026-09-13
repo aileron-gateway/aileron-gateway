@@ -1239,20 +1239,6 @@ type ListenConfig struct {
 	// Default is not set.
 	Networks []string `protobuf:"bytes,6,rep,name=Networks,json=networks,proto3" json:"Networks,omitempty"`
 	// [OPTIONAL]
-	// Timeout is the timeout duration as an client in millisecond.
-	// This field will be used only for client.
-	// There will be no timeout when not set or 0.
-	// This field will be passed to https://pkg.go.dev/net#Conn.SetReadDeadline.
-	// Default is [0] millisecond.
-	ReadDeadline int32 `protobuf:"varint,8,opt,name=ReadDeadline,json=readDeadline,proto3" json:"ReadDeadline,omitempty"`
-	// [OPTIONAL]
-	// Timeout is the timeout duration as an client in millisecond.
-	// This field will be used only for client.
-	// There will be no timeout when not set or 0.
-	// This field will be passed to https://pkg.go.dev/net#Conn.SetWriteDeadline.
-	// Default is [0] millisecond.
-	WriteDeadline int32 `protobuf:"varint,9,opt,name=WriteDeadline,json=writeDeadline,proto3" json:"WriteDeadline,omitempty"`
-	// [OPTIONAL]
 	// KeepAliveConfig is the configuration for keep-alive probes.
 	// If not set and the protocol supports keep-alive,
 	// default values of the KeepAliveConfig are used.
@@ -1261,7 +1247,11 @@ type ListenConfig struct {
 	// [OPTIONAL]
 	// SockOption is the socket options.
 	// Default is not set.
-	SockOption    *SockOption `protobuf:"bytes,12,opt,name=SockOption,json=sockOption,proto3" json:"SockOption,omitempty"`
+	SockOption *SockOption `protobuf:"bytes,12,opt,name=SockOption,json=sockOption,proto3" json:"SockOption,omitempty"`
+	// Deprecated: Marked as deprecated in kernel/network.proto.
+	ReadDeadline int32 `protobuf:"varint,8,opt,name=ReadDeadline,json=readDeadline,proto3" json:"ReadDeadline,omitempty"`
+	// Deprecated: Marked as deprecated in kernel/network.proto.
+	WriteDeadline int32 `protobuf:"varint,9,opt,name=WriteDeadline,json=writeDeadline,proto3" json:"WriteDeadline,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1324,20 +1314,6 @@ func (x *ListenConfig) GetNetworks() []string {
 	return nil
 }
 
-func (x *ListenConfig) GetReadDeadline() int32 {
-	if x != nil {
-		return x.ReadDeadline
-	}
-	return 0
-}
-
-func (x *ListenConfig) GetWriteDeadline() int32 {
-	if x != nil {
-		return x.WriteDeadline
-	}
-	return 0
-}
-
 func (x *ListenConfig) GetKeepAliveConfig() *KeepAliveConfig {
 	if x != nil {
 		return x.KeepAliveConfig
@@ -1350,6 +1326,22 @@ func (x *ListenConfig) GetSockOption() *SockOption {
 		return x.SockOption
 	}
 	return nil
+}
+
+// Deprecated: Marked as deprecated in kernel/network.proto.
+func (x *ListenConfig) GetReadDeadline() int32 {
+	if x != nil {
+		return x.ReadDeadline
+	}
+	return 0
+}
+
+// Deprecated: Marked as deprecated in kernel/network.proto.
+func (x *ListenConfig) GetWriteDeadline() int32 {
+	if x != nil {
+		return x.WriteDeadline
+	}
+	return 0
 }
 
 // + KeepAliveConfig
@@ -2019,19 +2011,19 @@ const file_kernel_network_proto_rawDesc = "" +
 	"quicConfig\x12.\n" +
 	"\x12DisableCompression\x18\x03 \x01(\bR\x12disableCompression\x12(\n" +
 	"\x0fEnableDatagrams\x18\x04 \x01(\bR\x0fenableDatagrams\x126\n" +
-	"\x16MaxResponseHeaderBytes\x18\x05 \x01(\x03R\x16maxResponseHeaderBytes\"\xe4\x02\n" +
+	"\x16MaxResponseHeaderBytes\x18\x05 \x01(\x03R\x16maxResponseHeaderBytes\"\xec\x02\n" +
 	"\fListenConfig\x12/\n" +
 	"\tTLSConfig\x18\x01 \x01(\v2\x11.kernel.TLSConfigR\ttlsConfig\x12\x12\n" +
 	"\x04Addr\x18\x04 \x01(\tR\x04addr\x12(\n" +
 	"\x0fConnectionLimit\x18\x05 \x01(\x05R\x0fconnectionLimit\x12$\n" +
-	"\bNetworks\x18\x06 \x03(\tB\b\xbaH\x05\x92\x01\x02\x18\x01R\bnetworks\x12\"\n" +
-	"\fReadDeadline\x18\b \x01(\x05R\freadDeadline\x12$\n" +
-	"\rWriteDeadline\x18\t \x01(\x05R\rwriteDeadline\x12A\n" +
+	"\bNetworks\x18\x06 \x03(\tB\b\xbaH\x05\x92\x01\x02\x18\x01R\bnetworks\x12A\n" +
 	"\x0fKeepAliveConfig\x18\n" +
 	" \x01(\v2\x17.kernel.KeepAliveConfigR\x0fkeepAliveConfig\x122\n" +
 	"\n" +
 	"SockOption\x18\f \x01(\v2\x12.kernel.SockOptionR\n" +
-	"sockOption\"q\n" +
+	"sockOption\x12&\n" +
+	"\fReadDeadline\x18\b \x01(\x05B\x02\x18\x01R\freadDeadline\x12(\n" +
+	"\rWriteDeadline\x18\t \x01(\x05B\x02\x18\x01R\rwriteDeadline\"q\n" +
 	"\x0fKeepAliveConfig\x12\x18\n" +
 	"\aDisable\x18\x01 \x01(\bR\adisable\x12\x12\n" +
 	"\x04Idle\x18\x02 \x01(\x05R\x04idle\x12\x1a\n" +

@@ -435,22 +435,6 @@ message ListenConfig {
     repeated string Networks = 6 [json_name = "networks", (buf.validate.field).repeated.unique = true];
 
     // [OPTIONAL]
-    // Timeout is the timeout duration as an client in millisecond.
-    // This field will be used only for client.
-    // There will be no timeout when not set or 0.
-    // This field will be passed to https://pkg.go.dev/net#Conn.SetReadDeadline.
-    // Default is [0] millisecond.
-    int32 ReadDeadline = 8 [json_name = "readDeadline"];
-
-    // [OPTIONAL]
-    // Timeout is the timeout duration as an client in millisecond.
-    // This field will be used only for client.
-    // There will be no timeout when not set or 0.
-    // This field will be passed to https://pkg.go.dev/net#Conn.SetWriteDeadline.
-    // Default is [0] millisecond.
-    int32 WriteDeadline = 9 [json_name = "writeDeadline"];
-
-    // [OPTIONAL]
     // KeepAliveConfig is the configuration for keep-alive probes.
     // If not set and the protocol supports keep-alive,
     // default values of the KeepAliveConfig are used.
@@ -461,6 +445,9 @@ message ListenConfig {
     // SockOption is the socket options.
     // Default is not set.
     SockOption SockOption = 12 [json_name = "sockOption"];
+
+    int32 ReadDeadline  = 8 [json_name = "readDeadline", deprecated = true];
+    int32 WriteDeadline = 9 [json_name = "writeDeadline", deprecated = true];
 }
 
 //+ KeepAliveConfig
