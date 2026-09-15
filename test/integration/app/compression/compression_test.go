@@ -165,3 +165,305 @@ func TestMinimumSize(t *testing.T) {
 	body2, _ := io.ReadAll(w2.Result().Body)
 	testutil.Diff(t, `{"message": "Test"}`, string(body2))
 }
+
+func TestGzipLevel0(t *testing.T) {
+	configs := []string{"./config-gzip-level0.yaml"}
+
+	server := common.NewAPI()
+	err := app.LoadConfigFiles(server, configs)
+	testutil.DiffError(t, nil, nil, err)
+
+	ref := &kernel.Reference{
+		APIVersion: "app/v1",
+		Kind:       "CompressionMiddleware",
+	}
+	m, err := api.ReferTypedObject[core.Middleware](server, ref)
+	testutil.DiffError(t, nil, nil, err)
+
+	body := []byte("")
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Length", strconv.Itoa(len(body)))
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(body)
+	})
+	h := m.Middleware(handler)
+
+	r1 := httptest.NewRequest(http.MethodGet, "/", nil)
+	r1.Header.Set("Accept-Encoding", "br, gzip")
+
+	// Expect compressed body.
+	body = []byte(`{"message": "Test Body"}`)
+	w1 := httptest.NewRecorder()
+	h.ServeHTTP(w1, r1)
+	testutil.Diff(t, w1.Code, http.StatusOK)
+	testutil.Diff(t, "", w1.Result().Header.Get("Content-Encoding"))
+	body1, _ := io.ReadAll(w1.Result().Body)
+	testutil.Diff(t, `{"message": "Test Body"}`, string(body1))
+}
+func TestGzipLevel1(t *testing.T) {
+	configs := []string{"./config-gzip-level1.yaml"}
+
+	server := common.NewAPI()
+	err := app.LoadConfigFiles(server, configs)
+	testutil.DiffError(t, nil, nil, err)
+
+	ref := &kernel.Reference{
+		APIVersion: "app/v1",
+		Kind:       "CompressionMiddleware",
+	}
+	m, err := api.ReferTypedObject[core.Middleware](server, ref)
+	testutil.DiffError(t, nil, nil, err)
+
+	body := []byte("")
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Length", strconv.Itoa(len(body)))
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(body)
+	})
+	h := m.Middleware(handler)
+
+	r1 := httptest.NewRequest(http.MethodGet, "/", nil)
+	r1.Header.Set("Accept-Encoding", "br, gzip")
+
+	// Expect compressed body.
+	body = []byte(`{"message": "Test Body"}`)
+	w1 := httptest.NewRecorder()
+	h.ServeHTTP(w1, r1)
+	testutil.Diff(t, w1.Code, http.StatusOK)
+	testutil.Diff(t, "gzip", w1.Result().Header.Get("Content-Encoding"))
+	reader, err := gzip.NewReader(w1.Result().Body)
+	testutil.DiffError(t, nil, nil, err)
+	defer reader.Close()
+	body1, _ := io.ReadAll(reader)
+	testutil.Diff(t, `{"message": "Test Body"}`, string(body1))
+}
+
+func TestGzipLevel9(t *testing.T) {
+	configs := []string{"./config-gzip-level9.yaml"}
+
+	server := common.NewAPI()
+	err := app.LoadConfigFiles(server, configs)
+	testutil.DiffError(t, nil, nil, err)
+
+	ref := &kernel.Reference{
+		APIVersion: "app/v1",
+		Kind:       "CompressionMiddleware",
+	}
+	m, err := api.ReferTypedObject[core.Middleware](server, ref)
+	testutil.DiffError(t, nil, nil, err)
+
+	body := []byte("")
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Length", strconv.Itoa(len(body)))
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(body)
+	})
+	h := m.Middleware(handler)
+
+	r1 := httptest.NewRequest(http.MethodGet, "/", nil)
+	r1.Header.Set("Accept-Encoding", "br, gzip")
+
+	// Expect compressed body.
+	body = []byte(`{"message": "Test Body"}`)
+	w1 := httptest.NewRecorder()
+	h.ServeHTTP(w1, r1)
+	testutil.Diff(t, w1.Code, http.StatusOK)
+	testutil.Diff(t, "gzip", w1.Result().Header.Get("Content-Encoding"))
+	reader, err := gzip.NewReader(w1.Result().Body)
+	testutil.DiffError(t, nil, nil, err)
+	defer reader.Close()
+	body1, _ := io.ReadAll(reader)
+	testutil.Diff(t, `{"message": "Test Body"}`, string(body1))
+}
+
+func TestBrotliLevel0(t *testing.T) {
+	configs := []string{"./config-brotli-level0.yaml"}
+
+	server := common.NewAPI()
+	err := app.LoadConfigFiles(server, configs)
+	testutil.DiffError(t, nil, nil, err)
+
+	ref := &kernel.Reference{
+		APIVersion: "app/v1",
+		Kind:       "CompressionMiddleware",
+	}
+	m, err := api.ReferTypedObject[core.Middleware](server, ref)
+	testutil.DiffError(t, nil, nil, err)
+
+	body := []byte("")
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Length", strconv.Itoa(len(body)))
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(body)
+	})
+	h := m.Middleware(handler)
+
+	r1 := httptest.NewRequest(http.MethodGet, "/", nil)
+	r1.Header.Set("Accept-Encoding", "br, gzip")
+
+	// Expect compressed body.
+	body = []byte(`{"message": "Test Body"}`)
+	w1 := httptest.NewRecorder()
+	h.ServeHTTP(w1, r1)
+	testutil.Diff(t, w1.Code, http.StatusOK)
+	testutil.Diff(t, "", w1.Result().Header.Get("Content-Encoding"))
+	body1, _ := io.ReadAll(w1.Result().Body)
+	testutil.Diff(t, `{"message": "Test Body"}`, string(body1))
+}
+
+func TestBrotliLevel1(t *testing.T) {
+	configs := []string{"./config-brotli-level1.yaml"}
+
+	server := common.NewAPI()
+	err := app.LoadConfigFiles(server, configs)
+	testutil.DiffError(t, nil, nil, err)
+
+	ref := &kernel.Reference{
+		APIVersion: "app/v1",
+		Kind:       "CompressionMiddleware",
+	}
+	m, err := api.ReferTypedObject[core.Middleware](server, ref)
+	testutil.DiffError(t, nil, nil, err)
+
+	body := []byte("")
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Length", strconv.Itoa(len(body)))
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(body)
+	})
+	h := m.Middleware(handler)
+
+	r1 := httptest.NewRequest(http.MethodGet, "/", nil)
+	r1.Header.Set("Accept-Encoding", "br, gzip")
+
+	// Expect compressed body.
+	body = []byte(`{"message": "Test Body"}`)
+	w1 := httptest.NewRecorder()
+	h.ServeHTTP(w1, r1)
+	testutil.Diff(t, w1.Code, http.StatusOK)
+	testutil.Diff(t, "br", w1.Result().Header.Get("Content-Encoding"))
+	reader := brotli.NewReader(w1.Result().Body)
+	testutil.DiffError(t, nil, nil, err)
+	body1, _ := io.ReadAll(reader)
+	testutil.Diff(t, `{"message": "Test Body"}`, string(body1))
+}
+
+func TestBrotliLevel12(t *testing.T) {
+	configs := []string{"./config-brotli-level12.yaml"}
+
+	server := common.NewAPI()
+	err := app.LoadConfigFiles(server, configs)
+	testutil.DiffError(t, nil, nil, err)
+
+	ref := &kernel.Reference{
+		APIVersion: "app/v1",
+		Kind:       "CompressionMiddleware",
+	}
+	m, err := api.ReferTypedObject[core.Middleware](server, ref)
+	testutil.DiffError(t, nil, nil, err)
+
+	body := []byte("")
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Length", strconv.Itoa(len(body)))
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(body)
+	})
+	h := m.Middleware(handler)
+
+	r1 := httptest.NewRequest(http.MethodGet, "/", nil)
+	r1.Header.Set("Accept-Encoding", "br, gzip")
+
+	// Expect compressed body.
+	body = []byte(`{"message": "Test Body"}`)
+	w1 := httptest.NewRecorder()
+	h.ServeHTTP(w1, r1)
+	testutil.Diff(t, w1.Code, http.StatusOK)
+	testutil.Diff(t, "br", w1.Result().Header.Get("Content-Encoding"))
+	reader := brotli.NewReader(w1.Result().Body)
+	testutil.DiffError(t, nil, nil, err)
+	body1, _ := io.ReadAll(reader)
+	testutil.Diff(t, `{"message": "Test Body"}`, string(body1))
+}
+
+func TestAccept_gzip(t *testing.T) {
+	configs := []string{"./config-accept.yaml"}
+
+	server := common.NewAPI()
+	err := app.LoadConfigFiles(server, configs)
+	testutil.DiffError(t, nil, nil, err)
+
+	ref := &kernel.Reference{
+		APIVersion: "app/v1",
+		Kind:       "CompressionMiddleware",
+	}
+	m, err := api.ReferTypedObject[core.Middleware](server, ref)
+	testutil.DiffError(t, nil, nil, err)
+
+	body := []byte("")
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Length", strconv.Itoa(len(body)))
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(body)
+	})
+	h := m.Middleware(handler)
+
+	r1 := httptest.NewRequest(http.MethodGet, "/", nil)
+	r1.Header.Set("Accept-Encoding", "gzip")
+
+	// Expect compressed body.
+	body = []byte(`{"message": "Test Body"}`)
+	w1 := httptest.NewRecorder()
+	h.ServeHTTP(w1, r1)
+	testutil.Diff(t, w1.Code, http.StatusOK)
+	testutil.Diff(t, "gzip", w1.Result().Header.Get("Content-Encoding"))
+	reader, err := gzip.NewReader(w1.Result().Body)
+	testutil.DiffError(t, nil, nil, err)
+	defer reader.Close()
+	body1, _ := io.ReadAll(reader)
+	testutil.Diff(t, `{"message": "Test Body"}`, string(body1))
+}
+
+func TestAccept_brotli(t *testing.T) {
+	configs := []string{"./config-accept.yaml"}
+
+	server := common.NewAPI()
+	err := app.LoadConfigFiles(server, configs)
+	testutil.DiffError(t, nil, nil, err)
+
+	ref := &kernel.Reference{
+		APIVersion: "app/v1",
+		Kind:       "CompressionMiddleware",
+	}
+	m, err := api.ReferTypedObject[core.Middleware](server, ref)
+	testutil.DiffError(t, nil, nil, err)
+
+	body := []byte("")
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Length", strconv.Itoa(len(body)))
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(body)
+	})
+	h := m.Middleware(handler)
+
+	r1 := httptest.NewRequest(http.MethodGet, "/", nil)
+	r1.Header.Set("Accept-Encoding", "br")
+
+	// Expect compressed body.
+	body = []byte(`{"message": "Test Body"}`)
+	w1 := httptest.NewRecorder()
+	h.ServeHTTP(w1, r1)
+	testutil.Diff(t, w1.Code, http.StatusOK)
+	testutil.Diff(t, "br", w1.Result().Header.Get("Content-Encoding"))
+	reader := brotli.NewReader(w1.Result().Body)
+	testutil.DiffError(t, nil, nil, err)
+	body1, _ := io.ReadAll(reader)
+	testutil.Diff(t, `{"message": "Test Body"}`, string(body1))
+}
