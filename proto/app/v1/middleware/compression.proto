@@ -19,14 +19,15 @@ message CompressionMiddleware {
 message CompressionMiddlewareSpec {
     // [OPTIONAL]
     // GzipLevel is the gzip compression level.
-    // BestSpeed=1, BestCompression=9. Default level is 6.
-    int32 GzipLevel = 1 [json_name = "gzipLevel", (buf.validate.field).int32 = {gte : 1, lte : 9}];
+    // Disable=0, BestSpeed=1, BestCompression=9.
+    // Default level is 0 (disable).
+    int32 GzipLevel = 1 [json_name = "gzipLevel", (buf.validate.field).int32 = { gte: 0, lte: 9 }];
 
     // [OPTIONAL]
     // BrotliLevel is the brotli compression level.
-    // BestSpeed=0, BestCompression=11. Default level is 4.
-    // Note that set this field to -1 to use BestSpeed=0 level instead of setting 0 because of the technical issue.
-    int32 BrotliLevel = 2 [json_name = "brotliLevel", (buf.validate.field).int32 = {gte : -1, lte : 11}];
+    // Disable=0, BestSpeed=1, BestCompression=12.
+    // Default level is 0 (disable).
+    int32 BrotliLevel = 2 [json_name = "brotliLevel", (buf.validate.field).int32 = { gte: 0, lte: 12 }];
 
     // [OPTIONAL]
     // TargetMIMEs is the list of mime types to compress.

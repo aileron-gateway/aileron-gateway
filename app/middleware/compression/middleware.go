@@ -49,10 +49,11 @@ type compression struct {
 	// could be larger than the original one.
 	minimumSize int64
 
-	// gwPool is the gzip writer pool.
-	gwPool sync.Pool
-	// bwPool is the brotli writer pool.
-	bwPool sync.Pool
+	gzipDisabled bool      // gzipDisabled, if true, disables gzip compression.
+	gwPool       sync.Pool // gwPool is the gzip writer pool.
+
+	brotliDisabled bool      // brotliDisabled, if true, disables brotli compression.
+	bwPool         sync.Pool // bwPool is the brotli writer pool.
 }
 
 func (c *compression) Middleware(next http.Handler) http.Handler {
@@ -69,7 +70,7 @@ func (c *compression) Middleware(next http.Handler) http.Handler {
 		w.Header().Add("Vary", "Accept-Encoding")
 
 		switch {
-		case strings.Contains(encoding, brotliEncoding): // Brotli compression.
+		case !c.brotliDisabled && strings.Contains(encoding, brotliEncoding): // Brotli compression.
 			bw := c.bwPool.Get().(*brotli.Writer)
 			defer func() {
 				bw.Close()
@@ -84,7 +85,7 @@ func (c *compression) Middleware(next http.Handler) http.Handler {
 				encoding:       brotliEncoding,
 				minimumSize:    c.minimumSize,
 			}
-		case strings.Contains(encoding, gzipEncoding): // Gzip compression.
+		case !c.gzipDisabled && strings.Contains(encoding, gzipEncoding): // Gzip compression.
 			gw := c.gwPool.Get().(*gzip.Writer)
 			defer func() {
 				gw.Close()

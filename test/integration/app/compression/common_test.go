@@ -20,9 +20,16 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/aileron-gateway/aileron-gateway/test/integration/common"
+	"github.com/andybalholm/brotli"
 )
 
-func check(t *testing.T, m core.Middleware) {
+const (
+	flagNoCompression = 1 << iota
+	flagGzip
+	flagBrotli
+)
+
+func check(t *testing.T, m core.Middleware, flag uint) {
 	t.Helper()
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -35,17 +42,39 @@ func check(t *testing.T, m core.Middleware) {
 
 	h := m.Middleware(handler)
 
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	req.Header.Set("Accept-Encoding", "gzip")
-	resp := httptest.NewRecorder()
-	h.ServeHTTP(resp, req)
-	testutil.Diff(t, "gzip", resp.Result().Header.Get("Content-Encoding"))
-
-	reader, _ := gzip.NewReader(resp.Result().Body)
-	defer reader.Close()
-	body, err := io.ReadAll(reader)
-	testutil.DiffError(t, nil, nil, err)
-	testutil.Diff(t, `{"message": "Test Body"}`, string(body))
+	if flagNoCompression&flag > 0 {
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		req.Header.Set("Accept-Encoding", "br, gzip")
+		resp := httptest.NewRecorder()
+		h.ServeHTTP(resp, req)
+		testutil.Diff(t, "", resp.Result().Header.Get("Content-Encoding"))
+		body, err := io.ReadAll(resp.Result().Body)
+		testutil.DiffError(t, nil, nil, err)
+		testutil.Diff(t, `{"message": "Test Body"}`, string(body))
+	}
+	if flagGzip&flag > 0 {
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		req.Header.Set("Accept-Encoding", "gzip")
+		resp := httptest.NewRecorder()
+		h.ServeHTTP(resp, req)
+		testutil.Diff(t, "gzip", resp.Result().Header.Get("Content-Encoding"))
+		reader, _ := gzip.NewReader(resp.Result().Body)
+		defer reader.Close()
+		body, err := io.ReadAll(reader)
+		testutil.DiffError(t, nil, nil, err)
+		testutil.Diff(t, `{"message": "Test Body"}`, string(body))
+	}
+	if flagBrotli&flag > 0 {
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		req.Header.Set("Accept-Encoding", "br")
+		resp := httptest.NewRecorder()
+		h.ServeHTTP(resp, req)
+		testutil.Diff(t, "br", resp.Result().Header.Get("Content-Encoding"))
+		reader := brotli.NewReader(resp.Result().Body)
+		body, err := io.ReadAll(reader)
+		testutil.DiffError(t, nil, nil, err)
+		testutil.Diff(t, `{"message": "Test Body"}`, string(body))
+	}
 }
 
 func TestMinimalWithoutMetadata(t *testing.T) {
@@ -64,7 +93,7 @@ func TestMinimalWithoutMetadata(t *testing.T) {
 	m, err := api.ReferTypedObject[core.Middleware](server, ref)
 	testutil.DiffError(t, nil, nil, err)
 
-	check(t, m)
+	check(t, m, flagNoCompression)
 }
 
 func TestMinimalWithMetadata(t *testing.T) {
@@ -83,7 +112,7 @@ func TestMinimalWithMetadata(t *testing.T) {
 	m, err := api.ReferTypedObject[core.Middleware](server, ref)
 	testutil.DiffError(t, nil, nil, err)
 
-	check(t, m)
+	check(t, m, flagNoCompression)
 }
 
 func TestEmptyNameNamespace(t *testing.T) {
@@ -102,7 +131,7 @@ func TestEmptyNameNamespace(t *testing.T) {
 	m, err := api.ReferTypedObject[core.Middleware](server, ref)
 	testutil.DiffError(t, nil, nil, err)
 
-	check(t, m)
+	check(t, m, flagBrotli)
 }
 
 func TestEmptyName(t *testing.T) {
@@ -121,7 +150,7 @@ func TestEmptyName(t *testing.T) {
 	m, err := api.ReferTypedObject[core.Middleware](server, ref)
 	testutil.DiffError(t, nil, nil, err)
 
-	check(t, m)
+	check(t, m, flagBrotli)
 }
 
 func TestEmptyNamespace(t *testing.T) {
@@ -140,7 +169,7 @@ func TestEmptyNamespace(t *testing.T) {
 	m, err := api.ReferTypedObject[core.Middleware](server, ref)
 	testutil.DiffError(t, nil, nil, err)
 
-	check(t, m)
+	check(t, m, flagBrotli)
 }
 
 func TestEmptySpec(t *testing.T) {
@@ -159,7 +188,7 @@ func TestEmptySpec(t *testing.T) {
 	m, err := api.ReferTypedObject[core.Middleware](server, ref)
 	testutil.DiffError(t, nil, nil, err)
 
-	check(t, m)
+	check(t, m, flagNoCompression)
 }
 
 func TestInvalidSpec(t *testing.T) {
