@@ -97,12 +97,13 @@ type CompressionMiddlewareSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
 	// GzipLevel is the gzip compression level.
-	// BestSpeed=1, BestCompression=9. Default level is 6.
+	// Disable=0, BestSpeed=1, BestCompression=9.
+	// Default level is 0 (disable).
 	GzipLevel int32 `protobuf:"varint,1,opt,name=GzipLevel,json=gzipLevel,proto3" json:"GzipLevel,omitempty"`
 	// [OPTIONAL]
 	// BrotliLevel is the brotli compression level.
-	// BestSpeed=0, BestCompression=11. Default level is 4.
-	// Note that set this field to -1 to use BestSpeed=0 level instead of setting 0 because of the technical issue.
+	// Disable=0, BestSpeed=1, BestCompression=12.
+	// Default level is 0 (disable).
 	BrotliLevel int32 `protobuf:"varint,2,opt,name=BrotliLevel,json=brotliLevel,proto3" json:"BrotliLevel,omitempty"`
 	// [OPTIONAL]
 	// TargetMIMEs is the list of mime types to compress.
