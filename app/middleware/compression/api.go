@@ -28,8 +28,6 @@ var Resource api.Resource = &API{
 				Name:      "default",
 			},
 			Spec: &v1.CompressionMiddlewareSpec{
-				BrotliLevel: 4,
-				GzipLevel:   6,
 				MinimumSize: 1 << 10, // 1024 bytes.
 			},
 		},
@@ -68,13 +66,17 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg proto.Message) (a
 	c := msg.(*v1.CompressionMiddleware)
 
 	gzipLevel := restrictBetween(int(c.Spec.GzipLevel), 1, 9)      // BestSpeed=1, BestCompression=9.
-	brotliLevel := restrictBetween(int(c.Spec.BrotliLevel), 0, 11) // BestSpeed=0, BestCompression=11.
+	brotliLevel := restrictBetween(int(c.Spec.BrotliLevel), 0, 12) // BestSpeed=1, BestCompression=12.
 
 	return &compression{
 		mimes:       slices.Clip(c.Spec.TargetMIMEs),
 		minimumSize: int64(c.Spec.MinimumSize),
-		gwPool:      newGzipWriterPool(gzipLevel),
-		bwPool:      newBrotliWriterPool(brotliLevel),
+
+		gzipDisabled: gzipLevel == 0,
+		gwPool:       newGzipWriterPool(gzipLevel),
+
+		brotliDisabled: brotliLevel == 0,
+		bwPool:         newBrotliWriterPool(brotliLevel - 1),
 	}, nil
 }
 
