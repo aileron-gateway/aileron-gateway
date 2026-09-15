@@ -2,3 +2,5 @@ apiVersion: app/v1
 kind: CompressionMiddleware
 spec:
   minimumSize: 20
+  gzipLevel: 1
+  brotliLevel: 1

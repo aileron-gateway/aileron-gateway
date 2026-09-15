@@ -64,29 +64,26 @@ func (*API) Mutate(msg proto.Message) proto.Message {
 
 func (*API) Create(a api.API[*api.Request, *api.Response], msg proto.Message) (any, error) {
 	c := msg.(*v1.CompressionMiddleware)
-
-	gzipLevel := restrictBetween(int(c.Spec.GzipLevel), 1, 9)      // BestSpeed=1, BestCompression=9.
-	brotliLevel := restrictBetween(int(c.Spec.BrotliLevel), 0, 12) // BestSpeed=1, BestCompression=12.
-
 	return &compression{
 		mimes:       slices.Clip(c.Spec.TargetMIMEs),
 		minimumSize: int64(c.Spec.MinimumSize),
 
-		gzipDisabled: gzipLevel == 0,
-		gwPool:       newGzipWriterPool(gzipLevel),
+		gzipDisabled: c.Spec.GzipLevel == 0,                                      // Disable=0
+		gwPool:       newGzipWriterPool(restrictBetween(c.Spec.GzipLevel, 1, 9)), // BestSpeed=1, BestCompression=9
 
-		brotliDisabled: brotliLevel == 0,
-		bwPool:         newBrotliWriterPool(brotliLevel - 1),
+		brotliDisabled: c.Spec.BrotliLevel == 0,                                           // Disable=0
+		bwPool:         newBrotliWriterPool(restrictBetween(c.Spec.BrotliLevel-1, 0, 12)), // BestSpeed=0, BestCompression=11
 	}, nil
 }
 
 // restrictBetween restricts the given target int value to the value between "min" and "max".
-func restrictBetween(target, min, max int) int {
-	if target < min {
+func restrictBetween(target int32, min, max int) int {
+	t := int(target)
+	if t < min {
 		return min
 	}
-	if target > max {
+	if t > max {
 		return max
 	}
-	return target
+	return t
 }
