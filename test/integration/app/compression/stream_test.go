@@ -26,7 +26,7 @@ import (
 )
 
 // testDataDir is the path to the test data.
-var testDataDir = "../../../test/integration/compression/"
+var testDataDir = "../../../../test/integration/app/compression/"
 
 func TestStream_SSE(t *testing.T) {
 
