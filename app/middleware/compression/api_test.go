@@ -49,8 +49,6 @@ func TestMutate(t *testing.T) {
 						Name:      "default",
 					},
 					Spec: &v1.CompressionMiddlewareSpec{
-						BrotliLevel: 4,
-						GzipLevel:   6,
 						MinimumSize: 1 << 10,
 						TargetMIMEs: []string{
 							"application/json", "application/manifest+json", "application/graphql+json", // json

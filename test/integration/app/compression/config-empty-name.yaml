@@ -5,3 +5,5 @@ metadata:
   namespace: testNamespace
 spec:
   minimumSize: 1
+  gzipLevel: 1
+  brotliLevel: 1
