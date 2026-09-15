@@ -72,7 +72,7 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg proto.Message) (a
 		gwPool:       newGzipWriterPool(restrictBetween(c.Spec.GzipLevel, 1, 9)), // BestSpeed=1, BestCompression=9
 
 		brotliDisabled: c.Spec.BrotliLevel == 0,                                           // Disable=0
-		bwPool:         newBrotliWriterPool(restrictBetween(c.Spec.BrotliLevel-1, 0, 12)), // BestSpeed=0, BestCompression=11
+		bwPool:         newBrotliWriterPool(restrictBetween(c.Spec.BrotliLevel-1, 0, 11)), // BestSpeed=0, BestCompression=11
 	}, nil
 }
 
