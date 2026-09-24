@@ -9,6 +9,7 @@
 *.temp
 *.html
 /*.mk
+.envrc
 
 # Ignore directories.
 work/
@@ -18,6 +19,7 @@ tmp/
 logs/
 .vscode/
 .idea/
+.direnv/
 
 # Exclude.
 !examples/**
