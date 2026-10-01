@@ -9,16 +9,15 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
 
-// DigestAuthnMiddleware resource definition.
-// apiVersion="app/v1", kind="DigestAuthnMiddleware".
+//+ DigestAuthnMiddleware
 message DigestAuthnMiddleware {
-    string                    APIVersion = 1 [json_name = "apiVersion"];
-    string                    Kind       = 2 [json_name = "kind"];
+    string                    APIVersion = 1 [json_name = "apiVersion"];  // "app/v1"
+    string                    Kind       = 2 [json_name = "kind"];        // "DigestAuthnMiddleware"
     kernel.Metadata           Metadata   = 3 [json_name = "metadata"];
     DigestAuthnMiddlewareSpec Spec       = 4 [json_name = "spec"];
 }
 
-// DigestAuthnMiddlewareSpec is the specifications for the DigestAuthnMiddleware object.
+//+ DigestAuthnMiddlewareSpec
 message DigestAuthnMiddlewareSpec {
     // [OPTIONAL]
     // Logger is the reference to a Logger object.
@@ -105,6 +104,7 @@ message DigestAuthnMiddlewareSpec {
     }
 }
 
+//+ DigestAuthnEnvProvider
 message DigestAuthnEnvProvider {
     // [OPTIONAL]
     // UsernamePrefix is the prefix of environmental variable
@@ -138,6 +138,7 @@ message DigestAuthnEnvProvider {
     kernel.EncodingType Encoding = 3 [json_name = "encoding"];
 }
 
+//+ DigestAuthnFileProvider
 message DigestAuthnFileProvider {
     // [OPTIONAL]
     // Paths are file paths that contains use information.

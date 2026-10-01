@@ -5,16 +5,15 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
 
-// HealthCheckHandler resource definition.
-// apiVersion="app/v1", kind="AuthenticationMiddleware".
+//+ AuthenticationMiddleware
 message AuthenticationMiddleware {
-    string                       APIVersion = 1 [json_name = "apiVersion"];
-    string                       Kind       = 2 [json_name = "kind"];
+    string                       APIVersion = 1 [json_name = "apiVersion"];  // "app/v1"
+    string                       Kind       = 2 [json_name = "kind"];        // "AuthenticationMiddleware"
     kernel.Metadata              Metadata   = 3 [json_name = "metadata"];
     AuthenticationMiddlewareSpec Spec       = 4 [json_name = "spec"];
 }
 
-// AuthenticationMiddlewareSpec is the specifications for the AuthenticationMiddleware object.
+//+ AuthenticationMiddlewareSpec
 message AuthenticationMiddlewareSpec {
     // [OPTIONAL]
     // Logger is the reference to a Logger object.

@@ -12,7 +12,7 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
-	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/proto"
 )
 
 const (
@@ -49,7 +49,7 @@ type API struct {
 	*api.BaseResource
 }
 
-func (*API) Mutate(msg protoreflect.ProtoMessage) protoreflect.ProtoMessage {
+func (*API) Mutate(msg proto.Message) proto.Message {
 	c := msg.(*v1.HTTPLogger)
 
 	// Set default journal MIMEs.
@@ -83,7 +83,7 @@ func (*API) Mutate(msg protoreflect.ProtoMessage) protoreflect.ProtoMessage {
 	return c
 }
 
-func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.ProtoMessage) (any, error) {
+func (*API) Create(a api.API[*api.Request, *api.Response], msg proto.Message) (any, error) {
 	c := msg.(*v1.HTTPLogger)
 
 	lg := log.DefaultOr(c.Metadata.Logger)

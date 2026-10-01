@@ -5,6 +5,7 @@ import "buf/validate/validate.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/kernel";
 
+//+ Resource
 // Resource is the template of a resource definition.
 // This messages is only used internally.
 message Resource {
@@ -27,9 +28,11 @@ message Resource {
     ResourceSpec Spec = 4 [json_name = "spec"];
 }
 
+//+ ResourceSpec
 // ResourceSpec is the resource specification.
 message ResourceSpec {}
 
+//+ Metadata
 // Metadata is the common metadata for all resources.
 message Metadata {
     // [OPTIONAL]
@@ -70,6 +73,7 @@ message Metadata {
     string ErrorHandler = 4 [json_name = "errorHandler"];
 }
 
+//+ Reference
 // Reference is the reference to a resource.
 message Reference {
     // [REQUIRED]
@@ -95,6 +99,7 @@ message Reference {
     string Namespace = 4 [json_name = "namespace", (buf.validate.field).string.pattern = "^[0-9A-Za-z-.]*$"];
 }
 
+//+ Status
 // Status is the resource status.
 // DO NOT USE. This is left for compatibility.
 message Status {}

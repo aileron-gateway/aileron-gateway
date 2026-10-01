@@ -12,8 +12,8 @@ import (
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/core"
+	"github.com/aileron-gateway/aileron-gateway/internal/network"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/network"
 	"go.opentelemetry.io/contrib/propagators/autoprop"
 	"go.opentelemetry.io/contrib/propagators/aws/xray"
 	"go.opentelemetry.io/contrib/propagators/b3"
@@ -30,7 +30,7 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"google.golang.org/grpc/credentials"
-	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/proto"
 )
 
 const (
@@ -47,7 +47,7 @@ type API struct {
 	*api.BaseResource
 }
 
-func (o *API) Default() protoreflect.ProtoMessage {
+func (o *API) Default() proto.Message {
 	return &v1.OpenTelemetryTracer{
 		APIVersion: apiVersion,
 		Kind:       kind,
@@ -81,7 +81,7 @@ func (o *API) Default() protoreflect.ProtoMessage {
 	}
 }
 
-func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.ProtoMessage) (any, error) {
+func (*API) Create(a api.API[*api.Request, *api.Response], msg proto.Message) (any, error) {
 	c := msg.(*v1.OpenTelemetryTracer)
 
 	var exporter sdktrace.SpanExporter
@@ -244,7 +244,7 @@ func newStdoutExporter(spec *v1.StdoutTraceExporterSpec) *stdouttrace.Exporter {
 }
 
 func newZipkinExporter(spec *v1.ZipkinTraceExporterSpec) (*zipkin.Exporter, error) {
-	var opts []zipkin.Option
+	opts := make([]zipkin.Option, 0, 1)
 	opts = append(opts, zipkin.WithHeaders(spec.Headers))
 	// If EndpointURL is empty, default "http://localhost:9411/api/v2/spans" is used.
 	return zipkin.New(spec.EndpointURL, opts...)

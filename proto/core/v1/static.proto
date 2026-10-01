@@ -7,16 +7,15 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/core/v1";
 
-// StaticFileHandler resource definition.
-// apiVersion="core/v1", kind="StaticFileHandler".
+//+ StaticFileHandler
 message StaticFileHandler {
-    string                APIVersion = 1 [json_name = "apiVersion"];
-    string                Kind       = 2 [json_name = "kind"];
+    string                APIVersion = 1 [json_name = "apiVersion"];  // "core/v1"
+    string                Kind       = 2 [json_name = "kind"];        // "StaticFileHandler"
     kernel.Metadata       Metadata   = 3 [json_name = "metadata"];
     StaticFileHandlerSpec Spec       = 4 [json_name = "spec"];
 }
 
-// StaticFileHandlerSpec is the specifications for the StaticFileHandler object.
+//+ StaticFileHandlerSpec
 message StaticFileHandlerSpec {
     // [OPTIONAL]
     // Patterns is path patterns that this handler

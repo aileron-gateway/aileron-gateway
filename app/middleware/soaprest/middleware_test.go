@@ -78,16 +78,10 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 		code       int
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"SOAP 1.1 request with SOAPAction",
-			nil,
-			nil,
 			&condition{
 				file:        "ok_case01",
 				method:      http.MethodPost,
@@ -108,8 +102,6 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 		),
 		gen(
 			"SOAP 1.1 request with SOAPAction and Get method",
-			nil,
-			nil,
 			&condition{
 				file:        "ok_case01",
 				method:      http.MethodGet,
@@ -131,8 +123,6 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 		),
 		gen(
 			"SOAP 1.1 request without SOAPAction",
-			nil,
-			nil,
 			&condition{
 				file:        "ok_case01",
 				method:      http.MethodPost,
@@ -151,8 +141,6 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 		),
 		gen(
 			"SOAP1.2 request",
-			nil,
-			nil,
 			&condition{
 				file:        "ok_case02",
 				method:      http.MethodPost,
@@ -172,8 +160,6 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 		),
 		gen(
 			"SOAP1.2 request with action",
-			nil,
-			nil,
 			&condition{
 				file:        "ok_case02",
 				method:      http.MethodPost,
@@ -194,8 +180,6 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 		),
 		gen(
 			"non SOAP request",
-			nil,
-			nil,
 			&condition{
 				file:        "ng_case01",
 				method:      http.MethodPost,
@@ -209,8 +193,6 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 		),
 		gen(
 			"read body error",
-			nil,
-			nil,
 			&condition{
 				file:          "ng_case01",
 				method:        http.MethodPost,
@@ -226,8 +208,6 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 		),
 		gen(
 			"request convert error",
-			nil,
-			nil,
 			&condition{
 				file:        "ng_case02",
 				method:      http.MethodPost,
@@ -247,15 +227,13 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			meh := &mockErrorHandler{}
 			sr := &soapREST{
 				eh:        meh,
-				converter: tt.C().converter,
+				converter: tt.C.converter,
 			}
 
 			nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -267,7 +245,7 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 
 				// Check whether the SOAP/XML request is being converted
 				// into a REST/JSON request by the SOAPRESTMiddleware.
-				jsonBytes, _ := os.ReadFile("./testdata/Simple/" + tt.A().file + ".json")
+				jsonBytes, _ := os.ReadFile("./testdata/Simple/" + tt.A.file + ".json")
 				if !equalJSON(t, bodyBytes, jsonBytes) {
 					t.Error("decode result not match (xml to json)")
 				}
@@ -278,11 +256,11 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 				// Verify that the Accept header is set to application/json.
 				testutil.Diff(t, "application/json", r.Header.Get("Accept"))
 				// Verify that the request method is preserved.
-				testutil.Diff(t, tt.C().method, r.Method)
+				testutil.Diff(t, tt.C.method, r.Method)
 
 				// Verify that the original Content-Type is preserved in X-Content-Type
-				if tt.C().contentType == "text/xml" || tt.C().contentType == "application/soap+xml" {
-					testutil.Diff(t, tt.C().contentType, r.Header.Get("X-Content-Type"))
+				if tt.C.contentType == "text/xml" || tt.C.contentType == "application/soap+xml" {
+					testutil.Diff(t, tt.C.contentType, r.Header.Get("X-Content-Type"))
 				}
 
 				w.WriteHeader(http.StatusOK)
@@ -292,22 +270,22 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 
 			// If the path does not match, the XML to JSON conversion will not be performed,
 			// so the JSON will be stored in the request body.
-			xmlBytes, _ := os.ReadFile("./testdata/xml/" + tt.C().file + ".xml")
-			if tt.C().pathNotMatch {
-				xmlBytes, _ = os.ReadFile("./testdata/Simple/" + tt.C().file + ".json")
+			xmlBytes, _ := os.ReadFile("./testdata/xml/" + tt.C.file + ".xml")
+			if tt.C.pathNotMatch {
+				xmlBytes, _ = os.ReadFile("./testdata/Simple/" + tt.C.file + ".json")
 			}
 
-			req := httptest.NewRequest(tt.C().method, "http://test.com/", strings.NewReader(string(xmlBytes)))
-			if tt.C().readBodyError {
+			req := httptest.NewRequest(tt.C.method, "http://test.com/", strings.NewReader(string(xmlBytes)))
+			if tt.C.readBodyError {
 				req.Body = io.NopCloser(&mockReader{})
 			}
 
-			if tt.C().contentType == "application/soap+xml" && tt.C().setSOAPAction {
-				req.Header.Set("Content-Type", tt.C().contentType+"; charset=utf-8; action=\"http://example.com/\"")
+			if tt.C.contentType == "application/soap+xml" && tt.C.setSOAPAction {
+				req.Header.Set("Content-Type", tt.C.contentType+"; charset=utf-8; action=\"http://example.com/\"")
 			} else {
-				req.Header.Set("Content-Type", tt.C().contentType+"; charset=utf-8")
+				req.Header.Set("Content-Type", tt.C.contentType+"; charset=utf-8")
 			}
-			if tt.C().contentType == "text/xml" && tt.C().setSOAPAction {
+			if tt.C.contentType == "text/xml" && tt.C.setSOAPAction {
 				req.Header.Set("SOAPAction", "http://example.com/")
 			}
 
@@ -317,8 +295,8 @@ func TestSOAPREST_Middleware_RequestConversion(t *testing.T) {
 			opts := []gocmp.Option{
 				cmpopts.EquateErrors(),
 			}
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, meh.err, opts...)
-			testutil.Diff(t, tt.A().code, resp.Code)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, meh.err, opts...)
+			testutil.Diff(t, tt.A.code, resp.Code)
 		})
 	}
 }
@@ -437,16 +415,10 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 		code       int
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"SOAP1.1 response",
-			nil,
-			nil,
 			&condition{
 				file:        "ok_case01",
 				method:      http.MethodPost,
@@ -467,8 +439,6 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 		),
 		gen(
 			"SOAP1.2 response, request with SOAPAction",
-			nil,
-			nil,
 			&condition{
 				file:        "ok_case02",
 				method:      http.MethodPost,
@@ -489,8 +459,6 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 		),
 		gen(
 			"SOAP1.2 response, request without SOAPAction",
-			nil,
-			nil,
 			&condition{
 				file:        "ok_case02",
 				method:      http.MethodPost,
@@ -511,8 +479,6 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 		),
 		gen(
 			"invalid Content-Type error",
-			nil,
-			nil,
 			&condition{
 				file:        "ng_case03",
 				method:      http.MethodPost,
@@ -535,8 +501,6 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 		),
 		gen(
 			"response convert error",
-			nil,
-			nil,
 			&condition{
 				file:        "ng_case03",
 				method:      http.MethodPost,
@@ -559,8 +523,6 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 		),
 		gen(
 			"responseWriter write error",
-			nil,
-			nil,
 			&condition{
 				file:        "ng_case01",
 				method:      http.MethodPost,
@@ -584,8 +546,6 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 		),
 		gen(
 			"empty charset with SOAP1.1 request",
-			nil,
-			nil,
 			&condition{
 				file:        "ok_case01",
 				method:      http.MethodPost,
@@ -606,8 +566,6 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 		),
 		gen(
 			"empty charset with SOAP1.2 request",
-			nil,
-			nil,
 			&condition{
 				file:        "ok_case01",
 				method:      http.MethodPost,
@@ -628,52 +586,50 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			meh := &mockErrorHandler{}
 			m := &soapREST{
 				eh:        meh,
-				converter: tt.C().converter,
+				converter: tt.C.converter,
 			}
 
 			nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				w.Header().Set("Content-Type", "application/json; charset="+tt.C().charset)
-				if tt.C().invalidContentTypeError {
+				w.Header().Set("Content-Type", "application/json; charset="+tt.C.charset)
+				if tt.C.invalidContentTypeError {
 					w.Header().Set("Content-Type", "invalid")
 				}
 
-				if !tt.C().responseConvertError {
-					jsonBytes, _ := os.ReadFile("./testdata/Simple/" + tt.C().file + ".json")
+				if !tt.C.responseConvertError {
+					jsonBytes, _ := os.ReadFile("./testdata/Simple/" + tt.C.file + ".json")
 					w.Write([]byte(jsonBytes))
 				}
 
 				// Verify that the action value is stored in the custom header.
-				testutil.Diff(t, tt.A().actionURI, r.Header.Get("X-SOAP-Action"))
+				testutil.Diff(t, tt.A.actionURI, r.Header.Get("X-SOAP-Action"))
 				w.WriteHeader(http.StatusOK)
 			})
 
 			h := m.Middleware(nextHandler)
-			req := httptest.NewRequest(tt.C().method, "http://test.com/", nil)
+			req := httptest.NewRequest(tt.C.method, "http://test.com/", nil)
 
-			switch tt.C().contentType {
+			switch tt.C.contentType {
 			case "application/soap+xml":
-				if tt.C().setSOAPAction {
-					req.Header.Set("Content-Type", tt.C().contentType+"; charset=utf-8; action=\"http://example.com/\"")
+				if tt.C.setSOAPAction {
+					req.Header.Set("Content-Type", tt.C.contentType+"; charset=utf-8; action=\"http://example.com/\"")
 				} else {
-					req.Header.Set("Content-Type", tt.C().contentType+"; charset=utf-8")
+					req.Header.Set("Content-Type", tt.C.contentType+"; charset=utf-8")
 				}
 			case "text/xml":
-				if tt.C().setSOAPAction {
+				if tt.C.setSOAPAction {
 					req.Header.Set("SOAPAction", "http://example.com/")
 				}
-				req.Header.Set("Content-Type", tt.C().contentType+"; charset=utf-8")
+				req.Header.Set("Content-Type", tt.C.contentType+"; charset=utf-8")
 			}
 
 			var resp http.ResponseWriter
-			if tt.C().responseWriteError {
+			if tt.C.responseWriteError {
 				resp = &errorResponseRecorder{}
 			} else {
 				resp = httptest.NewRecorder()
@@ -682,21 +638,21 @@ func TestSOAPREST_Middleware_ResponseConversion(t *testing.T) {
 			h.ServeHTTP(resp, req)
 
 			if rec, ok := resp.(*httptest.ResponseRecorder); ok {
-				testutil.Diff(t, tt.A().code, rec.Code)
-				xmlBytes, _ := os.ReadFile("./testdata/xml/" + tt.C().file + ".xml")
+				testutil.Diff(t, tt.A.code, rec.Code)
+				xmlBytes, _ := os.ReadFile("./testdata/xml/" + tt.C.file + ".xml")
 				if !equalXML(t, xmlBytes, rec.Body.Bytes()) {
 					t.Error("encode result not match (json to xml)")
 				}
 			} else if rec, ok := resp.(*errorResponseRecorder); ok {
-				testutil.Diff(t, tt.A().code, rec.code)
+				testutil.Diff(t, tt.A.code, rec.code)
 			}
 
-			testutil.Diff(t, tt.A().contentType, resp.Header().Get("Content-Type"))
+			testutil.Diff(t, tt.A.contentType, resp.Header().Get("Content-Type"))
 
 			opts := []gocmp.Option{
 				cmpopts.EquateErrors(),
 			}
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, meh.err, opts...)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, meh.err, opts...)
 		})
 	}
 }
@@ -715,16 +671,10 @@ func TestWrappedWriter_Unwrap(t *testing.T) {
 		w http.ResponseWriter
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"unwrap nil",
-			nil,
-			nil,
 			&condition{
 				ww: &wrappedWriter{
 					ResponseWriter: nil,
@@ -736,8 +686,6 @@ func TestWrappedWriter_Unwrap(t *testing.T) {
 		),
 		gen(
 			"unwrap non-nil",
-			nil,
-			nil,
 			&condition{
 				ww: &wrappedWriter{
 					ResponseWriter: &mockResponseWriter{
@@ -753,13 +701,11 @@ func TestWrappedWriter_Unwrap(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			w := tt.C().ww.Unwrap()
-			testutil.Diff(t, tt.A().w, w, gocmp.AllowUnexported(mockResponseWriter{}))
+		t.Run(tt.Name, func(t *testing.T) {
+			w := tt.C.ww.Unwrap()
+			testutil.Diff(t, tt.A.w, w, gocmp.AllowUnexported(mockResponseWriter{}))
 		})
 	}
 }
@@ -779,16 +725,10 @@ func TestWrappedWriter_WriteHeader(t *testing.T) {
 		written bool
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"status code 100",
-			nil,
-			nil,
 			&condition{
 				ww: &wrappedWriter{
 					ResponseWriter: httptest.NewRecorder(),
@@ -803,8 +743,6 @@ func TestWrappedWriter_WriteHeader(t *testing.T) {
 		),
 		gen(
 			"status code 999",
-			nil,
-			nil,
 			&condition{
 				ww: &wrappedWriter{
 					ResponseWriter: httptest.NewRecorder(),
@@ -819,8 +757,6 @@ func TestWrappedWriter_WriteHeader(t *testing.T) {
 		),
 		gen(
 			"written wrappedwriter",
-			nil,
-			nil,
 			&condition{
 				ww: &wrappedWriter{
 					ResponseWriter: httptest.NewRecorder(),
@@ -834,20 +770,18 @@ func TestWrappedWriter_WriteHeader(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			w := httptest.NewRecorder()
 			ww := &wrappedWriter{
 				ResponseWriter: w,
-				written:        tt.C().written,
+				written:        tt.C.written,
 			}
-			ww.WriteHeader(tt.C().code)
+			ww.WriteHeader(tt.C.code)
 
-			testutil.Diff(t, tt.A().code, ww.code)
-			testutil.Diff(t, tt.A().written, ww.written)
+			testutil.Diff(t, tt.A.code, ww.code)
+			testutil.Diff(t, tt.A.written, ww.written)
 		})
 	}
 }
@@ -863,16 +797,10 @@ func TestWrappedWriter_Write(t *testing.T) {
 		body string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"status code 100",
-			nil,
-			nil,
 			&condition{
 				code: 100,
 				body: "test",
@@ -884,8 +812,6 @@ func TestWrappedWriter_Write(t *testing.T) {
 		),
 		gen(
 			"status code 999",
-			nil,
-			nil,
 			&condition{
 				code: 999,
 				body: "test",
@@ -897,8 +823,6 @@ func TestWrappedWriter_Write(t *testing.T) {
 		),
 		gen(
 			"status code 0 (don't write the code)",
-			nil,
-			nil,
 			&condition{
 				code: 0,
 				body: "test",
@@ -910,24 +834,22 @@ func TestWrappedWriter_Write(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			w := httptest.NewRecorder()
 			ww := &wrappedWriter{
 				ResponseWriter: w,
 				body:           &bytes.Buffer{},
 			}
-			if tt.C().code > 0 {
-				ww.WriteHeader(tt.C().code)
+			if tt.C.code > 0 {
+				ww.WriteHeader(tt.C.code)
 			}
-			ww.Write([]byte(tt.C().body))
+			ww.Write([]byte(tt.C.body))
 
-			testutil.Diff(t, tt.A().code, ww.code)
+			testutil.Diff(t, tt.A.code, ww.code)
 			body, _ := io.ReadAll(ww.body)
-			testutil.Diff(t, tt.A().body, string(body))
+			testutil.Diff(t, tt.A.body, string(body))
 		})
 	}
 }
@@ -942,16 +864,10 @@ func TestWrappedWriter_Written(t *testing.T) {
 		written bool
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"don't write status code",
-			nil,
-			nil,
 			&condition{
 				ww: &wrappedWriter{
 					ResponseWriter: httptest.NewRecorder(),
@@ -964,8 +880,6 @@ func TestWrappedWriter_Written(t *testing.T) {
 		),
 		gen(
 			"write status code",
-			nil,
-			nil,
 			&condition{
 				ww: &wrappedWriter{
 					ResponseWriter: httptest.NewRecorder(),
@@ -978,15 +892,13 @@ func TestWrappedWriter_Written(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			if tt.C().write {
-				tt.C().ww.WriteHeader(999)
+		t.Run(tt.Name, func(t *testing.T) {
+			if tt.C.write {
+				tt.C.ww.WriteHeader(999)
 			}
-			testutil.Diff(t, tt.A().written, tt.C().ww.written)
+			testutil.Diff(t, tt.A.written, tt.C.ww.written)
 		})
 	}
 }
@@ -1001,16 +913,10 @@ func TestWrappedWriter_StatusCode(t *testing.T) {
 		code int
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"status code 100",
-			nil,
-			nil,
 			&condition{
 				ww: &wrappedWriter{
 					ResponseWriter: httptest.NewRecorder(),
@@ -1023,8 +929,6 @@ func TestWrappedWriter_StatusCode(t *testing.T) {
 		),
 		gen(
 			"status code 999",
-			nil,
-			nil,
 			&condition{
 				ww: &wrappedWriter{
 					ResponseWriter: httptest.NewRecorder(),
@@ -1037,8 +941,6 @@ func TestWrappedWriter_StatusCode(t *testing.T) {
 		),
 		gen(
 			"written is false and code is 0",
-			nil,
-			nil,
 			&condition{
 				ww: &wrappedWriter{
 					ResponseWriter: httptest.NewRecorder(),
@@ -1051,13 +953,11 @@ func TestWrappedWriter_StatusCode(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			tt.C().ww.WriteHeader(tt.C().code)
-			testutil.Diff(t, tt.A().code, tt.C().ww.StatusCode())
+		t.Run(tt.Name, func(t *testing.T) {
+			tt.C.ww.WriteHeader(tt.C.code)
+			testutil.Diff(t, tt.A.code, tt.C.ww.StatusCode())
 		})
 	}
 }
@@ -1066,26 +966,18 @@ func TestWrappedWriter_Flush(t *testing.T) {
 	type condition struct{}
 	type action struct{}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"no-op test",
-			nil,
-			nil,
 			&condition{},
 			&action{},
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			ww := wrappedWriter{}
 			ww.Flush()
 		})

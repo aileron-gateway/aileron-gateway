@@ -14,8 +14,8 @@ import (
 
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/core"
+	"github.com/aileron-gateway/aileron-gateway/internal/encoder"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/encoder"
 	"github.com/aileron-projects/go/zos"
 	"github.com/spf13/pflag"
 )
@@ -57,8 +57,8 @@ func (a *App) Run(server api.API[*api.Request, *api.Response]) error {
 	defer cancel()
 
 	// Load env files before loading config files.
-	if err := LoadEnvFiles(a.opts.Basic.Envs); err != nil {
-		return err // Return err as-is.
+	if err := zos.LoadEnv(a.opts.Basic.Envs...); err != nil {
+		return ErrAppMainLoadEnv.WithStack(err, nil) // Return err as-is.
 	}
 	// Load config files.
 	// Environmental variables in the configs will be resolved.
@@ -98,20 +98,6 @@ func (a *App) Run(server api.API[*api.Request, *api.Response]) error {
 		return ErrAppMainRun.WithStack(err, nil)
 	}
 
-	return nil
-}
-
-// LoadEnvFiles load environmental variables from given file paths.
-func LoadEnvFiles(paths []string) error {
-	envs, err := zos.ReadFiles(true, paths...)
-	if err != nil {
-		return ErrAppMainLoadEnv.WithStack(err, nil)
-	}
-	for k, v := range envs {
-		if _, err := zos.LoadEnv(v); err != nil {
-			return ErrAppMainLoadEnv.WithStack(err, map[string]any{"path": k})
-		}
-	}
 	return nil
 }
 

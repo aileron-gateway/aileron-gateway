@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/aileron-gateway/aileron-gateway/app"
-	"github.com/aileron-gateway/aileron-gateway/util/security"
+	"github.com/aileron-gateway/aileron-gateway/internal/security"
 	"github.com/golang-jwt/jwt/v5"
 )
 

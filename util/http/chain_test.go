@@ -13,9 +13,9 @@ import (
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
+	"github.com/aileron-projects/go/zerrors"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
@@ -74,20 +74,6 @@ func TestHandler(t *testing.T) {
 		err     error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndZero := tb.Condition("zero", "input no middleware")
-	cndOne := tb.Condition("one", "input one middleware")
-	cndMultiple := tb.Condition("multiple", "input multiple middleware")
-	cndMidNil := tb.Condition("middleware not exist", "input nil reference for middleware")
-	cndHandNil := tb.Condition("handler not exist", "input nil reference for handler")
-	cndMidNotExist := tb.Condition("middleware not exist", "referred middleware does not exist")
-	cndHandNotExist := tb.Condition("handler not exist", "referred handler does not exist")
-	actCheckOrder := tb.Action("check order", "check the middleware order")
-	actCheckError := tb.Action("check error", "check that there is an error")
-	actCheckNoError := tb.Action("check no error", "check that there is no error")
-	table := tb.Build()
-
 	testAPI := api.NewContainerAPI()
 	postTestResource(testAPI, "mid0", appendHeaderMiddleware("0"))
 	postTestResource(testAPI, "mid1", appendHeaderMiddleware("1"))
@@ -97,10 +83,7 @@ func TestHandler(t *testing.T) {
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"no middleware",
-			[]string{cndZero},
-			[]string{actCheckOrder, actCheckNoError},
-			&condition{
+			"no middleware", &condition{
 				a: testAPI,
 				spec: &v1.HTTPHandlerSpec{
 					Middleware: []*k.Reference{},
@@ -114,10 +97,7 @@ func TestHandler(t *testing.T) {
 			},
 		),
 		gen(
-			"no middleware, join path",
-			[]string{cndZero},
-			[]string{actCheckOrder, actCheckNoError},
-			&condition{
+			"no middleware, join path", &condition{
 				a: testAPI,
 				spec: &v1.HTTPHandlerSpec{
 					Middleware: []*k.Reference{},
@@ -132,10 +112,7 @@ func TestHandler(t *testing.T) {
 			},
 		),
 		gen(
-			"one middleware",
-			[]string{cndOne},
-			[]string{actCheckOrder, actCheckNoError},
-			&condition{
+			"one middleware", &condition{
 				a: testAPI,
 				spec: &v1.HTTPHandlerSpec{
 					Middleware: []*k.Reference{
@@ -151,10 +128,7 @@ func TestHandler(t *testing.T) {
 			},
 		),
 		gen(
-			"multiple middleware",
-			[]string{cndMultiple},
-			[]string{actCheckOrder, actCheckNoError},
-			&condition{
+			"multiple middleware", &condition{
 				a: testAPI,
 				spec: &v1.HTTPHandlerSpec{
 					Middleware: []*k.Reference{
@@ -172,10 +146,7 @@ func TestHandler(t *testing.T) {
 			},
 		),
 		gen(
-			"middleware not exist",
-			[]string{cndMidNotExist},
-			[]string{actCheckError},
-			&condition{
+			"middleware not exist", &condition{
 				a: testAPI,
 				spec: &v1.HTTPHandlerSpec{
 					Middleware: []*k.Reference{
@@ -186,18 +157,11 @@ func TestHandler(t *testing.T) {
 			},
 			&action{
 				result: "",
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeUtil,
-					Description: api.ErrDscAssert,
-				},
+				err:    &zerrors.Err{Message: "kernel/api: type assertion failed."},
 			},
 		),
 		gen(
-			"middleware nil reference",
-			[]string{cndMidNil},
-			[]string{actCheckError},
-			&condition{
+			"middleware nil reference", &condition{
 				a: testAPI,
 				spec: &v1.HTTPHandlerSpec{
 					Middleware: []*k.Reference{
@@ -208,18 +172,11 @@ func TestHandler(t *testing.T) {
 			},
 			&action{
 				result: "",
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeUtil,
-					Description: api.ErrDscNil,
-				},
+				err:    &zerrors.Err{Message: "kernel/api: nil reference was given."},
 			},
 		),
 		gen(
-			"handler not exist",
-			[]string{cndHandNotExist},
-			[]string{actCheckError},
-			&condition{
+			"handler not exist", &condition{
 				a: testAPI,
 				spec: &v1.HTTPHandlerSpec{
 					Middleware: []*k.Reference{},
@@ -228,18 +185,11 @@ func TestHandler(t *testing.T) {
 			},
 			&action{
 				result: "",
-				err: &er.Error{
-					Package:     utilhttp.ErrPkg,
-					Type:        utilhttp.ErrTypeChain,
-					Description: utilhttp.ErrDscAssert,
-				},
+				err:    &zerrors.Err{Message: "util/http: type assertion failed."},
 			},
 		),
 		gen(
-			"handler nil reference",
-			[]string{cndHandNil},
-			[]string{actCheckError},
-			&condition{
+			"handler nil reference", &condition{
 				a: testAPI,
 				spec: &v1.HTTPHandlerSpec{
 					Middleware: []*k.Reference{},
@@ -248,25 +198,19 @@ func TestHandler(t *testing.T) {
 			},
 			&action{
 				result: "",
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeUtil,
-					Description: api.ErrDscNil,
-				},
+				err:    &zerrors.Err{Message: "kernel/api: nil reference was given."},
 			},
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			methods, paths, h, err := utilhttp.Handler(tt.C().a, tt.C().spec)
+		t.Run(tt.Name, func(t *testing.T) {
+			methods, paths, h, err := utilhttp.Handler(tt.C.a, tt.C.spec)
 
-			testutil.Diff(t, tt.A().paths, paths, cmpopts.SortSlices(func(s1, s2 string) bool { return s1 > s2 }))
-			testutil.Diff(t, tt.A().methods, methods, cmpopts.SortSlices(func(s1, s2 string) bool { return s1 > s2 }))
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
+			testutil.Diff(t, tt.A.paths, paths, cmpopts.SortSlices(func(s1, s2 string) bool { return s1 > s2 }))
+			testutil.Diff(t, tt.A.methods, methods, cmpopts.SortSlices(func(s1, s2 string) bool { return s1 > s2 }))
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
 			if err != nil {
 				return
 			}
@@ -276,7 +220,7 @@ func TestHandler(t *testing.T) {
 			h.ServeHTTP(w, r)
 
 			resp := w.Result()
-			testutil.Diff(t, tt.A().result, resp.Header.Get("Test-Key"))
+			testutil.Diff(t, tt.A.result, resp.Header.Get("Test-Key"))
 		})
 	}
 }
@@ -291,22 +235,10 @@ func TestMiddlewareChain(t *testing.T) {
 		result string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndZero := tb.Condition("zero", "input no middleware")
-	cndOne := tb.Condition("one", "input one middleware")
-	cndMultiple := tb.Condition("multiple", "input multiple middleware")
-	cndNil := tb.Condition("multiple", "middleware contains nil")
-	actCheckOrder := tb.Action("check order", "check the middleware order")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"no middleware",
-			[]string{cndZero},
-			[]string{actCheckOrder},
-			&condition{
+			"no middleware", &condition{
 				ms: []core.Middleware{},
 				h:  appendHeaderHandler("H"),
 			},
@@ -315,10 +247,7 @@ func TestMiddlewareChain(t *testing.T) {
 			},
 		),
 		gen(
-			"one middleware",
-			[]string{cndOne},
-			[]string{actCheckOrder},
-			&condition{
+			"one middleware", &condition{
 				ms: []core.Middleware{
 					appendHeaderMiddleware("0"),
 				},
@@ -329,10 +258,7 @@ func TestMiddlewareChain(t *testing.T) {
 			},
 		),
 		gen(
-			"multiple middleware",
-			[]string{cndMultiple},
-			[]string{actCheckOrder},
-			&condition{
+			"multiple middleware", &condition{
 				ms: []core.Middleware{
 					appendHeaderMiddleware("0"),
 					appendHeaderMiddleware("1"),
@@ -345,10 +271,7 @@ func TestMiddlewareChain(t *testing.T) {
 			},
 		),
 		gen(
-			"contains nil",
-			[]string{cndMultiple, cndNil},
-			[]string{actCheckOrder},
-			&condition{
+			"contains nil", &condition{
 				ms: []core.Middleware{
 					appendHeaderMiddleware("0"),
 					appendHeaderMiddleware("1"),
@@ -362,10 +285,7 @@ func TestMiddlewareChain(t *testing.T) {
 			},
 		),
 		gen(
-			"contains nil only",
-			[]string{cndNil},
-			[]string{actCheckOrder},
-			&condition{
+			"contains nil only", &condition{
 				ms: []core.Middleware{
 					nil,
 				},
@@ -376,10 +296,7 @@ func TestMiddlewareChain(t *testing.T) {
 			},
 		),
 		gen(
-			"contains multiple nil",
-			[]string{cndNil},
-			[]string{actCheckOrder},
-			&condition{
+			"contains multiple nil", &condition{
 				ms: []core.Middleware{
 					nil,
 					nil,
@@ -393,19 +310,17 @@ func TestMiddlewareChain(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			w := httptest.NewRecorder()
 			r, _ := http.NewRequest(http.MethodGet, "http://test.com", nil)
 
-			h := utilhttp.MiddlewareChain(tt.C().ms, tt.C().h)
+			h := utilhttp.MiddlewareChain(tt.C.ms, tt.C.h)
 			h.ServeHTTP(w, r)
 
 			resp := w.Result()
-			testutil.Diff(t, tt.A().result, resp.Header.Get("Test-Key"))
+			testutil.Diff(t, tt.A.result, resp.Header.Get("Test-Key"))
 		})
 	}
 }
@@ -420,22 +335,10 @@ func TestTripperwareChain(t *testing.T) {
 		result string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	cndZero := tb.Condition("zero", "input no tripperware")
-	cndOne := tb.Condition("one", "input one tripperware")
-	cndMultiple := tb.Condition("multiple", "input multiple tripperware")
-	cndNil := tb.Condition("multiple", "tripperware contains nil")
-	actCheckOrder := tb.Action("check order", "check the tripperware order")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"no tripperware",
-			[]string{cndZero},
-			[]string{actCheckOrder},
-			&condition{
+			"no tripperware", &condition{
 				ts: []core.Tripperware{},
 				t:  appendHeaderRoundTripper("T"),
 			},
@@ -444,10 +347,7 @@ func TestTripperwareChain(t *testing.T) {
 			},
 		),
 		gen(
-			"one tripperware",
-			[]string{cndOne},
-			[]string{actCheckOrder},
-			&condition{
+			"one tripperware", &condition{
 				ts: []core.Tripperware{
 					appendHeaderTripperware("0"),
 				},
@@ -458,10 +358,7 @@ func TestTripperwareChain(t *testing.T) {
 			},
 		),
 		gen(
-			"multiple tripperware",
-			[]string{cndMultiple},
-			[]string{actCheckOrder},
-			&condition{
+			"multiple tripperware", &condition{
 				ts: []core.Tripperware{
 					appendHeaderTripperware("0"),
 					appendHeaderTripperware("1"),
@@ -474,10 +371,7 @@ func TestTripperwareChain(t *testing.T) {
 			},
 		),
 		gen(
-			"contains nil",
-			[]string{cndMultiple, cndNil},
-			[]string{actCheckOrder},
-			&condition{
+			"contains nil", &condition{
 				ts: []core.Tripperware{
 					appendHeaderTripperware("0"),
 					appendHeaderTripperware("1"),
@@ -491,10 +385,7 @@ func TestTripperwareChain(t *testing.T) {
 			},
 		),
 		gen(
-			"contains nil only",
-			[]string{cndNil},
-			[]string{actCheckOrder},
-			&condition{
+			"contains nil only", &condition{
 				ts: []core.Tripperware{
 					nil,
 				},
@@ -505,10 +396,7 @@ func TestTripperwareChain(t *testing.T) {
 			},
 		),
 		gen(
-			"contains multiple nil",
-			[]string{cndNil},
-			[]string{actCheckOrder},
-			&condition{
+			"contains multiple nil", &condition{
 				ts: []core.Tripperware{
 					nil,
 					nil,
@@ -522,17 +410,15 @@ func TestTripperwareChain(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			r, _ := http.NewRequest(http.MethodGet, "http://test.com", nil)
 
-			h := utilhttp.TripperwareChain(tt.C().ts, tt.C().t)
+			h := utilhttp.TripperwareChain(tt.C.ts, tt.C.t)
 			h.RoundTrip(r)
 
-			testutil.Diff(t, tt.A().result, r.Header.Get("Test-Key"))
+			testutil.Diff(t, tt.A.result, r.Header.Get("Test-Key"))
 		})
 	}
 }

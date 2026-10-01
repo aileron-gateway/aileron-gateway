@@ -19,7 +19,7 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
 	"github.com/aileron-projects/go/zlog"
 	"github.com/aileron-projects/go/ztime/zcron"
-	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/proto"
 )
 
 const (
@@ -57,7 +57,7 @@ type API struct {
 	*api.BaseResource
 }
 
-func (*API) Create(_ api.API[*api.Request, *api.Response], msg protoreflect.ProtoMessage) (any, error) {
+func (*API) Create(_ api.API[*api.Request, *api.Response], msg proto.Message) (any, error) {
 	c := msg.(*v1.SLogger)
 
 	timeZone, err := time.LoadLocation(c.Spec.LogOutput.TimeZone)
@@ -73,6 +73,7 @@ func (*API) Create(_ api.API[*api.Request, *api.Response], msg protoreflect.Prot
 	repl.timeZone = timeZone
 
 	var w io.Writer
+	var closer io.Closer
 	outSpec := c.Spec.LogOutput
 	switch outSpec.OutputTarget {
 	case v1.OutputTarget_Discard:
@@ -85,6 +86,15 @@ func (*API) Create(_ api.API[*api.Request, *api.Response], msg protoreflect.Prot
 		w, err = newFileWriter(c.Spec.LogOutput)
 		if err != nil {
 			return nil, core.ErrCoreGenCreateObject.WithStack(err, map[string]any{"kind": kind})
+		}
+		closer, _ = w.(io.Closer)
+		switch outSpec.OutputRedirectTarget {
+		case v1.OutputTarget_Discard:
+			w = io.MultiWriter(io.Discard, w)
+		case v1.OutputTarget_Stdout:
+			w = io.MultiWriter(os.Stdout, w)
+		case v1.OutputTarget_Stderr:
+			w = io.MultiWriter(os.Stderr, w)
 		}
 	default:
 		w = os.Stdout
@@ -107,7 +117,6 @@ func (*API) Create(_ api.API[*api.Request, *api.Response], msg protoreflect.Prot
 	slg.NoDatetime = c.Spec.NoDatetime
 	slg.Location = timeZone
 
-	closer, _ := w.(io.Closer)
 	return &finalizableLogger{
 		Writer: w,
 		Logger: slg,

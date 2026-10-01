@@ -47,41 +47,41 @@ func (k *Kind) Kind() string {
 // for the error message template. Args can also be nil.
 // WithoutStack removes all cumulative stack traces
 // which the given err had.
-func (k *Kind) WithoutStack(err error, args map[string]any) Attributes {
+func (k *Kind) WithoutStack(cause error, args map[string]any) Attributes {
 	var stack []byte
-	if e, ok := err.(*ErrorAttrs); ok {
+	if e, ok := cause.(*ErrorAttrs); ok {
 		stack = e.stack
 	}
-	return k.newError(err, args, stack)
+	return k.newError(cause, args, stack)
 }
 
 // WithStack returns a new error with stack traces.
 // An internal error should be given at the first argument if any.
 // The map args given by the second argument is the input
 // for the error message template. Args can also be nil.
-func (k *Kind) WithStack(err error, args map[string]any) Attributes {
+func (k *Kind) WithStack(cause error, args map[string]any) Attributes {
 	top := []byte(k.code + "." + k.kind + ":\n")
 	stack := make([]byte, 1<<12) // Read max 4kiB stack traces. May be enough.
 	copy(stack, top)
 	n := runtime.Stack(stack[len(top):], false)
 	stack = stack[:len(top)+n]
-	if e, ok := err.(*ErrorAttrs); ok {
+	if e, ok := cause.(*ErrorAttrs); ok {
 		stack = append(stack, '\n')
 		stack = append(stack, e.stack...)
 	}
-	return k.newError(err, args, stack)
+	return k.newError(cause, args, stack)
 }
 
 // newError creates a new *errorutil.Error with the same code/kind of this kind.
 // The second argument args is passed to the message template.
 // The internal err can be nil.
-func (k *Kind) newError(err error, args map[string]any, stack []byte) *ErrorAttrs {
+func (k *Kind) newError(cause error, args map[string]any, stack []byte) *ErrorAttrs {
 	var buf bytes.Buffer
 	buf.Write([]byte(k.code + "." + k.kind + " "))
 	k.tpl.ExecuteWriter(&buf, args)
-	if err != nil {
+	if cause != nil {
 		buf.Write([]byte(" ["))
-		buf.Write([]byte(err.Error()))
+		buf.Write([]byte(cause.Error()))
 		buf.Write([]byte("]"))
 	}
 	return &ErrorAttrs{
@@ -90,7 +90,7 @@ func (k *Kind) newError(err error, args map[string]any, stack []byte) *ErrorAttr
 		stack: stack,
 		msg:   buf.String(),
 		name:  keyError,
-		err:   err,
+		cause: cause,
 	}
 }
 

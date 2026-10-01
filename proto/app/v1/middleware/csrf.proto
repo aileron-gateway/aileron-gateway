@@ -8,16 +8,15 @@ import "kernel/hash.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
 
-// CSRFMiddleware resource definition.
-// apiVersion="app/v1", kind="CSRFMiddleware".
+//+ CSRFMiddleware
 message CSRFMiddleware {
-    string             APIVersion = 1 [json_name = "apiVersion"];
-    string             Kind       = 2 [json_name = "kind"];
+    string             APIVersion = 1 [json_name = "apiVersion"];  // "app/v1"
+    string             Kind       = 2 [json_name = "kind"];        // "CSRFMiddleware"
     kernel.Metadata    Metadata   = 3 [json_name = "metadata"];
     CSRFMiddlewareSpec Spec       = 4 [json_name = "spec"];
 }
 
-// CSRFMiddlewareSpec is the specifications for the CSRFMiddleware object.
+//+ CSRFMiddlewareSpec
 message CSRFMiddlewareSpec {
     // [OPTIONAL]
     // Pattern is the URL path pattern that csrf token issue handler accepts.
@@ -67,7 +66,7 @@ message CSRFMiddlewareSpec {
     // Larger number is safer but results in bigger size of token.
     // 15 bytes (120 bits) at minimum is recommended by OWASP.
     // Default is [20].
-    int32 SeedSize = 7 [json_name = "seedSize", (buf.validate.field).int32 = {gte : 5}];
+    int32 SeedSize = 7 [json_name = "seedSize", (buf.validate.field).int32 = { gte: 5 }];
 
     // [OPTIONAL]
     // HashAlg is the type of hash algorithm used for generating csrf token.
@@ -77,7 +76,7 @@ message CSRFMiddlewareSpec {
     kernel.HashAlg HashAlg = 8 [json_name = "hashAlg"];
 
     oneof CSRFPatterns {
-        option(buf.validate.oneof).required = true;
+        option (buf.validate.oneof).required = true;
 
         // CustomRequestHeader is the settings for CSRF using custom request header pattern.
         // Read about that pattern at
@@ -96,6 +95,7 @@ message CSRFMiddlewareSpec {
     }
 }
 
+//+ CustomRequestHeaderSpec
 // CustomRequestHeadersSpec is the specification of CSRF protection using custom header pattern.
 message CustomRequestHeaderSpec {
     // [OPTIONAL]
@@ -115,6 +115,7 @@ message CustomRequestHeaderSpec {
     string AllowedPattern = 2 [json_name = "allowedPattern"];
 }
 
+//+ DoubleSubmitCookiesSpec
 // DoubleSubmitCookiesSpec is the specification of CSRF protection using double submit cookie pattern.
 message DoubleSubmitCookiesSpec {
     // [OPTIONAL]
@@ -140,7 +141,8 @@ message DoubleSubmitCookiesSpec {
     string SourceKey = 4 [json_name = "sourceKey", (buf.validate.field).string.pattern = "^[0-9a-zA-Z-_]+$"];
 }
 
-// DoubleSubmitCookiesSpec is the specification of CSRF protection using synchronizer token pattern.
+//+ SynchronizerTokenSpec
+// SynchronizerTokenSpec is the specification of CSRF protection using synchronizer token pattern.
 message SynchronizerTokenSpec {
     // [OPTIONAL]
     // TokenSource is the source type of csrf tokens.
@@ -155,6 +157,7 @@ message SynchronizerTokenSpec {
     string SourceKey = 2 [json_name = "sourceKey", (buf.validate.field).string.pattern = "^[0-9a-zA-Z-_]+$"];
 }
 
+//+ TokenSource
 // TokenSource is the csrf token source type.
 // CSRF tokens are looked for from the specified source.
 enum TokenSource {

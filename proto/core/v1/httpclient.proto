@@ -7,16 +7,15 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/core/v1";
 
-// HTTPClient resource definition.
-// apiVersion="core/v1", kind="HTTPClient".
+//+ HTTPClient
 message HTTPClient {
-    string          APIVersion = 1 [json_name = "apiVersion"];
-    string          Kind       = 2 [json_name = "kind"];
+    string          APIVersion = 1 [json_name = "apiVersion"];  // "core/v1"
+    string          Kind       = 2 [json_name = "kind"];        // "HTTPClient"
     kernel.Metadata Metadata   = 3 [json_name = "metadata"];
     HTTPClientSpec  Spec       = 4 [json_name = "spec"];
 }
 
-// HTTPClientSpec is the specifications for the HTTPClient object.
+//+ HTTPClientSpec
 message HTTPClientSpec {
     // [OPTIONAL]
     // Tripperwares is the list of references to Tripperwares object.
@@ -55,6 +54,7 @@ message HTTPClientSpec {
     }
 }
 
+//+ RetryConfig
 // RetryConfig is the configuration for retry.
 message RetryConfig {
     // [OPTIONAL]
@@ -63,7 +63,7 @@ message RetryConfig {
     // It means the requests can be sent MaxRetry+1 times at the maximum.
     // If not set, default value 1 will be used.
     // Default is [1].
-    uint32 MaxRetry = 1 [json_name = "maxRetry", (buf.validate.field).uint32 = {lte : 100}];
+    uint32 MaxRetry = 1 [json_name = "maxRetry", (buf.validate.field).uint32 = { lte: 100 }];
 
     // [OPTIONAL]
     // MaxContentLength is the maximum content length in bytes that can be retried.
@@ -71,7 +71,7 @@ message RetryConfig {
     // Because request bodies are temporarily kept on memory, do not set this too large.
     // It may cause unexpected high memory consumption.
     // Default is [1,048,576] bytes or 1MiB.
-    int32 MaxContentLength = 2 [json_name = "maxContentLength", (buf.validate.field).int32 = {gte : 0, lte : 16777216}];
+    int32 MaxContentLength = 2 [json_name = "maxContentLength", (buf.validate.field).int32 = { gte: 0, lte: 16777216 }];
 
     // [OPTIONAL]
     // RetryStatusCodes is the list of HTTP status codes that should be retried.

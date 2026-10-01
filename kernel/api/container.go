@@ -7,7 +7,7 @@ import (
 	"context"
 
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
+	"github.com/aileron-projects/go/zerrors"
 )
 
 // NewContainerAPI returns a new instance of ContainerAPI.
@@ -34,11 +34,7 @@ type ContainerAPI struct {
 func (a *ContainerAPI) Serve(ctx context.Context, req *Request) (*Response, error) {
 	if req == nil {
 		// Nil request is not allowed.
-		return nil, &er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeContainer,
-			Description: ErrDscNil,
-		}
+		return nil, zerrors.NewErr(nil, "kernel/api: request is nil.", "")
 	}
 
 	id := req.Key
@@ -65,23 +61,13 @@ func (a *ContainerAPI) Serve(ctx context.Context, req *Request) (*Response, erro
 	case MethodPost: // Post stores the given object in this container.
 		printDebug(debugLv2, "ContainerAPI:", "POST:", "key="+id)
 		if _, ok := a.objStore[id]; ok {
-			return nil, &er.Error{
-				Package:     ErrPkg,
-				Type:        ErrTypeContainer,
-				Description: ErrDscDuplicateKey,
-				Detail:      "key=" + req.Key,
-			}
+			return nil, zerrors.NewErr(nil, "kernel/api: key duplication error.", "key=%s", req.Key)
 		}
 		a.objStore[id] = req.Content
 
 	default:
 		printDebug(debugLv2, "ContainerAPI:", "UNDEFINED:", req.Method, "key="+id)
-		return nil, &er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeContainer,
-			Description: ErrDscNoMethod,
-			Detail:      string(req.Method),
-		}
+		return nil, zerrors.NewErr(nil, "kernel/api: method not implemented.", "%s", string(req.Method))
 	}
 
 	return &Response{

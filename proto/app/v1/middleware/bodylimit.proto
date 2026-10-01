@@ -5,16 +5,15 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
 
-// BodyLimitMiddleware resource definition.
-// apiVersion="app/v1", kind="BodyLimitMiddleware".
+//+ BodyLimitMiddleware
 message BodyLimitMiddleware {
-    string                  APIVersion = 1 [json_name = "apiVersion"];
-    string                  Kind       = 2 [json_name = "kind"];
+    string                  APIVersion = 1 [json_name = "apiVersion"];  // "app/v1"
+    string                  Kind       = 2 [json_name = "kind"];        // "BodyLimitMiddleware"
     kernel.Metadata         Metadata   = 3 [json_name = "metadata"];
     BodyLimitMiddlewareSpec Spec       = 4 [json_name = "spec"];
 }
 
-// BodyLimitMiddlewareSpec is the specifications for the BodyLimitMiddleware object.
+//+ BodyLimitMiddlewareSpec
 message BodyLimitMiddlewareSpec {
     // [OPTIONAL]
     // MaxSize is the maximum body size to allow.

@@ -6,23 +6,22 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
 
-// CORSMiddleware resource definition.
-// apiVersion="app/v1", kind="CORSMiddleware".
+//+ CORSMiddleware
 message CORSMiddleware {
-    string             APIVersion = 1 [json_name = "apiVersion"];
-    string             Kind       = 2 [json_name = "kind"];
+    string             APIVersion = 1 [json_name = "apiVersion"];  // "app/v1"
+    string             Kind       = 2 [json_name = "kind"];        // "CORSMiddleware"
     kernel.Metadata    Metadata   = 3 [json_name = "metadata"];
     CORSMiddlewareSpec Spec       = 4 [json_name = "spec"];
 }
 
-// CORSMiddlewareSpec is the specifications for the CORSMiddleware object.
+//+ CORSMiddlewareSpec
 message CORSMiddlewareSpec {
     // [REQUIRED]
     // CORSPolicy is the configuration of CORS policy object.
     CORSPolicySpec CORSPolicy = 1 [json_name = "corsPolicy"];
 }
 
-// CORSPolicySpec is the specifications for the CORSPolicy object.
+//+ CORSPolicySpec
 message CORSPolicySpec {
     // [OPTIONAL]
     // AllowedOrigins is the list of origins to accept.
@@ -91,7 +90,7 @@ message CORSPolicySpec {
     CORSResourcePolicy CORSResourcePolicy = 9 [json_name = "corsResourcePolicy"];
 
     // [OPTIONAL]
-    // AllowPrivateNetwork is the flag to allow shareing resources with external networks..
+    // AllowPrivateNetwork is the flag to allow sharing resources with external networks..
     // When this field is set to true, "Access-Control-Allow-Private-Network: true" header is returned.
     // See https://wicg.github.io/private-network-access/.
     // Default is [false].
@@ -106,6 +105,7 @@ message CORSPolicySpec {
     bool DisableWildCardOrigin = 11 [json_name = "disableWildCardOrigin"];
 }
 
+//+ CORSEmbedderPolicy
 // CORSEmbedderPolicy is the collection of cross origin embedder policy types.
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Embedder-Policy
 enum CORSEmbedderPolicy {
@@ -115,6 +115,7 @@ enum CORSEmbedderPolicy {
     EmbedderCredentialless = 3;  // "credentialless"
 }
 
+//+ CORSOpenerPolicy
 // CORSOpenerPolicy is the collection of cross origin opener policy types.
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Opener-Policy
 enum CORSOpenerPolicy {
@@ -124,6 +125,7 @@ enum CORSOpenerPolicy {
     OpenerSameOrigin            = 3;  // "same-origin"
 }
 
+//+ CORSResourcePolicy
 // CORSResourcePolicy is the collection of cross origin resource policy types.
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Resource-Policy
 enum CORSResourcePolicy {

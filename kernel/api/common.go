@@ -6,7 +6,6 @@ package api
 import (
 	"cmp"
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"reflect"
@@ -14,12 +13,11 @@ import (
 	"strings"
 
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
-	"github.com/aileron-gateway/aileron-gateway/kernel/encoder"
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
+	"github.com/aileron-gateway/aileron-gateway/internal/encoder"
+	"github.com/aileron-projects/go/zerrors"
 	"github.com/aileron-projects/go/zos"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 const (
@@ -67,8 +65,8 @@ type Format string
 const (
 	FormatJSON           Format = "JSON"           // JSON []byte
 	FormatYAML           Format = "YAML"           // YAML []byte
-	FormatProtoMessage   Format = "ProtoMessage"   // protoreflect.ProtoMessage
-	FormatProtoReference Format = "ProtoReference" // protoreflect.ProtoMessage only for kernel.Reference
+	FormatProtoMessage   Format = "ProtoMessage"   // proto.Message
+	FormatProtoReference Format = "ProtoReference" // proto.Message only for kernel.Reference
 )
 
 // Unmarshal un-marshals the in to into with this format.
@@ -82,12 +80,7 @@ func (f Format) Unmarshal(in any, into any) error {
 		in := in.([]byte)
 		return encoder.UnmarshalYAML(in, into)
 	}
-	return &er.Error{
-		Package:     ErrPkg,
-		Type:        ErrTypeUtil,
-		Description: ErrDscFormatSupport,
-		Detail:      string(f),
-	}
+	return zerrors.NewErr(nil, "kernel/api: unsupported format.", "%s", string(f))
 }
 
 // Request is the default API request.
@@ -131,11 +124,7 @@ func (m *DefaultServeMux) Serve(ctx context.Context, req *Request) (*Response, e
 
 	if req == nil {
 		// Nil request is not allowed.
-		return nil, &er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeUtil,
-			Description: ErrDscNil,
-		}
+		return nil, zerrors.NewErr(nil, "kernel/api: request is nil", "")
 	}
 
 	// Find API route with prefix matching.
@@ -146,28 +135,16 @@ func (m *DefaultServeMux) Serve(ctx context.Context, req *Request) (*Response, e
 		}
 	}
 
-	return nil, &er.Error{
-		Package:     ErrPkg,
-		Type:        ErrTypeUtil,
-		Description: ErrDscNoAPI,
-		Detail:      "key=" + req.Key,
-	}
+	return nil, zerrors.NewErr(nil, "kernel/api: api is not registered.", "key=%s", req.Key)
 }
 
 func (m *DefaultServeMux) Handle(key string, a API[*Request, *Response]) error {
 	if a == nil {
 		return nil // Ignore nil API.
 	}
-
 	if _, ok := m.apis[key]; ok {
-		return &er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeUtil,
-			Description: ErrDscDuplicateKey,
-			Detail:      "key=" + key,
-		}
+		return zerrors.NewErr(nil, "kernel/api: key duplication error.", "key=%s", key)
 	}
-
 	m.apis[key] = a
 	m.keys = append(m.keys, key)
 	sort.Sort(sort.Reverse(sort.StringSlice(m.keys)))
@@ -216,11 +193,11 @@ func RootAPIFromContext(ctx context.Context) API[*Request, *Response] {
 	return routes[0]
 }
 
-// ProtoMessage returns protoreflect.ProtoMessage by parsing the given content.
+// ProtoMessage returns proto.Message by parsing the given content.
 // Typically, the defaultMsg is the configuration for API resources with default value
 // in protobuf message type.
 // defaultMsg will be ignored when the format is api.FormatProtoReference.
-func ProtoMessage(format Format, content any, defaultMsg protoreflect.ProtoMessage, opt *protojson.UnmarshalOptions) (protoreflect.ProtoMessage, error) {
+func ProtoMessage(format Format, content any, defaultMsg proto.Message, opt *protojson.UnmarshalOptions) (proto.Message, error) {
 	msg := defaultMsg
 	var err error
 	switch format {
@@ -228,12 +205,7 @@ func ProtoMessage(format Format, content any, defaultMsg protoreflect.ProtoMessa
 		src := proto.Clone(defaultMsg)
 		b, ok := content.([]byte)
 		if !ok {
-			return nil, &er.Error{
-				Package:     ErrPkg,
-				Type:        ErrTypeUtil,
-				Description: ErrDscAssert,
-				Detail:      fmt.Sprintf("convert from %T to []byte", content),
-			}
+			return nil, zerrors.NewErr(nil, "kernel/api: type assertion failed.", "convert from %T to []byte", content)
 		}
 		b, err = zos.EnvSubst2(b)
 		if err != nil {
@@ -245,12 +217,7 @@ func ProtoMessage(format Format, content any, defaultMsg protoreflect.ProtoMessa
 		src := proto.Clone(defaultMsg)
 		b, ok := content.([]byte)
 		if !ok {
-			return nil, &er.Error{
-				Package:     ErrPkg,
-				Type:        ErrTypeUtil,
-				Description: ErrDscAssert,
-				Detail:      fmt.Sprintf("convert from %T to []byte", content),
-			}
+			return nil, zerrors.NewErr(nil, "kernel/api: type assertion failed.", "convert from %T to []byte", content)
 		}
 		b, err = zos.EnvSubst2(b)
 		if err != nil {
@@ -259,25 +226,15 @@ func ProtoMessage(format Format, content any, defaultMsg protoreflect.ProtoMessa
 		err = encoder.UnmarshalProtoFromYAML(b, src, opt)
 		proto.Merge(msg, src)
 	case FormatProtoMessage:
-		src, ok := content.(protoreflect.ProtoMessage)
+		src, ok := content.(proto.Message)
 		if !ok {
-			return nil, &er.Error{
-				Package:     ErrPkg,
-				Type:        ErrTypeUtil,
-				Description: ErrDscAssert,
-				Detail:      fmt.Sprintf("convert from %T to ProtoMessage", content),
-			}
+			return nil, zerrors.NewErr(nil, "kernel/api: type assertion failed.", "convert from %T to ProtoMessage", content)
 		}
 		proto.Merge(msg, src)
 	case FormatProtoReference:
-		src, ok := content.(protoreflect.ProtoMessage)
+		src, ok := content.(proto.Message)
 		if !ok {
-			return nil, &er.Error{
-				Package:     ErrPkg,
-				Type:        ErrTypeUtil,
-				Description: ErrDscAssert,
-				Detail:      fmt.Sprintf("convert from %T to ProtoMessage", content),
-			}
+			return nil, zerrors.NewErr(nil, "kernel/api: type assertion failed.", "convert from %T to ProtoMessage", content)
 		}
 		msg = src
 	default:
@@ -300,7 +257,7 @@ func ProtoMessage(format Format, content any, defaultMsg protoreflect.ProtoMessa
 //			Namespace string `json:"namespace"`
 //		} `json:"metadata"`
 //	}
-func ParseID(msg protoreflect.ProtoMessage) (string, error) {
+func ParseID(msg proto.Message) (string, error) {
 	into := &struct {
 		Metadata *struct {
 			Name      string `json:"name"`
@@ -338,12 +295,7 @@ func ParseID(msg protoreflect.ProtoMessage) (string, error) {
 // This function panics when nil API is given by the first argument.
 func ReferObject(a API[*Request, *Response], ref *k.Reference) (any, error) {
 	if ref == nil {
-		return nil, &er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeUtil,
-			Description: ErrDscNil,
-			Detail:      "cannot reference resource by nil",
-		}
+		return nil, zerrors.NewErr(nil, "kernel/api: nil reference was given.", "")
 	}
 	req := &Request{
 		Method:  MethodGet,
@@ -371,12 +323,7 @@ func ReferTypedObject[T any](a API[*Request, *Response], ref *k.Reference) (T, e
 	if !ok {
 		key := strings.Join([]string{ref.APIVersion, ref.Kind, ref.Namespace, ref.Name}, "/")
 		typ := strings.TrimPrefix(reflect.TypeOf(new(T)).String(), "*")
-		return t, &er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeUtil,
-			Description: ErrDscAssert,
-			Detail:      fmt.Sprintf("from %T to %s. may be %s is not defined?", obj, typ, key),
-		}
+		return t, zerrors.NewErr(nil, "kernel/api: type assertion failed.", "from %T to %s. %s defined?", obj, typ, key)
 	}
 	return typed, nil
 }

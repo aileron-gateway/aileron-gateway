@@ -14,12 +14,12 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/app"
 	"github.com/aileron-gateway/aileron-gateway/core"
+	"github.com/aileron-gateway/aileron-gateway/internal/security"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
+	"github.com/aileron-gateway/aileron-gateway/kernel/session"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
-	"github.com/aileron-gateway/aileron-gateway/util/security"
-	"github.com/aileron-gateway/aileron-gateway/util/session"
-	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/proto"
 )
 
 const (
@@ -60,7 +60,7 @@ type API struct {
 	*api.BaseResource
 }
 
-func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.ProtoMessage) (any, error) {
+func (*API) Create(a api.API[*api.Request, *api.Response], msg proto.Message) (any, error) {
 	c := msg.(*v1.SessionMiddleware)
 	_ = log.DefaultOr(c.Metadata.Logger)
 	eh := utilhttp.GlobalErrorHandler(cmp.Or(c.Metadata.ErrorHandler, utilhttp.DefaultErrorHandlerName))

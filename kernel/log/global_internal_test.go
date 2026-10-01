@@ -29,16 +29,10 @@ func TestReplaceTime(t *testing.T) {
 		format string
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"time",
-			[]string{},
-			[]string{},
 			&condition{
 				key:    slog.TimeKey,
 				format: time.DateOnly,
@@ -49,8 +43,6 @@ func TestReplaceTime(t *testing.T) {
 		),
 		gen(
 			"non time",
-			[]string{},
-			[]string{},
 			&condition{
 				key:    "non time",
 				format: time.DateOnly,
@@ -61,18 +53,16 @@ func TestReplaceTime(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			now := time.Now()
 			attr := slog.Attr{
-				Key:   tt.C().key,
-				Value: slog.StringValue(now.Format(tt.C().format)),
+				Key:   tt.C.key,
+				Value: slog.StringValue(now.Format(tt.C.format)),
 			}
 			attr = replaceTime(nil, attr)
-			testutil.Diff(t, now.Format(tt.A().format), attr.Value.String())
+			testutil.Diff(t, now.Format(tt.A.format), attr.Value.String())
 		})
 	}
 }
@@ -86,16 +76,10 @@ func TestDefaultOr(t *testing.T) {
 		expect Logger
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"default logger",
-			[]string{},
-			[]string{},
 			&condition{
 				name: DefaultLoggerName,
 			},
@@ -105,8 +89,6 @@ func TestDefaultOr(t *testing.T) {
 		),
 		gen(
 			"test logger",
-			[]string{},
-			[]string{},
 			&condition{
 				name: "test",
 			},
@@ -116,13 +98,11 @@ func TestDefaultOr(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			lg := DefaultOr(tt.C().name)
-			testutil.Diff(t, tt.A().expect, lg, cmp.Comparer(testutil.ComparePointer[*SLogger]))
+		t.Run(tt.Name, func(t *testing.T) {
+			lg := DefaultOr(tt.C.name)
+			testutil.Diff(t, tt.A.expect, lg, cmp.Comparer(testutil.ComparePointer[*SLogger]))
 		})
 	}
 }
@@ -138,23 +118,6 @@ func TestSetGlobalLogger(t *testing.T) {
 		expect Logger
 	}
 
-	CndSetNil := "set nil"
-	CndSetNonNil := "set non-nil"
-	CndDefaultName := "default name"
-	ActCheckReplaced := "check replaced"
-	ActCheckStored := "check stored"
-	ActCheckNil := "check nil"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(CndSetNil, "set nil as logger")
-	tb.Condition(CndSetNonNil, "set non-nil logger as input")
-	tb.Condition(CndDefaultName, "set logger by default name")
-	tb.Action(ActCheckReplaced, "check that logger is replaced")
-	tb.Action(ActCheckStored, "check that the logger is stored")
-	tb.Action(ActCheckNil, "check that the returned value is nil")
-	table := tb.Build()
-
 	testLg := &testLogger{
 		Logger: NewJSONSLogger(os.Stdout, nil),
 		id:     "test",
@@ -164,8 +127,6 @@ func TestSetGlobalLogger(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"nil by default name",
-			[]string{CndSetNil, CndDefaultName},
-			[]string{ActCheckReplaced},
 			&condition{
 				setLogger: true,
 				logger:    nil,
@@ -177,8 +138,6 @@ func TestSetGlobalLogger(t *testing.T) {
 		),
 		gen(
 			"nil by not default name",
-			[]string{CndSetNil},
-			[]string{ActCheckNil},
 			&condition{
 				setLogger: true,
 				logger:    nil,
@@ -190,8 +149,6 @@ func TestSetGlobalLogger(t *testing.T) {
 		),
 		gen(
 			"nil by empty name",
-			[]string{CndSetNil},
-			[]string{ActCheckNil},
 			&condition{
 				setLogger: true,
 				logger:    nil,
@@ -203,8 +160,6 @@ func TestSetGlobalLogger(t *testing.T) {
 		),
 		gen(
 			"non-nil by default name",
-			[]string{CndSetNonNil, CndDefaultName},
-			[]string{ActCheckReplaced},
 			&condition{
 				setLogger: true,
 				logger:    testLg,
@@ -216,8 +171,6 @@ func TestSetGlobalLogger(t *testing.T) {
 		),
 		gen(
 			"non-nil by not default name",
-			[]string{CndSetNonNil},
-			[]string{},
 			&condition{
 				setLogger: true,
 				logger:    testLg,
@@ -229,8 +182,6 @@ func TestSetGlobalLogger(t *testing.T) {
 		),
 		gen(
 			"non-nil by empty name",
-			[]string{CndSetNonNil},
-			[]string{},
 			&condition{
 				setLogger: true,
 				logger:    testLg,
@@ -242,22 +193,20 @@ func TestSetGlobalLogger(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			tmp := GlobalLogger(DefaultLoggerName)
 			defer func() {
-				SetGlobalLogger(tt.C().name, nil)
+				SetGlobalLogger(tt.C.name, nil)
 				SetGlobalLogger(DefaultLoggerName, tmp)
 			}()
 
-			if tt.C().setLogger {
-				SetGlobalLogger(tt.C().name, tt.C().logger)
+			if tt.C.setLogger {
+				SetGlobalLogger(tt.C.name, tt.C.logger)
 			}
 
-			lg := GlobalLogger(tt.C().name)
+			lg := GlobalLogger(tt.C.name)
 
 			opts := []cmp.Option{
 				cmp.AllowUnexported(SLogger{}, slog.Logger{}),
@@ -265,10 +214,10 @@ func TestSetGlobalLogger(t *testing.T) {
 				cmp.Comparer(testutil.ComparePointer[*os.File]),
 				cmp.Comparer(testutil.ComparePointer[*time.Location]),
 			}
-			if v, ok := tt.A().expect.(*testLogger); ok {
+			if v, ok := tt.A.expect.(*testLogger); ok {
 				testutil.Diff(t, v.id, lg.(*testLogger).id)
 			} else {
-				testutil.Diff(t, tt.A().expect, lg, opts...)
+				testutil.Diff(t, tt.A.expect, lg, opts...)
 			}
 		})
 	}
@@ -282,10 +231,6 @@ func TestGlobalLogger(t *testing.T) {
 		expect Logger
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	testLg := &testLogger{
 		Logger: NewJSONSLogger(os.Stdout, nil),
 		id:     "test",
@@ -295,7 +240,6 @@ func TestGlobalLogger(t *testing.T) {
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"default name",
-			[]string{}, []string{},
 			&condition{
 				name: DefaultLoggerName,
 			},
@@ -305,7 +249,6 @@ func TestGlobalLogger(t *testing.T) {
 		),
 		gen(
 			"not default name",
-			[]string{}, []string{},
 			&condition{
 				name: "test_logger",
 			},
@@ -315,7 +258,6 @@ func TestGlobalLogger(t *testing.T) {
 		),
 		gen(
 			"not-nil logger",
-			[]string{}, []string{},
 			&condition{
 				name: "not_exist_logger_name",
 			},
@@ -325,7 +267,6 @@ func TestGlobalLogger(t *testing.T) {
 		),
 		gen(
 			"not-nil logger by empty name",
-			[]string{}, []string{},
 			&condition{
 				name: "",
 			},
@@ -335,14 +276,12 @@ func TestGlobalLogger(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			SetGlobalLogger("test_logger", testLg)
 
-			lg := GlobalLogger(tt.C().name)
+			lg := GlobalLogger(tt.C.name)
 
 			opts := []cmp.Option{
 				cmp.AllowUnexported(SLogger{}, slog.Logger{}),
@@ -350,10 +289,10 @@ func TestGlobalLogger(t *testing.T) {
 				cmp.Comparer(testutil.ComparePointer[*os.File]),
 				cmp.Comparer(testutil.ComparePointer[*time.Location]),
 			}
-			if v, ok := tt.A().expect.(*testLogger); ok {
+			if v, ok := tt.A.expect.(*testLogger); ok {
 				testutil.Diff(t, v.id, lg.(*testLogger).id)
 			} else {
-				testutil.Diff(t, tt.A().expect, lg, opts...)
+				testutil.Diff(t, tt.A.expect, lg, opts...)
 			}
 		})
 	}

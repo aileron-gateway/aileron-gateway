@@ -6,16 +6,15 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
 
-// TrackingMiddleware resource definition.
-// apiVersion="app/v1", kind="TrackingMiddleware".
+//+ TrackingMiddleware
 message TrackingMiddleware {
-    string                 APIVersion = 1 [json_name = "apiVersion"];
-    string                 Kind       = 2 [json_name = "kind"];
+    string                 APIVersion = 1 [json_name = "apiVersion"];  // "app/v1"
+    string                 Kind       = 2 [json_name = "kind"];        // "TrackingMiddleware"
     kernel.Metadata        Metadata   = 3 [json_name = "metadata"];
     TrackingMiddlewareSpec Spec       = 4 [json_name = "spec"];
 }
 
-// TrackingMiddlewareSpec is the specifications of the TrackingMiddleware object.
+//+ TrackingMiddlewareSpec
 message TrackingMiddlewareSpec {
     // [OPTIONAL]
     // RequestIDProxyName is the HTTP header name to proxy request ID.

@@ -17,28 +17,23 @@ import (
 	"github.com/aileron-projects/go/ztime/zrate"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/testing/protocmp"
 )
 
 func TestMutate(t *testing.T) {
 	type condition struct {
-		manifest protoreflect.ProtoMessage
+		manifest proto.Message
 	}
 
 	type action struct {
-		manifest protoreflect.ProtoMessage
+		manifest proto.Message
 	}
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"apply default values",
-			[]string{}, []string{},
 			&condition{
 				manifest: Resource.Default(),
 			},
@@ -56,7 +51,6 @@ func TestMutate(t *testing.T) {
 		),
 		gen(
 			"mutate MaxConnections",
-			[]string{}, []string{},
 			&condition{
 				manifest: &v1.ThrottleMiddleware{
 					Spec: &v1.ThrottleMiddlewareSpec{
@@ -88,7 +82,6 @@ func TestMutate(t *testing.T) {
 		),
 		gen(
 			"mutate FixedWindow",
-			[]string{}, []string{},
 			&condition{
 				manifest: &v1.ThrottleMiddleware{
 					Spec: &v1.ThrottleMiddlewareSpec{
@@ -121,7 +114,6 @@ func TestMutate(t *testing.T) {
 		),
 		gen(
 			"mutate TokenBucket",
-			[]string{}, []string{},
 			&condition{
 				manifest: &v1.ThrottleMiddleware{
 					Spec: &v1.ThrottleMiddlewareSpec{
@@ -155,7 +147,6 @@ func TestMutate(t *testing.T) {
 		),
 		gen(
 			"mutate LeakyBucket",
-			[]string{}, []string{},
 			&condition{
 				manifest: &v1.ThrottleMiddleware{
 					Spec: &v1.ThrottleMiddlewareSpec{
@@ -188,25 +179,23 @@ func TestMutate(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			msg := Resource.Mutate(tt.C().manifest)
+		t.Run(tt.Name, func(t *testing.T) {
+			msg := Resource.Mutate(tt.C.manifest)
 			opts := []cmp.Option{
 				protocmp.Transform(),
 				cmpopts.IgnoreUnexported(v1.ThrottleMiddleware{}, v1.ThrottleMiddlewareSpec{}, v1.APIThrottlerSpec{}),
 				cmpopts.IgnoreUnexported(k.Metadata{}, k.Status{}),
 			}
-			testutil.Diff(t, tt.A().manifest, msg, opts...)
+			testutil.Diff(t, tt.A.manifest, msg, opts...)
 		})
 	}
 }
 
 func TestCreate(t *testing.T) {
 	type condition struct {
-		manifest protoreflect.ProtoMessage
+		manifest proto.Message
 	}
 
 	type action struct {
@@ -215,15 +204,10 @@ func TestCreate(t *testing.T) {
 		expect     any
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"create with default manifest",
-			[]string{}, []string{},
 			&condition{
 				manifest: Resource.Default(),
 			},
@@ -237,7 +221,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"nil matcher",
-			[]string{}, []string{},
 			&condition{
 				manifest: &v1.ThrottleMiddleware{
 					Metadata: &k.Metadata{},
@@ -258,7 +241,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"fail to create APIThrottlers",
-			[]string{}, []string{},
 			&condition{
 				manifest: &v1.ThrottleMiddleware{
 					Metadata: &k.Metadata{},
@@ -283,7 +265,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create with MaxConnections",
-			[]string{}, []string{},
 			&condition{
 				manifest: &v1.ThrottleMiddleware{
 					Metadata: &k.Metadata{},
@@ -318,7 +299,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create with FixedWindow",
-			[]string{}, []string{},
 			&condition{
 				manifest: &v1.ThrottleMiddleware{
 					Metadata: &k.Metadata{},
@@ -354,7 +334,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create with TokenBucket",
-			[]string{}, []string{},
 			&condition{
 				manifest: &v1.ThrottleMiddleware{
 					Metadata: &k.Metadata{},
@@ -391,7 +370,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create with LeakyBucket",
-			[]string{}, []string{},
 			&condition{
 				manifest: &v1.ThrottleMiddleware{
 					Metadata: &k.Metadata{},
@@ -427,7 +405,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"create with retryThrottler",
-			[]string{}, []string{},
 			&condition{
 				manifest: &v1.ThrottleMiddleware{
 					Metadata: &k.Metadata{},
@@ -464,14 +441,13 @@ func TestCreate(t *testing.T) {
 			},
 		),
 	}
-	testutil.Register(table, testCases...)
 
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			server := api.NewContainerAPI()
 			a := &API{}
-			got, err := a.Create(server, tt.C().manifest)
+			got, err := a.Create(server, tt.C.manifest)
 
 			opts := []cmp.Option{
 				protocmp.Transform(),
@@ -480,8 +456,8 @@ func TestCreate(t *testing.T) {
 				cmp.Comparer(testutil.ComparePointer[core.ErrorHandler]),
 			}
 
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
-			testutil.Diff(t, tt.A().expect, got, opts...)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
+			testutil.Diff(t, tt.A.expect, got, opts...)
 		})
 	}
 }

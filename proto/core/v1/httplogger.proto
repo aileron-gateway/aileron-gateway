@@ -6,16 +6,15 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/core/v1";
 
-// HTTPLogger resource definition.
-// apiVersion="core/v1", kind="HTTPLogger".
+//+ HTTPLogger
 message HTTPLogger {
-    string          APIVersion = 1 [json_name = "apiVersion"];
-    string          Kind       = 2 [json_name = "kind"];
+    string          APIVersion = 1 [json_name = "apiVersion"];  // "core/v1"
+    string          Kind       = 2 [json_name = "kind"];        // "HTTPLogger"
     kernel.Metadata Metadata   = 3 [json_name = "metadata"];
     HTTPLoggerSpec  Spec       = 4 [json_name = "spec"];
 }
 
-// HTTPLoggerSpec is the specifications of the HTTPLogger object.
+//+ HTTPLoggerSpec
 message HTTPLoggerSpec {
     // [OPTIONAL]
     // Logger is the reference to a Logger object.
@@ -62,6 +61,7 @@ message HTTPLoggerSpec {
     LoggingSpec Response = 7 [json_name = "response"];
 }
 
+//+ LoggingSpec
 message LoggingSpec {
     // [OPTIONAL]
     // Headers is the list of headers replacers.
@@ -142,6 +142,7 @@ message LoggingSpec {
     repeated string MIMEs = 8 [json_name = "mimes"];
 }
 
+//+ LogHeaderSpec
 // LogValueSpec is the status of the LoggingMiddleware object.
 // Values are managed by the application and therefore should not be set by users.
 message LogHeaderSpec {
@@ -157,6 +158,7 @@ message LogHeaderSpec {
     repeated kernel.ReplacerSpec Replacers = 2 [json_name = "replacers"];
 }
 
+//+ LogBodySpec
 // LogBodySpec is the HTTP body logging configuration.
 message LogBodySpec {
     // [REQUIRED]

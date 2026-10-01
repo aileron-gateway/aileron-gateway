@@ -15,28 +15,22 @@ import (
 	"github.com/andybalholm/brotli"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/proto"
 )
 
 func TestMutate(t *testing.T) {
 	type condition struct {
-		manifest protoreflect.ProtoMessage
+		manifest proto.Message
 	}
 
 	type action struct {
-		manifest protoreflect.ProtoMessage
+		manifest proto.Message
 	}
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"apply default values",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: Resource.Default(),
 			},
@@ -62,25 +56,23 @@ func TestMutate(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			msg := Resource.Mutate(tt.C().manifest)
+		t.Run(tt.Name, func(t *testing.T) {
+			msg := Resource.Mutate(tt.C.manifest)
 
 			opts := []cmp.Option{
 				cmpopts.IgnoreUnexported(v1.CompressionMiddleware{}, v1.CompressionMiddlewareSpec{}),
 				cmpopts.IgnoreUnexported(k.Metadata{}, k.Status{}),
 			}
-			testutil.Diff(t, tt.A().manifest, msg, opts...)
+			testutil.Diff(t, tt.A.manifest, msg, opts...)
 		})
 	}
 }
 
 func TestCreate(t *testing.T) {
 	type condition struct {
-		manifest protoreflect.ProtoMessage
+		manifest proto.Message
 	}
 
 	type action struct {
@@ -91,16 +83,10 @@ func TestCreate(t *testing.T) {
 		brotliLevel   int
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"create with default manifest",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.CompressionMiddleware{
 					APIVersion: apiVersion,
@@ -125,8 +111,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"invalid gzip level max",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.CompressionMiddleware{
 					APIVersion: apiVersion,
@@ -148,8 +132,6 @@ func TestCreate(t *testing.T) {
 		),
 		gen(
 			"invalid brotli level min",
-			[]string{},
-			[]string{},
 			&condition{
 				manifest: &v1.CompressionMiddleware{
 					APIVersion: apiVersion,
@@ -171,21 +153,19 @@ func TestCreate(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			server := api.NewContainerAPI()
 
 			a := &API{}
-			comp, err := a.Create(server, tt.C().manifest)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+			comp, err := a.Create(server, tt.C.manifest)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 
 			if err == nil {
 				// check MIME types
 				compression := comp.(*compression)
-				testutil.Diff(t, tt.A().expectedMIMEs, compression.mimes)
+				testutil.Diff(t, tt.A.expectedMIMEs, compression.mimes)
 
 				gwPool := compression.gwPool.Get().(*gzip.Writer)
 				testutil.Diff(t, false, gwPool == nil)

@@ -42,29 +42,10 @@ func TestContextWithAttrs(t *testing.T) {
 		attrs []Attributes
 	}
 
-	cndInputNil := "input nil"
-	cndAddOne := "add one attribute"
-	cndAddMultiple := "add multiple attributes"
-	cndAppend := "append attributes"
-	actCheckNil := "check nil"
-	actCheckAttributes := "check attributes"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndInputNil, "input nil slice as an attributes")
-	tb.Condition(cndAddOne, "input 1 attribute with a fresh context")
-	tb.Condition(cndAddMultiple, "input multiple attributes with a fresh context")
-	tb.Condition(cndAppend, "input attributes with a context which already has some attributes")
-	tb.Action(actCheckNil, "check that nil was returned")
-	tb.Action(actCheckAttributes, "check that the attributes was properly saved in the context")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"input nil",
-			[]string{cndInputNil},
-			[]string{actCheckNil},
 			&condition{
 				ctx:   context.Background(),
 				attrs: nil,
@@ -75,8 +56,6 @@ func TestContextWithAttrs(t *testing.T) {
 		),
 		gen(
 			"add one",
-			[]string{cndAddOne},
-			[]string{actCheckAttributes},
 			&condition{
 				ctx: context.Background(),
 				attrs: []Attributes{
@@ -91,8 +70,6 @@ func TestContextWithAttrs(t *testing.T) {
 		),
 		gen(
 			"add multiple",
-			[]string{cndAddMultiple},
-			[]string{actCheckAttributes},
 			&condition{
 				ctx: context.Background(),
 				attrs: []Attributes{
@@ -108,8 +85,6 @@ func TestContextWithAttrs(t *testing.T) {
 		),
 		gen(
 			"append",
-			[]string{cndAppend},
-			[]string{actCheckAttributes},
 			&condition{
 				ctx: context.WithValue(context.Background(), attrsContextKey, []Attributes{&testAttribute{ID: "test1"}}),
 				attrs: []Attributes{
@@ -127,15 +102,13 @@ func TestContextWithAttrs(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			ctx := ContextWithAttrs(tt.C().ctx, tt.C().attrs...)
+		t.Run(tt.Name, func(t *testing.T) {
+			ctx := ContextWithAttrs(tt.C.ctx, tt.C.attrs...)
 			attrs := ctx.Value(attrsContextKey).([]Attributes)
 
-			testutil.Diff(t, tt.A().attrs, attrs)
+			testutil.Diff(t, tt.A.attrs, attrs)
 		})
 	}
 }
@@ -149,25 +122,10 @@ func TestAttrsFromContext(t *testing.T) {
 		attrs []Attributes
 	}
 
-	cndNoAttributes := "no attributes"
-	cndSomeAttributes := "some attributes"
-	actCheckNil := "check nil"
-	actCheckAttributes := "check line"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndNoAttributes, "no attributes in the input context")
-	tb.Condition(cndSomeAttributes, "some attributes in the input context")
-	tb.Action(actCheckNil, "check that nil was returned")
-	tb.Action(actCheckAttributes, "check that the attributes was properly obtained from the context")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"no attributes",
-			[]string{cndNoAttributes},
-			[]string{actCheckNil},
 			&condition{
 				ctx: context.Background(),
 			},
@@ -177,8 +135,6 @@ func TestAttrsFromContext(t *testing.T) {
 		),
 		gen(
 			"append",
-			[]string{cndSomeAttributes},
-			[]string{actCheckAttributes},
 			&condition{
 				ctx: context.WithValue(context.Background(), attrsContextKey,
 					[]Attributes{
@@ -196,13 +152,11 @@ func TestAttrsFromContext(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			attrs := AttrsFromContext(tt.C().ctx)
-			testutil.Diff(t, tt.A().attrs, attrs)
+		t.Run(tt.Name, func(t *testing.T) {
+			attrs := AttrsFromContext(tt.C.ctx)
+			testutil.Diff(t, tt.A.attrs, attrs)
 		})
 	}
 }

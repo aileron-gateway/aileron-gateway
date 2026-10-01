@@ -10,17 +10,17 @@ import (
 
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/aileron-projects/go/zerrors"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/proto"
 )
 
 type MyResource struct {
 	*api.BaseResource
 }
 
-func (r *MyResource) Default() protoreflect.ProtoMessage {
+func (r *MyResource) Default() proto.Message {
 	// Use template message for this example.
 	return &k.Resource{
 		APIVersion: "factory/v1",
@@ -32,7 +32,7 @@ func (r *MyResource) Default() protoreflect.ProtoMessage {
 	}
 }
 
-func (r *MyResource) Create(a api.API[*api.Request, *api.Response], msg protoreflect.ProtoMessage) (any, error) {
+func (r *MyResource) Create(a api.API[*api.Request, *api.Response], msg proto.Message) (any, error) {
 	c := msg.(*k.Resource)
 	// Just return the namespace and name values in the manifest
 	// because the kernel.Template message does not contain any meaningful fields
@@ -108,16 +108,10 @@ func TestBaseResource(t *testing.T) {
 		err error // validation error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"nil manifest",
-			[]string{},
-			[]string{},
 			&condition{
 				r: &api.BaseResource{
 					DefaultProto: nil,
@@ -129,8 +123,6 @@ func TestBaseResource(t *testing.T) {
 		),
 		gen(
 			"valid manifest",
-			[]string{},
-			[]string{},
 			&condition{
 				r: &api.BaseResource{
 					DefaultProto: &k.Reference{
@@ -147,8 +139,6 @@ func TestBaseResource(t *testing.T) {
 		),
 		gen(
 			"invalid manifest",
-			[]string{},
-			[]string{},
 			&condition{
 				r: &api.BaseResource{
 					DefaultProto: &k.Reference{
@@ -160,23 +150,17 @@ func TestBaseResource(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeFactory,
-					Description: api.ErrDscProtoValidate,
-				},
+				err: &zerrors.Err{Message: "kernel/api: validating proto message failed."},
 			},
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			d := tt.C().r.Default()
-			err := tt.C().r.Validate(d)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
+		t.Run(tt.Name, func(t *testing.T) {
+			d := tt.C.r.Default()
+			err := tt.C.r.Validate(d)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
 		})
 	}
 }
@@ -192,39 +176,10 @@ func TestFactoryAPI_Serve(t *testing.T) {
 		err error
 	}
 
-	cndPost := "register"
-	cndDelete := "delete"
-	cndGet := "get"
-	cndWrongType := "wrong content"
-	cndNilRequest := "nil request"
-	cndDuplicateKey := "duplicate key"
-	cndNoResource := "resource is not registered"
-	cndUnsupportedMethod := "unsupported method"
-	actCheckResponse := "check response"
-	actCheckNoError := "no error"
-	actCheckError := "non-nil error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndPost, "send Post request")
-	tb.Condition(cndDelete, "send Delete request")
-	tb.Condition(cndGet, "send Get request")
-	tb.Condition(cndWrongType, "content in the request is invalid")
-	tb.Condition(cndNilRequest, "input nil request")
-	tb.Condition(cndDuplicateKey, "try to register with a duplicate key")
-	tb.Condition(cndNoResource, "resource is not registered in the API")
-	tb.Condition(cndUnsupportedMethod, "request with an unsupported method")
-	tb.Action(actCheckResponse, "check the returned response")
-	tb.Action(actCheckNoError, "check that there is no error")
-	tb.Action(actCheckError, "check that a non-nil error was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"Post successful",
-			[]string{cndPost, cndGet},
-			[]string{actCheckResponse, actCheckNoError},
 			&condition{
 				resources: map[string]api.Resource{
 					"test1/test2": &MyResource{},
@@ -253,8 +208,6 @@ func TestFactoryAPI_Serve(t *testing.T) {
 		),
 		gen(
 			"Delete successful",
-			[]string{cndPost, cndDelete, cndGet},
-			[]string{actCheckResponse, actCheckError},
 			&condition{
 				resources: map[string]api.Resource{
 					"test1/test2": &MyResource{},
@@ -282,17 +235,11 @@ func TestFactoryAPI_Serve(t *testing.T) {
 			},
 			&action{
 				res: nil,
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeFactory,
-					Description: api.ErrDscNoManifest,
-				},
+				err: &zerrors.Err{Message: "kernel/api: manifest not found."},
 			},
 		),
 		gen(
 			"Delete fails",
-			[]string{cndDelete, cndWrongType},
-			[]string{actCheckResponse, actCheckError},
 			&condition{
 				resources: map[string]api.Resource{
 					"test1/test2": &MyResource{},
@@ -308,17 +255,11 @@ func TestFactoryAPI_Serve(t *testing.T) {
 			},
 			&action{
 				res: nil,
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeUtil,
-					Description: api.ErrDscAssert,
-				},
+				err: &zerrors.Err{Message: "kernel/api: type assertion failed."},
 			},
 		),
 		gen(
 			"Get fails",
-			[]string{cndGet, cndWrongType},
-			[]string{actCheckResponse, actCheckError},
 			&condition{
 				resources: map[string]api.Resource{
 					"test1/test2": &MyResource{},
@@ -334,17 +275,11 @@ func TestFactoryAPI_Serve(t *testing.T) {
 			},
 			&action{
 				res: nil,
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeUtil,
-					Description: api.ErrDscAssert,
-				},
+				err: &zerrors.Err{Message: "kernel/api: type assertion failed."},
 			},
 		),
 		gen(
 			"Post fails",
-			[]string{cndPost, cndWrongType},
-			[]string{actCheckResponse, actCheckError},
 			&condition{
 				resources: map[string]api.Resource{
 					"test1/test2": &MyResource{},
@@ -360,17 +295,11 @@ func TestFactoryAPI_Serve(t *testing.T) {
 			},
 			&action{
 				res: nil,
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeUtil,
-					Description: api.ErrDscAssert,
-				},
+				err: &zerrors.Err{Message: "kernel/api: type assertion failed."},
 			},
 		),
 		gen(
 			"nil request",
-			[]string{cndNilRequest},
-			[]string{actCheckResponse, actCheckError},
 			&condition{
 				resources: map[string]api.Resource{},
 				reqs: []*api.Request{
@@ -379,17 +308,11 @@ func TestFactoryAPI_Serve(t *testing.T) {
 			},
 			&action{
 				res: nil,
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeFactory,
-					Description: api.ErrDscNil,
-				},
+				err: &zerrors.Err{Message: "kernel/api: request is nil."},
 			},
 		),
 		gen(
 			"no resource",
-			[]string{cndNoResource},
-			[]string{actCheckResponse, actCheckError},
 			&condition{
 				resources: map[string]api.Resource{},
 				reqs: []*api.Request{
@@ -401,17 +324,11 @@ func TestFactoryAPI_Serve(t *testing.T) {
 			},
 			&action{
 				res: nil,
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeFactory,
-					Description: api.ErrDscNoAPI,
-				},
+				err: &zerrors.Err{Message: "kernel/api: api is not registered."},
 			},
 		),
 		gen(
 			"unsupported method",
-			[]string{cndUnsupportedMethod},
-			[]string{actCheckResponse, actCheckError},
 			&condition{
 				resources: map[string]api.Resource{
 					"test1/test2": &MyResource{},
@@ -425,22 +342,16 @@ func TestFactoryAPI_Serve(t *testing.T) {
 			},
 			&action{
 				res: nil,
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeFactory,
-					Description: api.ErrDscNoMethod,
-				},
+				err: &zerrors.Err{Message: "kernel/api: method not implemented."},
 			},
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			a := api.NewFactoryAPI()
-			for k, v := range tt.C().resources {
+			for k, v := range tt.C.resources {
 				a.Register(k, v)
 			}
 
@@ -448,13 +359,13 @@ func TestFactoryAPI_Serve(t *testing.T) {
 			var err error
 
 			ctx := context.Background()
-			for _, r := range tt.C().reqs {
+			for _, r := range tt.C.reqs {
 				res, err = a.Serve(ctx, r)
 			}
 
 			// Check the response for the final request.
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
-			testutil.Diff(t, tt.A().res, res)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
+			testutil.Diff(t, tt.A.res, res)
 		})
 	}
 }

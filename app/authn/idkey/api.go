@@ -12,14 +12,14 @@ import (
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/core"
+	"github.com/aileron-gateway/aileron-gateway/internal/encoder"
+	"github.com/aileron-gateway/aileron-gateway/internal/encrypt"
+	"github.com/aileron-gateway/aileron-gateway/internal/hash"
+	"github.com/aileron-gateway/aileron-gateway/internal/kvs"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/encoder"
-	"github.com/aileron-gateway/aileron-gateway/kernel/encrypt"
-	"github.com/aileron-gateway/aileron-gateway/kernel/hash"
-	"github.com/aileron-gateway/aileron-gateway/kernel/kvs"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
-	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/proto"
 )
 
 const (
@@ -56,7 +56,7 @@ type API struct {
 	*api.BaseResource
 }
 
-func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.ProtoMessage) (any, error) {
+func (*API) Create(a api.API[*api.Request, *api.Response], msg proto.Message) (any, error) {
 	c := msg.(*v1.IDKeyAuthnMiddleware)
 
 	lg := log.DefaultOr(c.Metadata.Logger)

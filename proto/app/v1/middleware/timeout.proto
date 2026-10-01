@@ -8,32 +8,15 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
 
-// TimeoutMiddleware resource definition.
-// apiVersion="app/v1", kind="TimeoutMiddleware".
+//+ TimeoutMiddleware
 message TimeoutMiddleware {
-    // [REQUIRED]
-    // APIVersion is the defined version of the midleware.
-    // This value must be "app/v1".
-    string APIVersion = 1 [json_name = "apiVersion"];
-
-    // [REQUIRED]
-    // Kind is the kind of this object.
-    // This value must be "TimeoutMiddleware".
-    string Kind = 2 [json_name = "kind"];
-
-    // [OPTIONAL]
-    // Metadata is the metadata of the http logger object.
-    // If not set, both name and namespace in the metadata
-    // are treated as "default".
-    kernel.Metadata Metadata = 3 [json_name = "metadata"];
-
-    // [OPTIONAL]
-    // Spec is the specification of the middleware.
-    // Default values are used when nothing is set.
-    TimeoutMiddlewareSpec Spec = 4 [json_name = "spec"];
+    string                APIVersion = 1 [json_name = "apiVersion"];  // "app/v1"
+    string                Kind       = 2 [json_name = "kind"];        // "TimeoutMiddleware"
+    kernel.Metadata       Metadata   = 3 [json_name = "metadata"];
+    TimeoutMiddlewareSpec Spec       = 4 [json_name = "spec"];
 }
 
-// TimeoutMiddlewareSpec is the specifications for the TimeoutMiddleware object.
+//+ TimeoutMiddlewareSpec
 message TimeoutMiddlewareSpec {
     // [OPTIONAL]
     // DefaultTimeout is the timeout duration in millisecond which is applied to requests
@@ -41,13 +24,14 @@ message TimeoutMiddlewareSpec {
     // Timer starts just after requests are received and lasts until the clients receive the response completely.
     // No timeout is applied when this value is set to 0.
     // Default value is set to 0.
-    int32 DefaultTimeout = 1 [json_name = "defaultTimeout", (buf.validate.field).int32 = {gte : 0}];
+    int32 DefaultTimeout = 1 [json_name = "defaultTimeout", (buf.validate.field).int32 = { gte: 0 }];
 
     // [OPTIONAL]
     // APITimeouts is the list of APITimeout objects.
     repeated APITimeoutSpec APITimeouts = 2 [json_name = "apiTimeouts"];
 }
 
+//+ APITimeoutSpec
 // APITimeoutSpec creates a timeout which is applied to requests
 // with configured methods and a path.
 message APITimeoutSpec {
@@ -68,5 +52,5 @@ message APITimeoutSpec {
     // Timer starts just after requests are received and lasts until the clients receive the response completely.
     // No timeout is applied when this value is set to 0.
     // Default value is set to 0.
-    int32 Timeout = 3 [json_name = "timeout", (buf.validate.field).int32 = {gte : 0}];
+    int32 Timeout = 3 [json_name = "timeout", (buf.validate.field).int32 = { gte: 0 }];
 }

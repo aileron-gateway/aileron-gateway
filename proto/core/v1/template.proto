@@ -7,16 +7,15 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/core/v1";
 
-// TemplateHandler resource definition.
-// apiVersion="core/v1", kind="TemplateHandler".
+//+ TemplateHandler
 message TemplateHandler {
-    string              APIVersion = 1 [json_name = "apiVersion"];
-    string              Kind       = 2 [json_name = "kind"];
+    string              APIVersion = 1 [json_name = "apiVersion"];  // "core/v1"
+    string              Kind       = 2 [json_name = "kind"];        // "TemplateHandler"
     kernel.Metadata     Metadata   = 3 [json_name = "metadata"];
     TemplateHandlerSpec Spec       = 4 [json_name = "spec"];
 }
 
-// TemplateHandlerSpec is the specifications for the TemplateHandler object.
+//+ TemplateHandlerSpec
 message TemplateHandlerSpec {
     // [OPTIONAL]
     // Patterns is path patterns that this handler
@@ -40,6 +39,7 @@ message TemplateHandlerSpec {
     repeated MIMEContentSpec MIMEContents = 3 [json_name = "mimeContents"];
 }
 
+//+ MIMEContentSpec
 // MIMEContentSpec is the specification for the MIMEContent.
 message MIMEContentSpec {
     // [REQUIRED]
@@ -52,7 +52,7 @@ message MIMEContentSpec {
     // [OPTIONAL]
     // StatusCode is the http status code used to respond this content.
     // Default is [200].
-    int32 StatusCode = 2 [json_name = "statusCode", (buf.validate.field).int32 = {gte : 0, lte : 999}];
+    int32 StatusCode = 2 [json_name = "statusCode", (buf.validate.field).int32 = { gte: 0, lte: 999 }];
 
     // [OPTIONAL]
     // Header is the key-value pairs of HTTP headers
@@ -80,6 +80,7 @@ message MIMEContentSpec {
     string TemplateFile = 6 [json_name = "templateFile"];
 }
 
+//+ TemplateType
 // TemplateType is the type of template document.
 enum TemplateType {
     Text   = 0;  // Text is a standard text type. Content will be used as it is.

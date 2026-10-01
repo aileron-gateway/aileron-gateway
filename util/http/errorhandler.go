@@ -20,9 +20,9 @@ import (
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/core"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
 	"github.com/aileron-gateway/aileron-gateway/kernel/errorutil"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
+	"github.com/aileron-projects/go/zerrors"
 	"github.com/aileron-projects/go/ztext"
 )
 
@@ -158,19 +158,20 @@ func NewErrorMessage(spec *v1.ErrorMessageSpec) (*ErrorMessage, error) {
 	for k, tpl := range spec.HeaderTemplate {
 		m.headerTpl[textproto.CanonicalMIMEHeaderKey(k)] = ztext.NewTemplate(tpl, "{{", "}}")
 	}
-
-	for _, msg := range spec.Messages {
-		tpl, err := regexp.Compile(msg)
+	for _, path := range spec.Paths {
+		re, err := regexp.Compile(path)
 		if err != nil {
-			return nil, (&er.Error{
-				Package:     ErrPkg,
-				Type:        ErrTypeErrHandler,
-				Description: ErrDscRegexp,
-			}).Wrap(err)
+			return nil, zerrors.NewErr(err, "util/http: invalid regular expression.", "")
 		}
-		m.messages = append(m.messages, tpl)
+		m.paths = append(m.paths, re)
 	}
-
+	for _, msg := range spec.Messages {
+		re, err := regexp.Compile(msg)
+		if err != nil {
+			return nil, zerrors.NewErr(err, "util/http: invalid regular expression.", "")
+		}
+		m.messages = append(m.messages, re)
+	}
 	for _, cs := range spec.MIMEContents {
 		c, err := NewMIMEContent(cs)
 		if err != nil {
@@ -178,11 +179,11 @@ func NewErrorMessage(spec *v1.ErrorMessageSpec) (*ErrorMessage, error) {
 		}
 		m.contents = append(m.contents, c)
 	}
-
 	return m, nil
 }
 
 type ErrorMessage struct {
+	paths     []*regexp.Regexp
 	codes     []string
 	kinds     []string
 	messages  []*regexp.Regexp
@@ -191,8 +192,19 @@ type ErrorMessage struct {
 }
 
 // Match returns if the given error matched to this message.
-// Codes, kinds and messages are evaluated by AND condition.
-func (m *ErrorMessage) Match(code, kind string, msg []byte) bool {
+// Codes, kinds and messages are evaluated by OR condition.
+func (m *ErrorMessage) Match(urlpath, code, kind string, msg []byte) bool {
+	if len(m.paths) > 0 {
+		matched := false
+		for _, p := range m.paths {
+			if matched = p.MatchString(urlpath); matched {
+				break
+			}
+		}
+		if !matched {
+			return false
+		}
+	}
 	for _, c := range m.codes {
 		if matched, _ := path.Match(c, code); matched {
 			return true
@@ -269,7 +281,7 @@ func (h *DefaultErrorHandler) ServeHTTPError(w http.ResponseWriter, r *http.Requ
 			errCode, errKind = ek.Code(), ek.Kind()
 		}
 		for _, m := range h.Msgs {
-			if m.Match(errCode, errKind, errMsg) {
+			if m.Match(r.URL.Path, errCode, errKind, errMsg) {
 				mc := m.Content(r.Header.Get("Accept"))
 				if mc == nil {
 					continue

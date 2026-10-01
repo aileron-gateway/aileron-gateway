@@ -3,6 +3,7 @@ package app.v1;
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
 
+//+ SigningKeySpec
 // SigningKeySpec is the definition of the JWT signing key object.
 message SigningKeySpec {
     // [OPTIONAL]
@@ -34,6 +35,7 @@ message SigningKeySpec {
     map<string, string> JWTHeader = 6 [json_name = "jwtHeader"];
 }
 
+//+ JWTHandlerSpec
 // JWTHandlerSpec is the specification of JWTHandler object.
 message JWTHandlerSpec {
     // [OPTIONAL]
@@ -60,6 +62,7 @@ message JWTHandlerSpec {
     bool UseJKU = 4 [json_name = "useJKU"];
 }
 
+//+ SigningKeyAlgorithm
 // SigningKeyAlgorithm is algorithm to sign JWTs.
 enum SigningKeyAlgorithm {
     ALGORITHM_UNKNOWN = 0;   // Unknown signing algorithm
@@ -79,6 +82,7 @@ enum SigningKeyAlgorithm {
     PS512             = 14;  // RSASSA-PSS using SHA-512 and MGF1 with SHA-512
 }
 
+//+ SigningKeyType
 // SigningKeyType is the type of key for encryption.
 enum SigningKeyType {
     KEY_TYPE_UNKNOWN = 0;  // Unknown encryption key type.

@@ -13,9 +13,8 @@ import (
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/core"
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
-	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
+	"github.com/aileron-projects/go/zerrors"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
@@ -31,41 +30,10 @@ func TestNewMatcher(t *testing.T) {
 		errPattern    *regexp.Regexp
 	}
 
-	cndExactMatcher := "exact matcher"
-	cndPrefixMatcher := "prefix matcher"
-	cndSuffixMatcher := "suffix matcher"
-	cndContainMatcher := "contain matcher"
-	cndPathMatcher := "path matcher"
-	cndFilePathMatcher := "path matcher"
-	cndRegexMatcher := "regex matcher"
-	cndRegexPOSIXMatcher := "regex POSIX matcher"
-	cndWithTrimPrefix := "with trim prefix"
-	cndWithAppendPrefix := "with append prefix"
-	actCheckError := "check error"
-	actCheckNoError := "check no error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndExactMatcher, "create a exact matcher")
-	tb.Condition(cndPrefixMatcher, "create a new prefix matcher")
-	tb.Condition(cndSuffixMatcher, "create a new suffix matcher")
-	tb.Condition(cndContainMatcher, "create a new contain matcher")
-	tb.Condition(cndPathMatcher, "create a new path matcher")
-	tb.Condition(cndFilePathMatcher, "create a new filePath matcher")
-	tb.Condition(cndRegexMatcher, "create a new regex matcher")
-	tb.Condition(cndRegexPOSIXMatcher, "create a new regex POSIX matcher")
-	tb.Condition(cndWithTrimPrefix, "specify trim prefix")
-	tb.Condition(cndWithAppendPrefix, "specify append prefix")
-	tb.Action(actCheckError, "check that there is an error returned")
-	tb.Action(actCheckNoError, "check that there is no error returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"default will be prefix matcher",
-			[]string{},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &v1.PathMatcherSpec{
 					Match:     "/test",
@@ -79,8 +47,6 @@ func TestNewMatcher(t *testing.T) {
 		),
 		gen(
 			"exact matcher",
-			[]string{cndExactMatcher},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &v1.PathMatcherSpec{
 					Match:     "/test",
@@ -94,8 +60,6 @@ func TestNewMatcher(t *testing.T) {
 		),
 		gen(
 			"exact matcher with trim",
-			[]string{cndExactMatcher, cndWithTrimPrefix},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &v1.PathMatcherSpec{
 					Match:      "/test",
@@ -111,8 +75,6 @@ func TestNewMatcher(t *testing.T) {
 		),
 		gen(
 			"exact matcher with append",
-			[]string{cndExactMatcher, cndWithTrimPrefix},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &v1.PathMatcherSpec{
 					Match:        "/test",
@@ -127,8 +89,6 @@ func TestNewMatcher(t *testing.T) {
 		),
 		gen(
 			"prefix matcher",
-			[]string{cndPrefixMatcher},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &v1.PathMatcherSpec{
 					Match:     "/test",
@@ -142,8 +102,6 @@ func TestNewMatcher(t *testing.T) {
 		),
 		gen(
 			"prefix matcher with trim",
-			[]string{cndPrefixMatcher, cndWithTrimPrefix},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &v1.PathMatcherSpec{
 					Match:      "/test",
@@ -159,8 +117,6 @@ func TestNewMatcher(t *testing.T) {
 		),
 		gen(
 			"prefix matcher with append",
-			[]string{cndPrefixMatcher},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &v1.PathMatcherSpec{
 					Match:        "/test",
@@ -175,8 +131,6 @@ func TestNewMatcher(t *testing.T) {
 		),
 		gen(
 			"suffix matcher",
-			[]string{cndSuffixMatcher},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &v1.PathMatcherSpec{
 					Match:     "/test",
@@ -190,8 +144,6 @@ func TestNewMatcher(t *testing.T) {
 		),
 		gen(
 			"suffix matcher with trim",
-			[]string{cndSuffixMatcher, cndWithTrimPrefix},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &v1.PathMatcherSpec{
 					Match:      "/test",
@@ -207,8 +159,6 @@ func TestNewMatcher(t *testing.T) {
 		),
 		gen(
 			"suffix matcher with append",
-			[]string{cndSuffixMatcher},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &v1.PathMatcherSpec{
 					Match:        "/test",
@@ -223,8 +173,6 @@ func TestNewMatcher(t *testing.T) {
 		),
 		gen(
 			"contain matcher",
-			[]string{cndContainMatcher},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &v1.PathMatcherSpec{
 					Match:     "/test",
@@ -238,8 +186,6 @@ func TestNewMatcher(t *testing.T) {
 		),
 		gen(
 			"contain matcher with trim",
-			[]string{cndContainMatcher, cndWithTrimPrefix},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &v1.PathMatcherSpec{
 					Match:      "/test",
@@ -256,8 +202,6 @@ func TestNewMatcher(t *testing.T) {
 		),
 		gen(
 			"contain matcher with append",
-			[]string{cndContainMatcher},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &v1.PathMatcherSpec{
 					Match:        "/test",
@@ -272,8 +216,6 @@ func TestNewMatcher(t *testing.T) {
 		),
 		gen(
 			"path matcher",
-			[]string{cndPathMatcher},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &v1.PathMatcherSpec{
 					Match:     "/*/test",
@@ -287,8 +229,6 @@ func TestNewMatcher(t *testing.T) {
 		),
 		gen(
 			"path matcher with trim",
-			[]string{cndPathMatcher, cndWithTrimPrefix},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &v1.PathMatcherSpec{
 					Match:      "/*/test",
@@ -304,8 +244,6 @@ func TestNewMatcher(t *testing.T) {
 		),
 		gen(
 			"path matcher with append",
-			[]string{cndPathMatcher},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &v1.PathMatcherSpec{
 					Match:        "/*/test",
@@ -320,8 +258,6 @@ func TestNewMatcher(t *testing.T) {
 		),
 		gen(
 			"filepath matcher",
-			[]string{cndFilePathMatcher},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &v1.PathMatcherSpec{
 					Match:     "/*/test",
@@ -335,8 +271,6 @@ func TestNewMatcher(t *testing.T) {
 		),
 		gen(
 			"filepath matcher with trim",
-			[]string{cndFilePathMatcher, cndWithTrimPrefix},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &v1.PathMatcherSpec{
 					Match:      "/*/test",
@@ -352,8 +286,6 @@ func TestNewMatcher(t *testing.T) {
 		),
 		gen(
 			"filepath matcher with append",
-			[]string{cndFilePathMatcher},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &v1.PathMatcherSpec{
 					Match:        "/*/test",
@@ -368,8 +300,6 @@ func TestNewMatcher(t *testing.T) {
 		),
 		gen(
 			"regex matcher",
-			[]string{cndRegexMatcher},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &v1.PathMatcherSpec{
 					Match:     "^/test/(foo|bar)$",
@@ -383,8 +313,6 @@ func TestNewMatcher(t *testing.T) {
 		),
 		gen(
 			"regex matcher with trim",
-			[]string{cndRegexMatcher, cndWithTrimPrefix},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &v1.PathMatcherSpec{
 					Match:      "^/test/(foo|bar)$",
@@ -400,8 +328,6 @@ func TestNewMatcher(t *testing.T) {
 		),
 		gen(
 			"regex matcher with append",
-			[]string{cndRegexMatcher},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &v1.PathMatcherSpec{
 					Match:        "^/test/(foo|bar)$",
@@ -416,8 +342,6 @@ func TestNewMatcher(t *testing.T) {
 		),
 		gen(
 			"POSIX matcher",
-			[]string{cndRegexPOSIXMatcher},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &v1.PathMatcherSpec{
 					Match:     "^/test/(foo|bar)$",
@@ -431,8 +355,6 @@ func TestNewMatcher(t *testing.T) {
 		),
 		gen(
 			"POSIX matcher with trim",
-			[]string{cndRegexPOSIXMatcher, cndWithTrimPrefix},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &v1.PathMatcherSpec{
 					Match:      "^/test/(foo|bar)$",
@@ -448,8 +370,6 @@ func TestNewMatcher(t *testing.T) {
 		),
 		gen(
 			"POSIX matcher with append",
-			[]string{cndRegexPOSIXMatcher},
-			[]string{actCheckNoError},
 			&condition{
 				spec: &v1.PathMatcherSpec{
 					Match:        "^/test/(foo|bar)$",
@@ -464,8 +384,6 @@ func TestNewMatcher(t *testing.T) {
 		),
 		gen(
 			"error validating path pattern",
-			[]string{cndPathMatcher},
-			[]string{actCheckError},
 			&condition{
 				spec: &v1.PathMatcherSpec{
 					Match:     "[0-9a-",
@@ -479,8 +397,6 @@ func TestNewMatcher(t *testing.T) {
 		),
 		gen(
 			"error validating filePath pattern",
-			[]string{cndFilePathMatcher},
-			[]string{actCheckError},
 			&condition{
 				spec: &v1.PathMatcherSpec{
 					Match:     "[0-9a-",
@@ -494,8 +410,6 @@ func TestNewMatcher(t *testing.T) {
 		),
 		gen(
 			"error compiling regular expression",
-			[]string{cndRegexMatcher},
-			[]string{actCheckError},
 			&condition{
 				spec: &v1.PathMatcherSpec{
 					Match:     "(?<",
@@ -509,8 +423,6 @@ func TestNewMatcher(t *testing.T) {
 		),
 		gen(
 			"error compiling POSIX expression",
-			[]string{cndRegexPOSIXMatcher},
-			[]string{actCheckError},
 			&condition{
 				spec: &v1.PathMatcherSpec{
 					Match:     "(?<",
@@ -524,28 +436,26 @@ func TestNewMatcher(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			mf, err := newMatcher(tt.C().spec)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+		t.Run(tt.Name, func(t *testing.T) {
+			mf, err := newMatcher(tt.C.spec)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 
-			trimPrefix := tt.C().spec.TrimPrefix
+			trimPrefix := tt.C.spec.TrimPrefix
 			if trimPrefix == "" {
 				trimPrefix = "MATCH_TO_NOTHING"
 			}
-			appendPrefix := tt.C().spec.AppendPrefix
+			appendPrefix := tt.C.spec.AppendPrefix
 
-			for _, p := range tt.A().matchPaths {
+			for _, p := range tt.A.matchPaths {
 				path, matched := mf(p)
 				testutil.Diff(t, true, matched)
 				testutil.Diff(t, false, strings.HasPrefix(path, trimPrefix))
 				testutil.Diff(t, true, strings.HasPrefix(path, appendPrefix))
 			}
 
-			for _, p := range tt.A().notMatchPaths {
+			for _, p := range tt.A.notMatchPaths {
 				path, matched := mf(p)
 				testutil.Diff(t, false, matched)
 				testutil.Diff(t, false, strings.HasPrefix(path, trimPrefix))
@@ -566,25 +476,10 @@ func TestMatcher_exact(t *testing.T) {
 		matched bool
 	}
 
-	cndEmptyPattern := "empty pattern"
-	actCheckPath := "check returned path"
-	actCheckMatched := "check error"
-	actCheckNotMatched := "check no error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndEmptyPattern, "set empty pattern")
-	tb.Action(actCheckPath, "checked the returned path")
-	tb.Action(actCheckMatched, "check that the pattern was matched ot the requested path")
-	tb.Action(actCheckNotMatched, "check that the pattern was not matched to the requested path")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"empty string matched",
-			[]string{cndEmptyPattern},
-			[]string{actCheckPath, actCheckMatched},
 			&condition{
 				pattern: "",
 				target:  "",
@@ -596,8 +491,6 @@ func TestMatcher_exact(t *testing.T) {
 		),
 		gen(
 			"empty string not matched",
-			[]string{cndEmptyPattern},
-			[]string{actCheckPath, actCheckNotMatched},
 			&condition{
 				pattern: "",
 				target:  "/test",
@@ -609,8 +502,6 @@ func TestMatcher_exact(t *testing.T) {
 		),
 		gen(
 			"path matched",
-			[]string{},
-			[]string{actCheckPath, actCheckMatched},
 			&condition{
 				pattern: "/test",
 				target:  "/test",
@@ -622,8 +513,6 @@ func TestMatcher_exact(t *testing.T) {
 		),
 		gen(
 			"path not matched",
-			[]string{},
-			[]string{actCheckPath, actCheckNotMatched},
 			&condition{
 				pattern: "/test",
 				target:  "/",
@@ -635,19 +524,17 @@ func TestMatcher_exact(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			m := &matcher{
-				pattern: tt.C().pattern,
+				pattern: tt.C.pattern,
 			}
 
-			path, matched := m.exact(tt.C().target)
+			path, matched := m.exact(tt.C.target)
 
-			testutil.Diff(t, tt.A().matched, matched)
-			testutil.Diff(t, tt.A().path, path)
+			testutil.Diff(t, tt.A.matched, matched)
+			testutil.Diff(t, tt.A.path, path)
 		})
 	}
 }
@@ -663,25 +550,10 @@ func TestMatcher_prefix(t *testing.T) {
 		matched bool
 	}
 
-	cndEmptyPattern := "empty pattern"
-	actCheckPath := "check returned path"
-	actCheckMatched := "check error"
-	actCheckNotMatched := "check no error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndEmptyPattern, "set empty pattern")
-	tb.Action(actCheckPath, "checked the returned path")
-	tb.Action(actCheckMatched, "check that the pattern was matched ot the requested path")
-	tb.Action(actCheckNotMatched, "check that the pattern was not matched to the requested path")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"empty string matched",
-			[]string{cndEmptyPattern},
-			[]string{actCheckPath, actCheckMatched},
 			&condition{
 				pattern: "",
 				target:  "",
@@ -693,8 +565,6 @@ func TestMatcher_prefix(t *testing.T) {
 		),
 		gen(
 			"empty string is a refix for all path",
-			[]string{cndEmptyPattern},
-			[]string{actCheckPath, actCheckMatched},
 			&condition{
 				pattern: "",
 				target:  "/test",
@@ -706,8 +576,6 @@ func TestMatcher_prefix(t *testing.T) {
 		),
 		gen(
 			"exactly the same path",
-			[]string{},
-			[]string{actCheckPath, actCheckMatched},
 			&condition{
 				pattern: "/test",
 				target:  "/test",
@@ -719,8 +587,6 @@ func TestMatcher_prefix(t *testing.T) {
 		),
 		gen(
 			"prefix matched",
-			[]string{},
-			[]string{actCheckPath, actCheckMatched},
 			&condition{
 				pattern: "/test",
 				target:  "/test/path",
@@ -732,8 +598,6 @@ func TestMatcher_prefix(t *testing.T) {
 		),
 		gen(
 			"prefix not matched",
-			[]string{},
-			[]string{actCheckPath, actCheckNotMatched},
 			&condition{
 				pattern: "/test/path",
 				target:  "/test",
@@ -745,8 +609,6 @@ func TestMatcher_prefix(t *testing.T) {
 		),
 		gen(
 			"path not matched",
-			[]string{},
-			[]string{actCheckPath, actCheckNotMatched},
 			&condition{
 				pattern: "/test",
 				target:  "/",
@@ -758,19 +620,17 @@ func TestMatcher_prefix(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			m := &matcher{
-				pattern: tt.C().pattern,
+				pattern: tt.C.pattern,
 			}
 
-			path, matched := m.prefix(tt.C().target)
+			path, matched := m.prefix(tt.C.target)
 
-			testutil.Diff(t, tt.A().matched, matched)
-			testutil.Diff(t, tt.A().path, path)
+			testutil.Diff(t, tt.A.matched, matched)
+			testutil.Diff(t, tt.A.path, path)
 		})
 	}
 }
@@ -786,25 +646,10 @@ func TestMatcher_suffix(t *testing.T) {
 		matched bool
 	}
 
-	cndEmptyPattern := "empty pattern"
-	actCheckPath := "check returned path"
-	actCheckMatched := "check error"
-	actCheckNotMatched := "check no error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndEmptyPattern, "set empty pattern")
-	tb.Action(actCheckPath, "checked the returned path")
-	tb.Action(actCheckMatched, "check that the pattern was matched ot the requested path")
-	tb.Action(actCheckNotMatched, "check that the pattern was not matched to the requested path")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"empty string matched",
-			[]string{cndEmptyPattern},
-			[]string{actCheckPath, actCheckMatched},
 			&condition{
 				pattern: "",
 				target:  "",
@@ -816,8 +661,6 @@ func TestMatcher_suffix(t *testing.T) {
 		),
 		gen(
 			"empty string is a suffix for all path",
-			[]string{cndEmptyPattern},
-			[]string{actCheckPath, actCheckMatched},
 			&condition{
 				pattern: "",
 				target:  "/test",
@@ -829,8 +672,6 @@ func TestMatcher_suffix(t *testing.T) {
 		),
 		gen(
 			"exactly the same path",
-			[]string{},
-			[]string{actCheckPath, actCheckMatched},
 			&condition{
 				pattern: "/test",
 				target:  "/test",
@@ -842,8 +683,6 @@ func TestMatcher_suffix(t *testing.T) {
 		),
 		gen(
 			"suffix matched",
-			[]string{},
-			[]string{actCheckPath, actCheckMatched},
 			&condition{
 				pattern: "/test",
 				target:  "/path/test",
@@ -855,8 +694,6 @@ func TestMatcher_suffix(t *testing.T) {
 		),
 		gen(
 			"suffix not matched",
-			[]string{},
-			[]string{actCheckPath, actCheckNotMatched},
 			&condition{
 				pattern: "/path/test",
 				target:  "/test",
@@ -868,8 +705,6 @@ func TestMatcher_suffix(t *testing.T) {
 		),
 		gen(
 			"path not matched",
-			[]string{},
-			[]string{actCheckPath, actCheckNotMatched},
 			&condition{
 				pattern: "/test",
 				target:  "/",
@@ -881,19 +716,17 @@ func TestMatcher_suffix(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			m := &matcher{
-				pattern: tt.C().pattern,
+				pattern: tt.C.pattern,
 			}
 
-			path, matched := m.suffix(tt.C().target)
+			path, matched := m.suffix(tt.C.target)
 
-			testutil.Diff(t, tt.A().matched, matched)
-			testutil.Diff(t, tt.A().path, path)
+			testutil.Diff(t, tt.A.matched, matched)
+			testutil.Diff(t, tt.A.path, path)
 		})
 	}
 }
@@ -909,25 +742,10 @@ func TestMatcher_contains(t *testing.T) {
 		matched bool
 	}
 
-	cndEmptyPattern := "empty pattern"
-	actCheckPath := "check returned path"
-	actCheckMatched := "check error"
-	actCheckNotMatched := "check no error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndEmptyPattern, "set empty pattern")
-	tb.Action(actCheckPath, "checked the returned path")
-	tb.Action(actCheckMatched, "check that the pattern was matched ot the requested path")
-	tb.Action(actCheckNotMatched, "check that the pattern was not matched to the requested path")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"empty string matched",
-			[]string{cndEmptyPattern},
-			[]string{actCheckPath, actCheckMatched},
 			&condition{
 				pattern: "",
 				target:  "",
@@ -939,8 +757,6 @@ func TestMatcher_contains(t *testing.T) {
 		),
 		gen(
 			"all path contains empty string",
-			[]string{cndEmptyPattern},
-			[]string{actCheckPath, actCheckMatched},
 			&condition{
 				pattern: "",
 				target:  "/test",
@@ -952,8 +768,6 @@ func TestMatcher_contains(t *testing.T) {
 		),
 		gen(
 			"exactly the same path",
-			[]string{},
-			[]string{actCheckPath, actCheckMatched},
 			&condition{
 				pattern: "/test",
 				target:  "/test",
@@ -965,8 +779,6 @@ func TestMatcher_contains(t *testing.T) {
 		),
 		gen(
 			"path contains pattern",
-			[]string{},
-			[]string{actCheckPath, actCheckMatched},
 			&condition{
 				pattern: "/test",
 				target:  "/prefix/test/suffix",
@@ -978,8 +790,6 @@ func TestMatcher_contains(t *testing.T) {
 		),
 		gen(
 			"path not contains pattern",
-			[]string{},
-			[]string{actCheckPath, actCheckNotMatched},
 			&condition{
 				pattern: "/foo",
 				target:  "/prefix/test/suffix",
@@ -991,8 +801,6 @@ func TestMatcher_contains(t *testing.T) {
 		),
 		gen(
 			"path not matched",
-			[]string{},
-			[]string{actCheckPath, actCheckNotMatched},
 			&condition{
 				pattern: "/test",
 				target:  "/",
@@ -1004,19 +812,17 @@ func TestMatcher_contains(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			m := &matcher{
-				pattern: tt.C().pattern,
+				pattern: tt.C.pattern,
 			}
 
-			path, matched := m.contains(tt.C().target)
+			path, matched := m.contains(tt.C.target)
 
-			testutil.Diff(t, tt.A().matched, matched)
-			testutil.Diff(t, tt.A().path, path)
+			testutil.Diff(t, tt.A.matched, matched)
+			testutil.Diff(t, tt.A.path, path)
 		})
 	}
 }
@@ -1033,29 +839,10 @@ func TestMatcher_regEx(t *testing.T) {
 		matched bool
 	}
 
-	cndEmptyPattern := "empty pattern"
-	cndContainsRegex := "regular expression"
-	cndRewrite := "rewrite path"
-	actCheckPath := "check returned path"
-	actCheckMatched := "check error"
-	actCheckNotMatched := "check no error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndEmptyPattern, "set empty pattern")
-	tb.Condition(cndContainsRegex, "pattern contains regular expression")
-	tb.Condition(cndRewrite, "rewrite pattern")
-	tb.Action(actCheckPath, "checked the returned path")
-	tb.Action(actCheckMatched, "check that the pattern was matched ot the requested path")
-	tb.Action(actCheckNotMatched, "check that the pattern was not matched to the requested path")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"empty string matched",
-			[]string{cndEmptyPattern},
-			[]string{actCheckPath, actCheckMatched},
 			&condition{
 				pattern: "",
 				target:  "",
@@ -1067,8 +854,6 @@ func TestMatcher_regEx(t *testing.T) {
 		),
 		gen(
 			"empty pattern matches to all path",
-			[]string{cndEmptyPattern},
-			[]string{actCheckPath, actCheckMatched},
 			&condition{
 				pattern: "",
 				target:  "/test",
@@ -1080,8 +865,6 @@ func TestMatcher_regEx(t *testing.T) {
 		),
 		gen(
 			"exactly the same path",
-			[]string{},
-			[]string{actCheckPath, actCheckMatched},
 			&condition{
 				pattern: "/test",
 				target:  "/test",
@@ -1093,8 +876,6 @@ func TestMatcher_regEx(t *testing.T) {
 		),
 		gen(
 			"pattern not matched",
-			[]string{},
-			[]string{actCheckPath, actCheckMatched},
 			&condition{
 				pattern: "/test",
 				target:  "/",
@@ -1106,8 +887,6 @@ func TestMatcher_regEx(t *testing.T) {
 		),
 		gen(
 			"pattern matched to a regular expression",
-			[]string{cndContainsRegex},
-			[]string{actCheckPath, actCheckMatched},
 			&condition{
 				pattern: "^/test/(foo|bar)$",
 				target:  "/test/foo",
@@ -1119,8 +898,6 @@ func TestMatcher_regEx(t *testing.T) {
 		),
 		gen(
 			"pattern matched to a regular expression",
-			[]string{cndContainsRegex},
-			[]string{actCheckPath, actCheckMatched},
 			&condition{
 				pattern: "^/test/(foo|bar)$",
 				target:  "/test/bar",
@@ -1132,8 +909,6 @@ func TestMatcher_regEx(t *testing.T) {
 		),
 		gen(
 			"pattern matched to a regular expression",
-			[]string{cndContainsRegex},
-			[]string{actCheckPath, actCheckMatched},
 			&condition{
 				pattern: "^/..../(foo|bar)$",
 				target:  "/test/bar",
@@ -1145,8 +920,6 @@ func TestMatcher_regEx(t *testing.T) {
 		),
 		gen(
 			"pattern not matched to a regular expression",
-			[]string{cndContainsRegex},
-			[]string{actCheckPath, actCheckMatched},
 			&condition{
 				pattern: "^/..../(foo|bar)$",
 				target:  "/test/baz",
@@ -1158,8 +931,6 @@ func TestMatcher_regEx(t *testing.T) {
 		),
 		gen(
 			"pattern matched to a regular expression",
-			[]string{cndContainsRegex},
-			[]string{actCheckPath, actCheckMatched},
 			&condition{
 				pattern: "^/..../(foo|bar)$",
 				target:  "/test/bar",
@@ -1171,8 +942,6 @@ func TestMatcher_regEx(t *testing.T) {
 		),
 		gen(
 			"pattern matched to a regular expression",
-			[]string{cndContainsRegex, cndRewrite},
-			[]string{actCheckPath, actCheckMatched},
 			&condition{
 				pattern: "^/(?P<key>\\w+)/(?P<value>\\w+)$",
 				rewrite: "/$value/$key",
@@ -1185,21 +954,19 @@ func TestMatcher_regEx(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			m := &matcher{
-				pattern: tt.C().pattern,
-				regexp:  regexp.MustCompile(tt.C().pattern),
-				rewrite: tt.C().rewrite,
+				pattern: tt.C.pattern,
+				regexp:  regexp.MustCompile(tt.C.pattern),
+				rewrite: tt.C.rewrite,
 			}
 
-			path, matched := m.regEx(tt.C().target)
+			path, matched := m.regEx(tt.C.target)
 
-			testutil.Diff(t, tt.A().matched, matched)
-			testutil.Diff(t, tt.A().path, path)
+			testutil.Diff(t, tt.A.matched, matched)
+			testutil.Diff(t, tt.A.path, path)
 		})
 	}
 }
@@ -1217,16 +984,10 @@ func TestPathParamMatchers(t *testing.T) {
 		err        error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"no spec",
-			[]string{},
-			[]string{},
 			&condition{
 				specs:   nil,
 				pattern: "/",
@@ -1239,8 +1000,6 @@ func TestPathParamMatchers(t *testing.T) {
 		),
 		gen(
 			"empty key",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.ParamMatcherSpec{
 					{Key: ""},
@@ -1255,8 +1014,6 @@ func TestPathParamMatchers(t *testing.T) {
 		),
 		gen(
 			"param not found",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.ParamMatcherSpec{
 					{
@@ -1275,8 +1032,6 @@ func TestPathParamMatchers(t *testing.T) {
 		),
 		gen(
 			"single matcher",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.ParamMatcherSpec{
 					{
@@ -1295,8 +1050,6 @@ func TestPathParamMatchers(t *testing.T) {
 		),
 		gen(
 			"multiple matcher",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.ParamMatcherSpec{
 					{
@@ -1320,8 +1073,6 @@ func TestPathParamMatchers(t *testing.T) {
 		),
 		gen(
 			"contains nil spec",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.ParamMatcherSpec{
 					{
@@ -1346,8 +1097,6 @@ func TestPathParamMatchers(t *testing.T) {
 		),
 		gen(
 			"contains empty keys",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.ParamMatcherSpec{
 					{
@@ -1372,8 +1121,6 @@ func TestPathParamMatchers(t *testing.T) {
 		),
 		gen(
 			"matcher create error",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.ParamMatcherSpec{
 					{
@@ -1388,27 +1135,21 @@ func TestPathParamMatchers(t *testing.T) {
 			&action{
 				numMatcher: 0,
 				matchIndex: -1,
-				err: &er.Error{
-					Package:     txtutil.ErrPkg,
-					Type:        txtutil.ErrTypeMatcher,
-					Description: txtutil.ErrDscPattern,
-				},
+				err:        &zerrors.Err{Message: "internal/txtutil: invalid pattern for Regex matcher."},
 			},
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			matchers, err := pathParamMatchers(tt.C().specs...)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
-			testutil.Diff(t, tt.A().numMatcher, len(matchers))
+		t.Run(tt.Name, func(t *testing.T) {
+			matchers, err := pathParamMatchers(tt.C.specs...)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
+			testutil.Diff(t, tt.A.numMatcher, len(matchers))
 
 			var called bool
 			mux := &http.ServeMux{}
-			mux.Handle(tt.C().pattern, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			mux.Handle(tt.C.pattern, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				called = true
 				matchIndex := -1
 				for i, matcher := range matchers {
@@ -1418,10 +1159,10 @@ func TestPathParamMatchers(t *testing.T) {
 						break
 					}
 				}
-				testutil.Diff(t, tt.A().matchIndex, matchIndex)
+				testutil.Diff(t, tt.A.matchIndex, matchIndex)
 			}))
 
-			r, err := http.NewRequest(http.MethodGet, tt.C().url, nil)
+			r, err := http.NewRequest(http.MethodGet, tt.C.url, nil)
 			testutil.Diff(t, nil, err)
 			w := httptest.NewRecorder()
 			mux.ServeHTTP(w, r)
@@ -1442,16 +1183,10 @@ func TestQueryMatchers(t *testing.T) {
 		err        error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"no spec",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: nil,
 				url:   "http://test.com/",
@@ -1463,8 +1198,6 @@ func TestQueryMatchers(t *testing.T) {
 		),
 		gen(
 			"empty key",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.ParamMatcherSpec{
 					{Key: ""},
@@ -1478,8 +1211,6 @@ func TestQueryMatchers(t *testing.T) {
 		),
 		gen(
 			"query not found",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.ParamMatcherSpec{
 					{
@@ -1497,8 +1228,6 @@ func TestQueryMatchers(t *testing.T) {
 		),
 		gen(
 			"single matcher",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.ParamMatcherSpec{
 					{
@@ -1516,8 +1245,6 @@ func TestQueryMatchers(t *testing.T) {
 		),
 		gen(
 			"single matcher/multiple value found",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.ParamMatcherSpec{
 					{
@@ -1535,8 +1262,6 @@ func TestQueryMatchers(t *testing.T) {
 		),
 		gen(
 			"multiple matcher",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.ParamMatcherSpec{
 					{
@@ -1559,8 +1284,6 @@ func TestQueryMatchers(t *testing.T) {
 		),
 		gen(
 			"contains nil spec",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.ParamMatcherSpec{
 					{
@@ -1584,8 +1307,6 @@ func TestQueryMatchers(t *testing.T) {
 		),
 		gen(
 			"contains empty keys",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.ParamMatcherSpec{
 					{
@@ -1609,8 +1330,6 @@ func TestQueryMatchers(t *testing.T) {
 		),
 		gen(
 			"matcher create error",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.ParamMatcherSpec{
 					{
@@ -1624,25 +1343,19 @@ func TestQueryMatchers(t *testing.T) {
 			&action{
 				numMatcher: 0,
 				matchIndex: -1,
-				err: &er.Error{
-					Package:     txtutil.ErrPkg,
-					Type:        txtutil.ErrTypeMatcher,
-					Description: txtutil.ErrDscPattern,
-				},
+				err:        &zerrors.Err{Message: "internal/txtutil: invalid pattern for Regex matcher."},
 			},
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			matchers, err := queryMatchers(tt.C().specs...)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
-			testutil.Diff(t, tt.A().numMatcher, len(matchers))
+		t.Run(tt.Name, func(t *testing.T) {
+			matchers, err := queryMatchers(tt.C.specs...)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
+			testutil.Diff(t, tt.A.numMatcher, len(matchers))
 
-			r, err := http.NewRequest(http.MethodGet, tt.C().url, nil)
+			r, err := http.NewRequest(http.MethodGet, tt.C.url, nil)
 			testutil.Diff(t, nil, err)
 
 			matchIndex := -1
@@ -1653,7 +1366,7 @@ func TestQueryMatchers(t *testing.T) {
 					break
 				}
 			}
-			testutil.Diff(t, tt.A().matchIndex, matchIndex)
+			testutil.Diff(t, tt.A.matchIndex, matchIndex)
 		})
 	}
 }
@@ -1670,16 +1383,10 @@ func TestHeaderMatchers(t *testing.T) {
 		err        error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"no spec",
-			[]string{},
-			[]string{},
 			&condition{
 				specs:  nil,
 				header: http.Header{"Foo": {"bar"}},
@@ -1691,8 +1398,6 @@ func TestHeaderMatchers(t *testing.T) {
 		),
 		gen(
 			"empty key",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.ParamMatcherSpec{
 					{Key: ""},
@@ -1706,8 +1411,6 @@ func TestHeaderMatchers(t *testing.T) {
 		),
 		gen(
 			"header not found",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.ParamMatcherSpec{
 					{
@@ -1725,8 +1428,6 @@ func TestHeaderMatchers(t *testing.T) {
 		),
 		gen(
 			"single matcher",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.ParamMatcherSpec{
 					{
@@ -1744,8 +1445,6 @@ func TestHeaderMatchers(t *testing.T) {
 		),
 		gen(
 			"single matcher/multiple value found",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.ParamMatcherSpec{
 					{
@@ -1763,8 +1462,6 @@ func TestHeaderMatchers(t *testing.T) {
 		),
 		gen(
 			"multiple matcher",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.ParamMatcherSpec{
 					{
@@ -1787,8 +1484,6 @@ func TestHeaderMatchers(t *testing.T) {
 		),
 		gen(
 			"contains nil spec",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.ParamMatcherSpec{
 					{
@@ -1812,8 +1507,6 @@ func TestHeaderMatchers(t *testing.T) {
 		),
 		gen(
 			"contains empty keys",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.ParamMatcherSpec{
 					{
@@ -1837,8 +1530,6 @@ func TestHeaderMatchers(t *testing.T) {
 		),
 		gen(
 			"matcher create error",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.ParamMatcherSpec{
 					{
@@ -1852,27 +1543,21 @@ func TestHeaderMatchers(t *testing.T) {
 			&action{
 				numMatcher: 0,
 				matchIndex: -1,
-				err: &er.Error{
-					Package:     txtutil.ErrPkg,
-					Type:        txtutil.ErrTypeMatcher,
-					Description: txtutil.ErrDscPattern,
-				},
+				err:        &zerrors.Err{Message: "internal/txtutil: invalid pattern for Regex matcher."},
 			},
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			matchers, err := headerMatchers(tt.C().specs...)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
-			testutil.Diff(t, tt.A().numMatcher, len(matchers))
+		t.Run(tt.Name, func(t *testing.T) {
+			matchers, err := headerMatchers(tt.C.specs...)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
+			testutil.Diff(t, tt.A.numMatcher, len(matchers))
 
 			r, err := http.NewRequest(http.MethodGet, "http://test.com/", nil)
 			testutil.Diff(t, nil, err)
-			r.Header = tt.C().header
+			r.Header = tt.C.header
 
 			matchIndex := -1
 			for i, matcher := range matchers {
@@ -1882,7 +1567,7 @@ func TestHeaderMatchers(t *testing.T) {
 					break
 				}
 			}
-			testutil.Diff(t, tt.A().matchIndex, matchIndex)
+			testutil.Diff(t, tt.A.matchIndex, matchIndex)
 		})
 	}
 }

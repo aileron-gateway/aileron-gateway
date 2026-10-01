@@ -3,6 +3,7 @@ package kernel;
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/kernel";
 
+//+ HashAlg
 // HashAlg is the hash algorithms.
 enum HashAlg {
     HashAlgUnknown = 0;   // Unknown hash algorithm.

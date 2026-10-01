@@ -14,11 +14,20 @@ kind: HTTPServer
 spec:
   addr: ":8080"
   virtualHosts:
-    - hosts: []
+    - middleware:
+        - apiVersion: app/v1
+          kind: HeaderPolicyMiddleware
       handlers:
         - handler:
             apiVersion: core/v1
             kind: StaticFileHandler
+
+---
+apiVersion: app/v1
+kind: HeaderPolicyMiddleware
+spec:
+  allowMIMEs: # HTML is not allowed (to generate an error).
+    - "application/json"
 
 ---
 apiVersion: core/v1
@@ -33,14 +42,33 @@ kind: ErrorHandler
 spec:
   stackAlways: false
   errorMessages:
-    - codes: ["*"]
-      kinds: []
-      messages: []
-      headerTemplate:
-        "Location": "https://www.google.co.jp/?status={{status}}"
+    - paths: ["^/foo*", "^/bar.*"]
+      codes: ["*"]
       mimeContents:
-        - mimeType: text/html
-          statusCode: 302
+        - mimeType: text/plain
+          statusCode: 500
+          templateType: GoText
+          template: |
+              msg: "^/foo*" or "^/bar.*"
+              code: {{.code}}
+              kind: {{.kind}}
+    - paths: ["^/baz.*"]
+      codes: ["*"]
+      mimeContents:
+        - mimeType: text/plain
+          statusCode: 500
+          templateType: GoText
+          template: |
+              msg: "^/baz.*"
+              "code": "{{.code}}"
+              "kind": "{{.kind}}"
+    - paths: [] # Match all paths.
+      codes: ["*"] # OR condition
+      kinds: []    # OR condition
+      messages: [] # OR condition
+      headerTemplate:
+        "X-Example": "status={{status}}"
+      mimeContents:
         - mimeType: application/json
           statusCode: 500
           templateType: GoText

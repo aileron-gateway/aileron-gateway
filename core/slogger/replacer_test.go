@@ -10,9 +10,8 @@ import (
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
-	"github.com/aileron-gateway/aileron-gateway/kernel/txtutil"
+	"github.com/aileron-projects/go/zerrors"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
@@ -53,16 +52,10 @@ func TestNewReplacer(t *testing.T) {
 		err    error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"no spec",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.FieldReplacerSpec{},
 				in:    slog.Any("foo", slog.AnyValue("bar")),
@@ -73,8 +66,6 @@ func TestNewReplacer(t *testing.T) {
 		),
 		gen(
 			"delete string",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.FieldReplacerSpec{
 					{Field: "foo"},
@@ -87,8 +78,6 @@ func TestNewReplacer(t *testing.T) {
 		),
 		gen(
 			"replace string",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.FieldReplacerSpec{
 					{
@@ -110,8 +99,6 @@ func TestNewReplacer(t *testing.T) {
 		),
 		gen(
 			"empty field",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.FieldReplacerSpec{
 					{Field: ""},
@@ -136,8 +123,6 @@ func TestNewReplacer(t *testing.T) {
 		),
 		gen(
 			"invalid replacer",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.FieldReplacerSpec{
 					{
@@ -153,28 +138,22 @@ func TestNewReplacer(t *testing.T) {
 				},
 			},
 			&action{
-				err: &er.Error{
-					Package:     txtutil.ErrPkg,
-					Type:        txtutil.ErrTypeReplacer,
-					Description: txtutil.ErrDscPattern,
-				},
+				err: &zerrors.Err{Message: "internal/txtutil: invalid pattern for Regex."},
 			},
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			repl, err := newReplaceFunc(tt.C().specs)
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
-			if tt.A().err != nil {
+		t.Run(tt.Name, func(t *testing.T) {
+			repl, err := newReplaceFunc(tt.C.specs)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
+			if tt.A.err != nil {
 				return
 			}
 
-			a := repl.replaceAttr(nil, tt.C().in)
-			testutil.Diff(t, tt.A().result, a.Value.Any())
+			a := repl.replaceAttr(nil, tt.C.in)
+			testutil.Diff(t, tt.A.result, a.Value.Any())
 		})
 	}
 }
@@ -189,16 +168,10 @@ func TestReplacer_replaceAttr(t *testing.T) {
 		result any
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"delete string",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.FieldReplacerSpec{
 					{Field: "foo"},
@@ -211,8 +184,6 @@ func TestReplacer_replaceAttr(t *testing.T) {
 		),
 		gen(
 			"delete map string",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.FieldReplacerSpec{
 					{Field: "foo.bar"},
@@ -227,8 +198,6 @@ func TestReplacer_replaceAttr(t *testing.T) {
 		),
 		gen(
 			"delete map inner string",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.FieldReplacerSpec{
 					{Field: "foo.bar.baz"},
@@ -243,8 +212,6 @@ func TestReplacer_replaceAttr(t *testing.T) {
 		),
 		gen(
 			"delete int",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.FieldReplacerSpec{
 					{Field: "foo"},
@@ -257,8 +224,6 @@ func TestReplacer_replaceAttr(t *testing.T) {
 		),
 		gen(
 			"delete map int",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.FieldReplacerSpec{
 					{Field: "foo.bar"},
@@ -273,8 +238,6 @@ func TestReplacer_replaceAttr(t *testing.T) {
 		),
 		gen(
 			"delete map inner int",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.FieldReplacerSpec{
 					{Field: "foo.bar.baz"},
@@ -289,8 +252,6 @@ func TestReplacer_replaceAttr(t *testing.T) {
 		),
 		gen(
 			"string not match",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.FieldReplacerSpec{
 					{Field: "piyo"},
@@ -303,8 +264,6 @@ func TestReplacer_replaceAttr(t *testing.T) {
 		),
 		gen(
 			"map string not match",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.FieldReplacerSpec{
 					{Field: "foo.piyo"},
@@ -319,8 +278,6 @@ func TestReplacer_replaceAttr(t *testing.T) {
 		),
 		gen(
 			"map inner string not match",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.FieldReplacerSpec{
 					{Field: "foo.bar.piyo"},
@@ -335,8 +292,6 @@ func TestReplacer_replaceAttr(t *testing.T) {
 		),
 		gen(
 			"replace string",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.FieldReplacerSpec{
 					{
@@ -356,8 +311,6 @@ func TestReplacer_replaceAttr(t *testing.T) {
 		),
 		gen(
 			"replace map string",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.FieldReplacerSpec{
 					{
@@ -379,8 +332,6 @@ func TestReplacer_replaceAttr(t *testing.T) {
 		),
 		gen(
 			"replace map inner string",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.FieldReplacerSpec{
 					{
@@ -402,8 +353,6 @@ func TestReplacer_replaceAttr(t *testing.T) {
 		),
 		gen(
 			"replace int",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.FieldReplacerSpec{
 					{
@@ -423,8 +372,6 @@ func TestReplacer_replaceAttr(t *testing.T) {
 		),
 		gen(
 			"replace map int",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.FieldReplacerSpec{
 					{
@@ -446,8 +393,6 @@ func TestReplacer_replaceAttr(t *testing.T) {
 		),
 		gen(
 			"replace map inner int",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.FieldReplacerSpec{
 					{
@@ -469,8 +414,6 @@ func TestReplacer_replaceAttr(t *testing.T) {
 		),
 		gen(
 			"cannot reach final value",
-			[]string{},
-			[]string{},
 			&condition{
 				specs: []*v1.FieldReplacerSpec{
 					{
@@ -492,16 +435,14 @@ func TestReplacer_replaceAttr(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			repl, err := newReplaceFunc(tt.C().specs)
+		t.Run(tt.Name, func(t *testing.T) {
+			repl, err := newReplaceFunc(tt.C.specs)
 			testutil.Diff(t, nil, err)
 
-			a := repl.replaceAttr(nil, tt.C().in)
-			testutil.Diff(t, tt.A().result, a.Value.Any())
+			a := repl.replaceAttr(nil, tt.C.in)
+			testutil.Diff(t, tt.A.result, a.Value.Any())
 		})
 	}
 }

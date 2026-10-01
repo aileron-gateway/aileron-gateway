@@ -15,7 +15,7 @@ import (
 	"path/filepath"
 
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
-	"github.com/aileron-gateway/aileron-gateway/kernel/network"
+	"github.com/aileron-gateway/aileron-gateway/internal/network"
 	"github.com/open-policy-agent/opa/logging"
 	"github.com/open-policy-agent/opa/storage"
 	"github.com/open-policy-agent/opa/storage/disk"

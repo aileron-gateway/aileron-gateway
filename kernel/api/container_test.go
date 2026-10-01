@@ -10,8 +10,8 @@ import (
 
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
+	"github.com/aileron-projects/go/zerrors"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
@@ -118,37 +118,10 @@ func TestContainerAPI_Serve(t *testing.T) {
 		err error
 	}
 
-	cndPost := "register"
-	cndDelete := "delete"
-	cndGet := "get"
-	cndWrongType := "wrong content"
-	cndNilRequest := "nil request"
-	cndDuplicateKey := "duplicate key"
-	cndUnsupportedMethod := "unsupported method"
-	actCheckResponse := "check response"
-	actCheckNoError := "no error"
-	actCheckError := "non-nil error"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(cndPost, "send Post request")
-	tb.Condition(cndDelete, "send Delete request")
-	tb.Condition(cndGet, "send Get request")
-	tb.Condition(cndWrongType, "content in the request is invalid")
-	tb.Condition(cndNilRequest, "input nil request")
-	tb.Condition(cndDuplicateKey, "try to register with a duplicate key")
-	tb.Condition(cndUnsupportedMethod, "request with an unsupported method")
-	tb.Action(actCheckResponse, "check the returned response")
-	tb.Action(actCheckNoError, "check that there is no error")
-	tb.Action(actCheckError, "check that a non-nil error was returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"Post an object",
-			[]string{cndPost, cndGet},
-			[]string{actCheckResponse, actCheckNoError},
 			&condition{
 				a: api.NewContainerAPI(),
 				reqs: []*api.Request{
@@ -171,8 +144,6 @@ func TestContainerAPI_Serve(t *testing.T) {
 		),
 		gen(
 			"Delete an object",
-			[]string{cndPost, cndDelete, cndGet},
-			[]string{actCheckResponse, actCheckNoError},
 			&condition{
 				a: api.NewContainerAPI(),
 				reqs: []*api.Request{
@@ -199,8 +170,6 @@ func TestContainerAPI_Serve(t *testing.T) {
 		),
 		gen(
 			"Get with reference",
-			[]string{cndPost, cndGet},
-			[]string{actCheckResponse, actCheckNoError},
 			&condition{
 				a: api.NewContainerAPI(),
 				reqs: []*api.Request{
@@ -229,8 +198,6 @@ func TestContainerAPI_Serve(t *testing.T) {
 		),
 		gen(
 			"nil request",
-			[]string{cndNilRequest},
-			[]string{actCheckResponse, actCheckError},
 			&condition{
 				a: api.NewContainerAPI(),
 				reqs: []*api.Request{
@@ -239,17 +206,11 @@ func TestContainerAPI_Serve(t *testing.T) {
 			},
 			&action{
 				res: nil,
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeContainer,
-					Description: api.ErrDscNil,
-				},
+				err: &zerrors.Err{Message: "kernel/api: request is nil."},
 			},
 		),
 		gen(
 			"invalid content",
-			[]string{cndWrongType},
-			[]string{actCheckResponse, actCheckError},
 			&condition{
 				a: api.NewContainerAPI(),
 				reqs: []*api.Request{
@@ -263,17 +224,11 @@ func TestContainerAPI_Serve(t *testing.T) {
 			},
 			&action{
 				res: nil,
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeUtil,
-					Description: api.ErrDscAssert,
-				},
+				err: &zerrors.Err{Message: "kernel/api: type assertion failed."},
 			},
 		),
 		gen(
 			"register with duplicate key",
-			[]string{cndDuplicateKey},
-			[]string{actCheckResponse, actCheckError},
 			&condition{
 				a: api.NewContainerAPI(),
 				reqs: []*api.Request{
@@ -291,17 +246,11 @@ func TestContainerAPI_Serve(t *testing.T) {
 			},
 			&action{
 				res: nil,
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeContainer,
-					Description: api.ErrDscDuplicateKey,
-				},
+				err: &zerrors.Err{Message: "kernel/api: key duplication error."},
 			},
 		),
 		gen(
 			"unsupported method",
-			[]string{cndUnsupportedMethod},
-			[]string{actCheckResponse, actCheckError},
 			&condition{
 				a: api.NewContainerAPI(),
 				reqs: []*api.Request{
@@ -314,31 +263,25 @@ func TestContainerAPI_Serve(t *testing.T) {
 			},
 			&action{
 				res: nil,
-				err: &er.Error{
-					Package:     api.ErrPkg,
-					Type:        api.ErrTypeContainer,
-					Description: api.ErrDscNoMethod,
-				},
+				err: &zerrors.Err{Message: "kernel/api: method not implemented."},
 			},
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			var res *api.Response
 			var err error
 
 			ctx := context.Background()
-			for _, r := range tt.C().reqs {
-				res, err = tt.C().a.Serve(ctx, r)
+			for _, r := range tt.C.reqs {
+				res, err = tt.C.a.Serve(ctx, r)
 			}
 
 			// Check the response for the final request.
-			testutil.Diff(t, tt.A().err, err, cmpopts.EquateErrors())
-			testutil.Diff(t, tt.A().res, res)
+			testutil.Diff(t, tt.A.err, err, cmpopts.EquateErrors())
+			testutil.Diff(t, tt.A.res, res)
 		})
 	}
 }

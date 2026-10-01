@@ -6,25 +6,27 @@ import "kernel/sockopts.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/kernel";
 
+//+ NetworkType
 // NetworkType is the type of network.
 // Types are basically based on the Go net.Dialer.
 // See https://pkg.go.dev/net#Dial.
 enum NetworkType {
-    HTTP       = 0;   // "http".
-    TCP        = 1;   // "tcp", both IPv4 and IPv6 available.
-    TCP4       = 2;   // "tcp4", "tcp" for IPv4.
-    TCP6       = 3;   // "tcp6", "tcp" for IPv6.
-    UDP        = 4;   // "udp", both IPv4 and IPv6 available.
-    UDP4       = 5;   // "udp4", "udp" for IPv4.
-    UDP6       = 6;   // "udp6", "udp" for IPv6.
-    IP         = 7;   // "ip", both IPv4 and IPv6 available.
-    IP4        = 8;   // "ip4", "ip" for IPv4.
-    IP6        = 9;   // "ip6", "ip" for IPv6.
-    Unix       = 10;  // "unix".
-    UnixGram   = 11;  // "unixgram".
-    UnixPacket = 12;  // "unixpacket".
+    HTTP       = 0; // "http".
+    TCP        = 1; // "tcp", both IPv4 and IPv6 available.
+    TCP4       = 2; // "tcp4", "tcp" for IPv4.
+    TCP6       = 3; // "tcp6", "tcp" for IPv6.
+    UDP        = 4; // "udp", both IPv4 and IPv6 available.
+    UDP4       = 5; // "udp4", "udp" for IPv4.
+    UDP6       = 6; // "udp6", "udp" for IPv6.
+    IP         = 7; // "ip", both IPv4 and IPv6 available.
+    IP4        = 8; // "ip4", "ip" for IPv4.
+    IP6        = 9; // "ip6", "ip" for IPv6.
+    Unix       = 10; // "unix".
+    UnixGram   = 11; // "unixgram".
+    UnixPacket = 12; // "unixpacket".
 }
 
+//+ HTTPTransportConfig
 // HTTPTransportConfig is the configuration for HTTP TransportConfig object.
 // This is the configuration for the trasportation layer of HTTP networking.
 // Proxy configurations are read from the environmental variable
@@ -147,6 +149,7 @@ message HTTPTransportConfig {
     DialConfig DialConfig = 16 [json_name = "dialConfig"];
 }
 
+//+ HTTP2TransportConfig
 // HTTPTransportConfig is the specifications for the HTTP TransportConfig object.
 // This is the configuration for the trasportation layer in networking.
 // Proxy configurations are read from the environmental variable
@@ -278,6 +281,7 @@ message HTTP2TransportConfig {
     uint32 MinLookupInterval = 15 [json_name = "minLookupInterval"];
 }
 
+//+ DialConfig
 // DialConfig is the specifications for the DilConfig object.
 // DialControl controls dialing to the server to send requests to.
 // This message is bounded to the net.Dialer.
@@ -343,9 +347,9 @@ message DialConfig {
     SockOption SockOption = 6 [json_name = "sockOption"];
 }
 
+//+ HTTP3TransportConfig
 // HTTP3TransportConfig is the specifications for the HTTP3 TransportConfig object.
 // This is the configuration for the transport layer of HTTP3.
-// http3.RoundTri
 // See https://pkg.go.dev/github.com/lucas-clemente/quic-go/http3#RoundTripper
 message HTTP3TransportConfig {
     // [OPTIONAL]
@@ -388,6 +392,7 @@ message HTTP3TransportConfig {
     int64 MaxResponseHeaderBytes = 5 [json_name = "maxResponseHeaderBytes"];
 }
 
+//+ ListenConfig
 // ListenConfig is the configurations for stream listner.
 message ListenConfig {
     // [OPTIONAL]
@@ -458,6 +463,7 @@ message ListenConfig {
     SockOption SockOption = 12 [json_name = "sockOption"];
 }
 
+//+ KeepAliveConfig
 // KeepAliveConfig is the configuration for listener keep-alive.
 // This configuration is bounded to net.KeepAliveConfig.
 // See https://pkg.go.dev/net#KeepAliveConfig.
@@ -494,6 +500,7 @@ message KeepAliveConfig {
     int32 Count = 4 [json_name = "count"];
 }
 
+//+ TLSConfig
 // TLSConfig is the configuration for TLS.
 message TLSConfig {
     // [OPTIONAL]
@@ -584,7 +591,7 @@ message TLSConfig {
     // The available numbers are SSL3.0=768, TLS1.0=769,
     // TLS1.1=770, TLS1.2=771, TLS1.3=772.
     // Default is not set.
-    uint32 MinVersion = 10 [json_name = "minVersion", (buf.validate.field).uint32 = {lte : 65535}];
+    uint32 MinVersion = 10 [json_name = "minVersion", (buf.validate.field).uint32 = { lte: 65535 }];
 
     // [OPTIONAL]
     // MaxVersion contains the maximum TLS version that is acceptable.
@@ -592,7 +599,7 @@ message TLSConfig {
     // The available numbers are SSL3.0=768, TLS1.0=769,
     // TLS1.1=770, TLS1.2=771, TLS1.3=772.
     // Default is not set.
-    uint32 MaxVersion = 11 [json_name = "maxVersion", (buf.validate.field).uint32 = {lte : 65535}];
+    uint32 MaxVersion = 11 [json_name = "maxVersion", (buf.validate.field).uint32 = { lte: 65535 }];
 
     // [OPTIONAL]
     // CurvePreferences contains the elliptic curves that will be used in
@@ -620,6 +627,7 @@ message TLSConfig {
     RenegotiationSupport Renegotiation = 14 [json_name = "renegotiation"];
 }
 
+//+ CertKeyPair
 // CertKeyPair is the pair of TLS cert file path
 // and kery file path.
 message CertKeyPair {
@@ -634,6 +642,7 @@ message CertKeyPair {
     string KeyFile = 2 [json_name = "keyFile"];
 }
 
+//+ ClientAuthType
 // ClientAuthType declares the policy the server will follow for TLS Client Authentication.
 // See https://pkg.go.dev/crypto/tls#ClientAuthType
 enum ClientAuthType {
@@ -644,6 +653,7 @@ enum ClientAuthType {
     RequireAndVerifyClientCert = 4;
 }
 
+//+ RenegotiationSupport
 // RenegotiationSupport is the different levels of support for TLS renegotiation.
 // See https://pkg.go.dev/crypto/tls#RenegotiationSupport
 enum RenegotiationSupport {
@@ -652,6 +662,7 @@ enum RenegotiationSupport {
     RenegotiateFreelyAsClient = 2;
 }
 
+//+ CurveID
 // CurveID is the type of a TLS identifier for an elliptic curve.
 // See https://pkg.go.dev/crypto/tls#CurveID
 // and https://www.iana.org/assignments/tls-parameters/tls-parameters.xml#tls-parameters-8.
@@ -662,6 +673,7 @@ enum CurveID {
     X25519    = 3;
 }
 
+//+ TLSCipher
 // TLSCipher is the TLS cipher suite.
 // Refer TLS package at https://pkg.go.dev/crypto/tls#pkg-constants
 enum TLSCipher {
@@ -704,6 +716,7 @@ enum TLSCipher {
     TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305 = 27;
 }
 
+//+ QuicConfig
 // QuicConfig is the specifications for the QuicConfig object.
 // This is the configuration for the trasportation layer in networking of quic protocol.
 // QuicConfig is related to "https://pkg.go.dev/github.com/quic-go/quic-go" package
@@ -712,8 +725,8 @@ message QuicConfig {
     // QuickVersion is the version of QUIC protocol.
     // See https://pkg.go.dev/github.com/quic-go/quic-go#pkg-constants
     enum Version {
-        Version1 = 0;  // Version1 is RFC 9000
-        Version2 = 1;  // Version2 is RFC 9369
+        Version1 = 0; // Version1 is RFC 9000
+        Version2 = 1; // Version2 is RFC 9369
     }
 
     // [OPTIONAL]

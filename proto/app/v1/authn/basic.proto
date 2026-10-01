@@ -8,16 +8,15 @@ import "kernel/encoding.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
 
-// BasicAuthnMiddleware resource definition.
-// apiVersion="app/v1", kind="BasicAuthnMiddleware".
+//+ BasicAuthnMiddleware
 message BasicAuthnMiddleware {
-    string                   APIVersion = 1 [json_name = "apiVersion"];
-    string                   Kind       = 2 [json_name = "kind"];
+    string                   APIVersion = 1 [json_name = "apiVersion"];  // "app/v1"
+    string                   Kind       = 2 [json_name = "kind"];        // "BasicAuthnMiddleware"
     kernel.Metadata          Metadata   = 3 [json_name = "metadata"];
     BasicAuthnMiddlewareSpec Spec       = 4 [json_name = "spec"];
 }
 
-// BasicAuthnMiddlewareSpec is the specifications for the BasicAuthnMiddleware object.
+//+ BasicAuthnMiddlewareSpec
 message BasicAuthnMiddlewareSpec {
     // [OPTIONAL]
     // Logger is the reference to a Logger object.
@@ -97,6 +96,7 @@ message BasicAuthnMiddlewareSpec {
     }
 }
 
+//+ BasicAuthnEnvProvider
 message BasicAuthnEnvProvider {
     // [OPTIONAL]
     // UsernamePrefix is the prefix of environmental variable
@@ -130,6 +130,7 @@ message BasicAuthnEnvProvider {
     kernel.EncodingType Encoding = 3 [json_name = "encoding"];
 }
 
+//+ BasicAuthnFileProvider
 message BasicAuthnFileProvider {
     // [OPTIONAL]
     // Paths are file paths that contains use information.

@@ -7,16 +7,15 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
 
-// OpenTelemetryTracer resource definition.
-// apiVersion="app/v1", kind="OpenTelemetryTracer".
+//+ OpenTelemetryTracer
 message OpenTelemetryTracer {
-    string                  APIVersion = 1 [json_name = "apiVersion"];
-    string                  Kind       = 2 [json_name = "kind"];
+    string                  APIVersion = 1 [json_name = "apiVersion"];  // "app/v1"
+    string                  Kind       = 2 [json_name = "kind"];        // "OpenTelemetryTracer"
     kernel.Metadata         Metadata   = 3 [json_name = "metadata"];
     OpenTelemetryTracerSpec Spec       = 4 [json_name = "spec"];
 }
 
-// OpenTelemetryTracerSpec is the specifications for the OpenTelemetryTracer object.
+//+ OpenTelemetryTracerSpec
 message OpenTelemetryTracerSpec {
     // [OPTIONAL]
     // ServiceName is the value for "service.name" semantic conventions.
@@ -65,6 +64,7 @@ message OpenTelemetryTracerSpec {
     }
 }
 
+//+ PropagationType
 enum PropagationType {
     W3CTraceContext = 0;  // W3C Trace Context format
     W3CBaggage      = 1;  // W3C Baggage format
@@ -75,6 +75,7 @@ enum PropagationType {
     OpenTracing     = 6;  // OpenTracing format
 }
 
+//+ TracerProviderBatchSpec
 message TracerProviderBatchSpec {
     // [OPTIONAL]
     // MaxQueueSize the maximum queue size allowed for a BatchSpanProcessor.
@@ -105,6 +106,7 @@ message TracerProviderBatchSpec {
     bool Blocking = 5 [json_name = "blocking"];
 }
 
+//+ TracerProviderLimitSpec
 message TracerProviderLimitSpec {
     // [OPTIONAL]
     // AttributeValueLengthLimit is the maximum allowed attribute value length.
@@ -156,6 +158,7 @@ message TracerProviderLimitSpec {
     int32 AttributePerLinkCountLimit = 6 [json_name = "attributePerLinkCountLimit"];
 }
 
+//+ HTTPTraceExporterSpec
 message HTTPTraceExporterSpec {
     // [OPTIONAL]
     // EndpointURL is the target endpoint URL (scheme, host, port, path)
@@ -205,6 +208,7 @@ message HTTPTraceExporterSpec {
     OTLPTraceRetrySpec OTLPRetry = 7 [json_name = "otlpRetry"];
 }
 
+//+ GRPCTraceExporterSpec
 message GRPCTraceExporterSpec {
     // [OPTIONAL]
     // EndpointURL is the target endpoint URL (scheme, host, port, path)
@@ -273,6 +277,7 @@ message GRPCTraceExporterSpec {
     string ServiceConfig = 9 [json_name = "serviceConfig"];
 }
 
+//+ StdoutTraceExporterSpec
 message StdoutTraceExporterSpec {
     // [OPTIONAL]
     // PrettyPrint is the flag to prettifies the emitted output.
@@ -285,6 +290,7 @@ message StdoutTraceExporterSpec {
     bool WithoutTimestamps = 2 [json_name = "withoutTimestamps"];
 }
 
+//+ ZipkinTraceExporterSpec
 message ZipkinTraceExporterSpec {
     // [OPTIONAL]
     // Headers configures the exporter to use the configured HTTP request headers.
@@ -300,6 +306,7 @@ message ZipkinTraceExporterSpec {
     string EndpointURL = 2 [json_name = "endpointURL"];
 }
 
+//+ OTLPTraceRetrySpec
 message OTLPTraceRetrySpec {
     // [OPTIONAL]
     // Enabled indicates whether to not retry sending batches in case of export failure.
@@ -311,7 +318,7 @@ message OTLPTraceRetrySpec {
     // Value is in seconds.
     // If zero or not set, default value is used.
     // Default is not set.
-    int32 InitialInterval = 2 [json_name = "initialInterval", (buf.validate.field).int32 = {gte : 0, lte : 600}];
+    int32 InitialInterval = 2 [json_name = "initialInterval", (buf.validate.field).int32 = { gte: 0, lte: 600 }];
 
     // [OPTIONAL]
     // MaxInterval is the upper bound on backoff interval.
@@ -319,7 +326,7 @@ message OTLPTraceRetrySpec {
     // Value is in seconds.
     // If zero or not set, default value is used.
     // Default is not set.
-    int32 MaxInterval = 3 [json_name = "maxInterval", (buf.validate.field).int32 = {gte : 0, lte : 600}];
+    int32 MaxInterval = 3 [json_name = "maxInterval", (buf.validate.field).int32 = { gte: 0, lte: 600 }];
 
     // [OPTIONAL]
     // MaxElapsedTime is the maximum amount of time (including retries) spent trying to send a request/batch.
@@ -327,9 +334,10 @@ message OTLPTraceRetrySpec {
     // Value is in seconds.
     // If zero or not set, default value is used.
     // Default is not set.
-    int32 MaxElapsedTime = 4 [json_name = "maxElapsedTime", (buf.validate.field).int32 = {gte : 0, lte : 1800}];
+    int32 MaxElapsedTime = 4 [json_name = "maxElapsedTime", (buf.validate.field).int32 = { gte: 0, lte: 1800 }];
 }
 
+//+ K8sAttributesSpec
 message K8sAttributesSpec {
     string ClusterName           = 1 [json_name = "clusterName"];
     string ContainerName         = 2 [json_name = "containerName"];
@@ -353,6 +361,7 @@ message K8sAttributesSpec {
     string StatefulSetUID        = 20 [json_name = "statefulSetUID"];
 }
 
+//+ ContainerAttributesSpec
 message ContainerAttributesSpec {
     string ID        = 1 [json_name = "id"];
     string ImageName = 2 [json_name = "imageName"];
@@ -361,6 +370,7 @@ message ContainerAttributesSpec {
     string Runtime   = 5 [json_name = "runtime"];
 }
 
+//+ HostAttributesSpec
 message HostAttributesSpec {
     string ID           = 1 [json_name = "id"];
     string ImageID      = 2 [json_name = "imageID"];

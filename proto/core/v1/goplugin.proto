@@ -5,16 +5,15 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/core/v1";
 
-// GoPlugin resource definition.
-// apiVersion="core/v1", kind="GoPlugin".
+//+ GoPlugin
 message GoPlugin {
-    string          APIVersion = 1 [json_name = "apiVersion"];
-    string          Kind       = 2 [json_name = "kind"];
+    string          APIVersion = 1 [json_name = "apiVersion"];  // "core/v1"
+    string          Kind       = 2 [json_name = "kind"];        // "GoPlugin"
     kernel.Metadata Metadata   = 3 [json_name = "metadata"];
     GoPluginSpec    Spec       = 4 [json_name = "spec"];
 }
 
-// GoPluginSpec is the specifications of the GoPlugin object.
+//+ GoPluginSpec
 message GoPluginSpec {
     // [REQUIRED]
     // PluginPath is path to the shared object of the GoPlugin.

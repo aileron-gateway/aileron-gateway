@@ -8,6 +8,7 @@ import "kernel/commonkey.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/kernel";
 
+//+ ReplacerSpec
 message ReplacerSpec {
     oneof Replacers {
         // Fixed is the fixed value replacer.
@@ -65,6 +66,7 @@ message ReplacerSpec {
     }
 }
 
+//+ ReplaceType
 // ReplaceType is the replacing methods of string or bytes data.
 enum ReplaceType {
     Fixed      = 0;
@@ -84,11 +86,13 @@ enum ReplaceType {
     HMAC       = 14;
 }
 
+//+ FixedReplacer
 message FixedReplacer {
     // [OPTIONAL]
     string Value = 1 [json_name = "value"];
 }
 
+//+ ValueReplacer
 message ValueReplacer {
     // [OPTIONAL]
     // FromTo is the pairs of 2 valus.
@@ -98,6 +102,7 @@ message ValueReplacer {
     map<string, string> FromTo = 1 [json_name = "fromTo"];
 }
 
+//+ LeftReplacer
 message LeftReplacer {
     // [OPTIONAL]
     // Char is the character to replaces.
@@ -109,6 +114,7 @@ message LeftReplacer {
     uint32 Length = 2 [json_name = "length"];
 }
 
+//+ RightReplacer
 message RightReplacer {
     // [OPTIONAL]
     // Char is the character to replaces.
@@ -120,6 +126,7 @@ message RightReplacer {
     uint32 Length = 2 [json_name = "length"];
 }
 
+//+ TrimReplacer
 message TrimReplacer {
     // [OPTIONAL]
     // CutSets is the sets of character to be trimmed
@@ -128,6 +135,7 @@ message TrimReplacer {
     repeated string CutSets = 1 [json_name = "cutSets"];
 }
 
+//+ TrimLeftReplacer
 message TrimLeftReplacer {
     // [OPTIONAL]
     // CutSets is the sets of character to be trimmed
@@ -136,6 +144,7 @@ message TrimLeftReplacer {
     repeated string CutSets = 1 [json_name = "cutSets"];
 }
 
+//+ TrimRightReplacer
 message TrimRightReplacer {
     // [OPTIONAL]
     // CutSets is the sets of character to be trimmed
@@ -144,6 +153,7 @@ message TrimRightReplacer {
     repeated string CutSets = 1 [json_name = "cutSets"];
 }
 
+//+ TrimPrefixReplacer
 message TrimPrefixReplacer {
     // [OPTIONAL]
     // Prefixes is the strings that are removed
@@ -152,6 +162,7 @@ message TrimPrefixReplacer {
     repeated string Prefixes = 1 [json_name = "prefixes"];
 }
 
+//+ TrimSuffixReplacer
 message TrimSuffixReplacer {
     // [OPTIONAL]
     // Suffixes is the strings that are removed
@@ -160,6 +171,7 @@ message TrimSuffixReplacer {
     repeated string Suffixes = 1 [json_name = "suffixes"];
 }
 
+//+ EncodeReplacer
 message EncodeReplacer {
     // [OPTIONAL]
     // Pattern is the strings pattern that should be replaced.
@@ -176,6 +188,7 @@ message EncodeReplacer {
     EncodingType Encoding = 3 [json_name = "encoding", (buf.validate.field).required = true];
 }
 
+//+ HashReplacer
 message HashReplacer {
     // [OPTIONAL]
     // Pattern is the strings pattern that should be replaced.
@@ -195,6 +208,7 @@ message HashReplacer {
     EncodingType Encoding = 4 [json_name = "encoding", (buf.validate.field).required = true];
 }
 
+//+ RegexpReplacer
 message RegexpReplacer {
     // [REQUIRED]
     // Pattern is the strings pattern that should be replaced.
@@ -213,6 +227,7 @@ message RegexpReplacer {
     bool Literal = 4 [json_name = "literal"];
 }
 
+//+ ExpandReplacer
 message ExpandReplacer {
     // [REQUIRED]
     // Pattern is the strings pattern that should be replaced.
@@ -227,6 +242,7 @@ message ExpandReplacer {
     bool POSIX = 3 [json_name = "posix"];
 }
 
+//+ EncryptReplacer
 message EncryptReplacer {
     // [OPTIONAL]
     // Pattern is the strings pattern that should be replaced.
@@ -253,6 +269,7 @@ message EncryptReplacer {
     string Password = 5 [json_name = "password", (buf.validate.field).required = true];
 }
 
+//+ HMACReplacer
 message HMACReplacer {
     // [OPTIONAL]
     // Pattern is the strings pattern that should be replaced.

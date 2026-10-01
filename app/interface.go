@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/aileron-gateway/aileron-gateway/kernel/kvs"
+	"github.com/aileron-gateway/aileron-gateway/internal/kvs"
 )
 
 // AuthStatus is the status of authentication.

@@ -9,16 +9,15 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/core/v1";
 
-// HTTPServer resource definition.
-// apiVersion="core/v1", kind="HTTPServer".
+//+ HTTPServer
 message HTTPServer {
-    string          APIVersion = 1 [json_name = "apiVersion"];
-    string          Kind       = 2 [json_name = "kind"];
+    string          APIVersion = 1 [json_name = "apiVersion"];  // "core/v1"
+    string          Kind       = 2 [json_name = "kind"];        // "HTTPServer"
     kernel.Metadata Metadata   = 3 [json_name = "metadata"];
     HTTPServerSpec  Spec       = 4 [json_name = "spec"];
 }
 
-// HTTPServerSpec is the specifications for the HTTPServer object.
+//+ HTTPServerSpec
 message HTTPServerSpec {
     // [OPTIONAL]
     // Addr is the address which the server listen to.
@@ -91,6 +90,7 @@ message HTTPServerSpec {
     bool EnableExpvar = 9 [json_name = "enableExpvar"];
 }
 
+//+ HTTPConfig
 // HTTPConfig is the configuration for a HTTP 1/2 server.
 message HTTPConfig {
     // EnableGeneralOptionsHandler, if false, passes "OPTIONS *" requests to the Handler,
@@ -170,6 +170,7 @@ message HTTPConfig {
     bool AllowHTTP2 = 10 [json_name = "allowHTTP2"];
 }
 
+//+ HTTP2Config
 // HTTP2Config is the configuration for HTTP2 servers.
 // Configuable fields are related to the HTTP2 server
 // found at https://pkg.go.dev/golang.org/x/net/http2#Server
@@ -253,6 +254,7 @@ message HTTP2Config {
     string AltSvc = 10 [json_name = "altSvc"];
 }
 
+//+ HTTP3Config
 // HTTP3Config is the configuration for HTTP3 servers.
 // Configuable fields are related to the HTTP3 server
 // found at https://pkg.go.dev/github.com/quic-go/quic-go/http3#Server
@@ -283,6 +285,7 @@ message HTTP3Config {
     string AltSvc = 4 [json_name = "altSvc"];
 }
 
+//+ VirtualHostSpec
 // VirtualHostSpec is the specification of each virtual hosts.
 message VirtualHostSpec {
     // [OPTIONAL]

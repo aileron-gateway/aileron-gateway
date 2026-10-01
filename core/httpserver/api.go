@@ -15,14 +15,14 @@ import (
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/core/v1"
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/core"
+	"github.com/aileron-gateway/aileron-gateway/internal/network"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
 	"github.com/aileron-gateway/aileron-gateway/kernel/log"
-	"github.com/aileron-gateway/aileron-gateway/kernel/network"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
 	"github.com/quic-go/quic-go/http3"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
-	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/proto"
 )
 
 const (
@@ -59,7 +59,7 @@ type API struct {
 	*api.BaseResource
 }
 
-func (*API) Mutate(msg protoreflect.ProtoMessage) protoreflect.ProtoMessage {
+func (*API) Mutate(msg proto.Message) proto.Message {
 	c := msg.(*v1.HTTPServer)
 
 	// Add "h2" to the NextProtos if HTTP2 server is enabled.
@@ -74,7 +74,7 @@ func (*API) Mutate(msg protoreflect.ProtoMessage) protoreflect.ProtoMessage {
 	return c
 }
 
-func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.ProtoMessage) (any, error) {
+func (*API) Create(a api.API[*api.Request, *api.Response], msg proto.Message) (any, error) {
 	c := msg.(*v1.HTTPServer)
 
 	lg := log.DefaultOr(c.Metadata.Logger)
@@ -85,18 +85,8 @@ func (*API) Create(a api.API[*api.Request, *api.Response], msg protoreflect.Prot
 	registerExpvar(mux, c.Spec.EnableExpvar)
 
 	nfh := notFoundHandler(eh)
-	handlers, err := registerHandlers(a, mux, c.Spec.VirtualHosts, nfh)
-	if err != nil {
+	if err := registerHandlers(a, mux, c.Spec.VirtualHosts, nfh); err != nil {
 		return nil, core.ErrCoreGenCreateObject.WithStack(err, map[string]any{"kind": kind})
-	}
-
-	// Register not found handler if possible.
-	skipNotFound := false
-	for k := range handlers {
-		skipNotFound = skipNotFound || wildcardPath.MatchString(k)
-	}
-	if !skipNotFound {
-		mux.Handle("/", notFoundHandler(eh))
 	}
 
 	middleware, err := api.ReferTypedObjects[core.Middleware](a, c.Spec.Middleware...)

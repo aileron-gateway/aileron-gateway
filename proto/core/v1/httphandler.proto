@@ -5,16 +5,15 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/core/v1";
 
-// HTTPHandler resource definition.
-// apiVersion="core/v1", kind="HTTPHandler".
+//+ HTTPHandler
 message HTTPHandler {
-    string          APIVersion = 1 [json_name = "apiVersion"];
-    string          Kind       = 2 [json_name = "kind"];
+    string          APIVersion = 1 [json_name = "apiVersion"];  // "core/v1"
+    string          Kind       = 2 [json_name = "kind"];        // "HTTPHandler"
     kernel.Metadata Metadata   = 3 [json_name = "metadata"];
     HTTPHandlerSpec Spec       = 4 [json_name = "spec"];
 }
 
-// HTTPHandlerSpec is the specifications for the Handler object.
+//+ HTTPHandlerSpec
 message HTTPHandlerSpec {
     // [OPTIONAL]
     // Pattern is path pattern that this handler

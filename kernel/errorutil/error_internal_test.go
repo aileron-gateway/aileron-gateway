@@ -19,23 +19,10 @@ func TestError(t *testing.T) {
 		value string
 	}
 
-	CndInputNonZeroValues := "input non-zero values"
-	CndInputZeroValues := "input zero values"
-	ActCheckExpected := "expected value"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(CndInputNonZeroValues, "input non-zero value")
-	tb.Condition(CndInputZeroValues, "input zero value")
-	tb.Action(ActCheckExpected, "check that an expected values returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"zaro values",
-			[]string{},
-			[]string{ActCheckExpected},
 			&condition{
 				err: &ErrorAttrs{
 					code:  "dummy",
@@ -43,7 +30,7 @@ func TestError(t *testing.T) {
 					stack: []byte("dummy"),
 					name:  "dummy",
 					msg:   "",
-					err:   errors.New("dummy"),
+					cause: errors.New("dummy"),
 				},
 			},
 			&action{
@@ -52,8 +39,6 @@ func TestError(t *testing.T) {
 		),
 		gen(
 			"non-zaro values",
-			[]string{CndInputNonZeroValues},
-			[]string{ActCheckExpected},
 			&condition{
 				err: &ErrorAttrs{
 					code:  "dummy",
@@ -61,7 +46,7 @@ func TestError(t *testing.T) {
 					stack: []byte("dummy"),
 					name:  "dummy",
 					msg:   "test",
-					err:   errors.New("dummy"),
+					cause: errors.New("dummy"),
 				},
 			},
 			&action{
@@ -70,12 +55,10 @@ func TestError(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			testutil.Diff(t, tt.A().value, tt.C().err.Error())
+		t.Run(tt.Name, func(t *testing.T) {
+			testutil.Diff(t, tt.A.value, tt.C.err.Error())
 		})
 	}
 }
@@ -89,23 +72,10 @@ func TestCode(t *testing.T) {
 		value string
 	}
 
-	CndInputNonZeroValues := "input non-zero values"
-	CndInputZeroValues := "input zero values"
-	ActCheckExpected := "expected value"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(CndInputNonZeroValues, "input non-zero value")
-	tb.Condition(CndInputZeroValues, "input zero value")
-	tb.Action(ActCheckExpected, "check that an expected values returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"zaro values",
-			[]string{},
-			[]string{ActCheckExpected},
 			&condition{
 				err: &ErrorAttrs{
 					code:  "",
@@ -113,7 +83,7 @@ func TestCode(t *testing.T) {
 					stack: []byte("dummy"),
 					name:  "dummy",
 					msg:   "dummy",
-					err:   errors.New("dummy"),
+					cause: errors.New("dummy"),
 				},
 			},
 			&action{
@@ -122,8 +92,6 @@ func TestCode(t *testing.T) {
 		),
 		gen(
 			"non-zaro values",
-			[]string{CndInputNonZeroValues},
-			[]string{ActCheckExpected},
 			&condition{
 				err: &ErrorAttrs{
 					code:  "test",
@@ -131,7 +99,7 @@ func TestCode(t *testing.T) {
 					stack: []byte("dummy"),
 					name:  "dummy",
 					msg:   "dummy",
-					err:   errors.New("dummy"),
+					cause: errors.New("dummy"),
 				},
 			},
 			&action{
@@ -140,12 +108,10 @@ func TestCode(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			testutil.Diff(t, tt.A().value, tt.C().err.Code())
+		t.Run(tt.Name, func(t *testing.T) {
+			testutil.Diff(t, tt.A.value, tt.C.err.Code())
 		})
 	}
 }
@@ -159,23 +125,10 @@ func TestKind(t *testing.T) {
 		value string
 	}
 
-	CndInputNonZeroValues := "input non-zero values"
-	CndInputZeroValues := "input zero values"
-	ActCheckExpected := "expected value"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(CndInputNonZeroValues, "input non-zero value")
-	tb.Condition(CndInputZeroValues, "input zero value")
-	tb.Action(ActCheckExpected, "check that an expected values returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"zaro values",
-			[]string{},
-			[]string{ActCheckExpected},
 			&condition{
 				err: &ErrorAttrs{
 					code:  "dummy",
@@ -183,7 +136,7 @@ func TestKind(t *testing.T) {
 					stack: []byte("dummy"),
 					name:  "dummy",
 					msg:   "dummy",
-					err:   errors.New("dummy"),
+					cause: errors.New("dummy"),
 				},
 			},
 			&action{
@@ -192,8 +145,6 @@ func TestKind(t *testing.T) {
 		),
 		gen(
 			"non-zaro values",
-			[]string{CndInputNonZeroValues},
-			[]string{ActCheckExpected},
 			&condition{
 				err: &ErrorAttrs{
 					code:  "dummy",
@@ -201,7 +152,7 @@ func TestKind(t *testing.T) {
 					stack: []byte("dummy"),
 					name:  "dummy",
 					msg:   "dummy",
-					err:   errors.New("dummy"),
+					cause: errors.New("dummy"),
 				},
 			},
 			&action{
@@ -210,12 +161,10 @@ func TestKind(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			testutil.Diff(t, tt.A().value, tt.C().err.Kind())
+		t.Run(tt.Name, func(t *testing.T) {
+			testutil.Diff(t, tt.A.value, tt.C.err.Kind())
 		})
 	}
 }
@@ -229,23 +178,10 @@ func TestStackTrace(t *testing.T) {
 		value string
 	}
 
-	CndInputNonZeroValues := "input non-zero values"
-	CndInputZeroValues := "input zero values"
-	ActCheckExpected := "expected value"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(CndInputNonZeroValues, "input non-zero value")
-	tb.Condition(CndInputZeroValues, "input zero value")
-	tb.Action(ActCheckExpected, "check that an expected values returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"zaro values",
-			[]string{},
-			[]string{ActCheckExpected},
 			&condition{
 				err: &ErrorAttrs{
 					code:  "dummy",
@@ -253,7 +189,7 @@ func TestStackTrace(t *testing.T) {
 					stack: []byte(""),
 					name:  "dummy",
 					msg:   "dummy",
-					err:   errors.New("dummy"),
+					cause: errors.New("dummy"),
 				},
 			},
 			&action{
@@ -262,8 +198,6 @@ func TestStackTrace(t *testing.T) {
 		),
 		gen(
 			"non-zaro values",
-			[]string{CndInputNonZeroValues},
-			[]string{ActCheckExpected},
 			&condition{
 				err: &ErrorAttrs{
 					code:  "dummy",
@@ -271,7 +205,7 @@ func TestStackTrace(t *testing.T) {
 					stack: []byte("test"),
 					name:  "dummy",
 					msg:   "dummy",
-					err:   errors.New("dummy"),
+					cause: errors.New("dummy"),
 				},
 			},
 			&action{
@@ -280,12 +214,10 @@ func TestStackTrace(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			testutil.Diff(t, tt.A().value, tt.C().err.StackTrace())
+		t.Run(tt.Name, func(t *testing.T) {
+			testutil.Diff(t, tt.A.value, tt.C.err.StackTrace())
 		})
 	}
 }
@@ -299,23 +231,10 @@ func TestName(t *testing.T) {
 		value string
 	}
 
-	CndInputNonZeroValues := "input non-zero values"
-	CndInputZeroValues := "input zero values"
-	ActCheckExpected := "expected value"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(CndInputNonZeroValues, "input non-zero value")
-	tb.Condition(CndInputZeroValues, "input zero value")
-	tb.Action(ActCheckExpected, "check that an expected values returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"zaro values",
-			[]string{},
-			[]string{ActCheckExpected},
 			&condition{
 				err: &ErrorAttrs{
 					code:  "dummy",
@@ -323,7 +242,7 @@ func TestName(t *testing.T) {
 					stack: []byte("dummy"),
 					name:  "",
 					msg:   "dummy",
-					err:   errors.New("dummy"),
+					cause: errors.New("dummy"),
 				},
 			},
 			&action{
@@ -332,8 +251,6 @@ func TestName(t *testing.T) {
 		),
 		gen(
 			"non-zaro values",
-			[]string{CndInputNonZeroValues},
-			[]string{ActCheckExpected},
 			&condition{
 				err: &ErrorAttrs{
 					code:  "dummy",
@@ -341,7 +258,7 @@ func TestName(t *testing.T) {
 					stack: []byte("dummy"),
 					name:  "test",
 					msg:   "dummy",
-					err:   errors.New("dummy"),
+					cause: errors.New("dummy"),
 				},
 			},
 			&action{
@@ -350,12 +267,10 @@ func TestName(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			testutil.Diff(t, tt.A().value, tt.C().err.Name())
+		t.Run(tt.Name, func(t *testing.T) {
+			testutil.Diff(t, tt.A.value, tt.C.err.Name())
 		})
 	}
 }
@@ -369,23 +284,10 @@ func TestMap(t *testing.T) {
 		value map[string]any
 	}
 
-	CndInputNonZeroValues := "input non-zero values"
-	CndInputZeroValues := "input zero values"
-	ActCheckExpected := "expected value"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(CndInputNonZeroValues, "input non-zero value")
-	tb.Condition(CndInputZeroValues, "input zero value")
-	tb.Action(ActCheckExpected, "check that an expected values returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"zaro values",
-			[]string{},
-			[]string{ActCheckExpected},
 			&condition{
 				err: &ErrorAttrs{
 					code:  "",
@@ -393,7 +295,7 @@ func TestMap(t *testing.T) {
 					stack: []byte(""),
 					name:  "dummy",
 					msg:   "",
-					err:   errors.New("dummy"),
+					cause: errors.New("dummy"),
 				},
 			},
 			&action{
@@ -407,8 +309,6 @@ func TestMap(t *testing.T) {
 		),
 		gen(
 			"non-zaro values",
-			[]string{CndInputNonZeroValues},
-			[]string{ActCheckExpected},
 			&condition{
 				err: &ErrorAttrs{
 					code:  "code",
@@ -416,7 +316,7 @@ func TestMap(t *testing.T) {
 					stack: []byte("stack"),
 					name:  "dummy",
 					msg:   "msg",
-					err:   errors.New("dummy"),
+					cause: errors.New("dummy"),
 				},
 			},
 			&action{
@@ -430,12 +330,10 @@ func TestMap(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			testutil.Diff(t, tt.A().value, tt.C().err.Map())
+		t.Run(tt.Name, func(t *testing.T) {
+			testutil.Diff(t, tt.A.value, tt.C.err.Map())
 		})
 	}
 }
@@ -449,23 +347,10 @@ func TestKeyValues(t *testing.T) {
 		value []any
 	}
 
-	CndInputNonZeroValues := "input non-zero values"
-	CndInputZeroValues := "input zero values"
-	ActCheckExpected := "expected value"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(CndInputNonZeroValues, "input non-zero value")
-	tb.Condition(CndInputZeroValues, "input zero value")
-	tb.Action(ActCheckExpected, "check that an expected values returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"zaro values",
-			[]string{},
-			[]string{ActCheckExpected},
 			&condition{
 				err: &ErrorAttrs{
 					code:  "",
@@ -473,7 +358,7 @@ func TestKeyValues(t *testing.T) {
 					stack: []byte(""),
 					name:  "dummy",
 					msg:   "",
-					err:   errors.New("dummy"),
+					cause: errors.New("dummy"),
 				},
 			},
 			&action{
@@ -487,8 +372,6 @@ func TestKeyValues(t *testing.T) {
 		),
 		gen(
 			"non-zaro values",
-			[]string{CndInputNonZeroValues},
-			[]string{ActCheckExpected},
 			&condition{
 				err: &ErrorAttrs{
 					code:  "code",
@@ -496,7 +379,7 @@ func TestKeyValues(t *testing.T) {
 					stack: []byte("stack"),
 					name:  "dummy",
 					msg:   "msg",
-					err:   errors.New("dummy"),
+					cause: errors.New("dummy"),
 				},
 			},
 			&action{
@@ -510,12 +393,10 @@ func TestKeyValues(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			testutil.Diff(t, tt.A().value, tt.C().err.KeyValues())
+		t.Run(tt.Name, func(t *testing.T) {
+			testutil.Diff(t, tt.A.value, tt.C.err.KeyValues())
 		})
 	}
 }
@@ -529,23 +410,10 @@ func TestUnwrap(t *testing.T) {
 		value error
 	}
 
-	CndInputNonZeroValues := "input non-zero values"
-	CndInputZeroValues := "input zero values"
-	ActCheckExpected := "expected value"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(CndInputNonZeroValues, "input non-zero value")
-	tb.Condition(CndInputZeroValues, "input zero value")
-	tb.Action(ActCheckExpected, "check that an expected values returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"zaro values",
-			[]string{},
-			[]string{ActCheckExpected},
 			&condition{
 				err: &ErrorAttrs{
 					code:  "dummy",
@@ -553,7 +421,7 @@ func TestUnwrap(t *testing.T) {
 					stack: []byte("dummy"),
 					name:  "dummy",
 					msg:   "dummy",
-					err:   errors.New(""),
+					cause: errors.New(""),
 				},
 			},
 			&action{
@@ -562,8 +430,6 @@ func TestUnwrap(t *testing.T) {
 		),
 		gen(
 			"non-zaro values",
-			[]string{CndInputNonZeroValues},
-			[]string{ActCheckExpected},
 			&condition{
 				err: &ErrorAttrs{
 					code:  "dummy",
@@ -571,7 +437,7 @@ func TestUnwrap(t *testing.T) {
 					stack: []byte("dummy"),
 					name:  "dummy",
 					msg:   "dummy",
-					err:   errors.New("test"),
+					cause: errors.New("test"),
 				},
 			},
 			&action{
@@ -580,12 +446,10 @@ func TestUnwrap(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			testutil.Diff(t, tt.A().value.Error(), tt.C().err.Unwrap().Error())
+		t.Run(tt.Name, func(t *testing.T) {
+			testutil.Diff(t, tt.A.value.Error(), tt.C.err.Unwrap().Error())
 		})
 	}
 }
@@ -600,25 +464,10 @@ func TestIs(t *testing.T) {
 		result bool
 	}
 
-	CndInputNil := "input nil"
-	CndDifferentCodes := "different codes"
-	CndNoCoderInterface := "no coder interface"
-	ActCheckTrue := "true returned"
-
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	tb.Condition(CndInputNil, "input nil")
-	tb.Condition(CndDifferentCodes, "two codes are different")
-	tb.Condition(CndNoCoderInterface, "no coder interface is implemented")
-	tb.Action(ActCheckTrue, "check that true is returned")
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"nil target",
-			[]string{},
-			[]string{},
 			&condition{
 				err: &ErrorAttrs{
 					code: "test",
@@ -631,8 +480,6 @@ func TestIs(t *testing.T) {
 		),
 		gen(
 			"different codes",
-			[]string{CndDifferentCodes},
-			[]string{},
 			&condition{
 				err: &ErrorAttrs{
 					code: "test",
@@ -647,15 +494,13 @@ func TestIs(t *testing.T) {
 		),
 		gen(
 			"different inner codes",
-			[]string{CndDifferentCodes},
-			[]string{},
 			&condition{
 				err: &ErrorAttrs{
 					code: "test",
 				},
 				is: &ErrorAttrs{
 					code: "test test",
-					err: &ErrorAttrs{
+					cause: &ErrorAttrs{
 						code: "test test test",
 					},
 				},
@@ -666,8 +511,6 @@ func TestIs(t *testing.T) {
 		),
 		gen(
 			"no coder error",
-			[]string{CndDifferentCodes, CndNoCoderInterface},
-			[]string{},
 			&condition{
 				err: &ErrorAttrs{
 					code: "test",
@@ -680,15 +523,13 @@ func TestIs(t *testing.T) {
 		),
 		gen(
 			"no coder for inner error",
-			[]string{CndDifferentCodes, CndNoCoderInterface},
-			[]string{},
 			&condition{
 				err: &ErrorAttrs{
 					code: "test test",
 				},
 				is: &ErrorAttrs{
-					code: "test",
-					err:  errors.New("test"),
+					code:  "test",
+					cause: errors.New("test"),
 				},
 			},
 			&action{
@@ -697,8 +538,6 @@ func TestIs(t *testing.T) {
 		),
 		gen(
 			"same codes",
-			[]string{},
-			[]string{ActCheckTrue},
 			&condition{
 				err: &ErrorAttrs{
 					code: "test",
@@ -713,15 +552,13 @@ func TestIs(t *testing.T) {
 		),
 		gen(
 			"same inner codes",
-			[]string{},
-			[]string{ActCheckTrue},
 			&condition{
 				err: &ErrorAttrs{
 					code: "test",
 				},
 				is: &ErrorAttrs{
 					code: "test test",
-					err: &ErrorAttrs{
+					cause: &ErrorAttrs{
 						code: "test",
 					},
 				},
@@ -732,12 +569,10 @@ func TestIs(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			testutil.Diff(t, tt.A().result, tt.C().err.Is(tt.C().is))
+		t.Run(tt.Name, func(t *testing.T) {
+			testutil.Diff(t, tt.A.result, tt.C.err.Is(tt.C.is))
 		})
 	}
 }

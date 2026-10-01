@@ -17,16 +17,14 @@ func TestNewAuthorizationCodeHandler(t *testing.T) {
 		errPattern *regexp.Regexp
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
+
+
+
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"empty spec",
-			[]string{},
-			[]string{},
 			&condition{
 				bh:   nil,
 				spec: &v1.AuthorizationCodeHandler{},
@@ -43,8 +41,6 @@ func TestNewAuthorizationCodeHandler(t *testing.T) {
 		),
 		gen(
 			"no error",
-			[]string{},
-			[]string{},
 			&condition{
 				bh: nil,
 				spec: &v1.AuthorizationCodeHandler{
@@ -86,8 +82,6 @@ func TestNewAuthorizationCodeHandler(t *testing.T) {
 		),
 		gen(
 			"invalid callback url",
-			[]string{},
-			[]string{},
 			&condition{
 				bh: nil,
 				spec: &v1.AuthorizationCodeHandler{
@@ -102,15 +96,15 @@ func TestNewAuthorizationCodeHandler(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
 
 
-	for _, tt := range table.Entries() {
+
+	for _, tt := range testCases  {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 
-			h, err := newAuthorizationCodeHandler(tt.C().bh, tt.C().spec)
-			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+			h, err := newAuthorizationCodeHandler(tt.C.bh, tt.C.spec)
+			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 
 			opts := []cmp.Option{
 				cmpopts.IgnoreInterfaces(struct{ http.RoundTripper }{}),
@@ -120,7 +114,7 @@ func TestNewAuthorizationCodeHandler(t *testing.T) {
 				cmpopts.IgnoreUnexported(sync.RWMutex{}, sync.Mutex{}, http.Transport{}),
 			}
 
-			testutil.Diff(t, tt.A().h, h, opts...)
+			testutil.Diff(t, tt.A.h, h, opts...)
 
 		})
 	}
@@ -174,16 +168,14 @@ func TestAuthorizationCodeHandler_ServeAuthn(t *testing.T) {
 		err     core.HTTPError
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
+
+
+
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"url path is login path or callback path when claims exist in session",
-			[]string{},
-			[]string{},
 			&condition{
 				h: &authorizationCodeHandler{
 					baseHandler: &baseHandler{
@@ -418,64 +410,64 @@ func TestAuthorizationCodeHandler_ServeAuthn(t *testing.T) {
 		// ),
 	}
 
-	testutil.Register(table, testCases...)
 
 
-	for _, tt := range table.Entries() {
+
+	for _, tt := range testCases  {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 			h := &authorizationCodeHandler{
 				skipper:        skipper,
-				tokenRedeemer:  tt.C().rt,
+				tokenRedeemer:  tt.C.rt,
 				client:         cl,
 				provider:       pv,
 				claimsKey:      "oauthClaims",
 				resourceServer: "resourceServer",
 				jh:             jh,
 				csrf:           &csrfStateGenerator{},
-				loginPath:      tt.C().loginPath,
+				loginPath:      tt.C.loginPath,
 				callbackPath:   "/callback",
-				restoreRequest: tt.C().restoreRequest,
+				restoreRequest: tt.C.restoreRequest,
 			}
 			w := httptest.NewRecorder()
-			r := tt.C().r
+			r := tt.C.r
 			// Create session.
-			if !tt.C().sessionNotExists {
+			if !tt.C.sessionNotExists {
 				ss, _ := session.NewSession()
 				ctx := session.ContextWithSession(r.Context(), ss)
 				r = r.WithContext(ctx)
 
-				if tt.C().session != nil {
+				if tt.C.session != nil {
 					// Persist tokens in the session.
-					authn.PersistClaims(r.Context(), h.claimsKey, acMethod, tt.C().session)
+					authn.PersistClaims(r.Context(), h.claimsKey, acMethod, tt.C.session)
 				}
-				if tt.C().persistRequest {
+				if tt.C.persistRequest {
 					persistRequest(r)
 				}
-				if tt.C().redirectPath != nil {
-					ss.Persist(redirectSessionKey, tt.C().redirectPath, session.SerializeMsgPack)
+				if tt.C.redirectPath != nil {
+					ss.Persist(redirectSessionKey, tt.C.redirectPath, session.SerializeMsgPack)
 				}
 			}
 
 			nr, ia, sr, err := h.ServeAuthn(w, r)
 
 			// Check for error.
-			if tt.A().err != nil {
+			if tt.A.err != nil {
 				e := err.(core.ErrorResponse)
-				// testutil.Diff(t, tt.A().err.Error(), e.Error())
-				testutil.Diff(t, tt.A().err.StatusCode(), e.StatusCode())
-				testutil.Diff(t, tt.A().err.Body(), e.Body())
+				// testutil.Diff(t, tt.A.err.Error(), e.Error())
+				testutil.Diff(t, tt.A.err.StatusCode(), e.StatusCode())
+				testutil.Diff(t, tt.A.err.Body(), e.Body())
 			} else {
 				testutil.Diff(t, nil, err)
 			}
 
 			// Check isAuthenticated.
-			testutil.Diff(t, tt.A().ia, ia)
+			testutil.Diff(t, tt.A.ia, ia)
 			// Check shouldReturn.
-			testutil.Diff(t, tt.A().sr, sr)
+			testutil.Diff(t, tt.A.sr, sr)
 
 			// Check if newRequest is nil.
-			if tt.A().ctx == nil && tt.A().session == nil {
+			if tt.A.ctx == nil && tt.A.session == nil {
 				testutil.Diff(t, (*http.Request)(nil), nr)
 				return
 			}
@@ -484,11 +476,11 @@ func TestAuthorizationCodeHandler_ServeAuthn(t *testing.T) {
 			opts := []cmp.Option{
 				cmpopts.IgnoreFields(OAuthClaims{}, "AuthTime"),
 			}
-			testutil.Diff(t, tt.A().ctx, nr.Context().Value(h.claimsKey), opts...)
+			testutil.Diff(t, tt.A.ctx, nr.Context().Value(h.claimsKey), opts...)
 
 			// Check the session.
 			tokens, _ := authn.ExtractClaims[OAuthTokens](nr.Context(), h.claimsKey, acMethod)
-			testutil.Diff(t, tt.A().session, tokens)
+			testutil.Diff(t, tt.A.session, tokens)
 		})
 	}
 }
@@ -536,8 +528,8 @@ func TestAuthorizationCodeHandler_ServeAuthn(t *testing.T) {
 // 	actError := "error"
 // 	actNoError := "no error"
 
-// 	tb := testutil.NewTableBuilder[*condition, *action]()
-// 	tb.Name(t.Name())
+//
+//
 // 	tb.Condition(condSessionNotExists, "session does not exists")
 // 	tb.Condition(condRestoreRequest, "restore request")
 // 	tb.Condition(condPersistRequestFailed, "failed to persist request in the session")
@@ -546,7 +538,7 @@ func TestAuthorizationCodeHandler_ServeAuthn(t *testing.T) {
 // 	tb.Action(actError, "check that the expected error is returned")
 // 	tb.Action(actNoError, "check that the there is no error")
 
-// 	table := tb.Build()
+//
 
 // 	gen := testutil.NewCase[*condition, *action]
 // 	testCases := []*testutil.Case[*condition, *action]{
@@ -604,18 +596,18 @@ func TestAuthorizationCodeHandler_ServeAuthn(t *testing.T) {
 // 		),
 // 	}
 
-// 	testutil.Register(table, testCases...)
+//
 //
 
-// 	for _, tt := range table.Entries() {
+// 	for _, tt := range testCases  {
 // 		tt := tt
-// 		t.Run(tt.Name(), func(t *testing.T) {
+// 		t.Run(tt.Name, func(t *testing.T) {
 // 			h := &authorizationCodeHandler{
 // 				provider:       pv,
 // 				client:         cl,
 // 				callbackURL:    "https://test.com/callback",
 // 				csrf:           &csrfStateGenerator{method: "S256"},
-// 				restoreRequest: tt.C().restoreRequest,
+// 				restoreRequest: tt.C.restoreRequest,
 // 				loginPath:      "",
 // 				extraParams:    map[string]string{"key1": "value1", "key2": "value2"},
 // 			}
@@ -623,8 +615,8 @@ func TestAuthorizationCodeHandler_ServeAuthn(t *testing.T) {
 // 			w := httptest.NewRecorder()
 
 // 			// Create request with session.
-// 			r := tt.C().r
-// 			if !tt.C().sessionNotExists {
+// 			r := tt.C.r
+// 			if !tt.C.sessionNotExists {
 // 				ss, _ := session.NewSession()
 // 				ctx := session.ContextWithSession(r.Context(), ss)
 // 				r = r.WithContext(ctx)
@@ -636,12 +628,12 @@ func TestAuthorizationCodeHandler_ServeAuthn(t *testing.T) {
 // 			err := h.authorizationRequest(w, r)
 
 // 			// Check for error.
-// 			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+// 			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 
 // 			// Check response writer.
-// 			testutil.Diff(t, w.Header().Get("Content-Type"), tt.C().w.Header().Get("Content-Type"))
-// 			testutil.Diff(t, w.Result().StatusCode, tt.C().w.Result().StatusCode)
-// 			testutil.Diff(t, w.Body.Bytes(), tt.C().w.Body.Bytes())
+// 			testutil.Diff(t, w.Header().Get("Content-Type"), tt.C.w.Header().Get("Content-Type"))
+// 			testutil.Diff(t, w.Result().StatusCode, tt.C.w.Result().StatusCode)
+// 			testutil.Diff(t, w.Body.Bytes(), tt.C.w.Body.Bytes())
 
 // 		})
 // 	}
@@ -669,8 +661,8 @@ func TestAuthorizationCodeHandler_ServeAuthn(t *testing.T) {
 // 	actError := "error"
 // 	actNoError := "no error"
 
-// 	tb := testutil.NewTableBuilder[*condition, *action]()
-// 	tb.Name(t.Name())
+//
+//
 // 	tb.Condition(condSessionNotExists, "session does not exists")
 // 	tb.Condition(condExtractCSRFParamsFailed, "failed to extract CSRF parameters")
 // 	tb.Condition(condInvalidState, "invalid state")
@@ -678,7 +670,7 @@ func TestAuthorizationCodeHandler_ServeAuthn(t *testing.T) {
 // 	tb.Action(actError, "check that the expected error is returned")
 // 	tb.Action(actNoError, "check that the there is no error")
 
-// 	table := tb.Build()
+//
 
 // 	gen := testutil.NewCase[*condition, *action]
 // 	testCases := []*testutil.Case[*condition, *action]{
@@ -756,14 +748,14 @@ func TestAuthorizationCodeHandler_ServeAuthn(t *testing.T) {
 // 		),
 // 	}
 
-// 	testutil.Register(table, testCases...)
+//
 //
 
-// 	for _, tt := range table.Entries() {
+// 	for _, tt := range testCases  {
 // 		tt := tt
-// 		t.Run(tt.Name(), func(t *testing.T) {
+// 		t.Run(tt.Name, func(t *testing.T) {
 // 			h := &authorizationCodeHandler{
-// 				tokenRedeemer: tt.C().tr,
+// 				tokenRedeemer: tt.C.tr,
 // 				callbackURL:   "https://test.com/callback",
 // 				csrf:          &csrfStateGenerator{},
 // 			}
@@ -775,27 +767,27 @@ func TestAuthorizationCodeHandler_ServeAuthn(t *testing.T) {
 // 			q.Set("code", "testCode")
 // 			r.URL.RawQuery = q.Encode()
 
-// 			if !tt.C().sessionNotExists {
+// 			if !tt.C.sessionNotExists {
 // 				ss, _ := session.NewSession()
 // 				ctx := session.ContextWithSession(r.Context(), ss)
 // 				r = r.WithContext(ctx)
 
-// 				if tt.C().csrfStates != nil {
+// 				if tt.C.csrfStates != nil {
 // 					// Persist csrf states in the session.
-// 					ss.Persist(csrfSessionKey, tt.C().csrfStates, session.SerializeMsgPack)
+// 					ss.Persist(csrfSessionKey, tt.C.csrfStates, session.SerializeMsgPack)
 // 				}
 // 			}
 
 // 			tokens, nonce, err := h.handleCallback(r)
 
 // 			// Check for error.
-// 			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+// 			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 
 // 			// Check tokens.
-// 			testutil.Diff(t, tt.A().t, tokens)
+// 			testutil.Diff(t, tt.A.t, tokens)
 
 // 			// Check nonce.
-// 			testutil.Diff(t, tt.A().nonce, nonce)
+// 			testutil.Diff(t, tt.A.nonce, nonce)
 
 // 		})
 // 	}
@@ -952,8 +944,8 @@ func TestAuthorizationCodeHandler_ServeAuthn(t *testing.T) {
 // 	actError := "error"
 // 	actNoError := "no error"
 
-// 	tb := testutil.NewTableBuilder[*condition, *action]()
-// 	tb.Name(t.Name())
+//
+//
 // 	tb.Condition(condEmptyAT, "access token has empty string")
 // 	tb.Condition(condTokenIntrospection, "token introspection failed")
 // 	tb.Condition(condTokenRefresh, "token refresh")
@@ -973,7 +965,7 @@ func TestAuthorizationCodeHandler_ServeAuthn(t *testing.T) {
 // 	tb.Action(actError, "check that the expected error is returned")
 // 	tb.Action(actNoError, "check that the there is no error")
 
-// 	table := tb.Build()
+//
 
 // 	gen := testutil.NewCase[*condition, *action]
 // 	testCases := []*testutil.Case[*condition, *action]{
@@ -1277,38 +1269,38 @@ func TestAuthorizationCodeHandler_ServeAuthn(t *testing.T) {
 // 		),
 // 	}
 
-// 	testutil.Register(table, testCases...)
+//
 //
 
-// 	for _, tt := range table.Entries() {
+// 	for _, tt := range testCases  {
 // 		tt := tt
-// 		t.Run(tt.Name(), func(t *testing.T) {
+// 		t.Run(tt.Name, func(t *testing.T) {
 // 			h := &authorizationCodeHandler{
-// 				tokenRedeemer:             tt.C().redeemer,
-// 				tokenIntrospector:         tt.C().introspector,
+// 				tokenRedeemer:             tt.C.redeemer,
+// 				tokenIntrospector:         tt.C.introspector,
 // 				provider:                  pv,
 // 				client:                    cl,
-// 				tokenIntrospectionEnabled: tt.C().introspectionEnabled,
+// 				tokenIntrospectionEnabled: tt.C.introspectionEnabled,
 // 				resourceServer:            "resourceServer",
 // 				jh:                        jh,
-// 				extraParams:               tt.C().extraParams,
+// 				extraParams:               tt.C.extraParams,
 // 			}
 
 // 			r := httptest.NewRequest(http.MethodPost, "https://test.com/token", nil)
 
-// 			tokens, claims, err := h.validClaims(r, tt.C().tokens, tt.C().nonce)
+// 			tokens, claims, err := h.validClaims(r, tt.C.tokens, tt.C.nonce)
 
 // 			// Check for error.
-// 			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+// 			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 
 // 			// Check tokens.
-// 			testutil.Diff(t, tt.A().t, tokens)
+// 			testutil.Diff(t, tt.A.t, tokens)
 
 // 			// Check claims.
 // 			opts := []cmp.Option{
 // 				cmpopts.IgnoreFields(OAuthClaims{}, "AuthTime"),
 // 			}
-// 			testutil.Diff(t, tt.A().c, claims, opts...)
+// 			testutil.Diff(t, tt.A.c, claims, opts...)
 
 // 		})
 // 	}
@@ -1334,8 +1326,8 @@ func TestAuthorizationCodeHandler_ServeAuthn(t *testing.T) {
 // 	actError := "error"
 // 	actNoError := "no error"
 
-// 	tb := testutil.NewTableBuilder[*condition, *action]()
-// 	tb.Name(t.Name())
+//
+//
 // 	tb.Condition(condEmptyRT, "refresh token is empty")
 // 	tb.Condition(condRedeemTokenFailed, "redeem token failed")
 // 	tb.Condition(condEmptyResIDT, "IDT in response is empty")
@@ -1343,7 +1335,7 @@ func TestAuthorizationCodeHandler_ServeAuthn(t *testing.T) {
 // 	tb.Action(actError, "check that the expected error is returned")
 // 	tb.Action(actNoError, "check that the there is no error")
 
-// 	table := tb.Build()
+//
 
 // 	gen := testutil.NewCase[*condition, *action]
 // 	testCases := []*testutil.Case[*condition, *action]{
@@ -1443,25 +1435,25 @@ func TestAuthorizationCodeHandler_ServeAuthn(t *testing.T) {
 // 		),
 // 	}
 
-// 	testutil.Register(table, testCases...)
+//
 //
 
-// 	for _, tt := range table.Entries() {
+// 	for _, tt := range testCases  {
 // 		tt := tt
-// 		t.Run(tt.Name(), func(t *testing.T) {
+// 		t.Run(tt.Name, func(t *testing.T) {
 // 			r := httptest.NewRequest(http.MethodPost, "https://test.com/token", nil)
 
 // 			h := &authorizationCodeHandler{
-// 				tokenRedeemer: tt.C().tr,
+// 				tokenRedeemer: tt.C.tr,
 // 			}
 
-// 			tokens, err := h.refreshToken(r, tt.C().t)
+// 			tokens, err := h.refreshToken(r, tt.C.t)
 
 // 			// Check for error.
-// 			testutil.DiffError(t, tt.A().err, tt.A().errPattern, err)
+// 			testutil.DiffError(t, tt.A.err, tt.A.errPattern, err)
 
 // 			// Check token introspection claims.
-// 			testutil.Diff(t, tt.A().t, tokens)
+// 			testutil.Diff(t, tt.A.t, tokens)
 
 // 		})
 // 	}

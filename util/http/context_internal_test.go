@@ -24,17 +24,10 @@ func TestContextWithProxyHeader(t *testing.T) {
 		h http.Header
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"nil context",
-			[]string{},
-			[]string{},
-			&condition{
+			"nil context", &condition{
 				ctx: nil,
 				h:   http.Header{"foo": []string{"bar"}},
 			},
@@ -43,10 +36,7 @@ func TestContextWithProxyHeader(t *testing.T) {
 			},
 		),
 		gen(
-			"nil header",
-			[]string{},
-			[]string{},
-			&condition{
+			"nil header", &condition{
 				ctx: context.Background(),
 				h:   nil,
 			},
@@ -55,10 +45,7 @@ func TestContextWithProxyHeader(t *testing.T) {
 			},
 		),
 		gen(
-			"empty header",
-			[]string{},
-			[]string{},
-			&condition{
+			"empty header", &condition{
 				ctx: context.Background(),
 				h:   http.Header{},
 			},
@@ -67,10 +54,7 @@ func TestContextWithProxyHeader(t *testing.T) {
 			},
 		),
 		gen(
-			"non empty header",
-			[]string{},
-			[]string{},
-			&condition{
+			"non empty header", &condition{
 				ctx: context.Background(),
 				h:   http.Header{"foo": []string{"bar"}},
 			},
@@ -79,10 +63,7 @@ func TestContextWithProxyHeader(t *testing.T) {
 			},
 		),
 		gen(
-			"context with old header",
-			[]string{},
-			[]string{},
-			&condition{
+			"context with old header", &condition{
 				ctx: context.WithValue(context.Background(), headerContextKey, http.Header{"test": []string{"value"}}),
 				h:   http.Header{"foo": []string{"bar"}},
 			},
@@ -92,14 +73,12 @@ func TestContextWithProxyHeader(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			ctx := ContextWithProxyHeader(tt.C().ctx, tt.C().h)
+		t.Run(tt.Name, func(t *testing.T) {
+			ctx := ContextWithProxyHeader(tt.C.ctx, tt.C.h)
 			h, _ := ctx.Value(headerContextKey).(http.Header)
-			testutil.Diff(t, tt.A().h, h, cmpopts.SortMaps(func(a, b string) bool { return a < b }))
+			testutil.Diff(t, tt.A.h, h, cmpopts.SortMaps(func(a, b string) bool { return a < b }))
 		})
 	}
 }
@@ -113,17 +92,10 @@ func TestProxyHeaderFromContext(t *testing.T) {
 		h http.Header
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"nil context",
-			[]string{},
-			[]string{},
-			&condition{
+			"nil context", &condition{
 				ctx: nil,
 			},
 			&action{
@@ -131,10 +103,7 @@ func TestProxyHeaderFromContext(t *testing.T) {
 			},
 		),
 		gen(
-			"empty context",
-			[]string{},
-			[]string{},
-			&condition{
+			"empty context", &condition{
 				ctx: context.Background(),
 			},
 			&action{
@@ -142,10 +111,7 @@ func TestProxyHeaderFromContext(t *testing.T) {
 			},
 		),
 		gen(
-			"context with header",
-			[]string{},
-			[]string{},
-			&condition{
+			"context with header", &condition{
 				ctx: context.WithValue(context.Background(), headerContextKey, http.Header{"foo": []string{"bar"}}),
 			},
 			&action{
@@ -154,13 +120,11 @@ func TestProxyHeaderFromContext(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			h := ProxyHeaderFromContext(tt.C().ctx)
-			testutil.Diff(t, tt.A().h, h, cmpopts.SortMaps(
+		t.Run(tt.Name, func(t *testing.T) {
+			h := ProxyHeaderFromContext(tt.C.ctx)
+			testutil.Diff(t, tt.A.h, h, cmpopts.SortMaps(
 				func(a, b string) bool { return a < b },
 			))
 		})
@@ -177,20 +141,13 @@ func TestContextWithPreProxyHook(t *testing.T) {
 		hs []func(r *http.Request) error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	h1 := func(r *http.Request) error { return nil }
 	h2 := func(r *http.Request) error { return nil }
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"nil context",
-			[]string{},
-			[]string{},
-			&condition{
+			"nil context", &condition{
 				ctx: nil,
 				h:   h1,
 			},
@@ -199,10 +156,7 @@ func TestContextWithPreProxyHook(t *testing.T) {
 			},
 		),
 		gen(
-			"nil func",
-			[]string{},
-			[]string{},
-			&condition{
+			"nil func", &condition{
 				ctx: context.Background(),
 				h:   nil,
 			},
@@ -211,10 +165,7 @@ func TestContextWithPreProxyHook(t *testing.T) {
 			},
 		),
 		gen(
-			"non nil func",
-			[]string{},
-			[]string{},
-			&condition{
+			"non nil func", &condition{
 				ctx: context.Background(),
 				h:   h1,
 			},
@@ -223,10 +174,7 @@ func TestContextWithPreProxyHook(t *testing.T) {
 			},
 		),
 		gen(
-			"context with old header",
-			[]string{},
-			[]string{},
-			&condition{
+			"context with old header", &condition{
 				ctx: context.WithValue(context.Background(), preProxyHookContextKey, &[]func(r *http.Request) error{h2}),
 				h:   h1,
 			},
@@ -236,14 +184,12 @@ func TestContextWithPreProxyHook(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			ctx := ContextWithPreProxyHook(tt.C().ctx, tt.C().h)
+		t.Run(tt.Name, func(t *testing.T) {
+			ctx := ContextWithPreProxyHook(tt.C.ctx, tt.C.h)
 			hs, _ := ctx.Value(preProxyHookContextKey).(*[]func(r *http.Request) error)
-			if tt.A().hs == nil {
+			if tt.A.hs == nil {
 				testutil.Diff(t, (*[]func(*http.Request) error)(nil), hs)
 			} else {
 				opts := []cmp.Option{
@@ -252,7 +198,7 @@ func TestContextWithPreProxyHook(t *testing.T) {
 						return reflect.ValueOf(a).Pointer() > reflect.ValueOf(b).Pointer()
 					}),
 				}
-				testutil.Diff(t, tt.A().hs, *hs, opts...)
+				testutil.Diff(t, tt.A.hs, *hs, opts...)
 			}
 		})
 	}
@@ -267,20 +213,13 @@ func TestPreProxyHookFromContext(t *testing.T) {
 		hs []func(r *http.Request) error
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	h1 := func(r *http.Request) error { return nil }
 	h2 := func(r *http.Request) error { return nil }
 
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
-			"nil context",
-			[]string{},
-			[]string{},
-			&condition{
+			"nil context", &condition{
 				ctx: nil,
 			},
 			&action{
@@ -288,10 +227,7 @@ func TestPreProxyHookFromContext(t *testing.T) {
 			},
 		),
 		gen(
-			"empty context",
-			[]string{},
-			[]string{},
-			&condition{
+			"empty context", &condition{
 				ctx: context.Background(),
 			},
 			&action{
@@ -299,10 +235,7 @@ func TestPreProxyHookFromContext(t *testing.T) {
 			},
 		),
 		gen(
-			"context with old header",
-			[]string{},
-			[]string{},
-			&condition{
+			"context with old header", &condition{
 				ctx: context.WithValue(context.Background(), preProxyHookContextKey, &[]func(r *http.Request) error{h1, h2}),
 			},
 			&action{
@@ -311,19 +244,17 @@ func TestPreProxyHookFromContext(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
-			hs := PreProxyHookFromContext(tt.C().ctx)
+		t.Run(tt.Name, func(t *testing.T) {
+			hs := PreProxyHookFromContext(tt.C.ctx)
 			opts := []cmp.Option{
 				cmp.Comparer(testutil.ComparePointer[func(r *http.Request) error]),
 				cmpopts.SortSlices(func(a, b func(r *http.Request) error) bool {
 					return reflect.ValueOf(a).Pointer() > reflect.ValueOf(b).Pointer()
 				}),
 			}
-			testutil.Diff(t, tt.A().hs, hs, opts...)
+			testutil.Diff(t, tt.A.hs, hs, opts...)
 		})
 	}
 }

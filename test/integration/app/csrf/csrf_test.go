@@ -20,11 +20,11 @@ import (
 	"github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-gateway/aileron-gateway/cmd/aileron/app"
 	"github.com/aileron-gateway/aileron-gateway/core"
+	"github.com/aileron-gateway/aileron-gateway/internal/hash"
 	"github.com/aileron-gateway/aileron-gateway/kernel/api"
-	"github.com/aileron-gateway/aileron-gateway/kernel/hash"
+	"github.com/aileron-gateway/aileron-gateway/kernel/session"
 	"github.com/aileron-gateway/aileron-gateway/kernel/testutil"
 	"github.com/aileron-gateway/aileron-gateway/test/integration/common"
-	"github.com/aileron-gateway/aileron-gateway/util/session"
 )
 
 func generateValidToken(t *testing.T, secret string, seedSize, hashSize int, hmacFunc func([]byte, []byte) []byte) string {
@@ -247,7 +247,7 @@ func TestDoubleSubmitJSON(t *testing.T) {
 }
 
 func withSession(ctx context.Context, token string) context.Context {
-	ss := session.NewDefaultSession(session.SerializeJSON)
+	ss := session.NewDefaultSession()
 	_ = ss.Persist("__csrf_token__", []byte(token))
 	return session.ContextWithSession(ctx, ss)
 }

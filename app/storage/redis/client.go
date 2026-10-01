@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/aileron-gateway/aileron-gateway/app"
-	"github.com/aileron-gateway/aileron-gateway/kernel/kvs"
+	"github.com/aileron-gateway/aileron-gateway/internal/kvs"
 	"github.com/redis/go-redis/v9"
 )
 

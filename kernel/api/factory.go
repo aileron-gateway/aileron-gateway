@@ -11,11 +11,10 @@ import (
 	"strings"
 
 	"buf.build/go/protovalidate"
-	"github.com/aileron-gateway/aileron-gateway/kernel/encoder"
-	"github.com/aileron-gateway/aileron-gateway/kernel/er"
+	"github.com/aileron-gateway/aileron-gateway/internal/encoder"
+	"github.com/aileron-projects/go/zerrors"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 // KeyAccept is the key of the parameter.
@@ -26,23 +25,23 @@ const KeyAccept = "Accept"
 // Resources are used by being registered to a FactoryAPI.
 type Resource interface {
 	// Default returns a new instance of ProtoMessage with default values.
-	Default() protoreflect.ProtoMessage
+	Default() proto.Message
 	// Mutate changes the given ProtoMessage if necessary
 	// and return the changed ProtoMessage.
 	// Given ProtoMessage has the same type as the one returned by the Default().
 	// Input message is the merged with the default value and
 	// user defined configurations.
-	Mutate(protoreflect.ProtoMessage) protoreflect.ProtoMessage
+	Mutate(proto.Message) proto.Message
 	// Validate validates the given ProtoMessage
 	// and return an error when it was invalid.
 	// Given ProtoMessage has the same type as the one returned by the Default().
-	Validate(protoreflect.ProtoMessage) error
+	Validate(proto.Message) error
 	// Create creates a new instance of the resource.
 	// Given ProtoMessage has the same type as the one returned by the Default().
-	Create(API[*Request, *Response], protoreflect.ProtoMessage) (any, error)
+	Create(API[*Request, *Response], proto.Message) (any, error)
 	// Delete deletes the created resource.
 	// Given ProtoMessage has the same type as the one returned by the Default().
-	Delete(API[*Request, *Response], protoreflect.ProtoMessage, any) error
+	Delete(API[*Request, *Response], proto.Message, any) error
 }
 
 // BaseResource is the base struct for api.Resource interface.
@@ -51,32 +50,27 @@ type Resource interface {
 // This struct does not implement Create method because the method is
 // required by all resource implementations.
 type BaseResource struct {
-	DefaultProto protoreflect.ProtoMessage
+	DefaultProto proto.Message
 }
 
-func (b *BaseResource) Default() protoreflect.ProtoMessage {
+func (b *BaseResource) Default() proto.Message {
 	return proto.Clone(b.DefaultProto)
 }
 
-func (b *BaseResource) Validate(msg protoreflect.ProtoMessage) error {
+func (b *BaseResource) Validate(msg proto.Message) error {
 	v, _ := protovalidate.New()
 	if err := v.Validate(msg); err != nil {
 		json, _ := encoder.MarshalProtoToJSON(msg, &protojson.MarshalOptions{Multiline: true, Indent: "  ", AllowPartial: true})
-		return (&er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeFactory,
-			Description: ErrDscProtoValidate,
-			Detail:      reflect.TypeOf(msg).String() + string(addLineNumber(json)),
-		}).Wrap(err)
+		return zerrors.NewErr(nil, "kernel/api: validating proto message failed.", "%s%s", reflect.TypeOf(msg).String(), string(addLineNumber(json)))
 	}
 	return nil
 }
 
-func (b *BaseResource) Mutate(msg protoreflect.ProtoMessage) protoreflect.ProtoMessage {
+func (b *BaseResource) Mutate(msg proto.Message) proto.Message {
 	return msg
 }
 
-func (b *BaseResource) Delete(_ API[*Request, *Response], _ protoreflect.ProtoMessage, _ any) error {
+func (b *BaseResource) Delete(_ API[*Request, *Response], _ proto.Message, _ any) error {
 	return nil
 }
 
@@ -94,7 +88,7 @@ func addLineNumber(in []byte) []byte {
 // NewFactoryAPI returns a new instance of FactoryAPI.
 func NewFactoryAPI() *FactoryAPI {
 	return &FactoryAPI{
-		protoStore: map[string]protoreflect.ProtoMessage{},
+		protoStore: map[string]proto.Message{},
 		objStore:   map[string]any{},
 		resources:  map[string]Resource{},
 	}
@@ -107,7 +101,7 @@ func NewFactoryAPI() *FactoryAPI {
 type FactoryAPI struct {
 	// protoStore stores proto messages.
 	// The key will be IDs in the format of "APIGroup/APIVersion/Kind/Namespace/Name".
-	protoStore map[string]protoreflect.ProtoMessage
+	protoStore map[string]proto.Message
 	// objStore stores objects created by resources.
 	// The key will be IDs in the format of "APIGroup/APIVersion/Kind/Namespace/Name".
 	objStore map[string]any
@@ -123,12 +117,7 @@ func (a *FactoryAPI) Register(key string, r Resource) error {
 		return nil
 	}
 	if _, ok := a.resources[key]; ok {
-		return &er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeFactory,
-			Description: ErrDscDuplicateKey,
-			Detail:      "key=" + key,
-		}
+		return zerrors.NewErr(nil, "kernel/api: key duplication error.", "key=%s", key)
 	}
 	printDebug(debugLv2, "FactoryAPI:", "Register:", "key="+key)
 	a.resources[key] = r
@@ -142,21 +131,12 @@ func (a *FactoryAPI) Serve(ctx context.Context, req *Request) (*Response, error)
 
 	if req == nil {
 		// Nil request is not allowed.
-		return nil, &er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeFactory,
-			Description: ErrDscNil,
-		}
+		return nil, zerrors.NewErr(nil, "kernel/api: request is nil.", "")
 	}
 
 	r, ok := a.resources[req.Key]
 	if !ok {
-		return nil, &er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeFactory,
-			Description: ErrDscNoAPI,
-			Detail:      "key=" + req.Key,
-		}
+		return nil, zerrors.NewErr(nil, "kernel/api: api is not registered.", "key=%s", req.Key)
 	}
 
 	var content any
@@ -183,12 +163,7 @@ func (a *FactoryAPI) Serve(ctx context.Context, req *Request) (*Response, error)
 
 	default:
 		printDebug(debugLv2, "FactoryAPI:", "UNDEFINED:", req.Method, "key="+req.Key)
-		return nil, &er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeFactory,
-			Description: ErrDscNoMethod,
-			Detail:      string(req.Method),
-		}
+		return nil, zerrors.NewErr(nil, "kernel/api: method not implemented.", "%s", string(req.Method))
 	}
 
 	return &Response{
@@ -235,12 +210,7 @@ func (a *FactoryAPI) get(ctx context.Context, req *Request, r Resource) (any, er
 	} else {
 		p, ok := a.protoStore[id]
 		if !ok {
-			return nil, &er.Error{
-				Package:     ErrPkg,
-				Type:        ErrTypeFactory,
-				Description: ErrDscNoManifest,
-				Detail:      "key=" + id,
-			}
+			return nil, zerrors.NewErr(nil, "kernel/api: manifest not found.", "key=%s", id)
 		}
 		msg = p
 	}
@@ -299,12 +269,7 @@ func (a *FactoryAPI) post(_ context.Context, req *Request, r Resource) error {
 	}
 
 	if _, ok := a.protoStore[id]; ok {
-		return &er.Error{
-			Package:     ErrPkg,
-			Type:        ErrTypeFactory,
-			Description: ErrDscDuplicateKey,
-			Detail:      "key=" + req.Key,
-		}
+		return zerrors.NewErr(nil, "kernel/api: key duplication error.", "key=%s", req.Key)
 	}
 
 	// Clone message so it will not be changed.

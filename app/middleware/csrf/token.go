@@ -11,7 +11,7 @@ import (
 	"mime"
 	"net/http"
 
-	"github.com/aileron-gateway/aileron-gateway/kernel/hash"
+	"github.com/aileron-gateway/aileron-gateway/internal/hash"
 	"github.com/tidwall/gjson"
 )
 
@@ -31,7 +31,7 @@ type csrfToken struct {
 }
 
 func (h *csrfToken) new() (string, error) {
-	seed := make([]byte, h.seedSize)
+	seed := make([]byte, h.seedSize) //nolint:prealloc // Consider preallocating seed with capacity h.seedSize + len(digest)
 	if _, err := io.ReadFull(rand.Reader, seed); err != nil {
 		return "", err
 	}

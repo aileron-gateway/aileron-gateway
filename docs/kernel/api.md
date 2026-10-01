@@ -102,11 +102,11 @@ Here, resources are defined with this interface.
 
 ```go
 type Resource interface {
-  Default() protoreflect.ProtoMessage
-  Validate(protoreflect.ProtoMessage) error
-  Mutate(protoreflect.ProtoMessage) protoreflect.ProtoMessage
-  Create(API[*Request, *Response], protoreflect.ProtoMessage) (any, error)
-  Delete(API[*Request, *Response], protoreflect.ProtoMessage, any) error
+  Default() proto.Message
+  Validate(proto.Message) error
+  Mutate(proto.Message) proto.Message
+  Create(API[*Request, *Response], proto.Message) (any, error)
+  Delete(API[*Request, *Response], proto.Message, any) error
 }
 ```
 

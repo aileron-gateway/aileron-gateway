@@ -14,9 +14,9 @@ import (
 	v1 "github.com/aileron-gateway/aileron-gateway/apis/app/v1"
 	"github.com/aileron-gateway/aileron-gateway/app"
 	"github.com/aileron-gateway/aileron-gateway/core"
+	"github.com/aileron-gateway/aileron-gateway/internal/security"
+	"github.com/aileron-gateway/aileron-gateway/kernel/session"
 	utilhttp "github.com/aileron-gateway/aileron-gateway/util/http"
-	"github.com/aileron-gateway/aileron-gateway/util/security"
-	"github.com/aileron-gateway/aileron-gateway/util/session"
 )
 
 const (

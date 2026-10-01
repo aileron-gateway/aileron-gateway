@@ -3,6 +3,7 @@ package kernel;
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/kernel";
 
+//+ CommonKeyCryptType
 // CommonKeyCryptType is the algorithms of common key encryption.
 enum CommonKeyCryptType {
     CommonKeyCryptTypeUnknown = 0;  // Unknown crypt type.

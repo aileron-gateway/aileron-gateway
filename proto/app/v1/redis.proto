@@ -6,29 +6,15 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
 
+//+ RedisClient
 message RedisClient {
-    // [REQUIRED]
-    // APIVersion is the defined version of the midleware.
-    // This value must be "app/v1".
-    string APIVersion = 1 [json_name = "apiVersion"];
-
-    // [REQUIRED]
-    // Kind is the kind of this object.
-    // This value must be "RedisClient".
-    string Kind = 2 [json_name = "kind"];
-
-    // [OPTIONAL]
-    // Metadata is the metadata of the http logger object.
-    // If not set, both name and namespace in the metadata
-    // are treated as "default".
-    kernel.Metadata Metadata = 3 [json_name = "metadata"];
-
-    // [OPTIONAL]
-    // Spec is the specification of the storage.
-    // Default values are used when nothing is set.
-    RedisClientSpec Spec = 4 [json_name = "spec"];
+    string          APIVersion = 1 [json_name = "apiVersion"];  // "app/v1"
+    string          Kind       = 2 [json_name = "kind"];        // "RedisClient"
+    kernel.Metadata Metadata   = 3 [json_name = "metadata"];
+    RedisClientSpec Spec       = 4 [json_name = "spec"];
 }
 
+//+ RedisClientSpec
 // RedisClientSpec is the spec for redis universal client.
 // See https://pkg.go.dev/github.com/go-redis/redis#UniversalOptions for details.
 message RedisClientSpec {

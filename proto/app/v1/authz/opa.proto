@@ -6,16 +6,15 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
 
-// OPAAuthzMiddleware resource definition.
-// apiVersion="app/v1", kind="OPAAuthzMiddleware".
+//+ OPAAuthzMiddleware
 message OPAAuthzMiddleware {
-    string                 APIVersion = 1 [json_name = "apiVersion"];
-    string                 Kind       = 2 [json_name = "kind"];
+    string                 APIVersion = 1 [json_name = "apiVersion"];  // "app/v1"
+    string                 Kind       = 2 [json_name = "kind"];        // "OPAAuthzMiddleware"
     kernel.Metadata        Metadata   = 3 [json_name = "metadata"];
     OPAAuthzMiddlewareSpec Spec       = 4 [json_name = "spec"];
 }
 
-// OPAAuthzMiddlewareSpec is the specifications of the OPAAuthzMiddleware object.
+//+ OPAAuthzMiddlewareSpec
 message OPAAuthzMiddlewareSpec {
     // [OPTIONAL]
     // Logger is the reference to a Logger object.
@@ -59,6 +58,7 @@ message OPAAuthzMiddlewareSpec {
     bool EnableTrace = 7 [json_name = "enableTrace"];
 }
 
+//+ RegoSpec
 // RegoSpec is the specification of a OPA rego.
 // See the OPA's official documents for details at https://www.openpolicyagent.org/docs/latest/
 message RegoSpec {
@@ -160,6 +160,7 @@ message RegoSpec {
     }
 }
 
+//+ BundleVerificationSpec
 message BundleVerificationSpec {
     // [REQUIRED]
     // VerificationKeys is the list of verification keys
@@ -192,6 +193,7 @@ message BundleVerificationSpec {
     repeated string Excludes = 4 [json_name = "excludes"];
 }
 
+//+ VerificationKeySpec
 message VerificationKeySpec {
     // [REQUIRED]
     // KeyID is the key id, or kid value of JWTs, of the key.
@@ -227,6 +229,7 @@ message VerificationKeySpec {
     string KeyFile = 4 [json_name = "keyFile"];
 }
 
+//+ EnvDataSpec
 message EnvDataSpec {
     // [OPTIONAL]
     // Vars is the list of environmental variable names
@@ -261,6 +264,7 @@ message EnvDataSpec {
     bool UID = 5 [json_name = "uid"];
 }
 
+//+ FileStore
 message FileStore {
     // [REQUIRED]
     // Path is the storage path and data file path paires.
@@ -286,6 +290,7 @@ message FileStore {
     string Directory = 2 [json_name = "directory"];
 }
 
+//+ HTTPStore
 message HTTPStore {
     // [REQUIRED]
     // Endpoint is the storage path and HTTP endpoint paires.

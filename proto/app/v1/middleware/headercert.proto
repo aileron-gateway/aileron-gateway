@@ -5,16 +5,15 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
 
-// HeaderCertMiddleware resource definition.
-// apiVersion="app/v1", kind="HeaderCertMiddleware".
+//+ HeaderCertMiddleware
 message HeaderCertMiddleware {
-    string                   APIVersion = 1 [json_name = "apiVersion"];
-    string                   Kind       = 2 [json_name = "kind"];
+    string                   APIVersion = 1 [json_name = "apiVersion"];  // "app/v1"
+    string                   Kind       = 2 [json_name = "kind"];        // "HeaderCertMiddleware"
     kernel.Metadata          Metadata   = 3 [json_name = "metadata"];
     HeaderCertMiddlewareSpec Spec       = 4 [json_name = "spec"];
 }
 
-// HeaderCertMiddlewareSpec is the specification for the HeaderCertMiddleware object.
+//+ HeaderCertMiddlewareSpec
 message HeaderCertMiddlewareSpec {
     // [REQUIRED]
     // RootCAs is the list of the paths for root certificates.

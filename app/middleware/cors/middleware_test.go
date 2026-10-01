@@ -24,16 +24,10 @@ func TestCORS_Middleware(t *testing.T) {
 		header http.Header
 	}
 
-	tb := testutil.NewTableBuilder[*condition, *action]()
-	tb.Name(t.Name())
-	table := tb.Build()
-
 	gen := testutil.NewCase[*condition, *action]
 	testCases := []*testutil.Case[*condition, *action]{
 		gen(
 			"Preflight/method allowed",
-			[]string{},
-			[]string{},
 			&condition{
 				method: http.MethodOptions,
 				headers: map[string]string{
@@ -57,8 +51,6 @@ func TestCORS_Middleware(t *testing.T) {
 		),
 		gen(
 			"Preflight/method disallowed",
-			[]string{},
-			[]string{},
 			&condition{
 				method: http.MethodOptions,
 				headers: map[string]string{
@@ -82,8 +74,6 @@ func TestCORS_Middleware(t *testing.T) {
 		),
 		gen(
 			"Preflight/origin disallowed",
-			[]string{},
-			[]string{},
 			&condition{
 				method: http.MethodOptions,
 				headers: map[string]string{
@@ -106,8 +96,6 @@ func TestCORS_Middleware(t *testing.T) {
 		),
 		gen(
 			"Preflight/wildcard origin",
-			[]string{},
-			[]string{},
 			&condition{
 				method: http.MethodOptions,
 				headers: map[string]string{
@@ -131,8 +119,6 @@ func TestCORS_Middleware(t *testing.T) {
 		),
 		gen(
 			"Preflight/wildcard origin with disabled wildcard origin",
-			[]string{},
-			[]string{},
 			&condition{
 				method: http.MethodOptions,
 				headers: map[string]string{
@@ -157,8 +143,6 @@ func TestCORS_Middleware(t *testing.T) {
 		),
 		gen(
 			"Preflight/with Access-Control-Request-Headers",
-			[]string{},
-			[]string{},
 			&condition{
 				method: http.MethodOptions,
 				headers: map[string]string{
@@ -185,8 +169,6 @@ func TestCORS_Middleware(t *testing.T) {
 		),
 		gen(
 			"Preflight/with exposed headers",
-			[]string{},
-			[]string{},
 			&condition{
 				method: http.MethodOptions,
 				headers: map[string]string{
@@ -212,8 +194,6 @@ func TestCORS_Middleware(t *testing.T) {
 		),
 		gen(
 			"Preflight/with allowed credentials",
-			[]string{},
-			[]string{},
 			&condition{
 				method: http.MethodOptions,
 				headers: map[string]string{
@@ -239,8 +219,6 @@ func TestCORS_Middleware(t *testing.T) {
 		),
 		gen(
 			"Preflight/with private network allowed",
-			[]string{},
-			[]string{},
 			&condition{
 				method: http.MethodOptions,
 				headers: map[string]string{
@@ -268,8 +246,6 @@ func TestCORS_Middleware(t *testing.T) {
 		),
 		gen(
 			"Preflight/with max age",
-			[]string{},
-			[]string{},
 			&condition{
 				method: http.MethodOptions,
 				headers: map[string]string{
@@ -295,8 +271,6 @@ func TestCORS_Middleware(t *testing.T) {
 		),
 		gen(
 			"Actual request with allowed headers",
-			[]string{},
-			[]string{},
 			&condition{
 				method: http.MethodGet,
 				headers: map[string]string{
@@ -321,8 +295,6 @@ func TestCORS_Middleware(t *testing.T) {
 		),
 		gen(
 			"Actual request with exposed headers",
-			[]string{},
-			[]string{},
 			&condition{
 				method: http.MethodGet,
 				headers: map[string]string{
@@ -347,8 +319,6 @@ func TestCORS_Middleware(t *testing.T) {
 		),
 		gen(
 			"Actual request with allowed method",
-			[]string{},
-			[]string{},
 			&condition{
 				method: http.MethodGet,
 				headers: map[string]string{
@@ -371,8 +341,6 @@ func TestCORS_Middleware(t *testing.T) {
 		),
 		gen(
 			"Actual request with credentials allowed",
-			[]string{},
-			[]string{},
 			&condition{
 				method: http.MethodGet,
 				headers: map[string]string{
@@ -397,8 +365,6 @@ func TestCORS_Middleware(t *testing.T) {
 		),
 		gen(
 			"Actual request with disallowed origin",
-			[]string{},
-			[]string{},
 			&condition{
 				method: http.MethodGet,
 				headers: map[string]string{
@@ -420,8 +386,6 @@ func TestCORS_Middleware(t *testing.T) {
 		),
 		gen(
 			"Actual request with embedder policy",
-			[]string{},
-			[]string{},
 			&condition{
 				method: http.MethodGet,
 				headers: map[string]string{
@@ -440,8 +404,6 @@ func TestCORS_Middleware(t *testing.T) {
 		),
 		gen(
 			"Actual request with opener policy",
-			[]string{},
-			[]string{},
 			&condition{
 				method: http.MethodGet,
 				headers: map[string]string{
@@ -460,8 +422,6 @@ func TestCORS_Middleware(t *testing.T) {
 		),
 		gen(
 			"Actual request with opener policy",
-			[]string{},
-			[]string{},
 			&condition{
 				method: http.MethodGet,
 				headers: map[string]string{
@@ -480,8 +440,6 @@ func TestCORS_Middleware(t *testing.T) {
 		),
 		gen(
 			"Actual request with empty origin",
-			[]string{},
-			[]string{},
 			&condition{
 				method:  http.MethodGet,
 				headers: map[string]string{},
@@ -497,8 +455,6 @@ func TestCORS_Middleware(t *testing.T) {
 		),
 		gen(
 			"Forbidden actual request",
-			[]string{},
-			[]string{},
 			&condition{
 				method: http.MethodGet,
 				headers: map[string]string{
@@ -516,21 +472,19 @@ func TestCORS_Middleware(t *testing.T) {
 		),
 	}
 
-	testutil.Register(table, testCases...)
-
-	for _, tt := range table.Entries() {
+	for _, tt := range testCases {
 		tt := tt
-		t.Run(tt.Name(), func(t *testing.T) {
+		t.Run(tt.Name, func(t *testing.T) {
 
 			// Prepare the CORS middleware
 			corsMiddleware := &cors{
 				eh:     utilhttp.GlobalErrorHandler(utilhttp.DefaultErrorHandlerName),
-				policy: tt.C().policy,
+				policy: tt.C.policy,
 			}
 
 			// Create a test request
-			req := httptest.NewRequest(tt.C().method, "http://test.com", nil)
-			for k, v := range tt.C().headers {
+			req := httptest.NewRequest(tt.C.method, "http://test.com", nil)
+			for k, v := range tt.C.headers {
 				req.Header.Set(k, v)
 			}
 
@@ -542,9 +496,9 @@ func TestCORS_Middleware(t *testing.T) {
 			})).ServeHTTP(resp, req)
 
 			// Verify the status code
-			testutil.Diff(t, tt.A().status, resp.Code)
+			testutil.Diff(t, tt.A.status, resp.Code)
 			t.Log(resp.Header())
-			for k, v := range tt.A().header {
+			for k, v := range tt.A.header {
 				testutil.Diff(t, v, resp.Header()[k])
 			}
 

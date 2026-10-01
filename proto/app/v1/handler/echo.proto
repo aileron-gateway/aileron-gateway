@@ -6,16 +6,15 @@ import "kernel/resource.proto";
 
 option go_package = "github.com/aileron-gateway/aileron-gateway/apis/app/v1";
 
-// EchoHandler resource definition.
-// apiVersion="app/v1", kind="EchoHandler".
+//+ EchoHandler
 message EchoHandler {
-    string          APIVersion = 1 [json_name = "apiVersion"];
-    string          Kind       = 2 [json_name = "kind"];
+    string          APIVersion = 1 [json_name = "apiVersion"];  // "app/v1"
+    string          Kind       = 2 [json_name = "kind"];        // "EchoHandler"
     kernel.Metadata Metadata   = 3 [json_name = "metadata"];
     EchoHandlerSpec Spec       = 4 [json_name = "spec"];
 }
 
-// EchoHandlerSpec is the specifications for the EchoHandler object.
+//+ EchoHandlerSpec
 message EchoHandlerSpec {
     // [OPTIONAL]
     // Patterns is path patterns that this handler
@@ -23,7 +22,7 @@ message EchoHandlerSpec {
     // Default is not set, or empty string ["/"].
     repeated string Patterns = 1 [json_name = "patterns"];
 
-    // [OPTIONA]
+    // [OPTIONAL]
     // Methods is the list of HTTP method this handler can handle.
     // Note that it depends on the multiplexer, or HTTP router,
     // that the server uses if this field is used or not.
