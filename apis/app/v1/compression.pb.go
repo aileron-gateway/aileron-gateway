@@ -97,12 +97,13 @@ type CompressionMiddlewareSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// [OPTIONAL]
 	// GzipLevel is the gzip compression level.
-	// BestSpeed=1, BestCompression=9. Default level is 6.
+	// Disable=0, BestSpeed=1, BestCompression=9.
+	// Default level is 0 (disable).
 	GzipLevel int32 `protobuf:"varint,1,opt,name=GzipLevel,json=gzipLevel,proto3" json:"GzipLevel,omitempty"`
 	// [OPTIONAL]
 	// BrotliLevel is the brotli compression level.
-	// BestSpeed=0, BestCompression=11. Default level is 4.
-	// Note that set this field to -1 to use BestSpeed=0 level instead of setting 0 because of the technical issue.
+	// Disable=0, BestSpeed=1, BestCompression=12.
+	// Default level is 0 (disable).
 	BrotliLevel int32 `protobuf:"varint,2,opt,name=BrotliLevel,json=brotliLevel,proto3" json:"BrotliLevel,omitempty"`
 	// [OPTIONAL]
 	// TargetMIMEs is the list of mime types to compress.
@@ -193,10 +194,10 @@ const file_app_v1_middleware_compression_proto_rawDesc = "" +
 	"apiVersion\x12\x12\n" +
 	"\x04Kind\x18\x02 \x01(\tR\x04kind\x12,\n" +
 	"\bMetadata\x18\x03 \x01(\v2\x10.kernel.MetadataR\bmetadata\x125\n" +
-	"\x04Spec\x18\x04 \x01(\v2!.app.v1.CompressionMiddlewareSpecR\x04spec\"\xbe\x01\n" +
+	"\x04Spec\x18\x04 \x01(\v2!.app.v1.CompressionMiddlewareSpecR\x04spec\"\xb5\x01\n" +
 	"\x19CompressionMiddlewareSpec\x12'\n" +
-	"\tGzipLevel\x18\x01 \x01(\x05B\t\xbaH\x06\x1a\x04\x18\t(\x01R\tgzipLevel\x124\n" +
-	"\vBrotliLevel\x18\x02 \x01(\x05B\x12\xbaH\x0f\x1a\r\x18\v(\xff\xff\xff\xff\xff\xff\xff\xff\xff\x01R\vbrotliLevel\x12 \n" +
+	"\tGzipLevel\x18\x01 \x01(\x05B\t\xbaH\x06\x1a\x04\x18\t(\x00R\tgzipLevel\x12+\n" +
+	"\vBrotliLevel\x18\x02 \x01(\x05B\t\xbaH\x06\x1a\x04\x18\f(\x00R\vbrotliLevel\x12 \n" +
 	"\vTargetMIMEs\x18\x03 \x03(\tR\vtargetMIMEs\x12 \n" +
 	"\vMinimumSize\x18\x04 \x01(\x05R\vminimumSizeB8Z6github.com/aileron-gateway/aileron-gateway/apis/app/v1b\x06proto3"
 

@@ -50,11 +50,13 @@ func newGzipWriterPool(level int) sync.Pool {
 type resettableWriter interface {
 	io.WriteCloser
 	Reset(io.Writer)
+	Flush() error
 }
 
 // compressionWriter compress the response data written to the embedded http.ResponseWriter.
 type compressionWriter struct {
 	http.ResponseWriter
+	flush func() error
 
 	// writer is a gzip writer.
 	// This writer will be initialized with the embedded http.ResponseWriter
@@ -87,19 +89,22 @@ type compressionWriter struct {
 }
 
 // initialize initializes this writer and wrapped HTTP response.
-func (w *compressionWriter) initialize() {
+func (w *compressionWriter) initialize(statsuCode int) {
 	w.initialized = true
 	wh := w.Header()
 
-	length := wh.Get("Content-Length")
-	if length == "" {
-		w.shouldSkip = true // Unknown response body size.
+	if statsuCode < 200 || statsuCode == 204 || statsuCode == 304 {
+		w.shouldSkip = true        // Body is not allowed for these status code.
+		wh.Del("Content-Encoding") // Delete just in case.
 		return
 	}
 
-	if size, _ := strconv.ParseInt(length, 10, 64); size < w.minimumSize {
-		w.shouldSkip = true // Response body too small.
-		return
+	// Minimum size checks are only applied for responses with non-zero content length.
+	if length := wh.Get("Content-Length"); length != "" {
+		if size, _ := strconv.ParseInt(length, 10, 64); size == 0 || size < w.minimumSize {
+			w.shouldSkip = true // Response body too small.
+			return
+		}
 	}
 
 	m, _, _ := mime.ParseMediaType(wh.Get("Content-Type"))
@@ -108,8 +113,6 @@ func (w *compressionWriter) initialize() {
 		return
 	}
 
-	// Content-Encoding can contain multiple values.
-	// So, skip compression if there is at least one "gzip" or "br".
 	ce := wh.Get("Content-Encoding")
 	if ce != "" {
 		// Skip if already compressed.
@@ -133,7 +136,7 @@ func (w *compressionWriter) initialize() {
 // before writing the status code into the internal response writer.
 func (w *compressionWriter) WriteHeader(statusCode int) {
 	if !w.initialized {
-		w.initialize() // Initialize writer and response headers.
+		w.initialize(statusCode) // Initialize writer and response headers.
 	}
 	w.ResponseWriter.WriteHeader(statusCode)
 }
@@ -149,10 +152,56 @@ func (w *compressionWriter) Write(data []byte) (int, error) {
 	}
 
 	if !w.initialized {
-		w.initialize() // Initialize writer and response headers.
+		w.initialize(http.StatusOK) // Initialize writer and response headers.
 	}
 	if w.shouldSkip {
 		return w.ResponseWriter.Write(data)
 	}
 	return w.writer.Write(data)
+}
+
+// Flush flushes the internal compression writer.
+// [net/http.ResponseController].Flush supports this signature.
+func (w *compressionWriter) Flush() {
+	if !w.shouldSkip {
+		_ = w.writer.Flush()
+	}
+	if w.flush != nil {
+		_ = w.flush()
+	}
+}
+
+// FlushError flushes the internal compression writer.
+// [net/http.ResponseController].Flush supports this signature.
+func (w *compressionWriter) FlushError() error {
+	if !w.shouldSkip {
+		if err := w.writer.Flush(); err != nil {
+			return err
+		}
+	}
+	if w.flush != nil {
+		return w.flush()
+	}
+	return nil
+}
+
+func flushFunc(rw http.ResponseWriter) func() error {
+	for {
+		switch t := rw.(type) {
+		case interface{ FlushError() error }:
+			return t.FlushError
+		case interface{ Flush() error }:
+			return t.Flush
+		case http.Flusher:
+			return func() error {
+				t.Flush()
+				return nil
+			}
+		}
+		if uw, ok := rw.(interface{ Unwrap() http.ResponseWriter }); ok {
+			rw = uw.Unwrap()
+			continue
+		}
+		return nil
+	}
 }
