@@ -38,12 +38,10 @@ const (
 	HashAlg_SHA3_256       HashAlg = 9  // SHA-3/256 hash algorithm. https://pkg.go.dev/golang.org/x/crypto/sha3
 	HashAlg_SHA3_384       HashAlg = 10 // SHA-3/384 hash algorithm. https://pkg.go.dev/golang.org/x/crypto/sha3
 	HashAlg_SHA3_512       HashAlg = 11 // SHA-3/512 hash algorithm. https://pkg.go.dev/golang.org/x/crypto/sha3
-	HashAlg_SHAKE128       HashAlg = 12 // SHAKE128 hash algorithm. https://pkg.go.dev/golang.org/x/crypto/sha3
-	HashAlg_SHAKE256       HashAlg = 13 // SHAKE256 hash algorithm. https://pkg.go.dev/golang.org/x/crypto/sha3
-	HashAlg_BLAKE2s_256    HashAlg = 14 // BLAKE2s/256 hash algorithm. https://pkg.go.dev/golang.org/x/crypto/blake2s
-	HashAlg_BLAKE2b_256    HashAlg = 15 // BLAKE2b/256 hash algorithm. https://pkg.go.dev/golang.org/x/crypto/blake2b
-	HashAlg_BLAKE2b_384    HashAlg = 16 // BLAKE2b/384 hash algorithm. https://pkg.go.dev/golang.org/x/crypto/blake2b
-	HashAlg_BLAKE2b_512    HashAlg = 17 // BLAKE2b/512 hash algorithm. https://pkg.go.dev/golang.org/x/crypto/blake2b
+	HashAlg_BLAKE2s_256    HashAlg = 12 // BLAKE2s/256 hash algorithm. https://pkg.go.dev/golang.org/x/crypto/blake2s
+	HashAlg_BLAKE2b_256    HashAlg = 13 // BLAKE2b/256 hash algorithm. https://pkg.go.dev/golang.org/x/crypto/blake2b
+	HashAlg_BLAKE2b_384    HashAlg = 14 // BLAKE2b/384 hash algorithm. https://pkg.go.dev/golang.org/x/crypto/blake2b
+	HashAlg_BLAKE2b_512    HashAlg = 15 // BLAKE2b/512 hash algorithm. https://pkg.go.dev/golang.org/x/crypto/blake2b
 )
 
 // Enum value maps for HashAlg.
@@ -61,12 +59,10 @@ var (
 		9:  "SHA3_256",
 		10: "SHA3_384",
 		11: "SHA3_512",
-		12: "SHAKE128",
-		13: "SHAKE256",
-		14: "BLAKE2s_256",
-		15: "BLAKE2b_256",
-		16: "BLAKE2b_384",
-		17: "BLAKE2b_512",
+		12: "BLAKE2s_256",
+		13: "BLAKE2b_256",
+		14: "BLAKE2b_384",
+		15: "BLAKE2b_512",
 	}
 	HashAlg_value = map[string]int32{
 		"HashAlgUnknown": 0,
@@ -81,12 +77,10 @@ var (
 		"SHA3_256":       9,
 		"SHA3_384":       10,
 		"SHA3_512":       11,
-		"SHAKE128":       12,
-		"SHAKE256":       13,
-		"BLAKE2s_256":    14,
-		"BLAKE2b_256":    15,
-		"BLAKE2b_384":    16,
-		"BLAKE2b_512":    17,
+		"BLAKE2s_256":    12,
+		"BLAKE2b_256":    13,
+		"BLAKE2b_384":    14,
+		"BLAKE2b_512":    15,
 	}
 )
 
@@ -121,7 +115,7 @@ var File_kernel_hash_proto protoreflect.FileDescriptor
 
 const file_kernel_hash_proto_rawDesc = "" +
 	"\n" +
-	"\x11kernel/hash.proto\x12\x06kernel*\x8f\x02\n" +
+	"\x11kernel/hash.proto\x12\x06kernel*\xf3\x01\n" +
 	"\aHashAlg\x12\x12\n" +
 	"\x0eHashAlgUnknown\x10\x00\x12\b\n" +
 	"\x04SHA1\x10\x01\x12\n" +
@@ -141,13 +135,11 @@ const file_kernel_hash_proto_rawDesc = "" +
 	"\bSHA3_256\x10\t\x12\f\n" +
 	"\bSHA3_384\x10\n" +
 	"\x12\f\n" +
-	"\bSHA3_512\x10\v\x12\f\n" +
-	"\bSHAKE128\x10\f\x12\f\n" +
-	"\bSHAKE256\x10\r\x12\x0f\n" +
-	"\vBLAKE2s_256\x10\x0e\x12\x0f\n" +
-	"\vBLAKE2b_256\x10\x0f\x12\x0f\n" +
-	"\vBLAKE2b_384\x10\x10\x12\x0f\n" +
-	"\vBLAKE2b_512\x10\x11B8Z6github.com/aileron-gateway/aileron-gateway/apis/kernelb\x06proto3"
+	"\bSHA3_512\x10\v\x12\x0f\n" +
+	"\vBLAKE2s_256\x10\f\x12\x0f\n" +
+	"\vBLAKE2b_256\x10\r\x12\x0f\n" +
+	"\vBLAKE2b_384\x10\x0e\x12\x0f\n" +
+	"\vBLAKE2b_512\x10\x0fB8Z6github.com/aileron-gateway/aileron-gateway/apis/kernelb\x06proto3"
 
 var (
 	file_kernel_hash_proto_rawDescOnce sync.Once

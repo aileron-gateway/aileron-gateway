@@ -35,8 +35,6 @@ const (
 	AlgSHA3_256
 	AlgSHA3_384
 	AlgSHA3_512
-	AlgSHAKE128
-	AlgSHAKE256
 	AlgBLAKE2s_256 //lint:ignore ST1003 should not use underscores in Go names; const AlgBLAKE2s_256 should be AlgBLAKE2s256
 	AlgBLAKE2b_256 //lint:ignore ST1003 should not use underscores in Go names; const AlgBLAKE2b_256 should be AlgBLAKE2b256
 	AlgBLAKE2b_384 //lint:ignore ST1003 should not use underscores in Go names; const AlgBLAKE2b_384 should be AlgBLAKE2b384
@@ -55,8 +53,6 @@ const (
 	SizeSHA3_256    = 32
 	SizeSHA3_384    = 48
 	SizeSHA3_512    = 64
-	SizeSHAKE128    = 32
-	SizeSHAKE256    = 64
 	SizeBLAKE2s_256 = 32 //lint:ignore ST1003 should not use underscores in Go names; const SizeBLAKE2s_256 should be SizeBLAKE2s256
 	SizeBLAKE2b_256 = 32 //lint:ignore ST1003 should not use underscores in Go names; const SizeBLAKE2b_256 should be SizeBLAKE2b256
 	SizeBLAKE2b_384 = 48 //lint:ignore ST1003 should not use underscores in Go names; const SizeBLAKE2b_384 should be SizeBLAKE2b384
@@ -75,8 +71,6 @@ var HashSize = map[k.HashAlg]int{
 	k.HashAlg_SHA3_256:    SizeSHA3_256,
 	k.HashAlg_SHA3_384:    SizeSHA3_384,
 	k.HashAlg_SHA3_512:    SizeSHA3_512,
-	k.HashAlg_SHAKE128:    SizeSHAKE128,
-	k.HashAlg_SHAKE256:    SizeSHAKE256,
 	k.HashAlg_BLAKE2s_256: SizeBLAKE2s_256,
 	k.HashAlg_BLAKE2b_256: SizeBLAKE2b_256,
 	k.HashAlg_BLAKE2b_384: SizeBLAKE2b_384,
@@ -99,8 +93,6 @@ func FromAlgorithm(a Algorithm) HashFunc {
 		AlgSHA3_256:    zsha3.Sum256,
 		AlgSHA3_384:    zsha3.Sum384,
 		AlgSHA3_512:    zsha3.Sum512,
-		AlgSHAKE128:    zsha3.SumShake128,
-		AlgSHAKE256:    zsha3.SumShake256,
 		AlgBLAKE2s_256: zblake2s.Sum256,
 		AlgBLAKE2b_256: zblake2b.Sum256,
 		AlgBLAKE2b_384: zblake2b.Sum384,
@@ -125,8 +117,6 @@ func FromHashAlg(t k.HashAlg) HashFunc {
 		k.HashAlg_SHA3_256:    zsha3.Sum256,
 		k.HashAlg_SHA3_384:    zsha3.Sum384,
 		k.HashAlg_SHA3_512:    zsha3.Sum512,
-		k.HashAlg_SHAKE128:    zsha3.SumShake128,
-		k.HashAlg_SHAKE256:    zsha3.SumShake256,
 		k.HashAlg_BLAKE2s_256: zblake2s.Sum256,
 		k.HashAlg_BLAKE2b_256: zblake2b.Sum256,
 		k.HashAlg_BLAKE2b_384: zblake2b.Sum384,
@@ -150,8 +140,6 @@ func HMACFromAlgorithm(a Algorithm) HMACFunc {
 		AlgSHA3_256:    zsha3.HMACSum256,
 		AlgSHA3_384:    zsha3.HMACSum384,
 		AlgSHA3_512:    zsha3.HMACSum512,
-		AlgSHAKE128:    nil,
-		AlgSHAKE256:    nil,
 		AlgBLAKE2s_256: zblake2s.HMACSum256,
 		AlgBLAKE2b_256: zblake2b.HMACSum256,
 		AlgBLAKE2b_384: zblake2b.HMACSum384,
@@ -175,8 +163,6 @@ func HMACFromHashAlg(t k.HashAlg) HMACFunc {
 		k.HashAlg_SHA3_256:    zsha3.HMACSum256,
 		k.HashAlg_SHA3_384:    zsha3.HMACSum384,
 		k.HashAlg_SHA3_512:    zsha3.HMACSum512,
-		k.HashAlg_SHAKE128:    nil,
-		k.HashAlg_SHAKE256:    nil,
 		k.HashAlg_BLAKE2s_256: zblake2s.HMACSum256,
 		k.HashAlg_BLAKE2b_256: zblake2b.HMACSum256,
 		k.HashAlg_BLAKE2b_384: zblake2b.HMACSum384,

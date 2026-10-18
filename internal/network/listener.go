@@ -146,7 +146,7 @@ func NewListener(c *ListenConfig) (net.Listener, error) {
 
 	var ln net.Listener
 	var err error
-	net, addr := znet.ParseNetAddr(c.Address)
+	net, addr := parseNetAddr(c.Address)
 	switch net {
 	case "", "tcp", "tcp4", "tcp6":
 		net = cmp.Or(net, "tcp") // Default tcp.
@@ -179,6 +179,21 @@ func NewListener(c *ListenConfig) (net.Listener, error) {
 		ln = netutil.LimitListener(ln, c.ConnectionLimit)
 	}
 	return ln, nil
+}
+
+func parseNetAddr(addr string) (network, address string) {
+	before, after, found := strings.Cut(addr, "://")
+	if !found {
+		return "", addr
+	}
+	switch before {
+	case "ip", "ip4", "ip6",
+		"tcp", "tcp4", "tcp6",
+		"udp", "udp4", "udp6",
+		"unix", "unixgram", "unixpacket":
+		return before, after
+	}
+	return "", addr
 }
 
 func SockOptionFromSpec(spec *kernel.SockOption) *zsyscall.SockOption {

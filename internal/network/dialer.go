@@ -15,7 +15,6 @@ import (
 
 	k "github.com/aileron-gateway/aileron-gateway/apis/kernel"
 	"github.com/aileron-projects/go/zerrors"
-	"github.com/aileron-projects/go/znet"
 	"github.com/aileron-projects/go/zsyscall"
 )
 
@@ -184,7 +183,7 @@ func NewDialer(c *DialConfig) (Dialer, error) {
 		return nil, zerrors.NewErr(nil, "internal/network: nil dialer spec", "")
 	}
 
-	network, address := znet.ParseNetAddr(c.LocalAddress)
+	network, address := parseNetAddr(c.LocalAddress)
 	var localAddr net.Addr
 	if network != "" && address != "" {
 		addr, err := resolveAddr(network, address)
