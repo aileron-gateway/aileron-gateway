@@ -61,7 +61,7 @@ func (b *BaseResource) Validate(msg proto.Message) error {
 	v, _ := protovalidate.New()
 	if err := v.Validate(msg); err != nil {
 		json, _ := encoder.MarshalProtoToJSON(msg, &protojson.MarshalOptions{Multiline: true, Indent: "  ", AllowPartial: true})
-		return zerrors.NewErr(nil, "kernel/api: validating proto message failed.", "%s%s", reflect.TypeOf(msg).String(), string(addLineNumber(json)))
+		return zerrors.NewErr(err, "kernel/api: validating proto message failed.", "%s%s", reflect.TypeOf(msg).String(), string(addLineNumber(json)))
 	}
 	return nil
 }
